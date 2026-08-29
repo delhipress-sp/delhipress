@@ -3,570 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delhi Press SP - Digital & Print Wedding Cards</title>
+    <title>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | ऑनलाइन शादी कार्ड ऑर्डर</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Rozha+One&display=swap" rel="stylesheet">
-    
     <style>
+        :root {
+            --primary: #c0392b;
+            --secondary: #e67e22;
+            --dark: #2c3e50;
+            --light: #fdfbf7;
+            --green: #27ae60;
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-            scroll-behavior: smooth;
+            font-family: 'Mukta', sans-serif;
         }
 
         body {
-            background-color: #fff8f6;
+            background-color: var(--light);
             color: #333;
+            line-height: 1.6;
         }
 
         /* Top Bar */
         .top-bar {
-            background: #800020;
-            color: white;
-            text-align: center;
-            padding: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .top-bar i {
-            color: #ffcc00;
-            margin-right: 5px;
-        }
-
-        /* Header & Dropdown Navbar */
-        header {
+            background: var(--dark);
+            color: #fff;
+            padding: 8px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 5%;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #800020;
-        }
-
-        .logo span {
-            color: #d4af37;
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
-
-        .nav-links li a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links li a:hover {
-            color: #800020;
-        }
-
-        /* Dropdown Styling */
-        .dropdown {
-            position: relative;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 180px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            border-radius: 5px;
-            top: 100%;
-            left: 0;
-            z-index: 1;
-        }
-
-        .dropdown-content a {
-            color: #333;
-            padding: 10px 15px;
-            text-decoration: none;
-            display: block;
             font-size: 14px;
         }
 
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-            color: #800020;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        .contact-btn {
-            background: #800020;
-            color: white !important;
-            padding: 8px 18px;
-            border-radius: 20px;
+        .top-bar a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 15px;
             font-weight: 600;
         }
 
-        /* Hero / Sample Screen Section */
-        .hero {
-            padding: 50px 5%;
-            background: linear-gradient(rgba(128, 0, 32, 0.85), rgba(128, 0, 32, 0.85)), url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
+        /* Header */
+        header {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 15px 20px;
             text-align: center;
-            color: white;
+            border-bottom: 3px solid var(--primary);
         }
 
-        .card-screen-container {
-            background: #fff;
-            color: #333;
-            max-width: 750px;
-            margin: 0 auto;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: 5px solid #d4af37;
+        .brand h1 {
+            color: var(--primary);
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .brand h2 {
+            color: var(--secondary);
+            font-size: 18px;
+            margin-top: 2px;
+        }
+
+        .tagline {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Quick Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
+        }
+
+        .btn-call { background: #0984e3; color: white; }
+        .btn-whatsapp { background: #25D366; color: white; }
+        .btn-order { background: var(--primary); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        /* Service Cards & Models */
+        .section-title {
+            text-align: center;
+            margin: 30px 0 15px;
+            color: var(--dark);
+            font-size: 22px;
             position: relative;
         }
 
-        .card-screen-container h2 {
-            font-family: 'Rozha One', serif;
-            color: #800020;
-            font-size: 36px;
+        .section-title::after {
+            content: "";
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .service-card {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+
+        .service-card i {
+            font-size: 32px;
+            color: var(--secondary);
             margin-bottom: 10px;
         }
 
-        .couple-names {
-            font-size: 32px;
-            color: #d4af37;
-            font-weight: 700;
-            margin: 15px 0;
-            font-family: 'Rozha One', serif;
+        .service-card h3 {
+            font-size: 17px;
+            margin-bottom: 5px;
         }
 
-        .card-details {
-            margin: 20px 0;
-            font-size: 16px;
-            line-height: 1.8;
-            color: #555;
+        .service-card p {
+            font-size: 13px;
+            color: #777;
         }
 
-        .card-details strong {
-            color: #800020;
-        }
-
-        /* Section Headings */
-        .section-title {
-            text-align: center;
-            font-size: 32px;
-            color: #800020;
-            margin: 50px 0 20px;
-            font-family: 'Rozha One', serif;
-        }
-
-        /* Catalog / Models & Pricing Section */
-        .catalog-section {
-            padding: 20px 5%;
-        }
-
-        .model-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .model-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
+        /* Form Styling */
+        .order-form-container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border: 1px solid #eee;
-            text-align: center;
-            padding-bottom: 20px;
+            border-top: 4px solid var(--primary);
+            margin-bottom: 40px;
         }
 
-        .model-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
+        .form-section {
+            background: #fdfaf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            border-left: 4px solid var(--secondary);
         }
 
-        .model-card h3 {
-            font-size: 20px;
-            color: #800020;
-            margin: 15px 0 5px;
-        }
-
-        .model-card .price {
-            font-size: 22px;
-            color: #27ae60;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        /* Order, Booking & RSVP Box Section */
-        .booking-section {
-            padding: 40px 5%;
-            background: #fdf5f3;
-        }
-
-        .booking-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .form-box {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border-top: 4px solid #800020;
-        }
-
-        .form-box h3 {
-            color: #800020;
-            margin-bottom: 20px;
-            font-size: 22px;
+        .form-section h4 {
+            color: var(--dark);
+            margin-bottom: 12px;
+            font-size: 17px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 14px;
         }
 
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 5px;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
+            color: #444;
         }
 
-        .form-group input, .form-group select, .form-group textarea {
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        select,
+        textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 6px;
             font-size: 14px;
+            outline: none;
         }
 
-        .btn-submit {
-            background: #800020;
-            color: white;
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .dynamic-item {
+            background: #fff;
             padding: 12px;
-            border: none;
-            width: 100%;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px dashed #bbb;
+            position: relative;
         }
 
-        .btn-submit:hover {
-            background: #600018;
-        }
-
-        /* Map Section */
-        .map-section {
-            padding: 40px 5%;
-            text-align: center;
-        }
-
-        .map-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 3px solid #800020;
-        }
-
-        /* Footer & Multiple Name Add Feature */
-        footer {
-            background: #222;
+        .btn-add {
+            background: #6c5ce7;
             color: white;
-            padding: 40px 5% 20px;
-            text-align: center;
-        }
-
-        .footer-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .footer-content h3 {
-            color: #d4af37;
-            margin-bottom: 15px;
-            font-size: 22px;
-        }
-
-        .name-adder-box {
-            background: rgba(255,255,255,0.08);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        .name-adder-box input {
-            padding: 8px;
-            width: calc(100% - 110px);
-            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 5px;
             border: none;
-            margin-right: 10px;
-        }
-
-        .name-adder-box button {
-            padding: 8px 15px;
-            background: #d4af37;
-            border: none;
-            color: #222;
-            font-weight: 600;
-            border-radius: 4px;
             cursor: pointer;
+            margin-top: 5px;
         }
 
-        #additionalNamesList {
-            margin-top: 10px;
-            list-style: none;
-            font-size: 14px;
-            color: #ddd;
+        .btn-remove {
+            background: #d63031;
+            color: white;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            position: absolute;
+            right: 8px;
+            top: 8px;
         }
 
-        .footer-bottom {
-            border-top: 1px solid #444;
-            padding-top: 15px;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #aaa;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .booking-container {
-                grid-template-columns: 1fr;
-            }
-            .nav-links {
-                display: none;
-            }
-            .card-screen-container {
-                padding: 20px;
-            }
-            .card-screen-container h2 {
-                font-size: 26px;
-            }
-            .couple-names {
-                font-size: 24px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="top-bar">
-        <i class="fas fa-phone-alt"></i> Delhi Press SP Helpline: <strong>9304509464</strong> | Online Shadi Card & Printing Service
-    </div>
-
-    <header>
-        <div class="logo">Delhi Press <span>SP</span></div>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li class="dropdown">
-                    <a href="#">Card Models <i class="fas fa-angle-down"></i></a>
-                    <div class="dropdown-content">
-                        <a href="#catalog">Royal Velvet Card</a>
-                        <a href="#catalog">Laser Cut Card</a>
-                        <a href="#catalog">Digital Video Card</a>
-                        <a href="#catalog">Traditional Designer</a>
-                    </div>
-                </li>
-                <li><a href="#catalog">Pricing</a></li>
-                <li><a href="#booking">Order & RSVP</a></li>
-                <li><a href="#map">Location Map</a></li>
-                <li><a href="tel:9304509464" class="contact-btn"><i class="fas fa-phone"></i> Call Now</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <section id="home" class="hero">
-        <div class="card-screen-container">
-            <p style="text-transform: uppercase; letter-spacing: 2px; color: #800020; font-weight: 600;">Live Shadi Card Sample Screen</p>
-            <h2>ॐ श्री गणेशाय नमः</h2>
-            <div class="couple-names">Rahul <span style="color:#800020;">&amp;</span> Priya</div>
-            
-            <div class="card-details">
-                <p><strong>Program Name:</strong> Vivah Samaroh &amp; Reception</p>
-                <p><strong>Date:</strong> 25 November 2026</p>
-                <p><strong>Time:</strong> Evening 07:00 PM Onwards</p>
-                <p><strong>Venue Address:</strong> Grand Palace Lawns, Main Road, Near City Center</p>
-            </div>
-            
-            <p style="font-style: italic; color: #666; font-size: 14px;">"Aapki seva mein sadar amrit nimtran"</p>
-        </div>
-    </section>
-
-    <section id="catalog" class="catalog-section">
-        <h2 class="section-title">Shadi Card Models &amp; Pricing</h2>
-        <div class="model-grid">
-            <div class="model-card">
-                <img src="https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=500&q=80" alt="Royal Velvet">
-                <h3>Model A: Royal Velvet Box</h3>
-                <div class="price">₹45 / Card</div>
-                <p style="font-size: 13px; color: #666;">Premium velvet box packing with gold foiling.</p>
-            </div>
-            <div class="model-card">
-                <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=500&q=80" alt="Laser Cut">
-                <h3>Model B: Laser Cut Designer</h3>
-                <div class="price">₹25 / Card</div>
-                <p style="font-size: 13px; color: #666;">Intricate modern laser-cut artistic pattern.</p>
-            </div>
-            <div class="model-card">
-                <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Digital Video Card">
-                <h3>Model C: Digital Animated Card</h3>
-                <div class="price">₹499 (Flat)</div>
-                <p style="font-size: 13px; color: #666;">WhatsApp sharing video card with custom music.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="booking" class="booking-section">
-        <h2 class="section-title">Order Form &amp; RSVP Section</h2>
-        <div class="booking-container">
-            
-            <div class="form-box">
-                <h3><i class="fas fa-shopping-cart"></i> Place Your Card Order</h3>
-                <form id="orderForm">
-                    <div class="form-group">
-                        <label>Your Name / Guardian Name</label>
-                        <input type="text" placeholder="Enter full name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Mobile Number</label>
-                        <input type="tel" value="9304509464" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Select Card Model</label>
-                        <select required>
-                            <option value="">Choose Model</option>
-                            <option value="Model A">Model A: Royal Velvet Box (₹45)</option>
-                            <option value="Model B">Model B: Laser Cut Designer (₹25)</option>
-                            <option value="Model C">Model C: Digital Video Card (₹499)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Payment Option</label>
-                        <select required>
-                            <option value="advance">Advance Payment (50% Online / UPI)</option>
-                            <option value="full">Full Payment (COD / Online)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn-submit">Confirm Order</button>
-                </form>
-            </div>
-
-            <div class="form-box" style="border-top-color: #d4af37;">
-                <h3><i class="fas fa-envelope-open-text"></i> RSVP Response Box</h3>
-                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Aap apne guest ka reply yahan record kar sakte hain.</p>
-                <form id="rsvpForm">
-                    <div class="form-group">
-                        <label>Guest Name</label>
-                        <input type="text" placeholder="Guest ka naam" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Attending Status</label>
-                        <select required>
-                            <option value="yes">Yes, I will attend (उपस्थित रहunga)</option>
-                            <option value="no">Sorry, cannot attend</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Number of People Attending</label>
-                        <input type="number" min="1" value="1" required>
-                    </div>
-                    <button type="submit" class="btn-submit" style="background: #d4af37; color: #222;">Submit RSVP</button>
-                </form>
-            </div>
-
-        </div>
-    </section>
-
-    <section id="map" class="map-section">
-        <h2 class="section-title">Venue Location Map</h2>
-        <div class="map-container">
-            <iframe width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3506.1309594119864!2d77.2089!3d28.6139!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjguMzYnNTAnMC4wIk4gNzfCsDEyJzMyLjAiRQ!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin"></iframe>
-        </div>
-    </section>
-
-    <footer>
-        <div class="footer-content">
-            <h3>Delhi Press SP - Shadi Card Portal</h3>
-            <p style="margin-bottom: 20px; font-size: 14px; color: #ccc;">Contact: 9304509464 | All Types of Printing &amp; Digital Solutions</p>
-            
-            <div class="name-adder-box">
-                <label style="display:block; font-size:14px; margin-bottom:8px; color:#ffcc00; font-weight:600;">
-                    <i class="fas fa-users"></i> Add Multiple Family / Welcoming Names (निमंत्रक / परिवार के नाम):
-                </label>
-                <div style="display: flex;">
-                    <input type="text" id="nameInput" placeholder="Jaise: Shri Ram Kumar (Chacha ji)">
-                    <button type="button" onclick="addFamilyName()">Add Name</button>
-                </div>
-                <ul id="additionalNamesList">
-                    </ul>
-            </div>
-
-            <div class="footer-bottom">
-                &copy; 2026 Delhi Press SP. All Rights Reserved. Designed for Commercial Shadi Card Business.
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Multiple Family Name Adder Script
-        function addFamilyName() {
-            const input = document.getElementById('nameInput');
-            const list = document.getElementById('additionalNamesList');
-            
-            if(input.value.trim() !== "") {
-                const li = document.createElement('li');
-                li.style.marginTop = "5px";
-                li.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60; margin-right: 5px;"></i> ${input.value}`;
-                list.appendChild(li);
-                input.value = "";
-            } else {
-                alert("Kripya naam enter karein!");
-            }
-        }
-
-        // Form Submit Alerts
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Aapka Order successfully submit ho gaya hai! Delhi Press SP (9304509464) jald hi aapse sampark karega.');
-            this.reset();
-        });
-
-        document.getElementById('rsvpForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Aapka RSVP response successfully record ho gaya hai. Dhanyawad!');
-            this.reset();
-        });
-    </script>
-
-</body>
-</html>
+        /* Payment Section */
+        .payment-box {
+            background: #f0f9ff;
+            border: 2px dashed #0
