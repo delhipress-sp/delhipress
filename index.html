@@ -7,6 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Supabase JS Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root {
             --primary: #c0392b;
@@ -707,7 +710,7 @@
 
     </div>
 
-    <!-- Mobile Bottom Fixed Navigation -->
+    <!-- Mobile Bottom Navigation -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i>कॉल करें</a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i>कैटलॉग</a>
@@ -726,9 +729,33 @@
                     <label>एडमिन पिन:</label>
                     <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
                 </div>
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <a onclick="toggleAdminPinView('forgot')" style="font-size: 12px; color: var(--secondary); font-weight: bold; cursor: pointer;">
+                        पिन भूल गए? (Forgot PIN)
+                    </a>
+                </div>
                 <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 8px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
                     प्रवेश करें
                 </button>
+            </div>
+
+            <!-- Forgot Admin PIN Section -->
+            <div id="adminForgotPinSection" style="display: none;">
+                <h3 style="color: var(--secondary); text-align: center; margin-bottom: 10px;">एडमिन पिन रीसेट</h3>
+                <div class="form-group">
+                    <label>मास्टर मोबाइल नंबर:</label>
+                    <input type="tel" id="adminMasterPhone" placeholder="9304509464 दर्ज करें">
+                </div>
+                <div class="form-group">
+                    <label>नया एडमिन पिन बनाएं:</label>
+                    <input type="password" id="newAdminPin" placeholder="नया ४ अंकों का पिन">
+                </div>
+                <button type="button" onclick="handleAdminResetPin()" style="width: 100%; padding: 8px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                    पिन अपडेट करें
+                </button>
+                <div style="text-align:center; margin-top:10px;">
+                    <a onclick="toggleAdminPinView('login')" style="font-size:12px; color:var(--primary); cursor:pointer;">वापस लॉगिन करें</a>
+                </div>
             </div>
 
             <div id="adminWorkSection" style="display: none;">
@@ -867,58 +894,23 @@
 
     <script>
         // =========================================================================
-        // UNIVERSAL CLOUD DATABASE ENGINE (REST API - NO SDK / NO HANGING)
-        // मोबाइल और लैपटॉप पर 100% एक जैसा रियल-टाइम सिंक
+        // SUPABASE REALTIME CLOUD ENGINE
+        // (यहाँ अपनी Supabase डिटेल्स डालें)
         // =========================================================================
-        const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66d06173ad19ca34f89d38bb";
-        const CLOUD_ACCESS_KEY = "$2a$10$Q37Pq7tM2JzP5L6K7pQ1u.Xl4zS1R5T9V2W3X4Y5Z6A7B8C9D0E1F";
+        const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+        const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
-        const ADMIN_PIN = "1234";
         const OWNER_EMAIL = "mdsajadans@gmail.com";
 
         let weddingSampleUrl = "";
         let bannerSampleUrl = "";
         let visitingSampleUrl = "";
 
-        // ऑनलाइन क्लाउड से यूज़र्स फ़ेच करना
-        async function fetchCloudUsers() {
-            try {
-                const res = await fetch(CLOUD_API_URL + "/latest", {
-                    headers: { 'X-Master-Key': CLOUD_ACCESS_KEY }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.record && data.record.users) {
-                        localStorage.setItem('dp_cloud_users_cache', JSON.stringify(data.record.users));
-                        return data.record.users;
-                    }
-                }
-            } catch (err) {
-                console.warn("Cloud read fallback to cache", err);
-            }
-            return JSON.parse(localStorage.getItem('dp_cloud_users_cache') || "{}");
-        }
-
-        // ऑनलाइन क्लाउड में नया यूज़र सेव करना
-        async function updateCloudUsers(allUsers) {
-            localStorage.setItem('dp_cloud_users_cache', JSON.stringify(allUsers));
-            try {
-                await fetch(CLOUD_API_URL, {
-                    method: "PUT",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': CLOUD_ACCESS_KEY
-                    },
-                    body: JSON.stringify({ users: allUsers })
-                });
-            } catch (err) {
-                console.warn("Cloud write error", err);
-            }
-        }
-
-        // 1. रजिस्ट्रेशन (मोबाइल या लैपटॉप कहीं भी करें - सीधे क्लाउड में सेव होगा)
+        // 1. Supabase Registration
         async function handleRegisterSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('regBtn');
@@ -930,42 +922,61 @@
             const address = document.getElementById('regAddress').value.trim();
             const pass = document.getElementById('regPass').value.trim();
 
-            const users = await fetchCloudUsers();
+            try {
+                // Check if already registered
+                const { data: existingUser } = await supabaseClient
+                    .from('users')
+                    .select('mobile')
+                    .eq('mobile', mobile)
+                    .maybeSingle();
 
-            if (users[mobile]) {
-                alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! आप सीधे इसी नंबर और पासवर्ड से लॉगिन कर सकते हैं।");
+                if (existingUser) {
+                    alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
+                    btn.innerText = "रजिस्टर करें"; btn.disabled = false;
+                    toggleAuthView('login');
+                    return;
+                }
+
+                // Insert into Supabase
+                const { error } = await supabaseClient
+                    .from('users')
+                    .insert([{
+                        mobile: mobile,
+                        name: name,
+                        village: village,
+                        address: address,
+                        pass: pass,
+                        reg_date: new Date().toLocaleDateString('hi-IN')
+                    }]);
+
+                if (error) {
+                    alert("त्रुटि: " + error.message);
+                } else {
+                    const newUser = { name, mobile, village, address };
+                    localStorage.setItem('dp_current_user', JSON.stringify(newUser));
+
+                    // Background notification to email
+                    fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                        method: "POST",
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${mobile})`,
+                            नाम: name, फोन: mobile, गाँव: village, पता: address
+                        })
+                    }).catch(() => {});
+
+                    alert("अकाउंट सफलतापूर्वक बन गया है! अब आप मोबाइल या लैपटॉप कहीं से भी लॉगिन कर सकते हैं।");
+                    closeAuthModal();
+                    checkUserSession();
+                }
+            } catch (err) {
+                alert("कनेक्शन एरर! कृपया दोबारा प्रयास करें।");
+            } finally {
                 btn.innerText = "रजिस्टर करें"; btn.disabled = false;
-                toggleAuthView('login');
-                return;
             }
-
-            const newUser = {
-                name: name, mobile: mobile, village: village, address: address,
-                pass: pass, regDate: new Date().toLocaleDateString('hi-IN')
-            };
-
-            users[mobile] = newUser;
-            await updateCloudUsers(users);
-
-            localStorage.setItem('dp_current_user', JSON.stringify(newUser));
-
-            // ईमेल अलर्ट
-            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({
-                    _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${mobile})`,
-                    नाम: name, फोन: mobile, गाँव: village, पता: address
-                })
-            }).catch(() => {});
-
-            alert("अकाउंट सफलतापूर्वक बन गया है! अब आप किसी भी मोबाइल या लैपटॉप पर इसी ID-पासवर्ड से लॉगिन कर सकते हैं।");
-            btn.innerText = "रजिस्टर करें"; btn.disabled = false;
-            closeAuthModal();
-            checkUserSession();
         }
 
-        // 2. लॉगिन (मोबाइल व लैपटॉप पर समान रूप से तुरंत खुलेगा)
+        // 2. Supabase Login
         async function handleLoginSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
@@ -974,24 +985,33 @@
             const mobile = document.getElementById('loginMobile').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
 
-            const users = await fetchCloudUsers();
-            btn.innerText = "लॉगिन करें"; btn.disabled = false;
+            try {
+                const { data: user, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('mobile', mobile)
+                    .maybeSingle();
 
-            if (users && users[mobile]) {
-                if (users[mobile].pass === pass) {
-                    localStorage.setItem('dp_current_user', JSON.stringify(users[mobile]));
-                    alert("स्वागत है, " + users[mobile].name + "! लॉगिन सफल रहा।");
-                    closeAuthModal();
-                    checkUserSession();
+                if (user) {
+                    if (user.pass === pass) {
+                        localStorage.setItem('dp_current_user', JSON.stringify(user));
+                        alert("स्वागत है, " + user.name + "! लॉगिन सफल रहा।");
+                        closeAuthModal();
+                        checkUserSession();
+                    } else {
+                        alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
+                    }
                 } else {
-                    alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
+                    alert("यह मोबाइल नंबर नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
                 }
-            } else {
-                alert("यह मोबाइल नंबर नहीं मिला! कृपया पहले नया अकाउंट बनाएं या सही नंबर डालें।");
+            } catch (err) {
+                alert("लॉगिन एरर! कृपया इंटरनेट जांचें।");
+            } finally {
+                btn.innerText = "लॉगिन करें"; btn.disabled = false;
             }
         }
 
-        // 3. पासवर्ड भूलने पर रीसेट (क्लाउड में अपडेट)
+        // 3. Supabase Forgot Password Reset
         async function handleForgotSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('forgotBtn');
@@ -1000,16 +1020,23 @@
             const mobile = document.getElementById('forgotMobile').value.trim();
             const newPass = document.getElementById('forgotNewPass').value.trim();
 
-            const users = await fetchCloudUsers();
-            btn.innerText = "पासवर्ड बदलें"; btn.disabled = false;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .update({ pass: newPass })
+                    .eq('mobile', mobile)
+                    .select();
 
-            if (users && users[mobile]) {
-                users[mobile].pass = newPass;
-                await updateCloudUsers(users);
-                alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
-                toggleAuthView('login');
-            } else {
-                alert("यह मोबाइल नंबर सिस्टम में नहीं मिला!");
+                if (data && data.length > 0) {
+                    alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
+                    toggleAuthView('login');
+                } else {
+                    alert("यह मोबाइल नंबर सिस्टम में नहीं मिला!");
+                }
+            } catch (err) {
+                alert("पासवर्ड अपडेट करने में त्रुटि हुई!");
+            } finally {
+                btn.innerText = "पासवर्ड बदलें"; btn.disabled = false;
             }
         }
 
@@ -1051,6 +1078,137 @@
         }
 
         // ==========================================
+        // ADMIN PANEL & FORGOT PIN LOGIC
+        // ==========================================
+        let secretClickCount = 0;
+        let secretTimer = null;
+        function handleSecretAdminClick() {
+            secretClickCount++;
+            clearTimeout(secretTimer);
+            secretTimer = setTimeout(() => { secretClickCount = 0; }, 800);
+            if (secretClickCount >= 3) {
+                secretClickCount = 0;
+                openAdminModal();
+            }
+        }
+
+        function getAdminPin() {
+            return localStorage.getItem('dp_admin_pin') || "1234";
+        }
+
+        function openAdminModal() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('adminPinSection').style.display = 'block';
+            document.getElementById('adminForgotPinSection').style.display = 'none';
+            document.getElementById('adminWorkSection').style.display = 'none';
+            document.getElementById('adminPin').value = '';
+        }
+
+        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+
+        function toggleAdminPinView(view) {
+            document.getElementById('adminPinSection').style.display = view === 'login' ? 'block' : 'none';
+            document.getElementById('adminForgotPinSection').style.display = view === 'forgot' ? 'block' : 'none';
+        }
+
+        function verifyAdminPin() {
+            const enteredPin = document.getElementById('adminPin').value.trim();
+            if (enteredPin === getAdminPin()) {
+                document.getElementById('adminPinSection').style.display = 'none';
+                document.getElementById('adminWorkSection').style.display = 'block';
+                renderAdminTable();
+                renderAdminUsers();
+            } else {
+                alert("गलत एडमिन पिन! यदि पिन भूल गए हैं तो 'Forgot PIN' पर क्लिक करें।");
+            }
+        }
+
+        function handleAdminResetPin() {
+            const phone = document.getElementById('adminMasterPhone').value.trim();
+            const newPin = document.getElementById('newAdminPin').value.trim();
+
+            if (phone === "9304509464") {
+                if (newPin.length >= 4) {
+                    localStorage.setItem('dp_admin_pin', newPin);
+                    alert("एडमिन पिन सफलतापूर्वक बदल दिया गया है! अब नए पिन से लॉगिन करें।");
+                    toggleAdminPinView('login');
+                } else {
+                    alert("पिन कम से कम ४ अंकों का होना चाहिए!");
+                }
+            } else {
+                alert("गलत मास्टर मोबाइल नंबर! केवल अधिकृत नंबर 9304509464 ही मान्य है।");
+            }
+        }
+
+        function showAdminTab(tab) {
+            document.getElementById('adminCardsTab').style.display = tab === 'cards' ? 'block' : 'none';
+            document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
+        }
+
+        function renderAdminTable() {
+            const catalog = getCatalog();
+            const tbody = document.getElementById('adminCardListBody');
+            tbody.innerHTML = "";
+            catalog.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${item.img}" style="width:30px; height:20px; object-fit:cover;"></td>
+                    <td>${item.name}</td>
+                    <td>₹${item.rate}</td>
+                    <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function renderAdminUsers() {
+            const tbody = document.getElementById('adminUserListBody');
+            tbody.innerHTML = "";
+            try {
+                const { data: users } = await supabaseClient.from('users').select('*');
+                if (!users || users.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='3'>कोई ग्राहक नहीं</td></tr>";
+                    return;
+                }
+                users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${u.name}</td><td>${u.mobile}</td><td>${u.village || '-'}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                tbody.innerHTML = "<tr><td colspan='3'>डेटा लोड नहीं हुआ</td></tr>";
+            }
+        }
+
+        function handleAddNewCard(e) {
+            e.preventDefault();
+            const name = document.getElementById('admCardName').value.trim();
+            const rate = parseFloat(document.getElementById('admCardRate').value);
+            const stock = document.getElementById('admCardStock').value;
+            const file = document.getElementById('admCardFile').files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const catalog = getCatalog();
+                catalog.unshift({ id: Date.now(), name: name, rate: rate, stock: stock, img: event.target.result });
+                localStorage.setItem('dp_catalog', JSON.stringify(catalog));
+                alert("कैटलॉग में जुड़ गया!");
+                document.getElementById('adminCardForm').reset();
+                renderCatalog();
+                renderAdminTable();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deleteCatalogItem(id) {
+            if (confirm("हटाना चाहते हैं?")) {
+                let catalog = getCatalog().filter(c => c.id !== id);
+                localStorage.setItem('dp_catalog', JSON.stringify(catalog));
+                renderCatalog();
+                renderAdminTable();
+            }
+        }
+
+        // ==========================================
         // TABS, CATALOG & CALCULATIONS
         // ==========================================
         function switchServiceTab(tabName) {
@@ -1066,18 +1224,6 @@
             } else if (tabName === 'visiting') {
                 document.getElementById('tabBtnVisiting').classList.add('active');
                 document.getElementById('visitingFormSection').style.display = 'block';
-            }
-        }
-
-        let secretClickCount = 0;
-        let secretTimer = null;
-        function handleSecretAdminClick() {
-            secretClickCount++;
-            clearTimeout(secretTimer);
-            secretTimer = setTimeout(() => { secretClickCount = 0; }, 800);
-            if (secretClickCount >= 3) {
-                secretClickCount = 0;
-                openAdminModal();
             }
         }
 
@@ -1256,9 +1402,7 @@
             group.appendChild(div);
         }
 
-        // ==========================================
-        // SUBMISSIONS (Direct to mdsajadans@gmail.com)
-        // ==========================================
+        // Submissions to Email
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
@@ -1358,6 +1502,7 @@
             }).finally(() => { btn.innerText = "विजिटिंग कार्ड ऑर्डर भेजें"; btn.disabled = false; });
         });
 
+        // Print Functions
         function generateWeddingPDF() {
             var category = document.getElementById('cardCategory').value;
             var totalAmt = document.getElementById('weddingTotalDisplay').innerText;
@@ -1405,81 +1550,6 @@
                 </div>
             `;
             window.print();
-        }
-
-        // Admin Functions
-        function openAdminModal() {
-            document.getElementById('adminModal').style.display = 'flex';
-            document.getElementById('adminPinSection').style.display = 'block';
-            document.getElementById('adminWorkSection').style.display = 'none';
-            document.getElementById('adminPin').value = '';
-        }
-        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
-        function verifyAdminPin() {
-            if (document.getElementById('adminPin').value.trim() === ADMIN_PIN) {
-                document.getElementById('adminPinSection').style.display = 'none';
-                document.getElementById('adminWorkSection').style.display = 'block';
-                renderAdminTable();
-                renderAdminUsers();
-            } else { alert("गलत पिन!"); }
-        }
-        function showAdminTab(tab) {
-            document.getElementById('adminCardsTab').style.display = tab === 'cards' ? 'block' : 'none';
-            document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
-        }
-        function renderAdminTable() {
-            const catalog = getCatalog();
-            const tbody = document.getElementById('adminCardListBody');
-            tbody.innerHTML = "";
-            catalog.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${item.img}" style="width:30px; height:20px; object-fit:cover;"></td>
-                    <td>${item.name}</td>
-                    <td>₹${item.rate}</td>
-                    <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        async function renderAdminUsers() {
-            const users = await fetchCloudUsers();
-            const tbody = document.getElementById('adminUserListBody');
-            tbody.innerHTML = "";
-            const keys = Object.keys(users);
-            if (keys.length === 0) { tbody.innerHTML = "<tr><td colspan='3'>कोई ग्राहक नहीं</td></tr>"; return; }
-            keys.forEach(k => {
-                const u = users[k];
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${u.name}</td><td>${u.mobile}</td><td>${u.village || '-'}</td>`;
-                tbody.appendChild(tr);
-            });
-        }
-        function handleAddNewCard(e) {
-            e.preventDefault();
-            const name = document.getElementById('admCardName').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value);
-            const stock = document.getElementById('admCardStock').value;
-            const file = document.getElementById('admCardFile').files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const catalog = getCatalog();
-                catalog.unshift({ id: Date.now(), name: name, rate: rate, stock: stock, img: event.target.result });
-                localStorage.setItem('dp_catalog', JSON.stringify(catalog));
-                alert("कैटलॉग में जुड़ गया!");
-                document.getElementById('adminCardForm').reset();
-                renderCatalog();
-                renderAdminTable();
-            };
-            reader.readAsDataURL(file);
-        }
-        function deleteCatalogItem(id) {
-            if (confirm("हटाना चाहते हैं?")) {
-                let catalog = getCatalog().filter(c => c.id !== id);
-                localStorage.setItem('dp_catalog', JSON.stringify(catalog));
-                renderCatalog();
-                renderAdminTable();
-            }
         }
 
         // Initialization
