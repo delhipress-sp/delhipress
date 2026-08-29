@@ -7,6 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Firebase SDK (Universal Multi-Device Cloud Sync) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --primary: #c0392b;
@@ -30,14 +34,14 @@
             background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 25px; flex-wrap: wrap; gap: 10px;
+            padding: 10px 25px;
         }
         .nav-brand h2 {
             color: var(--primary); font-size: 20px; cursor: pointer; user-select: none;
         }
         .nav-brand p { font-size: 11px; color: #666; }
 
-        .nav-menu { display: flex; list-style: none; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .nav-menu { display: flex; list-style: none; align-items: center; gap: 12px; }
         .nav-menu a {
             text-decoration: none; color: #333; font-weight: 600; font-size: 14px;
             padding: 6px 10px; border-radius: 4px; transition: 0.3s;
@@ -57,7 +61,6 @@
 
         .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
 
-        /* Showcase Cards */
         .showcase-box {
             background: #fff; padding: 20px; border-radius: 8px;
             margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -86,7 +89,6 @@
             border-radius: 4px; cursor: pointer; margin-top: 8px;
         }
 
-        /* Lock Overlay */
         .form-lock-wrapper { position: relative; }
         .form-lock-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -99,7 +101,6 @@
         .form-lock-overlay h3 { font-size: 20px; color: var(--dark); margin-bottom: 6px; }
         .form-lock-overlay p { font-size: 14px; color: #666; margin-bottom: 15px; max-width: 450px; }
 
-        /* Form Wrapper */
         .form-wrapper {
             background: #fff; padding: 25px; border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-top: 4px solid var(--primary);
@@ -201,21 +202,6 @@
             font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
         }
 
-        /* About & Map Section */
-        .info-card {
-            background: #fff; padding: 25px; border-radius: 8px;
-            margin-top: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .info-card h3 {
-            color: var(--primary); font-size: 20px; margin-bottom: 12px; border-bottom: 2px solid #eee; padding-bottom: 6px;
-        }
-        .about-text { font-size: 14px; color: #444; line-height: 1.8; }
-        .map-wrapper {
-            margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;
-        }
-        .map-wrapper iframe { width: 100%; height: 260px; border: 0; display: block; }
-
-        /* Modals */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
@@ -260,15 +246,14 @@
 
     <nav class="navbar">
         <div class="nav-brand">
-            <!-- गुप्त एडमिन पैनल: "दिल्ली प्रेस" पर लगातार 3 बार क्लिक करने पर खुलेगा -->
+            <!-- गुप्त एडमिन पैनल: "दिल्ली प्रेस" पर 3 बार क्लिक करने पर खुलेगा -->
             <h2 id="brandLogoTitle" onclick="handleSecretAdminClick()">दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
             <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="#orderForm">कार्ड ऑर्डर फॉर्म</a></li>
-            <li><a href="#aboutSection">हमारे बारे में</a></li>
-            <li><a href="#mapSection">लोकेशन मैप</a></li>
+            <li><a href="#paymentSection">पेमेंट</a></li>
             <li id="authNavContainer">
                 <a href="javascript:void(0)" class="btn-login" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
@@ -281,7 +266,6 @@
 
     <div class="container">
         
-        <!-- Live Dynamic Catalog Section -->
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">
                 शादी कार्ड कैटलॉग एवं डिज़ाइन
@@ -290,12 +274,11 @@
             <div class="gallery-grid" id="catalogContainer"></div>
         </div>
 
-        <!-- Wedding Card Form (Locked if not logged in) -->
         <div class="form-lock-wrapper">
             <div class="form-lock-overlay" id="formLockOverlay">
                 <i class="fa-solid fa-lock"></i>
                 <h3>शादी कार्ड ऑर्डर फॉर्म लॉक है</h3>
-                <p>ऑर्डर दर्ज करने के लिए आपका अकाउंट अनिवार्य है। कृपया पहले लॉगिन करें या नया अकाउंट बनाएं।</p>
+                <p>ऑर्डर दर्ज करने के लिए आपका अकाउंट और फ़ोटो आईडी अनिवार्य है। कृपया पहले लॉगिन करें या नया अकाउंट बनाएं।</p>
                 <button type="button" class="btn-login" onclick="openAuthModal('register')" style="border:none; padding:10px 20px !important; font-size:15px;">
                     <i class="fa-solid fa-user-plus"></i> नया अकाउंट बनाएं (Sign Up)
                 </button>
@@ -469,26 +452,6 @@
             </div>
         </div>
 
-        <!-- About Us Section -->
-        <div class="info-card" id="aboutSection">
-            <h3><i class="fa-solid fa-circle-info"></i> हमारे बारे में (About Delhi Press)</h3>
-            <p class="about-text">
-                <strong>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</strong> में आपका स्वागत है। हम शादी कार्ड, मुस्लिम निकाह कार्ड, हिंदू विवाह पत्रिका, फैंसी इनविटेशन बॉक्स, फ्लेक्स बैनर, पोस्टर, विजिटिंग कार्ड और सभी प्रकार की डिजिटल व ऑफसेट प्रिंटिंग सेवाएँ उचित मूल्य पर प्रदान करते हैं।<br>
-                हमारे यहाँ उच्च गुणवत्ता वाले पेपर, आधुनिक फॉयल व एम्बॉस प्रिंटिंग और समय पर सुरक्षित डिलीवरी की गारंटी दी जाती है। आप घर बैठे ऑनलाइन शादी कार्ड की डिज़ाइन चुन सकते हैं और ऑर्डर दे सकते हैं।
-            </p>
-        </div>
-
-        <!-- Google Maps Section -->
-        <div class="info-card" id="mapSection">
-            <h3><i class="fa-solid fa-location-dot"></i> दुकान का पता एवं लोकेशन (Google Maps)</h3>
-            <p style="font-size:14px; color:#555; margin-bottom: 8px;">
-                <strong>पता:</strong> दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स), हेल्पलाइन नंबर: <strong>9304509464</strong>, ईमेल: <strong>mdsajadans@gmail.com</strong>
-            </p>
-            <div class="map-wrapper">
-                <iframe src="https://maps.google.com/maps?q=India&t=&z=13&ie=UTF8&iwloc=&output=embed" loading="lazy"></iframe>
-            </div>
-        </div>
-
     </div>
 
     <!-- Hidden Admin Panel Modal -->
@@ -559,10 +522,10 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
+                                <th>फोटो ID</th>
                                 <th>नाम</th>
                                 <th>मोबाइल</th>
                                 <th>गाँव / शहर</th>
-                                <th>पता</th>
                             </tr>
                         </thead>
                         <tbody id="adminUserListBody"></tbody>
@@ -597,10 +560,10 @@
                             पासवर्ड भूल गए? (Forgot Password)
                         </a>
                     </div>
-                    <button type="submit" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
+                    <button type="submit" id="loginBtn" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
                 </form>
                 <div style="font-size:13px; text-align:center; margin-top:12px;">
-                    नया ग्राहक हैं? <a onclick="toggleAuthView('register')" style="color:var(--primary); font-weight:bold; cursor:pointer;">अकाउंट बनाएं (Sign Up)</a>
+                    नया ग्राहक हैं? <a onclick="toggleAuthView('register')" style="color:var(--primary); font-weight:bold; cursor:pointer;">अकाउंट बनाएं व ID जोड़ें</a>
                 </div>
             </div>
 
@@ -617,7 +580,7 @@
                         <label>नया पासवर्ड बनाएं:</label>
                         <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड" minlength="4">
                     </div>
-                    <button type="submit" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                    <button type="submit" id="forgotBtn" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
                         पासवर्ड अपडेट करें
                     </button>
                 </form>
@@ -626,10 +589,10 @@
                 </div>
             </div>
 
-            <!-- 3. Registration Screen (Without Photo ID) -->
+            <!-- 3. Registration Screen -->
             <div id="registerSection" style="display: none;">
-                <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
-                <p style="font-size:12px; color:#555; text-align:center; margin-bottom:10px;">विवरण भरें और तुरंत कार्ड ऑर्डर करें।</p>
+                <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट व पहचान पत्र (ID)</h3>
+                <p style="font-size:12px; color:#555; text-align:center; margin-bottom:10px;">सही विवरण भरें, वेरिफिकेशन के बाद तुरंत ऑर्डर कर सकेंगे।</p>
                 
                 <form id="regForm" onsubmit="handleRegisterSubmit(event)">
                     <div class="form-group">
@@ -647,6 +610,10 @@
                     <div class="form-group">
                         <label>पूरा डाक पता (Full Address):</label>
                         <textarea id="regAddress" rows="2" required placeholder="पोस्ट, थाना, जिला, पिनकोड..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>फोटो पहचान पत्र (आधार / वोटर / पासपोर्ट फोटो):</label>
+                        <input type="file" id="regPhotoId" accept="image/*" required>
                     </div>
                     <div class="form-group">
                         <label>पासवर्ड बनाएं:</label>
@@ -668,6 +635,16 @@
     </footer>
 
     <script>
+        // ==========================================
+        // FIREBASE CLOUD DATABASE SETUP
+        // (हर मोबाइल व लैपटॉप पर समान लॉगिन के लिए)
+        // ==========================================
+        const firebaseConfig = {
+            databaseURL: "https://delhi-press-sajjad-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
         const ADMIN_PIN = "1234";
@@ -676,7 +653,7 @@
         let sampleFileName = "कोई सैंपल फोटो अटैच नहीं";
         let sampleDataUrl = "";
 
-        // गुप्त एडमिन ट्रिगर (Triple Click)
+        // गुप्त एडमिन ट्रिगर
         let secretClickCount = 0;
         let secretTimer = null;
         function handleSecretAdminClick() {
@@ -696,37 +673,34 @@
             { id: 4, name: "एचडी फ्लेक्स बैनर", rate: 10, stock: "in", img: "https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" }
         ];
 
-        function getCatalog() {
-            return JSON.parse(localStorage.getItem('dp_catalog') || JSON.stringify(defaultCatalog));
-        }
-
-        function saveCatalog(catalog) {
-            localStorage.setItem('dp_catalog', JSON.stringify(catalog));
-            renderCatalog();
-            renderAdminTable();
-        }
-
+        // कैटलॉग को भी क्लाउड से सिंक करना
         function renderCatalog() {
-            const catalog = getCatalog();
-            const container = document.getElementById('catalogContainer');
-            container.innerHTML = "";
+            db.ref('catalog').on('value', (snapshot) => {
+                let catalog = snapshot.val();
+                if (!catalog) {
+                    catalog = defaultCatalog;
+                    db.ref('catalog').set(defaultCatalog);
+                }
+                const container = document.getElementById('catalogContainer');
+                container.innerHTML = "";
 
-            catalog.forEach(item => {
-                const isOut = item.stock === 'out';
-                const div = document.createElement('div');
-                div.className = "card-sample";
-                div.innerHTML = `
-                    <img src="${item.img}" alt="${item.name}">
-                    <div class="card-info">
-                        <h4>${item.name}</h4>
-                        <div class="card-price-tag">₹${item.rate} / प्रति कार्ड</div>
-                        <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध (In Stock)'}</span>
-                        <button type="button" class="btn-select-card" onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img}')">
-                            <i class="fa-solid fa-check"></i> यह कार्ड चुनें
-                        </button>
-                    </div>
-                `;
-                container.appendChild(div);
+                catalog.forEach(item => {
+                    const isOut = item.stock === 'out';
+                    const div = document.createElement('div');
+                    div.className = "card-sample";
+                    div.innerHTML = `
+                        <img src="${item.img}" alt="${item.name}">
+                        <div class="card-info">
+                            <h4>${item.name}</h4>
+                            <div class="card-price-tag">₹${item.rate} / प्रति कार्ड</div>
+                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध (In Stock)'}</span>
+                            <button type="button" class="btn-select-card" onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img}')">
+                                <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
             });
         }
 
@@ -772,36 +746,43 @@
             document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
         }
         function renderAdminTable() {
-            const tbody = document.getElementById('adminCardListBody');
-            tbody.innerHTML = "";
-            getCatalog().forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${item.img}" style="width:35px; height:25px; object-fit:cover;"></td>
-                    <td>${item.name}</td>
-                    <td>₹${item.rate}</td>
-                    <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
-                `;
-                tbody.appendChild(tr);
+            db.ref('catalog').once('value', (snapshot) => {
+                const catalog = snapshot.val() || [];
+                const tbody = document.getElementById('adminCardListBody');
+                tbody.innerHTML = "";
+                catalog.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${item.img}" style="width:35px; height:25px; object-fit:cover;"></td>
+                        <td>${item.name}</td>
+                        <td>₹${item.rate}</td>
+                        <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             });
         }
         function renderAdminUsers() {
-            const tbody = document.getElementById('adminUserListBody');
-            tbody.innerHTML = "";
-            const users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-            if (users.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='4'>कोई ग्राहक रिकॉर्ड नहीं है</td></tr>";
-                return;
-            }
-            users.forEach(u => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${u.name}</b></td>
-                    <td>${u.mobile}</td>
-                    <td>${u.village || '-'}</td>
-                    <td>${u.address || '-'}</td>
-                `;
-                tbody.appendChild(tr);
+            db.ref('users').once('value', (snapshot) => {
+                const usersObj = snapshot.val() || {};
+                const tbody = document.getElementById('adminUserListBody');
+                tbody.innerHTML = "";
+                const userKeys = Object.keys(usersObj);
+                if (userKeys.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>कोई ग्राहक रिकॉर्ड नहीं है</td></tr>";
+                    return;
+                }
+                userKeys.forEach(key => {
+                    const u = usersObj[key];
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${u.idPhoto || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; object-fit:cover; border-radius:50%;"></td>
+                        <td>${u.name}</td>
+                        <td>${u.mobile}</td>
+                        <td>${u.village || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             });
         }
         function handleAddNewCard(e) {
@@ -812,45 +793,37 @@
             const file = document.getElementById('admCardFile').files[0];
             const reader = new FileReader();
             reader.onload = function(event) {
-                const catalog = getCatalog();
-                catalog.unshift({ id: Date.now(), name: name, rate: rate, stock: stock, img: event.target.result });
-                saveCatalog(catalog);
-                alert("नया कार्ड कैटलॉग में जुड़ गया!");
-                document.getElementById('adminCardForm').reset();
+                db.ref('catalog').once('value', (snapshot) => {
+                    let catalog = snapshot.val() || [];
+                    catalog.unshift({ id: Date.now(), name: name, rate: rate, stock: stock, img: event.target.result });
+                    db.ref('catalog').set(catalog);
+                    alert("नया कार्ड कैटलॉग में जुड़ गया!");
+                    document.getElementById('adminCardForm').reset();
+                    renderAdminTable();
+                });
             };
             reader.readAsDataURL(file);
         }
         function deleteCatalogItem(id) {
             if (confirm("क्या आप इसे हटाना चाहते हैं?")) {
-                saveCatalog(getCatalog().filter(c => c.id !== id));
+                db.ref('catalog').once('value', (snapshot) => {
+                    let catalog = snapshot.val() || [];
+                    catalog = catalog.filter(c => c.id !== id);
+                    db.ref('catalog').set(catalog);
+                    renderAdminTable();
+                });
             }
         }
 
-        // पासवर्ड भूलने पर
-        function handleForgotSubmit(e) {
-            e.preventDefault();
-            const mobile = document.getElementById('forgotMobile').value.trim();
-            const newPass = document.getElementById('forgotNewPass').value.trim();
+        // ==============================================================
+        // UNIVERSAL CLOUD AUTHENTICATION (हर डिवाइस पर एक जैसा लॉगिन)
+        // ==============================================================
 
-            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-            const userIndex = users.findIndex(u => u.mobile === mobile);
-
-            if (userIndex === -1) {
-                alert("यह मोबाइल नंबर सिस्टम में नहीं मिला! कृपया सही नंबर डालें या नया अकाउंट बनाएं।");
-                return;
-            }
-
-            users[userIndex].pass = newPass;
-            localStorage.setItem('dp_users', JSON.stringify(users));
-            alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
-            toggleAuthView('login');
-        }
-
-        // रजिस्ट्रेशन (बिना पहचान पत्र) -> सीधे ईमेल अलर्ट
+        // 1. नया रजिस्ट्रेशन (क्लाउड में सेव)
         function handleRegisterSubmit(e) {
             e.preventDefault();
             const regBtn = document.getElementById('regBtn');
-            regBtn.innerText = "रजिस्टर हो रहा है...";
+            regBtn.innerText = "जांच हो रही है...";
             regBtn.disabled = true;
 
             const name = document.getElementById('regName').value.trim();
@@ -858,76 +831,120 @@
             const village = document.getElementById('regVillage').value.trim();
             const address = document.getElementById('regAddress').value.trim();
             const pass = document.getElementById('regPass').value.trim();
+            const file = document.getElementById('regPhotoId').files[0];
 
-            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-            if (users.find(u => u.mobile === mobile)) {
-                alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! कृपया लॉगिन करें।");
-                regBtn.innerText = "अकाउंट रजिस्टर करें";
-                regBtn.disabled = false;
-                toggleAuthView('login');
-                return;
-            }
+            // जांचें कि यह नंबर पहले से किसी भी डिवाइस पर बना है या नहीं
+            db.ref('users/' + mobile).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! कृपया सीधे इसी नंबर और पासवर्ड से लॉगिन करें।");
+                    regBtn.innerText = "अकाउंट रजिस्टर करें";
+                    regBtn.disabled = false;
+                    toggleAuthView('login');
+                    return;
+                }
 
-            const newUser = {
-                name: name,
-                mobile: mobile,
-                village: village,
-                address: address,
-                pass: pass,
-                regDate: new Date().toLocaleDateString('hi-IN')
-            };
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const photoData = event.target.result;
+                    const newUser = {
+                        name: name,
+                        mobile: mobile,
+                        village: village,
+                        address: address,
+                        pass: pass,
+                        idPhoto: photoData,
+                        regDate: new Date().toLocaleDateString('hi-IN')
+                    };
 
-            users.push(newUser);
-            localStorage.setItem('dp_users', JSON.stringify(users));
-            localStorage.setItem('dp_current_user', JSON.stringify(newUser));
+                    // Firebase क्लाउड डेटाबेस में सुरक्षित सेव
+                    db.ref('users/' + mobile).set(newUser, (error) => {
+                        if (error) {
+                            alert("डेटाबेस एरर: " + error.message);
+                        } else {
+                            localStorage.setItem('dp_current_user', JSON.stringify(newUser));
+                            alert("अकाउंट सफलतापूर्वक बन गया है! अब आप इस मोबाइल या किसी भी लैपटॉप पर इसी ID-पासवर्ड से लॉगिन कर सकते हैं।");
+                            closeAuthModal();
+                            checkUserSession();
 
-            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
-                method: "POST",
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${mobile})`,
-                    प्रकार: "नया ग्राहक रजिस्ट्रेशन (दिल्ली प्रेस)",
-                    ग्राहक_नाम: name,
-                    मोबाइल_नंबर: mobile,
-                    गाँव_शहर: village,
-                    पूरा_डाक_पता: address,
-                    पंजीकरण_दिनांक: newUser.regDate
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert("अकाउंट सफलतापूर्वक बन गया है और आपका विवरण सज्जाद डिजिटल प्रिंट्स (ईमेल) पर भेज दिया गया है!");
-                closeAuthModal();
-                checkUserSession();
-            })
-            .catch(error => {
-                alert("अकाउंट बन गया है!");
-                closeAuthModal();
-                checkUserSession();
-            })
-            .finally(() => {
-                regBtn.innerText = "अकाउंट रजिस्टर करें";
-                regBtn.disabled = false;
+                            // आपके ईमेल पर अलर्ट
+                            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                                method: "POST",
+                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                                body: JSON.stringify({
+                                    _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${mobile})`,
+                                    प्रकार: "नया ग्राहक रजिस्ट्रेशन",
+                                    ग्राहक_नाम: name,
+                                    मोबाइल_नंबर: mobile,
+                                    गाँव_शहर: village,
+                                    पूरा_डाक_पता: address,
+                                    पहचान_पत्र_फ़ाइल: file ? file.name : "फ़ाइल",
+                                    पंजीकरण_दिनांक: newUser.regDate
+                                })
+                            });
+                        }
+                        regBtn.innerText = "अकाउंट रजिस्टर करें";
+                        regBtn.disabled = false;
+                    });
+                };
+                reader.readAsDataURL(file);
             });
         }
 
+        // 2. लॉगिन (क्लाउड से वेरिफाई - किसी भी फोन/लैपटॉप पर काम करेगा)
         function handleLoginSubmit(e) {
             e.preventDefault();
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.innerText = "लॉगिन हो रहा है...";
+            loginBtn.disabled = true;
+
             const mobile = document.getElementById('loginMobile').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
-            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-            const found = users.find(u => u.mobile === mobile && u.pass === pass);
-            if (found) {
-                localStorage.setItem('dp_current_user', JSON.stringify(found));
-                alert("स्वागत है, " + found.name + "!");
-                closeAuthModal();
-                checkUserSession();
-            } else {
-                alert("गलत मोबाइल नंबर या पासवर्ड!");
-            }
+
+            db.ref('users/' + mobile).once('value', (snapshot) => {
+                loginBtn.innerText = "लॉगिन करें";
+                loginBtn.disabled = false;
+
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.pass === pass) {
+                        localStorage.setItem('dp_current_user', JSON.stringify(userData));
+                        alert("स्वागत है, " + userData.name + "! लॉगिन सफल रहा।");
+                        closeAuthModal();
+                        checkUserSession();
+                    } else {
+                        alert("गलत पासवर्ड! कृपया दोबारा जांचें।");
+                    }
+                } else {
+                    alert("यह मोबाइल नंबर नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
+                }
+            });
+        }
+
+        // 3. पासवर्ड भूलने पर रीसेट (क्लाउड में अपडेट)
+        function handleForgotSubmit(e) {
+            e.preventDefault();
+            const forgotBtn = document.getElementById('forgotBtn');
+            forgotBtn.innerText = "अपडेट हो रहा है...";
+            forgotBtn.disabled = true;
+
+            const mobile = document.getElementById('forgotMobile').value.trim();
+            const newPass = document.getElementById('forgotNewPass').value.trim();
+
+            db.ref('users/' + mobile).once('value', (snapshot) => {
+                forgotBtn.innerText = "पासवर्ड अपडेट करें";
+                forgotBtn.disabled = false;
+
+                if (snapshot.exists()) {
+                    db.ref('users/' + mobile + '/pass').set(newPass, (err) => {
+                        if (!err) {
+                            alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
+                            toggleAuthView('login');
+                        }
+                    });
+                } else {
+                    alert("यह मोबाइल नंबर सिस्टम में रजिस्टर्ड नहीं है!");
+                }
+            });
         }
 
         function handleLogout() {
@@ -1110,7 +1127,6 @@
             window.print();
         }
 
-        // शादी कार्ड ऑर्डर सबमिट -> सीधे mdsajadans@gmail.com पर भेजना
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
