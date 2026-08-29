@@ -35,3 +35,20 @@ alert("लॉगिन सफल!");
 alert("लॉगिन एरर! कृपया इंटरनेट जांचें।");
 }
 }
+async function handleForgotSubmit(event) {
+event.preventDefault();
+const mobile = event.target.forgotMobile.value;
+const newPassword = event.target.forgotNewPass.value;
+try {
+const { data, error } = await supabase.auth.updateUser({
+password: newPassword
+});
+if (error) {
+alert("पासवर्ड अपडेट करने में त्रुटि! " + error.message);
+} else {
+alert("पासवर्ड सफलतापूर्वक अपडेट किया गया!");
+}
+} catch (err) {
+alert("त्रुटि! कृपया पुनः प्रयास करें।");
+}
+}
