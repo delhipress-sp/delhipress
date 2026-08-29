@@ -1058,14 +1058,14 @@
             const btn = document.getElementById('loginBtn');
             btn.innerText = "जांच हो रही है..."; btn.disabled = true;
 
-            const mobile = document.getElementById('loginMobile').value.trim();
+            const email = document.getElementById('loginemail').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
 
             try {
                 const { data: user, error } = await supabaseClient
                     .from('users')
                     .select('*')
-                    .eq('mobile', mobile)
+                    .eq('email', email)
                     .maybeSingle();
 
                 if (user) {
@@ -1078,7 +1078,7 @@
                         alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
                     }
                 } else {
-                    alert("यह मोबाइल नंबर नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
+                    alert("यह ईमेल नहीं मिला ! कृपया पहले नया अकाउंट बनाएं।");
                 }
             } catch (err) {
                 alert("लॉगिन एरर! कृपया इंटरनेट जांचें।");
@@ -1093,21 +1093,21 @@
             const btn = document.getElementById('forgotBtn');
             btn.innerText = "अपडेट हो रहा है..."; btn.disabled = true;
 
-            const mobile = document.getElementById('forgotMobile').value.trim();
+            const email = document.getElementById('forgotemail').value.trim();
             const newPass = document.getElementById('forgotNewPass').value.trim();
 
             try {
                 const { data, error } = await supabaseClient
                     .from('users')
                     .update({ pass: newPass })
-                    .eq('mobile', mobile)
+                    .eq('email', email)
                     .select();
 
                 if (data && data.length > 0) {
                     alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
                     toggleAuthView('login');
                 } else {
-                    alert("यह मोबाइल नंबर सिस्टम में नहीं मिला!");
+                    alert("यह  ईमेल सिस्टम में नहीं मिला!");
                 }
             } catch (err) {
                 alert("पासवर्ड अपडेट करने में त्रुटि हुई!");
