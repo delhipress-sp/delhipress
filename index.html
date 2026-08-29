@@ -992,7 +992,7 @@
             btn.innerText = "जांच हो रही है..."; btn.disabled = true;
 
             const name = document.getElementById('regName').value.trim();
-            const mobile = document.getElementById('regMobile').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
             const village = document.getElementById('regVillage').value.trim();
             const address = document.getElementById('regAddress').value.trim();
             const pass = document.getElementById('regPass').value.trim();
@@ -1001,12 +1001,12 @@
                 // Check if already registered
                 const { data: existingUser } = await supabaseClient
                     .from('users')
-                    .select('mobile')
-                    .eq('mobile', mobile)
+                    .select('email')
+                    .eq('email', email)
                     .maybeSingle();
 
                 if (existingUser) {
-                    alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
+                    alert("यह ईमेल आईडी पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
                     btn.innerText = "रजिस्टर करें"; btn.disabled = false;
                     toggleAuthView('login');
                     return;
@@ -1017,7 +1017,6 @@
                     .from('users')
                     .insert([{
                         email: email,
-                        mobile: mobile,
                         name: name,
                         village: village,
                         address: address,
@@ -1028,7 +1027,7 @@
                 if (error) {
                     alert("त्रुटि: " + error.message);
                 } else {
-                    const newUser = { name, mobile, village, address };
+                    const newUser = { name, email, village, address };
                     localStorage.setItem('dp_current_user', JSON.stringify(newUser));
 
                     // Background notification to email
@@ -1036,8 +1035,8 @@
                         method: "POST",
                         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                         body: JSON.stringify({
-                            _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${mobile})`,
-                            नाम: name, फोन: mobile, गाँव: village, पता: address
+                            _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${email})`,
+                            नाम: name, फोन: email, गाँव: village, पता: address
                         })
                     }).catch(() => {});
 
