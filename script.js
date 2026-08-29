@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://urrzmdriydbofeoitvipj.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_m95f5yk_QdBsUhpQxYXhPg_7lAVDhft';
+const SUPABASE_KEY = 'sb_publishable_m95f5yk_QdBsUhpQxYXhPg_7iAvDhft';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Mobile Responsive Menu Toggle
