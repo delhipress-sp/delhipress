@@ -35,43 +35,61 @@
         .nav-brand h2 { color: var(--primary); font-size: 20px; }
         .nav-brand p { font-size: 11px; color: #666; }
 
-        .nav-menu { display: flex; list-style: none; align-items: center; gap: 15px; }
+        .nav-menu { display: flex; list-style: none; align-items: center; gap: 12px; }
         .nav-menu a {
-            text-decoration: none; color: #333; font-weight: 600; font-size: 15px;
-            padding: 8px 10px; border-radius: 4px; transition: 0.3s;
+            text-decoration: none; color: #333; font-weight: 600; font-size: 14px;
+            padding: 6px 10px; border-radius: 4px; transition: 0.3s;
         }
         .nav-menu a:hover { color: var(--primary); }
+        .btn-admin {
+            background: #2c3e50; color: white !important;
+            padding: 6px 12px !important; border-radius: 20px; cursor: pointer;
+        }
         .btn-login {
             background: var(--primary); color: white !important;
-            padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
+            padding: 6px 12px !important; border-radius: 20px; cursor: pointer;
         }
 
-        .user-logged-box { display: none; align-items: center; gap: 10px; }
-        .user-name-display { font-weight: 600; color: var(--primary); font-size: 14px; }
+        .user-logged-box { display: none; align-items: center; gap: 8px; }
+        .user-name-display { font-weight: 600; color: var(--primary); font-size: 13px; }
         .btn-logout {
             background: #e74c3c; color: white; border: none;
-            padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer;
+            padding: 4px 8px; border-radius: 12px; font-size: 11px; cursor: pointer;
         }
 
         .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
 
+        /* Showcase Cards */
         .showcase-box {
             background: #fff; padding: 20px; border-radius: 8px;
             margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .gallery-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px; margin-top: 15px;
         }
         .card-sample {
             border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;
-            text-align: center; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+            background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.04);
             display: flex; flex-direction: column; justify-content: space-between;
+            position: relative;
         }
-        .card-sample img { width: 100%; height: 130px; object-fit: cover; }
-        .card-info { padding: 10px; }
-        .card-info h4 { font-size: 15px; color: #2d3748; }
+        .card-sample img { width: 100%; height: 140px; object-fit: cover; }
+        .card-info { padding: 10px; text-align: center; }
+        .card-info h4 { font-size: 15px; color: #2d3748; margin-bottom: 4px; }
+        .card-price-tag { color: var(--primary); font-weight: bold; font-size: 15px; margin-bottom: 4px; }
+        .stock-badge {
+            display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: bold;
+        }
+        .in-stock { background: #dcfce7; color: #15803d; }
+        .out-stock { background: #fee2e2; color: #b91c1c; }
+        .btn-select-card {
+            display: block; width: 100%; padding: 6px; background: var(--blue);
+            color: white; border: none; font-size: 13px; font-weight: 600;
+            border-radius: 4px; cursor: pointer; margin-top: 8px;
+        }
 
+        /* Form Wrapper */
         .form-wrapper {
             background: #fff; padding: 25px; border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-top: 4px solid var(--primary);
@@ -113,38 +131,16 @@
             position: absolute; right: 8px; top: 8px;
         }
 
-        /* Weds Separator Badge */
         .weds-divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 12px 0;
-            position: relative;
+            display: flex; align-items: center; justify-content: center; margin: 12px 0; position: relative;
         }
         .weds-divider::before {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            background: #e2e8f0;
-            top: 50%;
-            left: 0;
-            z-index: 1;
+            content: ""; position: absolute; width: 100%; height: 1px; background: #e2e8f0; top: 50%; left: 0; z-index: 1;
         }
         .weds-badge {
-            background: linear-gradient(135deg, #c0392b, #d35400);
-            color: #fff;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            position: relative;
-            z-index: 2;
-            box-shadow: 0 2px 5px rgba(192, 57, 43, 0.25);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            background: linear-gradient(135deg, #c0392b, #d35400); color: #fff;
+            padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
+            position: relative; z-index: 2; box-shadow: 0 2px 5px rgba(192, 57, 43, 0.25);
         }
 
         .total-bill-box {
@@ -162,22 +158,17 @@
             background: #097939; color: white; border: none; padding: 12px 20px;
             font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;
             text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: 0.2s;
         }
-        .btn-cashfree:hover { background: #075e2c; }
-
         .qr-wrapper {
             background: #fff; border: 1px solid #ddd; display: inline-block;
             padding: 10px; border-radius: 8px; margin: 12px 0;
         }
         .qr-wrapper img { width: 140px; height: 140px; display: block; }
 
-        .upi-buttons {
-            display: flex; justify-content: center; gap: 10px; margin: 10px 0; flex-wrap: wrap;
-        }
+        .upi-buttons { display: flex; justify-content: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
         .upi-btn {
             background: #3b82f6; color: white; padding: 8px 14px; border-radius: 5px;
-            font-size: 13px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+            font-size: 13px; text-decoration: none; font-weight: 600;
         }
 
         .bottom-upload-box {
@@ -200,17 +191,29 @@
             font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
         }
 
+        /* Modals */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
         }
         .modal-content {
-            background: white; padding: 25px; border-radius: 8px; width: 340px;
-            position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            background: white; padding: 25px; border-radius: 8px; width: 360px;
+            max-height: 90vh; overflow-y: auto; position: relative;
         }
         .close-btn { position: absolute; right: 12px; top: 10px; font-size: 20px; cursor: pointer; }
-        .auth-switch { font-size: 13px; text-align: center; margin-top: 12px; color: #555; }
-        .auth-switch a { color: var(--primary); font-weight: bold; text-decoration: none; cursor: pointer; }
+
+        /* Admin Table */
+        .admin-table {
+            width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px;
+        }
+        .admin-table th, .admin-table td {
+            border: 1px solid #ddd; padding: 6px; text-align: center;
+        }
+        .admin-table th { background: #f1f5f9; }
+        .btn-del {
+            background: #ef4444; color: white; border: none; padding: 3px 6px;
+            border-radius: 3px; cursor: pointer;
+        }
 
         footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 35px; }
 
@@ -218,13 +221,7 @@
             body * { visibility: hidden; }
             #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
             #printableReceiptArea {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                display: block !important;
-                background: #fff;
-                padding: 20px;
+                position: absolute; left: 0; top: 0; width: 100%; display: block !important; background: #fff; padding: 20px;
             }
         }
     </style>
@@ -244,9 +241,10 @@
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
-            <li><a href="#showcaseSection">कार्ड मॉडल्स</a></li>
+            <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="#orderForm">कार्ड ऑर्डर फॉर्म</a></li>
-            <li><a href="#paymentSection">ऑनलाइन पेमेंट</a></li>
+            <li><a href="#paymentSection">पेमेंट</a></li>
+            <li><a href="javascript:void(0)" class="btn-admin" onclick="openAdminModal()"><i class="fa-solid fa-gear"></i> एडमिन पैनल</a></li>
             <li id="authNavContainer">
                 <a href="javascript:void(0)" class="btn-login" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i> लॉगिन</a>
             </li>
@@ -259,28 +257,17 @@
 
     <div class="container">
         
+        <!-- Live Dynamic Catalog Section -->
         <div class="showcase-box" id="showcaseSection">
-            <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">कार्ड मॉडल्स एवं डिजाइन गैलरी</h3>
-            <div class="gallery-grid" id="cardGallery">
-                <div class="card-sample">
-                    <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" alt="मुस्लिम निकाह कार्ड">
-                    <div class="card-info"><h4>मुस्लिम निकाह कार्ड</h4></div>
-                </div>
-                <div class="card-sample">
-                    <img src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" alt="हिंदू शादी कार्ड">
-                    <div class="card-info"><h4>हिंदू शादी कार्ड</h4></div>
-                </div>
-                <div class="card-sample">
-                    <img src="https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" alt="फ्लेक्स बैनर">
-                    <div class="card-info"><h4>फ्लेक्स एवं बैनर</h4></div>
-                </div>
-                <div class="card-sample">
-                    <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=400&q=80" alt="विजिटिंग कार्ड">
-                    <div class="card-info"><h4>विजिटिंग कार्ड</h4></div>
-                </div>
+            <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">
+                शादी कार्ड कैटलॉग एवं डिज़ाइन
+            </h3>
+            <div class="gallery-grid" id="catalogContainer">
+                <!-- Javascript se dynamic cards aayenge -->
             </div>
         </div>
 
+        <!-- Wedding Card Form -->
         <div class="form-wrapper" id="orderForm">
             <div class="section-header">दिल्ली प्रेस - शादी कार्ड ऑर्डर फॉर्म</div>
             
@@ -289,14 +276,8 @@
                     <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
                     <div class="row-3">
                         <div class="form-group">
-                            <label>कार्ड कैटगरी चुनें:</label>
-                            <select id="cardCategory" required>
-                                <option value="मुस्लिम निकाह कार्ड">मुस्लिम निकाह कार्ड</option>
-                                <option value="हिंदू शादी कार्ड">हिंदू शादी कार्ड</option>
-                                <option value="प्रीमियम बॉक्स कार्ड">प्रीमियम बॉक्स कार्ड</option>
-                                <option value="फ्लेक्स बैनर">फ्लेक्स बैनर</option>
-                                <option value="विजिटिंग कार्ड">विजिटिंग कार्ड</option>
-                            </select>
+                            <label>कार्ड मॉडल / कैटगरी:</label>
+                            <input type="text" id="cardCategory" value="मुस्लिम निकाह कार्ड (शाही)" required>
                         </div>
                         <div class="form-group">
                             <label>कार्ड का प्रति पीस रेट (₹):</label>
@@ -318,7 +299,6 @@
                     <h4>२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता (Address)</h4>
                     <div id="couplesGroup">
                         <div class="dynamic-item couple-item">
-                            <!-- Groom Details -->
                             <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
                             <div class="row-2">
                                 <div class="form-group">
@@ -335,12 +315,10 @@
                                 <input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
                             </div>
 
-                            <!-- Weds Separator -->
                             <div class="weds-divider">
                                 <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span>
                             </div>
 
-                            <!-- Bride Details -->
                             <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
                             <div class="row-2">
                                 <div class="form-group">
@@ -456,6 +434,69 @@
 
     </div>
 
+    <!-- Admin Panel Modal -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+            
+            <!-- Admin PIN Screen -->
+            <div id="adminPinSection">
+                <h3 style="color: var(--dark); text-align: center; margin-bottom: 12px;">एडमिन लॉगिन</h3>
+                <div class="form-group">
+                    <label>एडमिन पिन (Default PIN: 1234):</label>
+                    <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
+                </div>
+                <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 8px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                    प्रवेश करें
+                </button>
+            </div>
+
+            <!-- Admin Action Screen -->
+            <div id="adminWorkSection" style="display: none;">
+                <h3 style="color: var(--primary); text-align: center; margin-bottom: 10px;">कैटलॉग कंट्रोल पैनल</h3>
+                <form id="adminCardForm" onsubmit="handleAddNewCard(event)">
+                    <div class="form-group">
+                        <label>कार्ड का नाम:</label>
+                        <input type="text" id="admCardName" placeholder="उदा: रॉयल निकाह कार्ड" required>
+                    </div>
+                    <div class="form-group">
+                        <label>प्रति पीस रेट (₹):</label>
+                        <input type="number" id="admCardRate" placeholder="उदा: 14" required>
+                    </div>
+                    <div class="form-group">
+                        <label>स्टॉक स्टेटस:</label>
+                        <select id="admCardStock">
+                            <option value="in">उपलब्ध (In Stock)</option>
+                            <option value="out">स्टॉक समाप्त (Out of Stock)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>कार्ड फोटो अपलोड करें:</label>
+                        <input type="file" id="admCardFile" accept="image/*" required>
+                    </div>
+                    <button type="submit" style="width: 100%; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                        + नया कार्ड कैटलॉग में जोड़ें
+                    </button>
+                </form>
+
+                <h4 style="margin-top: 15px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">मौजूदा कार्ड लिस्ट (डिलीट करें):</h4>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>फोटो</th>
+                            <th>नाम</th>
+                            <th>रेट</th>
+                            <th>स्टॉक</th>
+                            <th>हटाएं</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminCardListBody"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
     <!-- Printable Receipt Element -->
     <div id="printableReceiptArea" style="display: none;"></div>
 
@@ -476,8 +517,8 @@
                     </div>
                     <button type="submit" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
                 </form>
-                <div class="auth-switch">
-                    खाता नहीं है? <a onclick="toggleAuthView('register')">नया अकाउंट बनाएं</a>
+                <div class="auth-switch" style="font-size:13px; text-align:center; margin-top:10px;">
+                    खाता नहीं है? <a onclick="toggleAuthView('register')" style="color:var(--primary); font-weight:bold; cursor:pointer;">नया अकाउंट बनाएं</a>
                 </div>
             </div>
 
@@ -498,8 +539,8 @@
                     </div>
                     <button type="submit" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">अकाउंट रजिस्टर करें</button>
                 </form>
-                <div class="auth-switch">
-                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')">यहाँ लॉगिन करें</a>
+                <div class="auth-switch" style="font-size:13px; text-align:center; margin-top:10px;">
+                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color:var(--primary); font-weight:bold; cursor:pointer;">यहाँ लॉगिन करें</a>
                 </div>
             </div>
         </div>
@@ -512,78 +553,154 @@
     <script>
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
+        const ADMIN_PIN = "1234"; // एडमिन पासवर्ड
+
         let sampleFileName = "कोई सैंपल फोटो अटैच नहीं";
         let sampleDataUrl = "";
 
-        function openAuthModal(view) {
-            document.getElementById('authModal').style.display = 'flex';
-            toggleAuthView(view);
+        // शुरुआती डिफ़ॉल्ट कैटलॉग डेटा
+        const defaultCatalog = [
+            { id: 1, name: "मुस्लिम निकाह कार्ड (शाही)", rate: 12, stock: "in", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
+            { id: 2, name: "हिंदू शादी कार्ड (गोल्डन)", rate: 15, stock: "in", img: "https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" },
+            { id: 3, name: "प्रीमियम बॉक्स इनविटेशन", rate: 25, stock: "out", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=400&q=80" },
+            { id: 4, name: "एचडी फ्लेक्स बैनर", rate: 10, stock: "in", img: "https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" }
+        ];
+
+        function getCatalog() {
+            return JSON.parse(localStorage.getItem('dp_catalog') || JSON.stringify(defaultCatalog));
         }
-        function closeAuthModal() {
-            document.getElementById('authModal').style.display = 'none';
+
+        function saveCatalog(catalog) {
+            localStorage.setItem('dp_catalog', JSON.stringify(catalog));
+            renderCatalog();
+            renderAdminTable();
         }
-        function toggleAuthView(view) {
-            if (view === 'register') {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('registerSection').style.display = 'block';
+
+        // वेबसाइट पर कैटलॉग दिखाना
+        function renderCatalog() {
+            const catalog = getCatalog();
+            const container = document.getElementById('catalogContainer');
+            container.innerHTML = "";
+
+            catalog.forEach(item => {
+                const isOut = item.stock === 'out';
+                const div = document.createElement('div');
+                div.className = "card-sample";
+                div.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}">
+                    <div class="card-info">
+                        <h4>${item.name}</h4>
+                        <div class="card-price-tag">₹${item.rate} / प्रति कार्ड</div>
+                        <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध (In Stock)'}</span>
+                        <button type="button" class="btn-select-card" onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img}')">
+                            <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ग्राहक द्वारा कार्ड सेलेक्ट करने पर फॉर्म में वैल्यू भरना
+        function selectCardToForm(name, rate, img) {
+            document.getElementById('cardCategory').value = name;
+            document.getElementById('cardRate').value = rate;
+            calculateTotal();
+
+            // सैंपल प्रिव्यू में भी ऑटो-लोड करें
+            sampleDataUrl = img;
+            sampleFileName = name;
+            document.getElementById('bottomPreviewImg').src = img;
+            document.getElementById('bottomPreviewContainer').style.display = 'block';
+
+            // फॉर्म पर स्क्रॉल करें
+            document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // एडमिन पैनल मोडल
+        function openAdminModal() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('adminPinSection').style.display = 'block';
+            document.getElementById('adminWorkSection').style.display = 'none';
+            document.getElementById('adminPin').value = '';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
+        function verifyAdminPin() {
+            const pin = document.getElementById('adminPin').value.trim();
+            if (pin === ADMIN_PIN) {
+                document.getElementById('adminPinSection').style.display = 'none';
+                document.getElementById('adminWorkSection').style.display = 'block';
+                renderAdminTable();
             } else {
-                document.getElementById('loginSection').style.display = 'block';
-                document.getElementById('registerSection').style.display = 'none';
-            }
-        }
-        function handleRegisterSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('regName').value.trim();
-            const mobile = document.getElementById('regMobile').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-            if (users.find(u => u.mobile === mobile)) {
-                alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है!");
-                toggleAuthView('login');
-                return;
-            }
-            users.push({ name: name, mobile: mobile, pass: pass });
-            localStorage.setItem('dp_users', JSON.stringify(users));
-            localStorage.setItem('dp_current_user', JSON.stringify({ name: name, mobile: mobile }));
-            alert("अकाउंट सफलतापूर्वक बन गया है!");
-            closeAuthModal();
-            checkUserSession();
-        }
-        function handleLoginSubmit(e) {
-            e.preventDefault();
-            const mobile = document.getElementById('loginMobile').value.trim();
-            const pass = document.getElementById('loginPass').value.trim();
-            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-            const found = users.find(u => u.mobile === mobile && u.pass === pass);
-            if (found) {
-                localStorage.setItem('dp_current_user', JSON.stringify({ name: found.name, mobile: found.mobile }));
-                alert("स्वागत है, " + found.name + "!");
-                closeAuthModal();
-                checkUserSession();
-            } else {
-                alert("गलत मोबाइल नंबर या पासवर्ड!");
-            }
-        }
-        function handleLogout() {
-            localStorage.removeItem('dp_current_user');
-            checkUserSession();
-        }
-        function checkUserSession() {
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            const navAuth = document.getElementById('authNavContainer');
-            const loggedBox = document.getElementById('userLoggedBox');
-            const display = document.getElementById('displayUserName');
-            if (currentUser) {
-                navAuth.style.display = 'none';
-                loggedBox.style.display = 'flex';
-                display.innerText = "नमस्ते, " + currentUser.name;
-            } else {
-                navAuth.style.display = 'block';
-                loggedBox.style.display = 'none';
-                display.innerText = "";
+                alert("गलत पिन! केवल एडमिन के लिए।");
             }
         }
 
+        function renderAdminTable() {
+            const catalog = getCatalog();
+            const tbody = document.getElementById('adminCardListBody');
+            tbody.innerHTML = "";
+
+            catalog.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${item.img}" style="width:40px; height:30px; object-fit:cover; border-radius:3px;"></td>
+                    <td>${item.name}</td>
+                    <td>₹${item.rate}</td>
+                    <td>${item.stock === 'in' ? 'उपलब्ध' : 'समाप्त'}</td>
+                    <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // नया कार्ड अपलोड करना
+        function handleAddNewCard(e) {
+            e.preventDefault();
+            const name = document.getElementById('admCardName').value.trim();
+            const rate = parseFloat(document.getElementById('admCardRate').value);
+            const stock = document.getElementById('admCardStock').value;
+            const file = document.getElementById('admCardFile').files[0];
+
+            if (!file) {
+                alert("कृपया कार्ड का फोटो चुनें!");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const newCard = {
+                    id: Date.now(),
+                    name: name,
+                    rate: rate,
+                    stock: stock,
+                    img: event.target.result
+                };
+
+                const catalog = getCatalog();
+                catalog.unshift(newCard); // नए कार्ड को सबसे आगे जोड़ें
+                saveCatalog(catalog);
+
+                alert("नया कार्ड सफलतापूर्वक कैटलॉग में जुड़ गया!");
+                document.getElementById('adminCardForm').reset();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // कार्ड कैटलॉग से डिलीट करना
+        function deleteCatalogItem(id) {
+            if (confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) {
+                let catalog = getCatalog();
+                catalog = catalog.filter(c => c.id !== id);
+                saveCatalog(catalog);
+            }
+        }
+
+        // कैलकुलेशन
         function calculateTotal() {
             var rate = parseFloat(document.getElementById('cardRate').value) || 0;
             var qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -613,7 +730,6 @@
             }
         }
 
-        // Add multiple couples with "Weds" badge
         function addCoupleField() {
             var group = document.getElementById('couplesGroup');
             var div = document.createElement('div');
@@ -648,7 +764,7 @@
             group.appendChild(div);
         }
 
-        // Direct PDF / Print Receipt Generator
+        // सॉलिड प्रिंट / सेव PDF फंक्शन
         function generateDirectPDF() {
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
@@ -736,7 +852,7 @@
             window.print();
         }
 
-        // WhatsApp Submission
+        // व्हाट्सएप ऑर्डर सबमिशन
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             var category = document.getElementById('cardCategory').value;
@@ -798,6 +914,78 @@
             window.location.href = "https://wa.me/919304509464?text=" + encodeURIComponent(msg);
         });
 
+        // लॉगिन और रजिस्ट्रेशन फंक्शंस
+        function openAuthModal(view) {
+            document.getElementById('authModal').style.display = 'flex';
+            toggleAuthView(view);
+        }
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+        function toggleAuthView(view) {
+            if (view === 'register') {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('registerSection').style.display = 'block';
+            } else {
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('registerSection').style.display = 'none';
+            }
+        }
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const mobile = document.getElementById('regMobile').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
+            if (users.find(u => u.mobile === mobile)) {
+                alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है!");
+                toggleAuthView('login');
+                return;
+            }
+            users.push({ name: name, mobile: mobile, pass: pass });
+            localStorage.setItem('dp_users', JSON.stringify(users));
+            localStorage.setItem('dp_current_user', JSON.stringify({ name: name, mobile: mobile }));
+            alert("अकाउंट सफलतापूर्वक बन गया है!");
+            closeAuthModal();
+            checkUserSession();
+        }
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const mobile = document.getElementById('loginMobile').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
+            const found = users.find(u => u.mobile === mobile && u.pass === pass);
+            if (found) {
+                localStorage.setItem('dp_current_user', JSON.stringify({ name: found.name, mobile: found.mobile }));
+                alert("स्वागत है, " + found.name + "!");
+                closeAuthModal();
+                checkUserSession();
+            } else {
+                alert("गलत मोबाइल नंबर या पासवर्ड!");
+            }
+        }
+        function handleLogout() {
+            localStorage.removeItem('dp_current_user');
+            checkUserSession();
+        }
+        function checkUserSession() {
+            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
+            const navAuth = document.getElementById('authNavContainer');
+            const loggedBox = document.getElementById('userLoggedBox');
+            const display = document.getElementById('displayUserName');
+            if (currentUser) {
+                navAuth.style.display = 'none';
+                loggedBox.style.display = 'flex';
+                display.innerText = "नमस्ते, " + currentUser.name;
+            } else {
+                navAuth.style.display = 'block';
+                loggedBox.style.display = 'none';
+                display.innerText = "";
+            }
+        }
+
+        // पेज लोड पर इनिशियलाइज
+        renderCatalog();
         calculateTotal();
         checkUserSession();
     </script>
