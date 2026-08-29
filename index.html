@@ -53,7 +53,7 @@
 
         .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
 
-        /* Showcase & Price Gallery */
+        /* Showcase Gallery */
         .showcase-box {
             background: #fff; padding: 20px; border-radius: 8px;
             margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -69,8 +69,7 @@
         }
         .card-sample img { width: 100%; height: 130px; object-fit: cover; }
         .card-info { padding: 10px; }
-        .card-info h4 { font-size: 15px; color: #2d3748; margin-bottom: 4px; }
-        .card-price { color: var(--primary); font-weight: bold; font-size: 16px; }
+        .card-info h4 { font-size: 15px; color: #2d3748; }
 
         .upload-field {
             margin-top: 15px; padding: 12px; border: 2px dashed #cbd5e1;
@@ -95,6 +94,8 @@
         .form-group { margin-bottom: 12px; }
         .row-2 { display: flex; gap: 10px; }
         .row-2 .form-group { flex: 1; }
+        .row-3 { display: flex; gap: 10px; }
+        .row-3 .form-group { flex: 1; }
 
         label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #475569; }
         input, select, textarea {
@@ -194,7 +195,7 @@
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
-            <li><a href="#showcaseSection">कार्ड मॉडल्स & रेट</a></li>
+            <li><a href="#showcaseSection">कार्ड मॉडल्स</a></li>
             <li><a href="#orderForm">कार्ड ऑर्डर फॉर्म</a></li>
             <li><a href="#paymentSection">ऑनलाइन पेमेंट</a></li>
             <li><a href="javascript:void(0)" class="btn-login" onclick="toggleLogin(true)"><i class="fa-solid fa-user"></i> लॉगिन</a></li>
@@ -203,37 +204,33 @@
 
     <div class="container">
         
-        <!-- Showcase with Photo, Price, and Rate List -->
+        <!-- Showcase Gallery without Prices -->
         <div class="showcase-box" id="showcaseSection">
-            <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">कार्ड मॉडल्स एवं मूल्य सूची (Price List)</h3>
+            <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">कार्ड मॉडल्स एवं डिजाइन गैलरी</h3>
             
             <div class="gallery-grid" id="cardGallery">
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" alt="मुस्लिम निकाह कार्ड">
                     <div class="card-info">
-                        <h4>मुस्लिम निकाह कार्ड (शाही)</h4>
-                        <div class="card-price">₹12 / प्रति कार्ड</div>
+                        <h4>मुस्लिम निकाह कार्ड</h4>
                     </div>
                 </div>
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" alt="हिंदू शादी कार्ड">
                     <div class="card-info">
-                        <h4>हिंदू शादी कार्ड (गोल्डन)</h4>
-                        <div class="card-price">₹15 / प्रति कार्ड</div>
+                        <h4>हिंदू शादी कार्ड</h4>
                     </div>
                 </div>
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" alt="फ्लेक्स बैनर">
                     <div class="card-info">
-                        <h4>एचडी फ्लेक्स बैनर</h4>
-                        <div class="card-price">₹10 / स्क्वायर फीट</div>
+                        <h4>फ्लेक्स एवं बैनर</h4>
                     </div>
                 </div>
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=400&q=80" alt="विजिटिंग कार्ड">
                     <div class="card-info">
-                        <h4>विजिटिंग कार्ड (1000 पीस)</h4>
-                        <div class="card-price">₹650 / बॉक्स</div>
+                        <h4>विजिटिंग कार्ड</h4>
                     </div>
                 </div>
             </div>
@@ -254,28 +251,33 @@
                 <div class="section-header">दिल्ली प्रेस - शादी कार्ड ऑर्डर फॉर्म</div>
                 
                 <form id="weddingForm">
-                    <!-- Step 1: Card Selection & Price -->
+                    <!-- Step 1: Card Category & Manual Price -->
                     <div class="form-block">
-                        <h4>१. कार्ड मॉडल और संख्या चुनें</h4>
-                        <div class="row-2">
+                        <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
+                        <div class="row-3">
                             <div class="form-group">
-                                <label>कार्ड का प्रकार (रेट सहित):</label>
-                                <select id="cardCategory" onchange="calculateTotal()" required>
-                                    <option value="12" data-name="मुस्लिम निकाह कार्ड (₹12)">मुस्लिम निकाह कार्ड - ₹12</option>
-                                    <option value="15" data-name="हिंदू शादी कार्ड (₹15)">हिंदू शादी कार्ड - ₹15</option>
-                                    <option value="25" data-name="प्रीमियम बॉक्स कार्ड (₹25)">प्रीमियम बॉक्स कार्ड - ₹25</option>
-                                    <option value="650" data-name="विजिटिंग कार्ड (₹650/हज़ार)">विजिटिंग कार्ड - ₹650/हज़ार</option>
+                                <label>कार्ड कैटगरी चुनें:</label>
+                                <select id="cardCategory" required>
+                                    <option value="मुस्लिम निकाह कार्ड">मुस्लिम निकाह कार्ड</option>
+                                    <option value="हिंदू शादी कार्ड">हिंदू शादी कार्ड</option>
+                                    <option value="प्रीमियम बॉक्स कार्ड">प्रीमियम बॉक्स कार्ड</option>
+                                    <option value="फ्लेक्स बैनर">फ्लेक्स बैनर</option>
+                                    <option value="विजिटिंग कार्ड">विजिटिंग कार्ड</option>
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label>कार्ड का प्रति पीस रेट (₹):</label>
+                                <input type="number" id="cardRate" placeholder="उदा: 10, 15, 20" value="12" min="1" step="any" oninput="calculateTotal()" required>
+                            </div>
+                            <div class="form-group">
                                 <label>कार्ड संख्या (Quantity):</label>
-                                <input type="number" id="cardQty" value="100" min="1" oninput="calculateTotal()" required>
+                                <input type="number" id="cardQty" placeholder="उदा: 200" value="100" min="1" oninput="calculateTotal()" required>
                             </div>
                         </div>
 
                         <!-- Auto Calculation Bar -->
                         <div class="total-bill-box">
-                            <span>कुल अनुमानित मूल्य (Total Amount):</span>
+                            <span>कुल अनुमानित राशि (Total Amount):</span>
                             <span id="totalDisplay">₹1,200</span>
                         </div>
                     </div>
@@ -370,9 +372,9 @@
                     <div class="form-block" id="paymentSection">
                         <h4>५. भुगतान (Cashfree & UPI Payment)</h4>
                         <div class="payment-box">
-                            <p style="font-weight: 600; color: #1e293b; margin-bottom: 10px;">ऑनलाइन एडवांस पेमेंट करने के लिए नीचे दिए गए विकल्प चुनें:</p>
+                            <p style="font-weight: 600; color: #1e293b; margin-bottom: 10px;">ऑनलाइन भुगतान के लिए नीचे दिए गए विकल्प चुनें:</p>
 
-                            <!-- 1. Cashfree Payment Link Button (Updated Link) -->
+                            <!-- 1. Cashfree Payment Link Button -->
                             <a id="cashfreeBtn" href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
                                 <i class="fa-solid fa-bolt"></i> Cashfree से सुरक्षित भुगतान करें
                             </a>
@@ -383,7 +385,7 @@
                             <div class="qr-wrapper">
                                 <img id="upiQrCode" src="" alt="UPI पेमेंट QR">
                             </div>
-                            <p style="font-size: 12px; color: #475569;">UPI ID: <strong>9304509464@upi</strong></p>
+                            <p style="font-size: 13px; color: #475569;">UPI ID: <strong>9304509464@ptsbi</strong></p>
 
                             <!-- 3. Direct UPI App Buttons -->
                             <div class="upi-buttons">
@@ -400,7 +402,7 @@
 
                             <div class="form-group" style="text-align: left; margin-top: 15px;">
                                 <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
-                                <input type="text" id="transId" placeholder="पेमेंट करने के बाद 12 अंकों का UTR / Txn ID यहाँ दर्ज करें">
+                                <input type="text" id="transId" placeholder="पेमेंट करने के बाद 12 अंकों का UTR / Txn ID दर्ज करें">
                             </div>
                         </div>
                     </div>
@@ -447,12 +449,12 @@
 
     <!-- Script Logic -->
     <script>
-        const UPI_ID = "9304509464@upi";
+        const UPI_ID = "9304509464@ptsbi";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
 
         // ऑटोमैटिक बिल और UPI लिंक कैलकुलेशन
         function calculateTotal() {
-            var rate = parseFloat(document.getElementById('cardCategory').value) || 0;
+            var rate = parseFloat(document.getElementById('cardRate').value) || 0;
             var qty = parseInt(document.getElementById('cardQty').value) || 0;
             var total = rate * qty;
             
@@ -517,7 +519,7 @@
                     var div = document.createElement('div');
                     div.className = 'card-sample';
                     div.innerHTML = '<img src="' + e.target.result + '" alt="अपलोड कार्ड">' +
-                                    '<div class="card-info"><h4>ग्राहक पसंद मॉडल</h4><div class="card-price">कस्टम रेट</div></div>';
+                                    '<div class="card-info"><h4>ग्राहक पसंद मॉडल</h4></div>';
                     gallery.prepend(div);
                 }
                 reader.readAsDataURL(file);
@@ -551,8 +553,8 @@
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            var categorySelect = document.getElementById('cardCategory');
-            var categoryName = categorySelect.options[categorySelect.selectedIndex].getAttribute('data-name');
+            var category = document.getElementById('cardCategory').value;
+            var rate = document.getElementById('cardRate').value;
             var qty = document.getElementById('cardQty').value;
             var totalAmt = document.getElementById('totalDisplay').innerText;
 
@@ -588,8 +590,9 @@
 
             var msg = "*नया कार्ड ऑर्डर - दिल्ली प्रेस (सज्जाद प्रिंटर्स)*\n" +
                       "--------------------------------\n" +
-                      "*मॉडल:* " + categoryName + "\n" +
-                      "*संख्या:* " + qty + "\n" +
+                      "*कैटगरी:* " + category + "\n" +
+                      "*प्रति पीस रेट:* ₹" + rate + "\n" +
+                      "*कार्ड संख्या:* " + qty + "\n" +
                       "*कुल राशि:* " + totalAmt + "\n" +
                       "--------------------------------" +
                       coupleData + "\n\n" +
@@ -602,7 +605,7 @@
             window.location.href = "https://wa.me/919304509464?text=" + encodeURIComponent(msg);
         });
 
-        // पेज लोड होते ही शुरुआती रेट व QR कोड सेट करें
+        // पेज लोड होते ही शुरुआती दर और QR सेट करें
         calculateTotal();
     </script>
 </body>
