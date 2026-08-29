@@ -33,7 +33,6 @@
             padding: 10px 25px;
         }
         
-        /* Secret Click Area on Brand */
         .nav-brand { cursor: pointer; user-select: none; }
         .nav-brand h2 { color: var(--primary); font-size: 20px; }
         .nav-brand p { font-size: 11px; color: #666; }
@@ -57,6 +56,31 @@
         }
 
         .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
+
+        /* About & Location Section */
+        .about-box {
+            background: #fff; padding: 25px; border-radius: 8px;
+            margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-top: 4px solid var(--secondary);
+        }
+        .about-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px; margin-top: 15px;
+        }
+        .about-text h4 { color: var(--dark); font-size: 18px; margin-bottom: 8px; }
+        .about-text p { font-size: 14px; color: #555; margin-bottom: 10px; }
+        .location-card {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 16px; text-align: center;
+        }
+        .location-card i { color: var(--primary); font-size: 32px; margin-bottom: 8px; }
+        .location-card h5 { font-size: 16px; color: var(--dark); margin-bottom: 4px; }
+        .location-card p { font-size: 13px; color: #64748b; margin-bottom: 12px; }
+        .btn-map {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #ea4335; color: white; padding: 8px 16px;
+            border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 13px;
+        }
 
         .showcase-box {
             background: #fff; padding: 20px; border-radius: 8px;
@@ -178,6 +202,21 @@
             border: 1px solid #cbd5e1; object-fit: cover;
         }
 
+        .terms-box {
+            background: #fff5f5; border: 1px solid #feb2b2; border-left: 4px solid var(--primary);
+            padding: 14px 16px; border-radius: 6px; margin-top: 20px;
+        }
+        .terms-box h4 {
+            color: var(--primary); font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+        }
+        .terms-list { list-style-type: decimal; padding-left: 20px; font-size: 13px; color: #4a5568; line-height: 1.7; }
+        .terms-list li strong { color: #9b2c2c; }
+
+        .terms-agree {
+            margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #2d3748;
+        }
+        .terms-agree input { width: 16px; height: 16px; cursor: pointer; }
+
         .btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .submit-btn {
             flex: 1; padding: 12px; background: var(--green); color: white;
@@ -198,19 +237,12 @@
         }
         .close-btn { position: absolute; right: 12px; top: 10px; font-size: 20px; cursor: pointer; }
 
-        .admin-table {
-            width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px;
-        }
-        .admin-table th, .admin-table td {
-            border: 1px solid #ddd; padding: 6px; text-align: center;
-        }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: center; }
         .admin-table th { background: #f1f5f9; }
-        .btn-del {
-            background: #ef4444; color: white; border: none; padding: 3px 6px;
-            border-radius: 3px; cursor: pointer;
-        }
+        .btn-del { background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 3px; cursor: pointer; }
 
-        footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 35px; }
+        footer { background: var(--dark); color: #fff; text-align: center; padding: 20px 15px; font-size: 13px; margin-top: 35px; }
 
         @media print {
             body * { visibility: hidden; }
@@ -231,12 +263,12 @@
     </div>
 
     <nav class="navbar">
-        <!-- सीक्रेट एंट्री: यहाँ ३ बार क्लिक करने पर एडमिन पैनल खुलेगा -->
         <div class="nav-brand" id="secretAdminTrigger" title="दिल्ली प्रेस">
             <h2>दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
+            <li><a href="#aboutSection">हमारे बारे में</a></li>
             <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="#orderForm">कार्ड ऑर्डर फॉर्म</a></li>
             <li><a href="#paymentSection">पेमेंट</a></li>
@@ -252,6 +284,33 @@
 
     <div class="container">
         
+        <!-- About Delhi Press & Google Maps Location Section -->
+        <div class="about-box" id="aboutSection">
+            <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 6px;">
+                दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स) के बारे में
+            </h3>
+            <div class="about-grid">
+                <div class="about-text">
+                    <h4>विश्वसनीय कार्ड एवं प्रिंटिंग सेवा</h4>
+                    <p>
+                        <strong>दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</strong> में आपका स्वागत है। हम सभी प्रकार के शादी कार्ड (मुस्लिम निकाह कार्ड, हिंदू विवाह कार्ड, फैंसी एवं बॉक्स कार्ड), विजिटिंग कार्ड, फ्लेक्स बोर्ड, पोस्टर और डिजिटल प्रिंटिंग का कार्य उत्तम गुणवत्ता व किफायती दरों पर करते हैं।
+                    </p>
+                    <p>
+                        हम आधुनिक मशीनों और अनुभवी डिजाइनरों के साथ समय पर डिलीवरी देने के लिए प्रतिबद्ध हैं।
+                    </p>
+                </div>
+                <div class="location-card">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <h5>हमारा पता एवं दुकान की लोकेशन</h5>
+                    <p>सज्जाद डिजिटल प्रिंट्स, दिल्ली प्रेस<br>हेल्पलाइन / फोन: <strong>9304509464</strong></p>
+                    <a href="https://share.google/nwfYpVgc0wYIF0lvd" target="_blank" class="btn-map">
+                        <i class="fa-solid fa-map-location-dot"></i> गूगल मैप पर लोकेशन देखें (Google Map)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Dynamic Catalog Section -->
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">
                 शादी कार्ड कैटलॉग एवं डिज़ाइन
@@ -413,6 +472,21 @@
                     </div>
                 </div>
 
+                <!-- Terms & Conditions Section -->
+                <div class="terms-box">
+                    <h4><i class="fa-solid fa-triangle-exclamation"></i> जरूरी नियम एवं शर्तें (Terms & Conditions):</h4>
+                    <ol class="terms-list">
+                        <li><strong>कार्ड प्रूफ जांच:</strong> कार्ड छपाई (Printing) से पहले ग्राहक कार्ड के सभी मैटर (नाम, पिता का नाम, पता, तारीख, दिन, समय, वर्तनी/Spelling) को एक-एक अक्षर स्वयं भली-भांति जांच लें।</li>
+                        <li><strong>गलती अस्वीकार्य:</strong> कार्ड फाइनल होकर छपने के बाद किसी भी प्रकार की अशुद्धि या गलती <strong>स्वीकार्य नहीं होगी</strong> और न ही इसके लिए प्रेस की कोई जवाबदेही होगी।</li>
+                        <li><strong>पुनः छपाई:</strong> छपाई के बाद यदि कोई सुधार करवाना होगा, तो उसका पूरा खर्च (नया कार्ड और छपाई शुल्क) ग्राहक को स्वयं वहन करना होगा।</li>
+                        <li><strong>एडवांस भुगतान:</strong> ऑर्डर कन्फर्म करने के लिए तय की गई एडवांस राशि जमा करना अनिवार्य है।</li>
+                    </ol>
+                    <div class="terms-agree">
+                        <input type="checkbox" id="termsCheck" required>
+                        <label for="termsCheck">मैंने ऊपर दिए गए सभी नियम व शर्तें ध्यानपूर्वक पढ़ ली हैं और मुझे स्वीकार हैं।</label>
+                    </div>
+                </div>
+
                 <div class="btn-row">
                     <button type="submit" class="submit-btn">
                         <i class="fa-brands fa-whatsapp"></i> व्हाट्सएप पर ऑर्डर भेजें
@@ -431,7 +505,6 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeAdminModal()">&times;</span>
             
-            <!-- 1. Admin PIN Login Screen -->
             <div id="adminLoginSection">
                 <h3 style="color: var(--dark); text-align: center; margin-bottom: 12px;">एडमिन ऑथेंटिकेशन</h3>
                 <form onsubmit="handleAdminLogin(event)">
@@ -450,7 +523,6 @@
                 </div>
             </div>
 
-            <!-- 2. Admin Create / Reset PIN Screen -->
             <div id="adminCreateSection" style="display: none;">
                 <h3 style="color: var(--green); text-align: center; margin-bottom: 12px;">मालिक सत्यापन एवं पिन सेटअप</h3>
                 <form onsubmit="handleAdminCreatePin(event)">
@@ -473,7 +545,6 @@
                 </div>
             </div>
 
-            <!-- 3. Admin Catalog Control Screen -->
             <div id="adminWorkSection" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3 style="color: var(--primary); margin: 0;">मालिक कंट्रोल पैनल</h3>
@@ -575,19 +646,19 @@
 
     <footer>
         <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | हेल्पलाइन: 9304509464</p>
+        <p style="margin-top: 5px; font-size: 12px; color: #aaa;">
+            लोकेशन: <a href="https://share.google/nwfYpVgc0wYIF0lvd" target="_blank" style="color: #f1c40f; text-decoration: none;">गूगल मैप पर सज्जाद डिजिटल प्रिंट्स देखें</a>
+        </p>
     </footer>
 
     <script>
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
-        
-        // केवल इस मोबाइल नंबर से ही एडमिन पिन बनाया या बदला जा सकता है
         const OWNER_PHONE = "9304509464";
 
         let sampleFileName = "कोई सैंपल फोटो अटैच नहीं";
         let sampleDataUrl = "";
 
-        // डिफ़ॉल्ट कैटलॉग
         const defaultCatalog = [
             { id: 1, name: "मुस्लिम निकाह कार्ड (शाही)", rate: 12, stock: "in", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
             { id: 2, name: "हिंदू शादी कार्ड (गोल्डन)", rate: 15, stock: "in", img: "https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" },
@@ -642,11 +713,9 @@
             document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // ================== सीक्रेट एडमिन एंट्री ट्रिगर ==================
+        // गुप्त एडमिन ट्रिगर
         let clickCount = 0;
         let clickTimer = null;
-
-        // गुप्त तरीका १: 'दिल्ली प्रेस' लोगो पर लगातार ३ बार क्लिक
         document.getElementById('secretAdminTrigger').addEventListener('click', function() {
             clickCount++;
             if (clickCount === 1) {
@@ -660,7 +729,6 @@
             }
         });
 
-        // गुप्त तरीका २: कीबोर्ड पर Ctrl + Shift + A दबाने पर
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
                 e.preventDefault();
@@ -688,7 +756,6 @@
             document.getElementById('adminWorkSection').style.display = view === 'work' ? 'block' : 'none';
         }
 
-        // नया पिन बनाना (केवल मालिक के नंबर से)
         function handleAdminCreatePin(e) {
             e.preventDefault();
             const phone = document.getElementById('adminRegPhone').value.trim();
@@ -706,7 +773,6 @@
             showAdminView('login');
         }
 
-        // पिन से लॉगिन
         function handleAdminLogin(e) {
             e.preventDefault();
             const enteredPin = document.getElementById('adminLoginPin').value.trim();
@@ -784,7 +850,6 @@
             }
         }
 
-        // कैलकुलेशन एवं बिलिंग
         function calculateTotal() {
             var rate = parseFloat(document.getElementById('cardRate').value) || 0;
             var qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -849,6 +914,12 @@
         }
 
         function generateDirectPDF() {
+            var termsChecked = document.getElementById('termsCheck').checked;
+            if(!termsChecked) {
+                alert("कृपया पहले 'नियम एवं शर्तें' स्वीकार करें!");
+                return;
+            }
+
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
             var qty = document.getElementById('cardQty').value;
@@ -928,6 +999,13 @@
                         '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">शायरी / विशेष निर्देश</th><td style="padding:6px; border:1px solid #999;">' + notes + '</td></tr>' +
                     '</table>' +
                     samplePhotoHtml +
+
+                    '<div style="margin-top:20px; padding:10px; border:1px dashed #c0392b; background:#fffbfb;">' +
+                        '<h5 style="color:#c0392b; margin:0 0 6px 0; font-size:13px;">विशेष नियम एवं शर्त:</h5>' +
+                        '<p style="font-size:11px; margin:0; line-height:1.6; color:#444;">' +
+                        '<strong>कृपया ध्यान दें:</strong> छपाई से पहले कार्ड के समस्त मैटर (नाम, पता, दिनांक, समय, स्पेलिंग आदि) को एक-एक कर स्वयं भली-भांति जांच लें। कार्ड फाइनल होकर छपने के बाद किसी भी प्रकार की गलती या अशुद्धि स्वीकार्य नहीं होगी।' +
+                        '</p>' +
+                    '</div>' +
                 '</div>';
 
             var printArea = document.getElementById('printableReceiptArea');
@@ -938,6 +1016,13 @@
         // व्हाट्सएप ऑर्डर सबमिशन
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
+
+            var termsChecked = document.getElementById('termsCheck').checked;
+            if(!termsChecked) {
+                alert("कृपया पहले 'नियम एवं शर्तें' स्वीकार करें!");
+                return;
+            }
+
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
             var qty = document.getElementById('cardQty').value;
@@ -992,12 +1077,13 @@
                       "*विनीत / प्रेषक (From):*" + from + "\n" +
                       "*अतिरिक्त निर्देश:* " + notes + "\n" +
                       "*Txn ID / UTR:* " + txn + "\n\n" +
+                      "⚠️ *शर्त स्वीकृत:* मैंने छपाई से पहले पूरा मैटर एक-एक कर जांचने की शर्त स्वीकार कर ली है। छपने के बाद कोई गलती मान्य नहीं होगी।\n\n" +
                       "📌 *(नोट: अगर आपने कोई कार्ड सैंपल फोटो सेलेक्ट किया है तो कृपया चैट में भी फोटो सेंड करें)*";
 
             window.location.href = "https://wa.me/919304509464?text=" + encodeURIComponent(msg);
         });
 
-        // यूजर ऑथेंटिकेशन
+        // यूजर लॉगिन एवं रजिस्ट्रेशन
         function openAuthModal(view) {
             document.getElementById('authModal').style.display = 'flex';
             toggleAuthView(view);
