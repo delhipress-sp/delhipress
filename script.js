@@ -28,7 +28,7 @@ async function handleLoginSubmit(event) {
 
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
-      phone: mobile,
+      email: mobile,
       password: password,
     });
 
@@ -53,7 +53,7 @@ async function handleRegisterSubmit(event) {
 
   try {
     const { data, error } = await supabase.auth.signUp({
-      phone: mobile,
+      email: email,
       password: password,
       options: {
         data: {
