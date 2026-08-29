@@ -32,6 +32,9 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 25px;
         }
+        
+        /* Secret Click Area on Brand */
+        .nav-brand { cursor: pointer; user-select: none; }
         .nav-brand h2 { color: var(--primary); font-size: 20px; }
         .nav-brand p { font-size: 11px; color: #666; }
 
@@ -41,10 +44,6 @@
             padding: 6px 10px; border-radius: 4px; transition: 0.3s;
         }
         .nav-menu a:hover { color: var(--primary); }
-        .btn-admin {
-            background: #2c3e50; color: white !important;
-            padding: 6px 12px !important; border-radius: 20px; cursor: pointer;
-        }
         .btn-login {
             background: var(--primary); color: white !important;
             padding: 6px 12px !important; border-radius: 20px; cursor: pointer;
@@ -59,7 +58,6 @@
 
         .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
 
-        /* Showcase Cards */
         .showcase-box {
             background: #fff; padding: 20px; border-radius: 8px;
             margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -89,7 +87,6 @@
             border-radius: 4px; cursor: pointer; margin-top: 8px;
         }
 
-        /* Form Wrapper */
         .form-wrapper {
             background: #fff; padding: 25px; border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-top: 4px solid var(--primary);
@@ -191,7 +188,6 @@
             font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
         }
 
-        /* Modals */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
@@ -202,7 +198,6 @@
         }
         .close-btn { position: absolute; right: 12px; top: 10px; font-size: 20px; cursor: pointer; }
 
-        /* Admin Table */
         .admin-table {
             width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px;
         }
@@ -236,7 +231,8 @@
     </div>
 
     <nav class="navbar">
-        <div class="nav-brand">
+        <!-- सीक्रेट एंट्री: यहाँ ३ बार क्लिक करने पर एडमिन पैनल खुलेगा -->
+        <div class="nav-brand" id="secretAdminTrigger" title="दिल्ली प्रेस">
             <h2>दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
@@ -244,7 +240,6 @@
             <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="#orderForm">कार्ड ऑर्डर फॉर्म</a></li>
             <li><a href="#paymentSection">पेमेंट</a></li>
-            <li><a href="javascript:void(0)" class="btn-admin" onclick="openAdminModal()"><i class="fa-solid fa-gear"></i> एडमिन पैनल</a></li>
             <li id="authNavContainer">
                 <a href="javascript:void(0)" class="btn-login" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i> लॉगिन</a>
             </li>
@@ -257,14 +252,11 @@
 
     <div class="container">
         
-        <!-- Live Dynamic Catalog Section -->
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">
                 शादी कार्ड कैटलॉग एवं डिज़ाइन
             </h3>
-            <div class="gallery-grid" id="catalogContainer">
-                <!-- Javascript se dynamic cards aayenge -->
-            </div>
+            <div class="gallery-grid" id="catalogContainer"></div>
         </div>
 
         <!-- Wedding Card Form -->
@@ -434,26 +426,61 @@
 
     </div>
 
-    <!-- Admin Panel Modal -->
+    <!-- Hidden / Secret Admin Modal -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAdminModal()">&times;</span>
             
-            <!-- Admin PIN Screen -->
-            <div id="adminPinSection">
-                <h3 style="color: var(--dark); text-align: center; margin-bottom: 12px;">एडमिन लॉगिन</h3>
-                <div class="form-group">
-                    <label>एडमिन पिन (Default PIN: 1234):</label>
-                    <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
+            <!-- 1. Admin PIN Login Screen -->
+            <div id="adminLoginSection">
+                <h3 style="color: var(--dark); text-align: center; margin-bottom: 12px;">एडमिन ऑथेंटिकेशन</h3>
+                <form onsubmit="handleAdminLogin(event)">
+                    <div class="form-group">
+                        <label>एडमिन सीक्रेट पिन:</label>
+                        <input type="password" id="adminLoginPin" required placeholder="अपना गुप्त पिन दर्ज करें">
+                    </div>
+                    <button type="submit" style="width: 100%; padding: 8px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                        प्रवेश करें
+                    </button>
+                </form>
+                <div style="font-size: 12px; text-align: center; margin-top: 10px;">
+                    <a onclick="showAdminView('create')" style="color: var(--primary); font-weight: bold; cursor: pointer;">
+                        पिन भूल गए या रीसेट करना है?
+                    </a>
                 </div>
-                <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 8px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                    प्रवेश करें
-                </button>
             </div>
 
-            <!-- Admin Action Screen -->
+            <!-- 2. Admin Create / Reset PIN Screen -->
+            <div id="adminCreateSection" style="display: none;">
+                <h3 style="color: var(--green); text-align: center; margin-bottom: 12px;">मालिक सत्यापन एवं पिन सेटअप</h3>
+                <form onsubmit="handleAdminCreatePin(event)">
+                    <div class="form-group">
+                        <label>वेरिफिकेशन मोबाइल नंबर (केवल मालिक के लिए):</label>
+                        <input type="tel" id="adminRegPhone" required placeholder="१० अंकों का नंबर डालें">
+                    </div>
+                    <div class="form-group">
+                        <label>नया एडमिन पिन बनाएं (४-६ अंक):</label>
+                        <input type="password" id="adminNewPin" required placeholder="नया पिन दर्ज करें" minlength="4" maxlength="8">
+                    </div>
+                    <button type="submit" style="width: 100%; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                        पिन सुरक्षित सेव करें
+                    </button>
+                </form>
+                <div style="font-size: 12px; text-align: center; margin-top: 10px;">
+                    <a onclick="showAdminView('login')" style="color: var(--dark); font-weight: bold; cursor: pointer;">
+                        वापस लॉगिन पर जाएँ
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Admin Catalog Control Screen -->
             <div id="adminWorkSection" style="display: none;">
-                <h3 style="color: var(--primary); text-align: center; margin-bottom: 10px;">कैटलॉग कंट्रोल पैनल</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="color: var(--primary); margin: 0;">मालिक कंट्रोल पैनल</h3>
+                    <button type="button" onclick="adminLogout()" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                        लॉगआउट
+                    </button>
+                </div>
                 <form id="adminCardForm" onsubmit="handleAddNewCard(event)">
                     <div class="form-group">
                         <label>कार्ड का नाम:</label>
@@ -500,7 +527,7 @@
     <!-- Printable Receipt Element -->
     <div id="printableReceiptArea" style="display: none;"></div>
 
-    <!-- Login Modal -->
+    <!-- User Login Modal -->
     <div class="modal" id="authModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAuthModal()">&times;</span>
@@ -553,12 +580,14 @@
     <script>
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
-        const ADMIN_PIN = "1234"; // एडमिन पासवर्ड
+        
+        // केवल इस मोबाइल नंबर से ही एडमिन पिन बनाया या बदला जा सकता है
+        const OWNER_PHONE = "9304509464";
 
         let sampleFileName = "कोई सैंपल फोटो अटैच नहीं";
         let sampleDataUrl = "";
 
-        // शुरुआती डिफ़ॉल्ट कैटलॉग डेटा
+        // डिफ़ॉल्ट कैटलॉग
         const defaultCatalog = [
             { id: 1, name: "मुस्लिम निकाह कार्ड (शाही)", rate: 12, stock: "in", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
             { id: 2, name: "हिंदू शादी कार्ड (गोल्डन)", rate: 15, stock: "in", img: "https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" },
@@ -576,7 +605,6 @@
             renderAdminTable();
         }
 
-        // वेबसाइट पर कैटलॉग दिखाना
         function renderCatalog() {
             const catalog = getCatalog();
             const container = document.getElementById('catalogContainer');
@@ -601,43 +629,101 @@
             });
         }
 
-        // ग्राहक द्वारा कार्ड सेलेक्ट करने पर फॉर्म में वैल्यू भरना
         function selectCardToForm(name, rate, img) {
             document.getElementById('cardCategory').value = name;
             document.getElementById('cardRate').value = rate;
             calculateTotal();
 
-            // सैंपल प्रिव्यू में भी ऑटो-लोड करें
             sampleDataUrl = img;
             sampleFileName = name;
             document.getElementById('bottomPreviewImg').src = img;
             document.getElementById('bottomPreviewContainer').style.display = 'block';
 
-            // फॉर्म पर स्क्रॉल करें
             document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // एडमिन पैनल मोडल
+        // ================== सीक्रेट एडमिन एंट्री ट्रिगर ==================
+        let clickCount = 0;
+        let clickTimer = null;
+
+        // गुप्त तरीका १: 'दिल्ली प्रेस' लोगो पर लगातार ३ बार क्लिक
+        document.getElementById('secretAdminTrigger').addEventListener('click', function() {
+            clickCount++;
+            if (clickCount === 1) {
+                clickTimer = setTimeout(function() {
+                    clickCount = 0;
+                }, 1000);
+            } else if (clickCount === 3) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                openAdminModal();
+            }
+        });
+
+        // गुप्त तरीका २: कीबोर्ड पर Ctrl + Shift + A दबाने पर
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+                e.preventDefault();
+                openAdminModal();
+            }
+        });
+
         function openAdminModal() {
             document.getElementById('adminModal').style.display = 'flex';
-            document.getElementById('adminPinSection').style.display = 'block';
-            document.getElementById('adminWorkSection').style.display = 'none';
-            document.getElementById('adminPin').value = '';
+            const savedPin = localStorage.getItem('dp_owner_pin');
+            if (!savedPin) {
+                showAdminView('create');
+            } else {
+                showAdminView('login');
+            }
         }
 
         function closeAdminModal() {
             document.getElementById('adminModal').style.display = 'none';
         }
 
-        function verifyAdminPin() {
-            const pin = document.getElementById('adminPin').value.trim();
-            if (pin === ADMIN_PIN) {
-                document.getElementById('adminPinSection').style.display = 'none';
-                document.getElementById('adminWorkSection').style.display = 'block';
+        function showAdminView(view) {
+            document.getElementById('adminLoginSection').style.display = view === 'login' ? 'block' : 'none';
+            document.getElementById('adminCreateSection').style.display = view === 'create' ? 'block' : 'none';
+            document.getElementById('adminWorkSection').style.display = view === 'work' ? 'block' : 'none';
+        }
+
+        // नया पिन बनाना (केवल मालिक के नंबर से)
+        function handleAdminCreatePin(e) {
+            e.preventDefault();
+            const phone = document.getElementById('adminRegPhone').value.trim();
+            const pin = document.getElementById('adminNewPin').value.trim();
+
+            if (phone !== OWNER_PHONE) {
+                alert("अस्वीकृत! केवल अधिकृत मालिक (" + OWNER_PHONE + ") ही एडमिन पिन सेट कर सकते हैं।");
+                return;
+            }
+
+            localStorage.setItem('dp_owner_pin', pin);
+            alert("बधाई! आपका सीक्रेट एडमिन पिन सफलतापूर्वक सेट हो गया है।");
+            document.getElementById('adminNewPin').value = '';
+            document.getElementById('adminRegPhone').value = '';
+            showAdminView('login');
+        }
+
+        // पिन से लॉगिन
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const enteredPin = document.getElementById('adminLoginPin').value.trim();
+            const savedPin = localStorage.getItem('dp_owner_pin');
+
+            if (savedPin && enteredPin === savedPin) {
+                document.getElementById('adminLoginPin').value = '';
+                showAdminView('work');
                 renderAdminTable();
             } else {
-                alert("गलत पिन! केवल एडमिन के लिए।");
+                alert("गलत पिन! प्रवेश वर्जित है।");
             }
+        }
+
+        function adminLogout() {
+            showAdminView('login');
+            closeAdminModal();
         }
 
         function renderAdminTable() {
@@ -658,7 +744,6 @@
             });
         }
 
-        // नया कार्ड अपलोड करना
         function handleAddNewCard(e) {
             e.preventDefault();
             const name = document.getElementById('admCardName').value.trim();
@@ -682,7 +767,7 @@
                 };
 
                 const catalog = getCatalog();
-                catalog.unshift(newCard); // नए कार्ड को सबसे आगे जोड़ें
+                catalog.unshift(newCard);
                 saveCatalog(catalog);
 
                 alert("नया कार्ड सफलतापूर्वक कैटलॉग में जुड़ गया!");
@@ -691,16 +776,15 @@
             reader.readAsDataURL(file);
         }
 
-        // कार्ड कैटलॉग से डिलीट करना
         function deleteCatalogItem(id) {
-            if (confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) {
+            if (confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) {
                 let catalog = getCatalog();
                 catalog = catalog.filter(c => c.id !== id);
                 saveCatalog(catalog);
             }
         }
 
-        // कैलकुलेशन
+        // कैलकुलेशन एवं बिलिंग
         function calculateTotal() {
             var rate = parseFloat(document.getElementById('cardRate').value) || 0;
             var qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -764,7 +848,6 @@
             group.appendChild(div);
         }
 
-        // सॉलिड प्रिंट / सेव PDF फंक्शन
         function generateDirectPDF() {
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
@@ -914,7 +997,7 @@
             window.location.href = "https://wa.me/919304509464?text=" + encodeURIComponent(msg);
         });
 
-        // लॉगिन और रजिस्ट्रेशन फंक्शंस
+        // यूजर ऑथेंटिकेशन
         function openAuthModal(view) {
             document.getElementById('authModal').style.display = 'flex';
             toggleAuthView(view);
@@ -984,7 +1067,6 @@
             }
         }
 
-        // पेज लोड पर इनिशियलाइज
         renderCatalog();
         calculateTotal();
         checkUserSession();
