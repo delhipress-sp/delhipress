@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</title>
-    <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PDF Generation Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -23,14 +20,12 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; }
         body { background-color: #f4f6f9; color: #333; line-height: 1.6; }
 
-        /* Top Helpline Bar */
         .top-bar {
             background: var(--dark); color: #fff; padding: 6px 20px;
             display: flex; justify-content: space-between; align-items: center; font-size: 13px;
         }
         .top-bar a { color: #f1c40f; text-decoration: none; margin-left: 10px; font-weight: bold; }
 
-        /* Navigation Bar */
         .navbar {
             background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: sticky; top: 0; z-index: 1000;
@@ -51,29 +46,15 @@
             padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
         }
 
-        .user-logged-box {
-            display: none;
-            align-items: center;
-            gap: 10px;
-        }
-        .user-name-display {
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 14px;
-        }
+        .user-logged-box { display: none; align-items: center; gap: 10px; }
+        .user-name-display { font-weight: 600; color: var(--primary); font-size: 14px; }
         .btn-logout {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            cursor: pointer;
+            background: #e74c3c; color: white; border: none;
+            padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer;
         }
 
         .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
 
-        /* Showcase Gallery */
         .showcase-box {
             background: #fff; padding: 20px; border-radius: 8px;
             margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -91,7 +72,6 @@
         .card-info { padding: 10px; }
         .card-info h4 { font-size: 15px; color: #2d3748; }
 
-        /* Form Wrapper */
         .form-wrapper {
             background: #fff; padding: 25px; border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-top: 4px solid var(--primary);
@@ -133,7 +113,6 @@
             position: absolute; right: 8px; top: 8px;
         }
 
-        /* Price Calculation Box */
         .total-bill-box {
             background: #fef9c3; border: 1px solid #facc15;
             padding: 12px; border-radius: 6px; margin: 15px 0;
@@ -141,7 +120,6 @@
             font-size: 16px; font-weight: bold; color: #854d0e;
         }
 
-        /* Payment Option Box */
         .payment-box {
             background: #f0fdf4; border: 1px solid #bbf7d0;
             padding: 16px; border-radius: 8px; text-align: center;
@@ -168,30 +146,16 @@
             font-size: 13px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
         }
 
-        /* Bottom Upload Field Style */
         .bottom-upload-box {
-            background: #f8fafc;
-            border: 2px dashed #94a3b8;
-            padding: 18px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 15px;
-            cursor: pointer;
+            background: #f8fafc; border: 2px dashed #94a3b8; padding: 18px;
+            border-radius: 8px; text-align: center; margin-top: 15px; cursor: pointer;
         }
-        .sample-preview-box {
-            display: none;
-            margin-top: 12px;
-            text-align: center;
-        }
+        .sample-preview-box { display: none; margin-top: 12px; text-align: center; }
         .sample-preview-box img {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            object-fit: cover;
+            max-width: 200px; max-height: 200px; border-radius: 6px;
+            border: 1px solid #cbd5e1; object-fit: cover;
         }
 
-        /* Submit / PDF Buttons */
         .btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .submit-btn {
             flex: 1; padding: 12px; background: var(--green); color: white;
@@ -202,7 +166,6 @@
             font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
         }
 
-        /* Login & Registration Modal */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
@@ -212,72 +175,29 @@
             position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .close-btn { position: absolute; right: 12px; top: 10px; font-size: 20px; cursor: pointer; }
-        
-        .auth-switch {
-            font-size: 13px; text-align: center; margin-top: 12px; color: #555;
-        }
-        .auth-switch a {
-            color: var(--primary); font-weight: bold; text-decoration: none; cursor: pointer;
-        }
+        .auth-switch { font-size: 13px; text-align: center; margin-top: 12px; color: #555; }
+        .auth-switch a { color: var(--primary); font-weight: bold; text-decoration: none; cursor: pointer; }
 
         footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 35px; }
 
-        /* Hidden Printable Template for 100% Solid PDF Output */
-        #pdfReceiptTemplate {
-            display: none;
-            background: #ffffff;
-            color: #1e293b;
-            padding: 30px;
-            font-family: 'Mukta', sans-serif;
-            border: 2px solid #0f172a;
-        }
-        .receipt-header {
-            text-align: center;
-            border-bottom: 2px solid #c0392b;
-            padding-bottom: 12px;
-            margin-bottom: 18px;
-        }
-        .receipt-header h2 { color: #c0392b; font-size: 24px; }
-        .receipt-header h3 { color: #d35400; font-size: 18px; }
-        .receipt-header p { font-size: 12px; color: #64748b; }
-        .receipt-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-        .receipt-table th, .receipt-table td {
-            border: 1px solid #cbd5e1;
-            padding: 8px 10px;
-            font-size: 13px;
-            text-align: left;
-        }
-        .receipt-table th {
-            background-color: #f8fafc;
-            color: #334155;
-            width: 30%;
-            font-weight: 700;
-        }
-        .receipt-sec-title {
-            background: #f1f5f9;
-            padding: 6px 10px;
-            font-weight: bold;
-            color: #0f172a;
-            border-left: 4px solid #c0392b;
-            margin: 15px 0 8px;
-            font-size: 14px;
-        }
-        .receipt-sample-img {
-            max-width: 160px;
-            max-height: 160px;
-            border: 1px solid #cbd5e1;
-            margin-top: 5px;
-            display: block;
+        /* Print Specific CSS */
+        @media print {
+            body * { visibility: hidden; }
+            #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
+            #printableReceiptArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+                background: #fff;
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Helpline Bar -->
     <div class="top-bar">
         <span><i class="fa-solid fa-phone"></i> हेल्पलाइन: 9304509464</span>
         <div>
@@ -285,7 +205,6 @@
         </div>
     </div>
 
-    <!-- Main Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
             <h2>दिल्ली प्रेस</h2>
@@ -307,44 +226,32 @@
 
     <div class="container">
         
-        <!-- Showcase Gallery -->
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">कार्ड मॉडल्स एवं डिजाइन गैलरी</h3>
-            
             <div class="gallery-grid" id="cardGallery">
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" alt="मुस्लिम निकाह कार्ड">
-                    <div class="card-info">
-                        <h4>मुस्लिम निकाह कार्ड</h4>
-                    </div>
+                    <div class="card-info"><h4>मुस्लिम निकाह कार्ड</h4></div>
                 </div>
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" alt="हिंदू शादी कार्ड">
-                    <div class="card-info">
-                        <h4>हिंदू शादी कार्ड</h4>
-                    </div>
+                    <div class="card-info"><h4>हिंदू शादी कार्ड</h4></div>
                 </div>
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" alt="फ्लेक्स बैनर">
-                    <div class="card-info">
-                        <h4>फ्लेक्स एवं बैनर</h4>
-                    </div>
+                    <div class="card-info"><h4>फ्लेक्स एवं बैनर</h4></div>
                 </div>
                 <div class="card-sample">
                     <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=400&q=80" alt="विजिटिंग कार्ड">
-                    <div class="card-info">
-                        <h4>विजिटिंग कार्ड</h4>
-                    </div>
+                    <div class="card-info"><h4>विजिटिंग कार्ड</h4></div>
                 </div>
             </div>
         </div>
 
-        <!-- Wedding Card Form -->
         <div class="form-wrapper" id="orderForm">
             <div class="section-header">दिल्ली प्रेस - शादी कार्ड ऑर्डर फॉर्म</div>
             
             <form id="weddingForm">
-                <!-- Step 1: Card Category & Rate -->
                 <div class="form-block">
                     <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
                     <div class="row-3">
@@ -360,27 +267,24 @@
                         </div>
                         <div class="form-group">
                             <label>कार्ड का प्रति पीस रेट (₹):</label>
-                            <input type="number" id="cardRate" placeholder="उदा: 10, 15, 20" value="12" min="1" step="any" oninput="calculateTotal()" required>
+                            <input type="number" id="cardRate" value="12" min="1" step="any" oninput="calculateTotal()" required>
                         </div>
                         <div class="form-group">
                             <label>कार्ड संख्या (Quantity):</label>
-                            <input type="number" id="cardQty" placeholder="उदा: 200" value="100" min="1" oninput="calculateTotal()" required>
+                            <input type="number" id="cardQty" value="100" min="1" oninput="calculateTotal()" required>
                         </div>
                     </div>
 
-                    <!-- Auto Calculation Bar -->
                     <div class="total-bill-box">
                         <span>कुल अनुमानित राशि (Total Amount):</span>
                         <span id="totalDisplay">₹1,200</span>
                     </div>
                 </div>
 
-                <!-- Step 2: Groom and Bride with FULL Address -->
                 <div class="form-block">
                     <h4>२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता (Address)</h4>
                     <div id="couplesGroup">
                         <div class="dynamic-item couple-item">
-                            <!-- Groom Details -->
                             <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
                             <div class="row-2">
                                 <div class="form-group">
@@ -399,7 +303,6 @@
 
                             <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #cbd5e1;">
 
-                            <!-- Bride Details -->
                             <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
                             <div class="row-2">
                                 <div class="form-group">
@@ -417,17 +320,16 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn-add" onclick="addCoupleField()">+ और दूल्हा-दुल्हन जोड़ें (Multiple)</button>
+                    <button type="button" class="btn-add" onclick="addCoupleField()">+ और दूल्हा-दुल्हन जोड़ें</button>
                 </div>
 
-                <!-- Step 3: Dates & Timings -->
                 <div class="form-block">
                     <h4>३. वैवाहिक कार्यक्रम एवं तारीखें</h4>
                     <div id="eventsGroup">
                         <div class="dynamic-item event-item">
                             <div class="form-group">
                                 <label>कार्यक्रम का नाम:</label>
-                                <input type="text" class="event-title" placeholder="उदा: निकाह / बारात / मण्डप / हल्दी" required>
+                                <input type="text" class="event-title" placeholder="उदा: निकाह / बारात / हल्दी" required>
                             </div>
                             <div class="row-2">
                                 <div class="form-group">
@@ -444,7 +346,6 @@
                     <button type="button" class="btn-add" onclick="addEventField()">+ और कार्यक्रम / तारीख जोड़ें</button>
                 </div>
 
-                <!-- Step 4: RSVP & From -->
                 <div class="form-block">
                     <h4>४. निवेदक, दर्शनाभिलाषी एवं RSVP</h4>
                     <div class="form-group">
@@ -461,46 +362,35 @@
                     </div>
                 </div>
 
-                <!-- Step 5: Cashfree & UPI Payment Area (9304509464@okbizaxis) -->
                 <div class="form-block" id="paymentSection">
                     <h4>५. भुगतान (Cashfree & UPI Payment)</h4>
                     <div class="payment-box">
                         <p style="font-weight: 600; color: #1e293b; margin-bottom: 10px;">ऑनलाइन भुगतान के लिए नीचे दिए गए विकल्प चुनें:</p>
 
-                        <!-- 1. Cashfree Payment Link Button -->
                         <a id="cashfreeBtn" href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
                             <i class="fa-solid fa-bolt"></i> Cashfree से सुरक्षित भुगतान करें
                         </a>
 
                         <div style="margin: 15px 0; font-size: 13px; color: #64748b;">— अथवा सीधे UPI से भुगतान करें —</div>
 
-                        <!-- 2. Dynamic QR Code -->
                         <div class="qr-wrapper">
                             <img id="upiQrCode" src="" alt="UPI पेमेंट QR">
                         </div>
                         <p style="font-size: 13px; color: #475569;">UPI ID: <strong>9304509464@okbizaxis</strong></p>
 
-                        <!-- 3. Direct UPI App Buttons -->
                         <div class="upi-buttons">
-                            <a id="gpayBtn" href="#" class="upi-btn" style="background:#ea4335;">
-                                <i class="fa-brands fa-google-pay"></i> Google Pay
-                            </a>
-                            <a id="phonepeBtn" href="#" class="upi-btn" style="background:#5f259f;">
-                                <i class="fa-solid fa-mobile-screen"></i> PhonePe
-                            </a>
-                            <a id="paytmBtn" href="#" class="upi-btn" style="background:#00b9f5;">
-                                <i class="fa-solid fa-wallet"></i> Paytm / BHIM
-                            </a>
+                            <a id="gpayBtn" href="#" class="upi-btn" style="background:#ea4335;">Google Pay</a>
+                            <a id="phonepeBtn" href="#" class="upi-btn" style="background:#5f259f;">PhonePe</a>
+                            <a id="paytmBtn" href="#" class="upi-btn" style="background:#00b9f5;">Paytm / BHIM</a>
                         </div>
 
                         <div class="form-group" style="text-align: left; margin-top: 15px;">
                             <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
-                            <input type="text" id="transId" placeholder="पेमेंट करने के बाद 12 अंकों का UTR / Txn ID दर्ज करें">
+                            <input type="text" id="transId" placeholder="पेमेंट के बाद प्राप्त 12 अंकों का UTR / Txn ID दर्ज करें">
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 6: Form Ke Niche Card Sample Upload Box -->
                 <div class="form-block">
                     <h4>६. कार्ड का सैंपल / कैटलॉग फोटो अपलोड करें</h4>
                     <div class="bottom-upload-box" onclick="document.getElementById('bottomCardSample').click()">
@@ -515,12 +405,11 @@
                     </div>
                 </div>
 
-                <!-- Buttons: WhatsApp & PDF -->
                 <div class="btn-row">
                     <button type="submit" class="submit-btn">
                         <i class="fa-brands fa-whatsapp"></i> व्हाट्सएप पर ऑर्डर भेजें
                     </button>
-                    <button type="button" class="pdf-btn" onclick="downloadPDF()">
+                    <button type="button" class="pdf-btn" onclick="generateDirectPDF()">
                         <i class="fa-solid fa-file-pdf"></i> PDF रसीद डाउनलोड करें
                     </button>
                 </div>
@@ -529,86 +418,13 @@
 
     </div>
 
-    <!-- Hidden Template to Generate Crystal-Clear PDF -->
-    <div id="pdfReceiptTemplate">
-        <div class="receipt-header">
-            <h2>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-            <h3>शादी कार्ड ऑर्डर एवं विवरण रसीद</h3>
-            <p>हेल्पलाइन: 9304509464 | UPI: 9304509464@okbizaxis</p>
-            <p id="pdfOrderDate" style="margin-top: 4px; font-weight: bold;"></p>
-        </div>
+    <!-- Printable Receipt Element -->
+    <div id="printableReceiptArea" style="display: none;"></div>
 
-        <div class="receipt-sec-title">१. कार्ड ऑर्डर एवं बिलिंग विवरण</div>
-        <table class="receipt-table">
-            <tr>
-                <th>कार्ड कैटगरी</th>
-                <td id="pdfCardCat"></td>
-            </tr>
-            <tr>
-                <th>प्रति पीस रेट</th>
-                <td id="pdfCardRate"></td>
-            </tr>
-            <tr>
-                <th>कुल कार्ड संख्या</th>
-                <td id="pdfCardQty"></td>
-            </tr>
-            <tr>
-                <th>कुल अनुमानित राशि</th>
-                <td id="pdfTotalAmt" style="font-weight: bold; color: #c0392b;"></td>
-            </tr>
-            <tr>
-                <th>भुगतान UTR / Txn ID</th>
-                <td id="pdfTxnId"></td>
-            </tr>
-        </table>
-
-        <div class="receipt-sec-title">२. वैवाहिक विवरण (दूल्हा एवं दुल्हन पक्ष)</div>
-        <div id="pdfCouplesData"></div>
-
-        <div class="receipt-sec-title">३. कार्यक्रम एवं तारीखें</div>
-        <table class="receipt-table" id="pdfEventsTable">
-            <thead>
-                <tr style="background:#f8fafc;">
-                    <th>कार्यक्रम</th>
-                    <th>तारीख</th>
-                    <th>समय</th>
-                </tr>
-            </thead>
-            <tbody id="pdfEventsBody"></tbody>
-        </table>
-
-        <div class="receipt-sec-title">४. निवेदक, दर्शनाभिलाषी एवं अन्य निर्देश</div>
-        <table class="receipt-table">
-            <tr>
-                <th>आर.एस.वी.पी (RSVP)</th>
-                <td id="pdfRsvp"></td>
-            </tr>
-            <tr>
-                <th>दर्शनाभिलाषी / प्रेषक (From)</th>
-                <td id="pdfFrom"></td>
-            </tr>
-            <tr>
-                <th>शायरी / विशेष निर्देश</th>
-                <td id="pdfNotes"></td>
-            </tr>
-            <tr>
-                <th>सैंपल फ़ाइल नाम</th>
-                <td id="pdfSampleName"></td>
-            </tr>
-        </table>
-
-        <div id="pdfSampleImgBox" style="display: none; margin-top: 10px;">
-            <div class="receipt-sec-title">५. पसंद किया गया कार्ड सैंपल फोटो</div>
-            <img id="pdfSampleImg" class="receipt-sample-img" src="" alt="सैंपल">
-        </div>
-    </div>
-
-    <!-- Login & Register Modal -->
+    <!-- Login Modal -->
     <div class="modal" id="authModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAuthModal()">&times;</span>
-            
-            <!-- Login Form -->
             <div id="loginSection">
                 <h3 style="margin-bottom: 15px; color: var(--primary); text-align: center;">दिल्ली प्रेस लॉगिन</h3>
                 <form onsubmit="handleLoginSubmit(event)">
@@ -620,16 +436,13 @@
                         <label>पासवर्ड:</label>
                         <input type="password" id="loginPass" required placeholder="पासवर्ड डालें">
                     </div>
-                    <button type="submit" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                        लॉगिन करें
-                    </button>
+                    <button type="submit" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
                 </form>
                 <div class="auth-switch">
-                    खाता नहीं है? <a onclick="toggleAuthView('register')">नया अकाउंट बनाएं (Create Account)</a>
+                    खाता नहीं है? <a onclick="toggleAuthView('register')">नया अकाउंट बनाएं</a>
                 </div>
             </div>
 
-            <!-- Registration Form -->
             <div id="registerSection" style="display: none;">
                 <h3 style="margin-bottom: 15px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
                 <form onsubmit="handleRegisterSubmit(event)">
@@ -645,15 +458,12 @@
                         <label>पासवर्ड बनाएं:</label>
                         <input type="password" id="regPass" required placeholder="कम से कम ४ अक्षर या अंक" minlength="4">
                     </div>
-                    <button type="submit" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                        अकाउंट रजिस्टर करें
-                    </button>
+                    <button type="submit" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">अकाउंट रजिस्टर करें</button>
                 </form>
                 <div class="auth-switch">
                     पहले से अकाउंट है? <a onclick="toggleAuthView('login')">यहाँ लॉगिन करें</a>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -661,23 +471,19 @@
         <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | हेल्पलाइन: 9304509464</p>
     </footer>
 
-    <!-- Script Logic -->
     <script>
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
         let sampleFileName = "कोई सैंपल फोटो अटैच नहीं";
         let sampleDataUrl = "";
 
-        // Authentication System
         function openAuthModal(view) {
             document.getElementById('authModal').style.display = 'flex';
             toggleAuthView(view);
         }
-
         function closeAuthModal() {
             document.getElementById('authModal').style.display = 'none';
         }
-
         function toggleAuthView(view) {
             if (view === 'register') {
                 document.getElementById('loginSection').style.display = 'none';
@@ -687,60 +493,48 @@
                 document.getElementById('registerSection').style.display = 'none';
             }
         }
-
         function handleRegisterSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('regName').value.trim();
             const mobile = document.getElementById('regMobile').value.trim();
             const pass = document.getElementById('regPass').value.trim();
-
             let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-
-            const exists = users.find(u => u.mobile === mobile);
-            if (exists) {
-                alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! कृपया सीधे लॉगिन करें।");
+            if (users.find(u => u.mobile === mobile)) {
+                alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है!");
                 toggleAuthView('login');
                 return;
             }
-
             users.push({ name: name, mobile: mobile, pass: pass });
             localStorage.setItem('dp_users', JSON.stringify(users));
             localStorage.setItem('dp_current_user', JSON.stringify({ name: name, mobile: mobile }));
-            alert("अकाउंट सफलतापूर्वक बन गया है! आप लॉगिन हो चुके हैं।");
+            alert("अकाउंट सफलतापूर्वक बन गया है!");
             closeAuthModal();
             checkUserSession();
         }
-
         function handleLoginSubmit(e) {
             e.preventDefault();
             const mobile = document.getElementById('loginMobile').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
-
             let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
-
             const found = users.find(u => u.mobile === mobile && u.pass === pass);
             if (found) {
                 localStorage.setItem('dp_current_user', JSON.stringify({ name: found.name, mobile: found.mobile }));
-                alert("स्वागत है, " + found.name + "! लॉगिन सफल रहा।");
+                alert("स्वागत है, " + found.name + "!");
                 closeAuthModal();
                 checkUserSession();
             } else {
-                alert("गलत मोबाइल नंबर या पासवर्ड! कृपया दोबारा जांचें या नया अकाउंट बनाएं।");
+                alert("गलत मोबाइल नंबर या पासवर्ड!");
             }
         }
-
         function handleLogout() {
             localStorage.removeItem('dp_current_user');
             checkUserSession();
-            alert("आप सफलतापूर्वक लॉगआउट हो चुके हैं।");
         }
-
         function checkUserSession() {
             const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
             const navAuth = document.getElementById('authNavContainer');
             const loggedBox = document.getElementById('userLoggedBox');
             const display = document.getElementById('displayUserName');
-
             if (currentUser) {
                 navAuth.style.display = 'none';
                 loggedBox.style.display = 'flex';
@@ -752,25 +546,19 @@
             }
         }
 
-        // Auto calculation for total amount and dynamic QR code
         function calculateTotal() {
             var rate = parseFloat(document.getElementById('cardRate').value) || 0;
             var qty = parseInt(document.getElementById('cardQty').value) || 0;
             var total = rate * qty;
-            
             document.getElementById('totalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
-
             var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(PAYEE_NAME) + "&am=" + total + "&cu=INR";
-            
             document.getElementById('gpayBtn').href = upiUrl;
             document.getElementById('phonepeBtn').href = upiUrl;
             document.getElementById('paytmBtn').href = upiUrl;
-
             var qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(upiUrl);
             document.getElementById('upiQrCode').src = qrApi;
         }
 
-        // Bottom sample upload preview
         function previewBottomSample(event) {
             var file = event.target.files[0];
             if (file) {
@@ -787,7 +575,6 @@
             }
         }
 
-        // Add multiple couples
         function addCoupleField() {
             var group = document.getElementById('couplesGroup');
             var div = document.createElement('div');
@@ -809,7 +596,6 @@
             group.appendChild(div);
         }
 
-        // Add events
         function addEventField() {
             var group = document.getElementById('eventsGroup');
             var div = document.createElement('div');
@@ -823,30 +609,17 @@
             group.appendChild(div);
         }
 
-        // 100% Solid Non-Blank PDF Generation
-        function downloadPDF() {
+        // डायरेक्ट और 100% सॉलिड प्रिंट / सेव PDF फंक्शन
+        function generateDirectPDF() {
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
             var qty = document.getElementById('cardQty').value;
             var totalAmt = document.getElementById('totalDisplay').innerText;
-            var txn = document.getElementById('transId').value || "भुगतान शेष / उल्लेख नहीं";
+            var txn = document.getElementById('transId').value || "भुगतान शेष";
             var rsvp = document.getElementById('rsvpText').value || "लागू नहीं";
             var from = document.getElementById('fromText').value || "लागू नहीं";
             var notes = document.getElementById('extraText').value || "कोई नहीं";
 
-            // Fill Receipt Template
-            document.getElementById('pdfOrderDate').innerText = "ऑर्डर दिनांक: " + new Date().toLocaleDateString('hi-IN');
-            document.getElementById('pdfCardCat').innerText = category;
-            document.getElementById('pdfCardRate').innerText = "₹" + rate;
-            document.getElementById('pdfCardQty').innerText = qty + " पीस";
-            document.getElementById('pdfTotalAmt').innerText = totalAmt;
-            document.getElementById('pdfTxnId').innerText = txn;
-            document.getElementById('pdfRsvp').innerText = rsvp;
-            document.getElementById('pdfFrom').innerText = from;
-            document.getElementById('pdfNotes').innerText = notes;
-            document.getElementById('pdfSampleName').innerText = sampleFileName;
-
-            // Fill Couples Data
             var grooms = document.querySelectorAll('.groom-name');
             var gFathers = document.querySelectorAll('.groom-father');
             var gAddresses = document.querySelectorAll('.groom-address');
@@ -856,61 +629,78 @@
 
             var couplesHtml = "";
             for (var i = 0; i < grooms.length; i++) {
-                couplesHtml += '<table class="receipt-table" style="margin-bottom:10px;">' +
-                    '<tr><th colspan="2" style="background:#f1f5f9; color:#c0392b;">जोड़ी क्रम #' + (i+1) + '</th></tr>' +
-                    '<tr><th>दूल्हा का नाम</th><td>' + (grooms[i].value || '-') + ' (पिता: ' + (gFathers[i].value || '-') + ')</td></tr>' +
-                    '<tr><th>दूल्हे का पता</th><td>' + (gAddresses[i].value || '-') + '</td></tr>' +
-                    '<tr><th>दुल्हन का नाम</th><td>' + (brides[i].value || '-') + ' (पिता: ' + (bFathers[i].value || '-') + ')</td></tr>' +
-                    '<tr><th>दुल्हन का पता</th><td>' + (bAddresses[i].value || '-') + '</td></tr>' +
+                couplesHtml += '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
+                    '<tr><th colspan="2" style="background:#eee; text-align:left; padding:6px; border:1px solid #999;">जोड़ी संख्या #' + (i+1) + '</th></tr>' +
+                    '<tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">दूल्हा का नाम</th><td style="padding:6px; border:1px solid #999;">' + (grooms[i].value || '-') + ' (पिता: ' + (gFathers[i].value || '-') + ')</td></tr>' +
+                    '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दूल्हे का पता</th><td style="padding:6px; border:1px solid #999;">' + (gAddresses[i].value || '-') + '</td></tr>' +
+                    '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दुल्हन का नाम</th><td style="padding:6px; border:1px solid #999;">' + (brides[i].value || '-') + ' (पिता: ' + (bFathers[i].value || '-') + ')</td></tr>' +
+                    '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दुल्हन का पता</th><td style="padding:6px; border:1px solid #999;">' + (bAddresses[i].value || '-') + '</td></tr>' +
                     '</table>';
             }
-            document.getElementById('pdfCouplesData').innerHTML = couplesHtml;
 
-            // Fill Events Table
             var titles = document.querySelectorAll('.event-title');
             var dates = document.querySelectorAll('.event-date');
             var times = document.querySelectorAll('.event-time');
             var eventsHtml = "";
             for (var j = 0; j < titles.length; j++) {
                 eventsHtml += '<tr>' +
-                    '<td>' + (titles[j].value || '-') + '</td>' +
-                    '<td>' + (dates[j].value || '-') + '</td>' +
-                    '<td>' + (times[j].value || 'समय तय नहीं') + '</td>' +
+                    '<td style="padding:6px; border:1px solid #999;">' + (titles[j].value || '-') + '</td>' +
+                    '<td style="padding:6px; border:1px solid #999;">' + (dates[j].value || '-') + '</td>' +
+                    '<td style="padding:6px; border:1px solid #999;">' + (times[j].value || 'समय तय नहीं') + '</td>' +
                     '</tr>';
             }
-            document.getElementById('pdfEventsBody').innerHTML = eventsHtml;
 
-            // Sample Image in PDF
-            var sampleImgBox = document.getElementById('pdfSampleImgBox');
-            var sampleImg = document.getElementById('pdfSampleImg');
-            if (sampleDataUrl) {
-                sampleImg.src = sampleDataUrl;
-                sampleImgBox.style.display = 'block';
-            } else {
-                sampleImgBox.style.display = 'none';
+            var samplePhotoHtml = "";
+            if(sampleDataUrl) {
+                samplePhotoHtml = '<div style="margin-top:15px;"><h4 style="border-bottom:1px solid #333; margin-bottom:5px;">कार्ड सैंपल फोटो:</h4><img src="' + sampleDataUrl + '" style="max-width:180px; max-height:180px; border:1px solid #999;"></div>';
             }
 
-            // Generate PDF from the populated template
-            var element = document.getElementById('pdfReceiptTemplate');
-            element.style.display = 'block'; // Unhide for capture
+            var receiptHTML = 
+                '<div style="font-family:sans-serif; color:#000; padding:20px; line-height:1.5;">' +
+                    '<div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:15px;">' +
+                        '<h2 style="margin:0; font-size:22px;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>' +
+                        '<h3 style="margin:2px 0; font-size:16px;">शादी कार्ड ऑर्डर एवं विवरण रसीद</h3>' +
+                        '<p style="margin:0; font-size:12px;">हेल्पलाइन: 9304509464 | UPI: 9304509464@okbizaxis</p>' +
+                        '<p style="margin:4px 0 0; font-size:12px;">दिनांक: ' + new Date().toLocaleDateString('hi-IN') + '</p>' +
+                    '</div>' +
 
-            var opt = {
-                margin: 8,
-                filename: 'DelhiPress_Order_Receipt.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">१. ऑर्डर एवं मूल्य विवरण</h4>' +
+                    '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
+                        '<tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">कार्ड कैटगरी</th><td style="padding:6px; border:1px solid #999;">' + category + '</td></tr>' +
+                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">प्रति पीस रेट</th><td style="padding:6px; border:1px solid #999;">₹' + rate + '</td></tr>' +
+                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">कुल कार्ड संख्या</th><td style="padding:6px; border:1px solid #999;">' + qty + ' पीस</td></tr>' +
+                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">कुल राशि</th><td style="padding:6px; border:1px solid #999; font-weight:bold;">' + totalAmt + '</td></tr>' +
+                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">पेमेंट UTR / Txn ID</th><td style="padding:6px; border:1px solid #999;">' + txn + '</td></tr>' +
+                    '</table>' +
 
-            html2pdf().set(opt).from(element).save().then(function() {
-                element.style.display = 'none'; // Hide again
-            });
+                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">२. दूल्हा एवं दुल्हन विवरण</h4>' +
+                    couplesHtml +
+
+                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">३. कार्यक्रम एवं तारीखें</h4>' +
+                    '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
+                        '<tr style="background:#f2f2f2;"><th style="padding:6px; border:1px solid #999; text-align:left;">कार्यक्रम</th><th style="padding:6px; border:1px solid #999; text-align:left;">तारीख</th><th style="padding:6px; border:1px solid #999; text-align:left;">समय</th></tr>' +
+                        eventsHtml +
+                    '</table>' +
+
+                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">४. निवेदक एवं अन्य विवरण</h4>' +
+                    '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
+                        '<tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">RSVP</th><td style="padding:6px; border:1px solid #999;">' + rsvp + '</td></tr>' +
+                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दर्शनाभिलाषी / प्रेषक</th><td style="padding:6px; border:1px solid #999;">' + from + '</td></tr>' +
+                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">शायरी / विशेष निर्देश</th><td style="padding:6px; border:1px solid #999;">' + notes + '</td></tr>' +
+                    '</table>' +
+                    samplePhotoHtml +
+                '</div>';
+
+            var printArea = document.getElementById('printableReceiptArea');
+            printArea.innerHTML = receiptHTML;
+            
+            // सीधे ब्राउज़र प्रिंट/PDF डायलॉग खोलें
+            window.print();
         }
 
-        // WhatsApp Submission
+        // व्हाट्सएप ऑर्डर भेजना
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
             var qty = document.getElementById('cardQty').value;
