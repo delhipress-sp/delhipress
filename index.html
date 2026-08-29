@@ -113,6 +113,40 @@
             position: absolute; right: 8px; top: 8px;
         }
 
+        /* Weds Separator Badge */
+        .weds-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 12px 0;
+            position: relative;
+        }
+        .weds-divider::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: #e2e8f0;
+            top: 50%;
+            left: 0;
+            z-index: 1;
+        }
+        .weds-badge {
+            background: linear-gradient(135deg, #c0392b, #d35400);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 5px rgba(192, 57, 43, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .total-bill-box {
             background: #fef9c3; border: 1px solid #facc15;
             padding: 12px; border-radius: 6px; margin: 15px 0;
@@ -180,7 +214,6 @@
 
         footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 35px; }
 
-        /* Print Specific CSS */
         @media print {
             body * { visibility: hidden; }
             #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
@@ -285,6 +318,7 @@
                     <h4>२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता (Address)</h4>
                     <div id="couplesGroup">
                         <div class="dynamic-item couple-item">
+                            <!-- Groom Details -->
                             <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
                             <div class="row-2">
                                 <div class="form-group">
@@ -301,8 +335,12 @@
                                 <input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
                             </div>
 
-                            <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #cbd5e1;">
+                            <!-- Weds Separator -->
+                            <div class="weds-divider">
+                                <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span>
+                            </div>
 
+                            <!-- Bride Details -->
                             <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
                             <div class="row-2">
                                 <div class="form-group">
@@ -575,6 +613,7 @@
             }
         }
 
+        // Add multiple couples with "Weds" badge
         function addCoupleField() {
             var group = document.getElementById('couplesGroup');
             var div = document.createElement('div');
@@ -586,7 +625,7 @@
                     '<div class="form-group"><label>पिता का नाम:</label><input type="text" class="groom-father" placeholder="लड़के के पिता का नाम" required></div>' +
                 '</div>' +
                 '<div class="form-group"><label>लड़के का पूरा पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required></div>' +
-                '<hr style="margin: 10px 0; border: 0; border-top: 1px dashed #cbd5e1;">' +
+                '<div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>' +
                 '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दुल्हन पक्ष]</p>' +
                 '<div class="row-2">' +
                     '<div class="form-group"><label>दुल्हन का नाम:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>' +
@@ -609,7 +648,7 @@
             group.appendChild(div);
         }
 
-        // डायरेक्ट और 100% सॉलिड प्रिंट / सेव PDF फंक्शन
+        // Direct PDF / Print Receipt Generator
         function generateDirectPDF() {
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
@@ -629,10 +668,11 @@
 
             var couplesHtml = "";
             for (var i = 0; i < grooms.length; i++) {
-                couplesHtml += '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
+                couplesHtml += '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; border:1px solid #999;">' +
                     '<tr><th colspan="2" style="background:#eee; text-align:left; padding:6px; border:1px solid #999;">जोड़ी संख्या #' + (i+1) + '</th></tr>' +
                     '<tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">दूल्हा का नाम</th><td style="padding:6px; border:1px solid #999;">' + (grooms[i].value || '-') + ' (पिता: ' + (gFathers[i].value || '-') + ')</td></tr>' +
                     '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दूल्हे का पता</th><td style="padding:6px; border:1px solid #999;">' + (gAddresses[i].value || '-') + '</td></tr>' +
+                    '<tr><td colspan="2" style="text-align:center; padding:6px; font-weight:bold; background:#fff2f0; color:#c0392b; border:1px solid #999;">❤️ संग / Weds ❤️</td></tr>' +
                     '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दुल्हन का नाम</th><td style="padding:6px; border:1px solid #999;">' + (brides[i].value || '-') + ' (पिता: ' + (bFathers[i].value || '-') + ')</td></tr>' +
                     '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दुल्हन का पता</th><td style="padding:6px; border:1px solid #999;">' + (bAddresses[i].value || '-') + '</td></tr>' +
                     '</table>';
@@ -693,12 +733,10 @@
 
             var printArea = document.getElementById('printableReceiptArea');
             printArea.innerHTML = receiptHTML;
-            
-            // सीधे ब्राउज़र प्रिंट/PDF डायलॉग खोलें
             window.print();
         }
 
-        // व्हाट्सएप ऑर्डर भेजना
+        // WhatsApp Submission
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             var category = document.getElementById('cardCategory').value;
@@ -718,6 +756,7 @@
                 coupleData += "\n\n*जोड़ी " + (i + 1) + ":*" +
                               "\n*दूल्हा:* " + grooms[i].value + " (पिता: " + gFathers[i].value + ")" +
                               "\n*दूल्हे का पता:* " + gAddresses[i].value +
+                              "\n*❤️ संग / Weds ❤️*" +
                               "\n*दुल्हन:* " + brides[i].value + " (पिता: " + bFathers[i].value + ")" +
                               "\n*दुल्हन का पता:* " + bAddresses[i].value;
             }
