@@ -3,315 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>दिल्ली प्रेस हिंदी - सज्जाद डिजिटल प्रिंट्स</title>
+    <title>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</title>
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Cashfree SDK -->
+    <script src="https://sdk.cashfree.com/js/ui/2.0.0/cashfree.sandbox.js"></script>
+
     <style>
         :root {
             --primary: #c0392b;
             --secondary: #d35400;
-            --dark: #2c3e50;
-            --light: #fdfbf7;
+            --dark: #1e272e;
+            --light: #f8f9fa;
             --green: #27ae60;
+            --blue: #2980b9;
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; }
-        body { background-color: var(--light); color: #333; line-height: 1.6; }
-        
+        body { background-color: #f4f6f9; color: #333; line-height: 1.6; }
+
+        /* Top Bar */
         .top-bar {
-            background: var(--dark); color: #fff; padding: 10px 15px;
-            display: flex; justify-content: space-between; align-items: center; font-size: 14px;
-            flex-wrap: wrap; gap: 10px;
+            background: var(--dark); color: #fff; padding: 6px 20px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 13px;
         }
-        .top-bar a { color: #fff; text-decoration: none; margin-left: 12px; font-weight: 600; }
-        
-        header {
-            background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            padding: 20px 15px; text-align: center; border-bottom: 3px solid var(--primary);
-        }
-        .brand h1 { color: var(--primary); font-size: 26px; }
-        .brand h2 { color: var(--secondary); font-size: 19px; }
-        .tagline { font-size: 14px; color: #666; margin-top: 4px; }
-        
-        .action-buttons {
-            display: flex; justify-content: center; gap: 12px;
-            margin-top: 15px; flex-wrap: wrap;
-        }
-        .btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 10px 18px; border-radius: 25px; text-decoration: none;
-            font-weight: 600; font-size: 15px; cursor: pointer; border: none;
-        }
-        .btn-call { background: #0984e3; color: white; }
-        .btn-whatsapp { background: #25D366; color: white; }
-        .btn-order { background: var(--primary); color: white; }
+        .top-bar a { color: #f1c40f; text-decoration: none; margin-left: 10px; font-weight: bold; }
 
-        .container { max-width: 850px; margin: 25px auto; padding: 0 15px; }
-        
-        .cards-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px; margin-bottom: 30px;
+        /* Navbar */
+        .navbar {
+            background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 25px;
         }
-        .service-card {
-            background: #fff; padding: 15px; border-radius: 8px;
-            text-align: center; border: 1px solid #ddd;
-        }
-        .service-card i { font-size: 28px; color: var(--secondary); margin-bottom: 8px; }
-        .service-card h3 { font-size: 16px; margin-bottom: 4px; }
-        .service-card p { font-size: 12px; color: #666; }
+        .nav-brand h2 { color: var(--primary); font-size: 20px; }
+        .nav-brand p { font-size: 11px; color: #666; }
 
-        .order-form-container {
-            background: #fff; padding: 25px; border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 4px solid var(--primary);
+        .nav-menu { display: flex; list-style: none; align-items: center; gap: 15px; }
+        .nav-menu li { position: relative; }
+        .nav-menu a {
+            text-decoration: none; color: #333; font-weight: 600; font-size: 15px;
+            padding: 8px 10px; border-radius: 4px; transition: 0.3s;
         }
-        .form-section {
+        .nav-menu a:hover { color: var(--primary); }
+        
+        /* Dropdown */
+        .dropdown-content {
+            display: none; position: absolute; top: 100%; left: 0;
+            background: #fff; min-width: 170px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            border-radius: 6px; padding: 8px 0; z-index: 1001;
+        }
+        .dropdown-content a { display: block; padding: 8px 15px; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        .btn-login {
+            background: var(--primary); color: white !important;
+            padding: 6px 14px !important; border-radius: 20px;
+        }
+
+        .container { max-width: 900px; margin: 25px auto; padding: 0 15px; }
+
+        /* Showcase / Gallery Section */
+        .showcase-box {
+            background: #fff; padding: 20px; border-radius: 8px;
+            margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .gallery-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px; margin-top: 15px;
+        }
+        .card-sample {
+            border: 1px solid #ddd; border-radius: 6px; overflow: hidden;
+            text-align: center; background: #fafafa;
+        }
+        .card-sample img { width: 100%; height: 120px; object-fit: cover; }
+        .card-sample p { font-size: 12px; padding: 4px; font-weight: bold; }
+
+        .upload-field {
+            margin-top: 15px; padding: 12px; border: 2px dashed #bbb;
+            text-align: center; border-radius: 6px; background: #fff;
+        }
+
+        /* Form Area */
+        .form-wrapper {
+            background: #fff; padding: 25px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-top: 4px solid var(--primary);
+        }
+        .section-header {
+            color: var(--primary); font-size: 20px; text-align: center;
+            margin-bottom: 20px; font-weight: bold;
+        }
+        .form-block {
             background: #fdfaf6; padding: 15px; border-radius: 6px;
             margin-bottom: 15px; border-left: 4px solid var(--secondary);
         }
-        .form-section h4 { color: var(--dark); margin-bottom: 12px; font-size: 16px; }
+        .form-block h4 { margin-bottom: 10px; color: var(--dark); font-size: 16px; }
         .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
-        
+        label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
         input, select, textarea {
             width: 100%; padding: 10px; border: 1px solid #ccc;
-            border-radius: 5px; font-size: 14px; outline: none;
+            border-radius: 4px; font-size: 14px; outline: none;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
         .dynamic-item {
-            background: #fff; padding: 12px; border-radius: 6px;
+            background: #fff; padding: 12px; border-radius: 4px;
             margin-bottom: 10px; border: 1px dashed #bbb; position: relative;
         }
         .btn-add {
-            background: #6c5ce7; color: white; padding: 6px 14px;
-            font-size: 13px; border-radius: 4px; border: none; cursor: pointer;
+            background: #6c5ce7; color: white; padding: 6px 12px;
+            font-size: 12px; border-radius: 4px; border: none; cursor: pointer;
         }
         .btn-remove {
-            background: #d63031; color: white; padding: 3px 8px;
-            font-size: 11px; border-radius: 3px; border: none; cursor: pointer;
-            position: absolute; right: 8px; top: 8px;
+            background: #d63031; color: white; padding: 2px 6px;
+            font-size: 10px; border-radius: 3px; border: none; cursor: pointer;
+            position: absolute; right: 5px; top: 5px;
         }
-        .payment-box {
-            background: #f0f9ff; border: 2px dashed #0984e3;
-            padding: 15px; border-radius: 8px; text-align: center;
+
+        /* Payment Buttons */
+        .cashfree-box {
+            background: #f0fdf4; border: 1px solid #bbf7d0;
+            padding: 15px; border-radius: 6px; text-align: center; margin-top: 15px;
         }
+        .btn-cashfree {
+            background: #00875a; color: white; border: none; padding: 10px 20px;
+            font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;
+        }
+
+        /* Action Buttons */
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .submit-btn {
-            width: 100%; padding: 14px; background: var(--green);
-            color: white; font-size: 18px; font-weight: bold;
-            border: none; border-radius: 6px; cursor: pointer; margin-top: 15px;
+            flex: 1; padding: 12px; background: var(--green); color: white;
+            font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
         }
-        .submit-btn:hover { background: #219150; }
-        footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 40px; }
+        .pdf-btn {
+            flex: 1; padding: 12px; background: var(--blue); color: white;
+            font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+        }
+
+        /* Login Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 8px; width: 320px;
+            position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .close-btn { position: absolute; right: 12px; top: 10px; font-size: 20px; cursor: pointer; }
+
+        footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 30px; }
     </style>
 </head>
 <body>
 
+    <!-- Top Helpline -->
     <div class="top-bar">
-        <span><i class="fa-solid fa-phone-volume"></i> हेल्पलाइन: 9304509464</span>
+        <span><i class="fa-solid fa-phone"></i> हेल्पलाइन: 9304509464</span>
         <div>
-            <a href="tel:9304509464"><i class="fa-solid fa-phone"></i> कॉल करें</a>
-            <a href="https://wa.me/919304509464"><i class="fa-brands fa-whatsapp"></i> व्हाट्सएप</a>
+            <a href="https://wa.me/919304509464"><i class="fa-brands fa-whatsapp"></i> व्हाट्सएप सहायता</a>
         </div>
     </div>
 
-    <header>
-        <div class="brand">
-            <h1>दिल्ली प्रेस हिंदी</h1>
-            <h2>सज्जाद डिजिटल प्रिंट्स (सज्जाद प्रिंटर्स)</h2>
-            <p class="tagline">ऑनलाइन शादी कार्ड ऑर्डर और प्रिंटिंग सर्विस</p>
+    <!-- Navigation Menu -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>दिल्ली प्रेस</h2>
+            <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
-        <div class="action-buttons">
-            <a href="tel:9304509464" class="btn btn-call"><i class="fa-solid fa-phone"></i> कॉल नाउ</a>
-            <a href="https://wa.me/919304509464" class="btn btn-whatsapp"><i class="fa-brands fa-whatsapp"></i> व्हाट्सएप</a>
-            <a href="#orderForm" class="btn btn-order"><i class="fa-solid fa-file-pen"></i> कार्ड ऑर्डर फॉर्म</a>
-        </div>
-    </header>
+        <ul class="nav-menu">
+            <li><a href="#showcaseSection">होम</a></li>
+            <li class="dropdown">
+                <a href="javascript:void(0)">कार्ड प्रकार <i class="fa fa-caret-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="#orderForm">मुस्लिम निकाह कार्ड</a>
+                    <a href="#orderForm">हिंदू शादी कार्ड</a>
+                    <a href="#orderForm">विजिटिंग कार्ड</a>
+                    <a href="#orderForm">फ्लेक्स एवं बैनर</a>
+                </div>
+            </li>
+            <li><a href="#showcaseSection">कार्ड मॉडल्स</a></li>
+            <li><a href="#orderForm">ऑर्डर फॉर्म</a></li>
+            <li><a href="#paymentSection">पेमेंट</a></li>
+            <li><a href="javascript:void(0)" class="btn-login" onclick="toggleLogin(true)"><i class="fa-solid fa-user"></i> लॉगिन</a></li>
+        </ul>
+    </nav>
 
     <div class="container">
-        <div class="cards-grid">
-            <div class="service-card">
-                <i class="fa-solid fa-star-and-crescent"></i>
-                <h3>मुस्लिम निकाह कार्ड्स</h3>
-                <p>उर्दू, हिंदी व अंग्रेजी डिजाइन</p>
+        
+        <!-- Card Showcase / Display Section -->
+        <div class="showcase-box" id="showcaseSection">
+            <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">कार्ड शो-ऑफ एवं मॉडल्स गैलरी</h3>
+            <p style="font-size: 13px; color: #666; margin-top: 4px;">हमारे बनाए गए ताज़ा कार्ड्स के नमूने:</p>
+            
+            <div class="gallery-grid" id="cardGallery">
+                <div class="card-sample">
+                    <img src="https://via.placeholder.com/150x120/c0392b/ffffff?text=Muslim+Card" alt="मुस्लिम कार्ड">
+                    <p>मुस्लिम निकाह कार्ड</p>
+                </div>
+                <div class="card-sample">
+                    <img src="https://via.placeholder.com/150x120/d35400/ffffff?text=Hindu+Card" alt="हिंदू कार्ड">
+                    <p>हिंदू शादी कार्ड</p>
+                </div>
+                <div class="card-sample">
+                    <img src="https://via.placeholder.com/150x120/2980b9/ffffff?text=Visiting+Card" alt="विजिटिंग कार्ड">
+                    <p>विजिटिंग कार्ड</p>
+                </div>
+                <div class="card-sample">
+                    <img src="https://via.placeholder.com/150x120/27ae60/ffffff?text=Banner" alt="फ्लेक्स बैनर">
+                    <p>फ्लेक्स बोर्ड</p>
+                </div>
             </div>
-            <div class="service-card">
-                <i class="fa-solid fa-om"></i>
-                <h3>हिंदू शादी कार्ड्स</h3>
-                <p>पारंपरिक व फैंसी कार्ड्स</p>
-            </div>
-            <div class="service-card">
-                <i class="fa-solid fa-image"></i>
-                <h3>फ्लेक्स एवं बैनर</h3>
-                <p>एचडी प्रिंटिंग सेवा</p>
-            </div>
-            <div class="service-card">
-                <i class="fa-solid fa-address-card"></i>
-                <h3>विजिटिंग कार्ड्स</h3>
-                <p>सभी प्रकार के बिजनेस कार्ड्स</p>
+
+            <!-- Upload Area for Local Image Display -->
+            <div class="upload-field">
+                <label for="cardUpload" style="cursor: pointer; color: var(--blue);">
+                    <i class="fa-solid fa-cloud-arrow-up fa-2x"></i><br>
+                    <strong>नया कार्ड मॉडल दिखाने के लिए फोटो अपलोड करें</strong>
+                </label>
+                <input type="file" id="cardUpload" accept="image/*" style="display:none;" onchange="previewUpload(event)">
             </div>
         </div>
 
-        <div class="order-form-container" id="orderForm">
-            <h3 style="text-align:center; color: var(--primary); margin-bottom: 20px;">ऑनलाइन शादी कार्ड फॉर्म</h3>
-            
-            <form id="cardForm">
+        <!-- Order Form to Generate PDF & WhatsApp -->
+        <div class="form-wrapper" id="orderForm">
+            <div id="pdfContent">
+                <div class="section-header">दिल्ली प्रेस - शादी कार्ड ऑर्डर फॉर्म</div>
                 
-                <div class="form-section">
-                    <h4>१. कार्ड का प्रकार</h4>
-                    <div class="form-group">
-                        <label>कार्ड मॉडल चुनें:</label>
-                        <select id="cardType" required>
-                            <option value="">-- चुनें --</option>
-                            <option value="मुस्लिम निकाह कार्ड">मुस्लिम निकाह कार्ड</option>
-                            <option value="हिंदू शादी कार्ड">हिंदू शादी कार्ड</option>
-                            <option value="विजिटिंग कार्ड">विजिटिंग कार्ड</option>
-                            <option value="फ्लेक्स बैनर">फ्लेक्स बैनर</option>
-                        </select>
+                <form id="weddingForm">
+                    <!-- Category -->
+                    <div class="form-block">
+                        <h4>१. कार्ड और ऑर्डर प्रकार चुनें</h4>
+                        <div class="form-group">
+                            <label>कार्ड कैटगरी:</label>
+                            <select id="cardCategory" required>
+                                <option value="मुस्लिम निकाह कार्ड">मुस्लिम निकाह कार्ड</option>
+                                <option value="हिंदू शादी कार्ड">हिंदू शादी कार्ड</option>
+                                <option value="विजिटिंग कार्ड">विजिटिंग कार्ड</option>
+                                <option value="फ्लेक्स बैनर">फ्लेक्स बैनर</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>मात्रा (Quantity):</label>
+                            <input type="number" id="cardQty" placeholder="उदा: 250, 500" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>कार्ड की मात्रा (Quantity):</label>
-                        <input type="number" id="cardQuantity" placeholder="उदा: 200, 500" required>
-                    </div>
-                </div>
 
-                <div class="form-section">
-                    <h4>२. लड़का एवं लड़की का नाम</h4>
-                    <div id="coupleContainer">
-                        <div class="dynamic-item couple-row">
-                            <div class="form-group">
-                                <label>लड़का का नाम (दूल्हा):</label>
-                                <input type="text" class="groom-name" placeholder="दूल्हा एवं पिता का नाम" required>
+                    <!-- Couples -->
+                    <div class="form-block">
+                        <h4>२. लड़का एवं लड़की का नाम</h4>
+                        <div id="couplesGroup">
+                            <div class="dynamic-item couple-item">
+                                <div class="form-group">
+                                    <label>लड़का (दूल्हा) का नाम:</label>
+                                    <input type="text" class="groom-input" placeholder="दूल्हा एवं पिता का नाम" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>लड़की (दुल्हन) का नाम:</label>
+                                    <input type="text" class="bride-input" placeholder="दुल्हन एवं पिता का नाम" required>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>लड़की का नाम (दुल्हन):</label>
-                                <input type="text" class="bride-name" placeholder="दुल्हन एवं पिता का नाम" required>
+                        </div>
+                        <button type="button" class="btn-add" onclick="addCoupleField()">+ और नाम जोड़ें</button>
+                    </div>
+
+                    <!-- Dates & Events -->
+                    <div class="form-block">
+                        <h4>३. कार्यक्रम एवं तारीखें</h4>
+                        <div id="eventsGroup">
+                            <div class="dynamic-item event-item">
+                                <div class="form-group">
+                                    <label>कार्यक्रम का नाम:</label>
+                                    <input type="text" class="event-title" placeholder="उदा: निकाह / बारात / हल्दी" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>तारीख:</label>
+                                    <input type="date" class="event-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>समय:</label>
+                                    <input type="time" class="event-time">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-add" onclick="addEventField()">+ और तारीख जोड़ें</button>
+                    </div>
+
+                    <!-- RSVP and From -->
+                    <div class="form-block">
+                        <h4>४. निवेदक एवं दर्शनाभिलाषी</h4>
+                        <div class="form-group">
+                            <label>आर.एस.वी.पी (RSVP):</label>
+                            <textarea id="rsvpText" rows="2" placeholder="नाम और मोबाइल नंबर..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>दर्शनाभिलाषी / प्रेषक (From):</label>
+                            <textarea id="fromText" rows="2" placeholder="परिवारजनों के नाम..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>अतिरिक्त निर्देश:</label>
+                            <textarea id="extraText" rows="2" placeholder="कोई खास निर्देश या शायरी..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Cashfree Payment Area -->
+                    <div class="form-block" id="paymentSection">
+                        <h4>५. पेमेंट (Cashfree Gateway)</h4>
+                        <div class="cashfree-box">
+                            <p style="font-size:14px; margin-bottom:10px;">ऑनलाइन एडवांस पेमेंट करने के लिए कैशफ्री का उपयोग करें:</p>
+                            <button type="button" class="btn-cashfree" onclick="initiateCashfreePayment()">
+                                <i class="fa-solid fa-lock"></i> Cashfree से Pay करें
+                            </button>
+                            <div class="form-group" style="text-align: left; margin-top: 15px;">
+                                <label>भुगतान संदर्भ संख्या (Transaction/UTR ID):</label>
+                                <input type="text" id="transId" placeholder="पेमेंट के बाद प्राप्त ID यहाँ डालें">
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn-add" onclick="addCouple()">+ और नाम जोड़ें (Multiple)</button>
-                </div>
 
-                <div class="form-section">
-                    <h4>३. कार्यक्रम, तारीख एवं समय</h4>
-                    <div id="eventsContainer">
-                        <div class="dynamic-item event-row">
-                            <div class="form-group">
-                                <label>कार्यक्रम का नाम:</label>
-                                <input type="text" class="event-name" placeholder="उदा: निकाह / बारात / हल्दी" required>
-                            </div>
-                            <div class="form-group">
-                                <label>तारीख:</label>
-                                <input type="date" class="event-date" required>
-                            </div>
-                            <div class="form-group">
-                                <label>समय:</label>
-                                <input type="time" class="event-time">
-                            </div>
-                        </div>
+                    <!-- Submit & PDF Buttons -->
+                    <div class="btn-row">
+                        <button type="submit" class="submit-btn">
+                            <i class="fa-brands fa-whatsapp"></i> व्हाट्सएप पर भेजें
+                        </button>
+                        <button type="button" class="pdf-btn" onclick="downloadPDF()">
+                            <i class="fa-solid fa-file-pdf"></i> PDF डाउनलोड करें
+                        </button>
                     </div>
-                    <button type="button" class="btn-add" onclick="addEvent()">+ और तारीख जोड़ें</button>
-                </div>
+                </form>
+            </div>
+        </div>
 
-                <div class="form-section">
-                    <h4>४. अन्य विवरण</h4>
-                    <div class="form-group">
-                        <label>आर.एस.वी.पी (RSVP) नाम व फोन नंबर:</label>
-                        <textarea id="rsvp" rows="2" placeholder="नाम और नंबर..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>दर्शनाभिलाषी / प्रेषक (From):</label>
-                        <textarea id="from" rows="2" placeholder="परिवार के सदस्यों के नाम..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>अतिरिक्त निर्देश / शायरी (Optional):</label>
-                        <textarea id="notes" rows="2" placeholder="कोई खास बात लिखनी हो..."></textarea>
-                    </div>
-                </div>
+    </div>
 
-                <div class="form-section">
-                    <h4>५. भुगतान (Payment)</h4>
-                    <div class="payment-box">
-                        <p><strong>UPI ID / Helpline: 9304509464</strong></p>
-                        <p style="font-size:13px; color:#555;">(पेमेंट करने के बाद रेफरेंस नंबर नीचे लिखें)</p>
-                        <br>
-                        <div class="form-group" style="text-align: left;">
-                            <label>Transaction ID / UTR No.:</label>
-                            <input type="text" id="txnId" placeholder="पेमेंट ID दर्ज करें">
-                        </div>
-                    </div>
+    <!-- Login Panel Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleLogin(false)">&times;</span>
+            <h3 style="margin-bottom: 15px; color: var(--primary); text-align: center;">दिल्ली प्रेस लॉगिन</h3>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>यूजर आईडी / मोबाइल:</label>
+                    <input type="text" required placeholder="मोबाइल नंबर डालें">
                 </div>
-
-                <button type="submit" class="submit-btn">
-                    <i class="fa-brands fa-whatsapp"></i> व्हाट्सएप पर ऑर्डर भेजें
+                <div class="form-group">
+                    <label>पासवर्ड:</label>
+                    <input type="password" required placeholder="पासवर्ड">
+                </div>
+                <button type="submit" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                    लॉगिन करें
                 </button>
             </form>
         </div>
     </div>
 
     <footer>
-        <p>© सज्जाद डिजिटल प्रिंट्स (दिल्ली प्रेस हिंदी) | हेल्पलाइन: 9304509464</p>
+        <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | हेल्पलाइन: 9304509464</p>
     </footer>
 
+    <!-- JavaScript Logic -->
     <script>
-        function addCouple() {
-            var container = document.getElementById('coupleContainer');
+        // दूल्हा-दुल्हन फ़ील्ड जोड़ना
+        function addCoupleField() {
+            var group = document.getElementById('couplesGroup');
             var div = document.createElement('div');
-            div.className = 'dynamic-item couple-row';
+            div.className = 'dynamic-item couple-item';
             div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<div class="form-group"><label>लड़का का नाम (दूल्हा):</label><input type="text" class="groom-name" placeholder="दूल्हा एवं पिता का नाम" required></div>' +
-                '<div class="form-group"><label>लड़की का नाम (दुल्हन):</label><input type="text" class="bride-name" placeholder="दुल्हन एवं पिता का नाम" required></div>';
-            container.appendChild(div);
+                '<div class="form-group"><label>लड़का (दूल्हा) का नाम:</label><input type="text" class="groom-input" placeholder="दूल्हा एवं पिता का नाम" required></div>' +
+                '<div class="form-group"><label>लड़की (दुल्हन) का नाम:</label><input type="text" class="bride-input" placeholder="दुल्हन एवं पिता का नाम" required></div>';
+            group.appendChild(div);
         }
 
-        function addEvent() {
-            var container = document.getElementById('eventsContainer');
+        // इवेंट तारीख फ़ील्ड जोड़ना
+        function addEventField() {
+            var group = document.getElementById('eventsGroup');
             var div = document.createElement('div');
-            div.className = 'dynamic-item event-row';
+            div.className = 'dynamic-item event-item';
             div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-name" placeholder="उदा: निकाह / बारात" required></div>' +
+                '<div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / विदाई" required></div>' +
                 '<div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>' +
                 '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>';
-            container.appendChild(div);
+            group.appendChild(div);
         }
 
-        document.getElementById('cardForm').addEventListener('submit', function(e) {
+        // कार्ड फोटो अपलोड और गैलरी में दिखाना
+        function previewUpload(event) {
+            var file = event.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var gallery = document.getElementById('cardGallery');
+                    var div = document.createElement('div');
+                    div.className = 'card-sample';
+                    div.innerHTML = '<img src="' + e.target.result + '" alt="नया कार्ड"><p>नया मॉडल</p>';
+                    gallery.prepend(div);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // लॉगिन मोडल चालू/बंद
+        function toggleLogin(show) {
+            document.getElementById('loginModal').style.display = show ? 'flex' : 'none';
+        }
+        function handleLogin(e) {
+            e.preventDefault();
+            alert("लॉगिन सफल रहा!");
+            toggleLogin(false);
+        }
+
+        // Cashfree Payment Gateway Trigger
+        function initiateCashfreePayment() {
+            alert("Cashfree पेमेंट शुरू की जा रही है... (इसके लिए आपको Cashfree API से प्राप्त Payment Session ID की आवश्यकता होगी)");
+            /* 
+               Cashfree Production Integration Example:
+               const cashfree = Cashfree({ mode: "sandbox" }); // या "production"
+               cashfree.checkout({
+                   paymentSessionId: "YOUR_PAYMENT_SESSION_ID"
+               });
+            */
+        }
+
+        // PDF Generation
+        function downloadPDF() {
+            var element = document.getElementById('pdfContent');
+            var opt = {
+                margin: 10,
+                filename: 'DelhiPress_Order_Details.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // व्हाट्सएप पर भेजना
+        document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            var cardType = document.getElementById('cardType').value;
-            var cardQty = document.getElementById('cardQuantity').value;
+            var category = document.getElementById('cardCategory').value;
+            var qty = document.getElementById('cardQty').value;
 
             var couples = "";
-            var groomInputs = document.querySelectorAll('.groom-name');
-            var brideInputs = document.querySelectorAll('.bride-name');
-            for(var i = 0; i < groomInputs.length; i++) {
-                couples += "\n- दूल्हा: " + groomInputs[i].value + " | दुल्हन: " + brideInputs[i].value;
+            var grooms = document.querySelectorAll('.groom-input');
+            var brides = document.querySelectorAll('.bride-input');
+            for(var i = 0; i < grooms.length; i++) {
+                couples += "\n- दूल्हा: " + grooms[i].value + " | दुल्हन: " + brides[i].value;
             }
 
             var events = "";
-            var eventNames = document.querySelectorAll('.event-name');
-            var eventDates = document.querySelectorAll('.event-date');
-            var eventTimes = document.querySelectorAll('.event-time');
-            for(var j = 0; j < eventNames.length; j++) {
-                var timeVal = eventTimes[j].value ? " (" + eventTimes[j].value + ")" : "";
-                events += "\n- " + eventNames[j].value + ": " + eventDates[j].value + timeVal;
+            var titles = document.querySelectorAll('.event-title');
+            var dates = document.querySelectorAll('.event-date');
+            var times = document.querySelectorAll('.event-time');
+            for(var j = 0; j < titles.length; j++) {
+                var time = times[j].value ? " (" + times[j].value + ")" : "";
+                events += "\n- " + titles[j].value + ": " + dates[j].value + time;
             }
 
-            var rsvpVal = document.getElementById('rsvp').value || "लागू नहीं";
-            var fromVal = document.getElementById('from').value || "लागू नहीं";
-            var notesVal = document.getElementById('notes').value || "कोई नहीं";
-            var txnVal = document.getElementById('txnId').value || "बाकी";
+            var rsvp = document.getElementById('rsvpText').value || "लागू नहीं";
+            var from = document.getElementById('fromText').value || "लागू नहीं";
+            var notes = document.getElementById('extraText').value || "कोई नहीं";
+            var txn = document.getElementById('transId').value || "भुगतान शेष";
 
-            var msg = "*नया शादी कार्ड ऑर्डर (सज्जाद डिजिटल प्रिंट्स)*\n\n" +
-                      "*कार्ड प्रकार:* " + cardType + "\n" +
-                      "*संख्या:* " + cardQty + "\n\n" +
-                      "*दूल्हा-दुल्हन विवरण:*" + couples + "\n\n" +
-                      "*कार्यक्रम विवरण:*" + events + "\n\n" +
-                      "*RSVP:* " + rsvpVal + "\n" +
-                      "*प्रेषक (From):* " + fromVal + "\n" +
-                      "*नोट्स:* " + notesVal + "\n" +
-                      "*पेमेंट ID:* " + txnVal;
+            var msg = "*नया कार्ड ऑर्डर - दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)*\n\n" +
+                      "*कार्ड प्रकार:* " + category + "\n" +
+                      "*मात्रा:* " + qty + "\n\n" +
+                      "*दूल्हा एवं दुल्हन:* " + couples + "\n\n" +
+                      "*कार्यक्रम एवं तारीखें:* " + events + "\n\n" +
+                      "*RSVP:* " + rsvp + "\n" +
+                      "*प्रेषक (From):* " + from + "\n" +
+                      "*अतिरिक्त विवरण:* " + notes + "\n" +
+                      "*Txn ID / Payment:* " + txn;
 
-            var finalUrl = "https://wa.me/919304509464?text=" + encodeURIComponent(msg);
-            window.location.href = finalUrl;
+            var url = "https://wa.me/919304509464?text=" + encodeURIComponent(msg);
+            window.location.href = url;
         });
     </script>
 </body>
