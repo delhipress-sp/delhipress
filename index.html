@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Firebase SDK (Universal Multi-Device Cloud Sync) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -89,21 +89,53 @@
             border-radius: 4px; cursor: pointer; margin-top: 8px;
         }
 
+        /* Service Tabs Header */
+        .service-tabs-nav {
+            display: flex;
+            background: #fff;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #cbd5e1;
+            border-bottom: none;
+            overflow: hidden;
+        }
+        .service-tab-btn {
+            flex: 1;
+            padding: 12px 10px;
+            background: #f1f5f9;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .service-tab-btn.active {
+            background: #fff;
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
         .form-lock-wrapper { position: relative; }
         .form-lock-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px);
+            background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(4px);
             z-index: 100; display: flex; flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
-            padding: 20px; border-radius: 8px;
+            padding: 20px; border-radius: 0 0 8px 8px;
         }
         .form-lock-overlay i { font-size: 45px; color: var(--primary); margin-bottom: 10px; }
         .form-lock-overlay h3 { font-size: 20px; color: var(--dark); margin-bottom: 6px; }
         .form-lock-overlay p { font-size: 14px; color: #666; margin-bottom: 15px; max-width: 450px; }
 
         .form-wrapper {
-            background: #fff; padding: 25px; border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-top: 4px solid var(--primary);
+            background: #fff; padding: 25px; border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #cbd5e1;
+            border-top: none; margin-bottom: 35px;
         }
         .section-header {
             color: var(--primary); font-size: 22px; text-align: center;
@@ -246,13 +278,12 @@
 
     <nav class="navbar">
         <div class="nav-brand">
-            <!-- गुप्त एडमिन पैनल: "दिल्ली प्रेस" पर 3 बार क्लिक करने पर खुलेगा -->
             <h2 id="brandLogoTitle" onclick="handleSecretAdminClick()">दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
             <li><a href="#showcaseSection">कैटलॉग</a></li>
-            <li><a href="#orderForm">कार्ड ऑर्डर फॉर्म</a></li>
+            <li><a href="#orderSectionContainer">ऑर्डर फॉर्म</a></li>
             <li><a href="#paymentSection">पेमेंट</a></li>
             <li id="authNavContainer">
                 <a href="javascript:void(0)" class="btn-login" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
@@ -266,18 +297,34 @@
 
     <div class="container">
         
+        <!-- Live Catalog -->
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">
-                शादी कार्ड कैटलॉग एवं डिज़ाइन
+                शादी कार्ड, फ्लेक्स बैनर व विजिटिंग कार्ड कैटलॉग
             </h3>
-            <p style="font-size:12px; color:#666; margin-top:4px;">(सैंपल पसंद करें और 'यह कार्ड चुनें' पर क्लिक करें)</p>
+            <p style="font-size:12px; color:#666; margin-top:4px;">(सैंपल पसंद करें और 'यह चुनें' पर क्लिक करके नीचे संबंधित फॉर्म भरें)</p>
             <div class="gallery-grid" id="catalogContainer"></div>
+        </div>
+
+        <!-- Separate Forms Tabs Nav -->
+        <div id="orderSectionContainer">
+            <div class="service-tabs-nav">
+                <button type="button" class="service-tab-btn active" id="tabBtnWedding" onclick="switchServiceTab('wedding')">
+                    <i class="fa-solid fa-heart"></i> १. शादी कार्ड फॉर्म
+                </button>
+                <button type="button" class="service-tab-btn" id="tabBtnBanner" onclick="switchServiceTab('banner')">
+                    <i class="fa-solid fa-image"></i> २. फ्लेक्स बैनर / पोस्टर फॉर्म
+                </button>
+                <button type="button" class="service-tab-btn" id="tabBtnVisiting" onclick="switchServiceTab('visiting')">
+                    <i class="fa-solid fa-address-card"></i> ३. विजिटिंग कार्ड फॉर्म
+                </button>
+            </div>
         </div>
 
         <div class="form-lock-wrapper">
             <div class="form-lock-overlay" id="formLockOverlay">
                 <i class="fa-solid fa-lock"></i>
-                <h3>शादी कार्ड ऑर्डर फॉर्म लॉक है</h3>
+                <h3>ऑर्डर फॉर्म लॉक है</h3>
                 <p>ऑर्डर दर्ज करने के लिए आपका अकाउंट और फ़ोटो आईडी अनिवार्य है। कृपया पहले लॉगिन करें या नया अकाउंट बनाएं।</p>
                 <button type="button" class="btn-login" onclick="openAuthModal('register')" style="border:none; padding:10px 20px !important; font-size:15px;">
                     <i class="fa-solid fa-user-plus"></i> नया अकाउंट बनाएं (Sign Up)
@@ -287,7 +334,10 @@
                 </a>
             </div>
 
-            <div class="form-wrapper" id="orderForm">
+            <!-- ============================================================== -->
+            <!-- BOX 1: WEDDING CARD FORM -->
+            <!-- ============================================================== -->
+            <div class="form-wrapper service-form-section" id="weddingFormSection">
                 <div class="section-header">दिल्ली प्रेस - शादी कार्ड ऑर्डर फॉर्म</div>
                 
                 <form id="weddingForm">
@@ -300,17 +350,17 @@
                             </div>
                             <div class="form-group">
                                 <label>कार्ड का प्रति पीस रेट (₹):</label>
-                                <input type="number" id="cardRate" value="12" min="1" step="any" oninput="calculateTotal()" required>
+                                <input type="number" id="cardRate" value="12" min="1" step="any" oninput="calculateWeddingTotal()" required>
                             </div>
                             <div class="form-group">
                                 <label>कार्ड संख्या (Quantity):</label>
-                                <input type="number" id="cardQty" value="100" min="1" oninput="calculateTotal()" required>
+                                <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal()" required>
                             </div>
                         </div>
 
                         <div class="total-bill-box">
                             <span>कुल अनुमानित राशि (Total Amount):</span>
-                            <span id="totalDisplay">₹1,200</span>
+                            <span id="weddingTotalDisplay">₹1,200</span>
                         </div>
                     </div>
 
@@ -397,37 +447,8 @@
                         </div>
                     </div>
 
-                    <div class="form-block" id="paymentSection">
-                        <h4>५. भुगतान (Cashfree & UPI Payment)</h4>
-                        <div class="payment-box">
-                            <p style="font-weight: 600; color: #1e293b; margin-bottom: 10px;">ऑनलाइन भुगतान के लिए नीचे दिए गए विकल्प चुनें:</p>
-
-                            <a id="cashfreeBtn" href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
-                                <i class="fa-solid fa-bolt"></i> Cashfree से सुरक्षित भुगतान करें
-                            </a>
-
-                            <div style="margin: 15px 0; font-size: 13px; color: #64748b;">— अथवा सीधे UPI से भुगतान करें —</div>
-
-                            <div class="qr-wrapper">
-                                <img id="upiQrCode" src="" alt="UPI पेमेंट QR">
-                            </div>
-                            <p style="font-size: 13px; color: #475569;">UPI ID: <strong>9304509464@okbizaxis</strong></p>
-
-                            <div class="upi-buttons">
-                                <a id="gpayBtn" href="#" class="upi-btn" style="background:#ea4335;">Google Pay</a>
-                                <a id="phonepeBtn" href="#" class="upi-btn" style="background:#5f259f;">PhonePe</a>
-                                <a id="paytmBtn" href="#" class="upi-btn" style="background:#00b9f5;">Paytm / BHIM</a>
-                            </div>
-
-                            <div class="form-group" style="text-align: left; margin-top: 15px;">
-                                <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
-                                <input type="text" id="transId" placeholder="पेमेंट के बाद प्राप्त 12 अंकों का UTR / Txn ID दर्ज करें">
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="form-block">
-                        <h4>६. कार्ड का सैंपल / कैटलॉग फोटो अपलोड करें</h4>
+                        <h4>५. कार्ड का सैंपल / कैटलॉग फोटो अपलोड करें</h4>
                         <div class="bottom-upload-box" onclick="document.getElementById('bottomCardSample').click()">
                             <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 6px;"></i>
                             <p style="font-weight: 600; color: #334155; margin-bottom: 2px;">यहाँ क्लिक करके पसंद किया हुआ कार्ड सैंपल या फोटो अपलोड करें</p>
@@ -436,20 +457,253 @@
                         </div>
                         <div class="sample-preview-box" id="bottomPreviewContainer">
                             <p style="font-size: 13px; font-weight: bold; color: var(--green); margin: 6px 0;">✓ सैंपल फोटो लोड हो गया:</p>
-                            <img id="bottomPreviewImg" src="" alt="अपलोड किया गया कार्ड सैंपल">
+                            <img id="bottomPreviewImg" src="" alt="कार्ड सैंपल">
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>६. भुगतान विवरण (Payment UTR)</h4>
+                        <div class="form-group">
+                            <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
+                            <input type="text" id="weddingTransId" placeholder="पेमेंट करने के बाद 12 अंकों का UTR / Txn ID दर्ज करें">
                         </div>
                     </div>
 
                     <div class="btn-row">
-                        <button type="submit" class="submit-btn" id="orderSubmitBtn">
-                            <i class="fa-solid fa-paper-plane"></i> ऑर्डर सबमिट करें (ईमेल पर भेजें)
+                        <button type="submit" class="submit-btn" id="weddingSubmitBtn">
+                            <i class="fa-solid fa-paper-plane"></i> शादी कार्ड ऑर्डर ईमेल पर भेजें
                         </button>
-                        <button type="button" class="pdf-btn" onclick="generateDirectPDF()">
+                        <button type="button" class="pdf-btn" onclick="generateWeddingPDF()">
                             <i class="fa-solid fa-file-pdf"></i> PDF रसीद डाउनलोड करें
                         </button>
                     </div>
                 </form>
             </div>
+
+            <!-- ============================================================== -->
+            <!-- BOX 2: BANNER & POSTER FORM -->
+            <!-- ============================================================== -->
+            <div class="form-wrapper service-form-section" id="bannerFormSection" style="display: none;">
+                <div class="section-header">दिल्ली प्रेस - फ्लेक्स बैनर एवं पोस्टर ऑर्डर फॉर्म</div>
+                
+                <form id="bannerForm">
+                    <div class="form-block">
+                        <h4>१. बैनर का साइज़ (Size) एवं मूल्य कैलकुलेशन</h4>
+                        <div class="row-3">
+                            <div class="form-group">
+                                <label>चौड़ाई (Width in Feet):</label>
+                                <input type="number" id="bannerWidth" value="6" min="1" step="any" oninput="calculateBannerTotal()" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ऊंचाई (Height in Feet):</label>
+                                <input type="number" id="bannerHeight" value="3" min="1" step="any" oninput="calculateBannerTotal()" required>
+                            </div>
+                            <div class="form-group">
+                                <label>रेट प्रति Sq. Ft (₹):</label>
+                                <input type="number" id="bannerRate" value="10" min="1" step="any" oninput="calculateBannerTotal()" required>
+                            </div>
+                        </div>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>बैनर की संख्या (Quantity):</label>
+                                <input type="number" id="bannerQty" value="1" min="1" oninput="calculateBannerTotal()" required>
+                            </div>
+                            <div class="form-group">
+                                <label>क्वालिटी का प्रकार:</label>
+                                <select id="bannerQuality">
+                                    <option value="नॉर्मल एचडी फ्लेक्स">नॉर्मल एचडी फ्लेक्स (Normal HD)</option>
+                                    <option value="स्टार फ्लेक्स (मजबूत क्वालिटी)">स्टार फ्लेक्स (Star Flex - Heavy)</option>
+                                    <option value="बैकलाइट बोर्ड प्रिंट">बैकलाइट बोर्ड प्रिंट (Backlit)</option>
+                                    <option value="विनाइल पोस्टर">विनाइल पोस्टर (Vinyl Sticker)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="total-bill-box">
+                            <span id="bannerSizeDisplay">कुल एरिया: 18 Sq.Ft (1 पीस)</span>
+                            <span id="bannerTotalDisplay">कुल राशि: ₹180</span>
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>२. बैनर पर छपने वाला मैटर (Content Details)</h4>
+                        <div class="form-group">
+                            <label>मुख्य शीर्षक / दुकान / संस्था / कार्यक्रम का नाम:</label>
+                            <input type="text" id="bannerTitle" placeholder="उदा: सज्जाद डिजिटल प्रिंट्स / महाशिवरात्रि महोत्सव" required>
+                        </div>
+                        <div class="form-group">
+                            <label>बैनर पर क्या-क्या लिखना है (पूरा विवरण):</label>
+                            <textarea id="bannerContent" rows="4" placeholder="सुविधाएं, प्रचार सामग्री, नाम, मुख्य बिंदु आदि..." required></textarea>
+                        </div>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>बैनर पर देने वाला मोबाइल नंबर:</label>
+                                <input type="text" id="bannerPhone" placeholder="संपर्क नंबर जो बैनर पर आएगा" required>
+                            </div>
+                            <div class="form-group">
+                                <label>बैनर पर देने वाला पता (Address):</label>
+                                <input type="text" id="bannerAddress" placeholder="दुकान/स्थान का पता" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>३. बैनर का कोई पुराना डिज़ाइन या लोगो फोटो अपलोड करें</h4>
+                        <div class="bottom-upload-box" onclick="document.getElementById('bannerSampleFile').click()">
+                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 6px;"></i>
+                            <p style="font-weight: 600; color: #334155; margin-bottom: 2px;">यहाँ क्लिक करके बैनर का सैंपल, लोगो या फोटो अपलोड करें</p>
+                            <span style="font-size: 12px; color: #64748b;">(वैकल्पिक - यदि आपके पास कोई फोटो या डिज़ाइन हो)</span>
+                            <input type="file" id="bannerSampleFile" accept="image/*" style="display: none;" onchange="previewBannerSample(event)">
+                        </div>
+                        <div class="sample-preview-box" id="bannerPreviewContainer">
+                            <p style="font-size: 13px; font-weight: bold; color: var(--green); margin: 6px 0;">✓ बैनर फोटो लोड हो गया:</p>
+                            <img id="bannerPreviewImg" src="" alt="बैनर सैंपल">
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>४. भुगतान संदर्भ संख्या (Payment UTR)</h4>
+                        <div class="form-group">
+                            <label>Transaction ID / UTR No.:</label>
+                            <input type="text" id="bannerTransId" placeholder="पेमेंट करने के बाद UTR ID यहाँ दर्ज करें">
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button type="submit" class="submit-btn" id="bannerSubmitBtn">
+                            <i class="fa-solid fa-paper-plane"></i> बैनर ऑर्डर ईमेल पर भेजें
+                        </button>
+                        <button type="button" class="pdf-btn" onclick="generateBannerPDF()">
+                            <i class="fa-solid fa-file-pdf"></i> बैनर रसीद PDF डाउनलोड करें
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- BOX 3: VISITING CARD FORM -->
+            <!-- ============================================================== -->
+            <div class="form-wrapper service-form-section" id="visitingFormSection" style="display: none;">
+                <div class="section-header">दिल्ली प्रेस - विजिटिंग कार्ड ऑर्डर फॉर्म</div>
+                
+                <form id="visitingForm">
+                    <div class="form-block">
+                        <h4>१. कार्ड का प्रकार, फिनिशिंग एवं मात्रा</h4>
+                        <div class="row-3">
+                            <div class="form-group">
+                                <label>कार्ड फिनिशिंग:</label>
+                                <select id="visitingType" onchange="calculateVisitingTotal()">
+                                    <option value="600" data-name="सिंगल साइड मैट (₹600/हज़ार)">सिंगल साइड मैट - ₹600</option>
+                                    <option value="750" data-name="डबल साइड मैट (₹750/हज़ार)">डबल साइड मैट - ₹750</option>
+                                    <option value="850" data-name="ग्लॉसी लेमिनेशन (₹850/हज़ार)">ग्लॉसी लेमिनेशन - ₹850</option>
+                                    <option value="1200" data-name="रॉयल वेलवेट कार्ड (₹1200/हज़ार)">रॉयल वेलवेट कार्ड - ₹1200</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>कार्ड बॉक्स संख्या (हज़ार पीस):</label>
+                                <input type="number" id="visitingBoxes" value="1" min="1" oninput="calculateVisitingTotal()" required>
+                            </div>
+                            <div class="form-group">
+                                <label>कुल कार्ड पीस:</label>
+                                <input type="text" id="visitingPiecesDisplay" value="1000 कार्ड्स" readonly style="background:#f1f5f9;">
+                            </div>
+                        </div>
+
+                        <div class="total-bill-box">
+                            <span>कुल अनुमानित मूल्य (Total Amount):</span>
+                            <span id="visitingTotalDisplay">₹600</span>
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>२. कार्ड पर छपने वाली जानकारी (Business Card Details)</h4>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>दुकान / कंपनी / व्यापार का नाम:</label>
+                                <input type="text" id="visitingShopName" placeholder="उदा: सज्जाद प्रिंटर्स" required>
+                            </div>
+                            <div class="form-group">
+                                <label>प्रोपराइटर / आपका नाम:</label>
+                                <input type="text" id="visitingPersonName" placeholder="मालिक का नाम" required>
+                            </div>
+                        </div>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>मोबाइल नंबर (१ या २ नंबर):</label>
+                                <input type="text" id="visitingPhone" placeholder="कार्ड पर छपने वाला मोबाइल" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ईमेल / वेबसाइट (यदि हो):</label>
+                                <input type="text" id="visitingEmail" placeholder="उदा: info@example.com">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>व्यवसाय में दी जाने वाली मुख्य सेवाएं / प्रोडक्ट्स:</label>
+                            <textarea id="visitingServices" rows="3" placeholder="उदा: सभी प्रकार की प्रिंटिंग, शादी कार्ड, बैनर, कंप्यूटर कार्य..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>कार्ड पर छपने वाला पूरा पता:</label>
+                            <input type="text" id="visitingAddress" placeholder="दुकान/ऑफिस का पूरा पता" required>
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>३. लोगो या पुराना कार्ड सैंपल फोटो</h4>
+                        <div class="bottom-upload-box" onclick="document.getElementById('visitingSampleFile').click()">
+                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 6px;"></i>
+                            <p style="font-weight: 600; color: #334155; margin-bottom: 2px;">यहाँ क्लिक करके लोगो या पुराने कार्ड का फोटो अपलोड करें</p>
+                            <span style="font-size: 12px; color: #64748b;">(वैकल्पिक)</span>
+                            <input type="file" id="visitingSampleFile" accept="image/*" style="display: none;" onchange="previewVisitingSample(event)">
+                        </div>
+                        <div class="sample-preview-box" id="visitingPreviewContainer">
+                            <p style="font-size: 13px; font-weight: bold; color: var(--green); margin: 6px 0;">✓ फोटो लोड हो गया:</p>
+                            <img id="visitingPreviewImg" src="" alt="विजिटिंग कार्ड सैंपल">
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>४. भुगतान संदर्भ संख्या (Payment UTR)</h4>
+                        <div class="form-group">
+                            <label>Transaction ID / UTR No.:</label>
+                            <input type="text" id="visitingTransId" placeholder="पेमेंट करने के बाद प्राप्त UTR ID दर्ज करें">
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button type="submit" class="submit-btn" id="visitingSubmitBtn">
+                            <i class="fa-solid fa-paper-plane"></i> विजिटिंग कार्ड ऑर्डर ईमेल पर भेजें
+                        </button>
+                        <button type="button" class="pdf-btn" onclick="generateVisitingPDF()">
+                            <i class="fa-solid fa-file-pdf"></i> विजिटिंग कार्ड रसीद PDF डाउनलोड करें
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Payment Gateway Section (Common to All Services) -->
+            <div class="form-wrapper" id="paymentSection" style="margin-top: 20px;">
+                <div class="payment-box">
+                    <p style="font-weight: 600; color: #1e293b; margin-bottom: 10px;">ऑनलाइन भुगतान के लिए नीचे दिए गए विकल्प चुनें:</p>
+
+                    <a id="cashfreeBtn" href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
+                        <i class="fa-solid fa-bolt"></i> Cashfree से सुरक्षित भुगतान करें
+                    </a>
+
+                    <div style="margin: 15px 0; font-size: 13px; color: #64748b;">— अथवा सीधे UPI से भुगतान करें —</div>
+
+                    <div class="qr-wrapper">
+                        <img id="upiQrCode" src="" alt="UPI पेमेंट QR">
+                    </div>
+                    <p style="font-size: 13px; color: #475569;">UPI ID: <strong>9304509464@okbizaxis</strong></p>
+
+                    <div class="upi-buttons">
+                        <a id="gpayBtn" href="#" class="upi-btn" style="background:#ea4335;">Google Pay</a>
+                        <a id="phonepeBtn" href="#" class="upi-btn" style="background:#5f259f;">PhonePe</a>
+                        <a id="paytmBtn" href="#" class="upi-btn" style="background:#00b9f5;">Paytm / BHIM</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -480,12 +734,12 @@
                 <div id="adminCardsTab">
                     <form id="adminCardForm" onsubmit="handleAddNewCard(event)">
                         <div class="form-group">
-                            <label>कार्ड का नाम:</label>
-                            <input type="text" id="admCardName" placeholder="उदा: रॉयल निकाह कार्ड" required>
+                            <label>आइटम / कार्ड का नाम:</label>
+                            <input type="text" id="admCardName" placeholder="उदा: शादी कार्ड / फ्लेक्स बैनर" required>
                         </div>
                         <div class="form-group">
-                            <label>प्रति पीस रेट (₹):</label>
-                            <input type="number" id="admCardRate" placeholder="उदा: 14" required>
+                            <label>प्रति पीस / प्रति Sq.Ft रेट (₹):</label>
+                            <input type="number" id="admCardRate" placeholder="उदा: 12" required>
                         </div>
                         <div class="form-group">
                             <label>स्टॉक स्टेटस:</label>
@@ -495,15 +749,15 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>कार्ड फोटो अपलोड करें:</label>
+                            <label>फोटो अपलोड करें:</label>
                             <input type="file" id="admCardFile" accept="image/*" required>
                         </div>
                         <button type="submit" style="width: 100%; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                            + नया कार्ड कैटलॉग में जोड़ें
+                            + नया कैटलॉग में जोड़ें
                         </button>
                     </form>
 
-                    <h4 style="margin-top: 15px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">मौजूदा कार्ड लिस्ट:</h4>
+                    <h4 style="margin-top: 15px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">मौजूदा कैटलॉग लिस्ट:</h4>
                     <table class="admin-table">
                         <thead>
                             <tr>
@@ -543,7 +797,6 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeAuthModal()">&times;</span>
             
-            <!-- 1. Login Screen -->
             <div id="loginSection">
                 <h3 style="margin-bottom: 15px; color: var(--primary); text-align: center;">दिल्ली प्रेस ग्राहक लॉगिन</h3>
                 <form onsubmit="handleLoginSubmit(event)">
@@ -567,7 +820,6 @@
                 </div>
             </div>
 
-            <!-- 2. Forgot Password Screen -->
             <div id="forgotSection" style="display: none;">
                 <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h3>
                 <p style="font-size: 12px; color: #555; text-align: center; margin-bottom: 12px;">अपना रजिस्टर्ड मोबाइल नंबर दर्ज करें और नया पासवर्ड बनाएं।</p>
@@ -589,7 +841,6 @@
                 </div>
             </div>
 
-            <!-- 3. Registration Screen -->
             <div id="registerSection" style="display: none;">
                 <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट व पहचान पत्र (ID)</h3>
                 <p style="font-size:12px; color:#555; text-align:center; margin-bottom:10px;">सही विवरण भरें, वेरिफिकेशन के बाद तुरंत ऑर्डर कर सकेंगे।</p>
@@ -635,10 +886,6 @@
     </footer>
 
     <script>
-        // ==========================================
-        // FIREBASE CLOUD DATABASE SETUP
-        // (हर मोबाइल व लैपटॉप पर समान लॉगिन के लिए)
-        // ==========================================
         const firebaseConfig = {
             databaseURL: "https://delhi-press-sajjad-default-rtdb.asia-southeast1.firebasedatabase.app/"
         };
@@ -650,10 +897,28 @@
         const ADMIN_PIN = "1234";
         const OWNER_EMAIL = "mdsajadans@gmail.com";
 
-        let sampleFileName = "कोई सैंपल फोटो अटैच नहीं";
-        let sampleDataUrl = "";
+        let weddingSampleUrl = "";
+        let bannerSampleUrl = "";
+        let visitingSampleUrl = "";
 
-        // गुप्त एडमिन ट्रिगर
+        // Tabs switcher logic
+        function switchServiceTab(tabName) {
+            document.querySelectorAll('.service-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.service-form-section').forEach(sec => sec.style.display = 'none');
+
+            if (tabName === 'wedding') {
+                document.getElementById('tabBtnWedding').classList.add('active');
+                document.getElementById('weddingFormSection').style.display = 'block';
+            } else if (tabName === 'banner') {
+                document.getElementById('tabBtnBanner').classList.add('active');
+                document.getElementById('bannerFormSection').style.display = 'block';
+            } else if (tabName === 'visiting') {
+                document.getElementById('tabBtnVisiting').classList.add('active');
+                document.getElementById('visitingFormSection').style.display = 'block';
+            }
+        }
+
+        // Secret Admin Trigger
         let secretClickCount = 0;
         let secretTimer = null;
         function handleSecretAdminClick() {
@@ -667,13 +932,12 @@
         }
 
         const defaultCatalog = [
-            { id: 1, name: "मुस्लिम निकाह कार्ड (शाही)", rate: 12, stock: "in", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
-            { id: 2, name: "हिंदू शादी कार्ड (गोल्डन)", rate: 15, stock: "in", img: "https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" },
-            { id: 3, name: "प्रीमियम बॉक्स इनविटेशन", rate: 25, stock: "out", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=400&q=80" },
-            { id: 4, name: "एचडी फ्लेक्स बैनर", rate: 10, stock: "in", img: "https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" }
+            { id: 1, name: "मुस्लिम निकाह कार्ड (शाही)", rate: 12, stock: "in", category: "wedding", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
+            { id: 2, name: "हिंदू शादी कार्ड (गोल्डन)", rate: 15, stock: "in", category: "wedding", img: "https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" },
+            { id: 3, name: "एचडी फ्लेक्स बैनर", rate: 10, stock: "in", category: "banner", img: "https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" },
+            { id: 4, name: "विजिटिंग कार्ड (1000 पीस)", rate: 600, stock: "in", category: "visiting", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=400&q=80" }
         ];
 
-        // कैटलॉग को भी क्लाउड से सिंक करना
         function renderCatalog() {
             db.ref('catalog').on('value', (snapshot) => {
                 let catalog = snapshot.val();
@@ -692,10 +956,10 @@
                         <img src="${item.img}" alt="${item.name}">
                         <div class="card-info">
                             <h4>${item.name}</h4>
-                            <div class="card-price-tag">₹${item.rate} / प्रति कार्ड</div>
+                            <div class="card-price-tag">₹${item.rate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
                             <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध (In Stock)'}</span>
                             <button type="button" class="btn-select-card" onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img}')">
-                                <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                                <i class="fa-solid fa-check"></i> यह चुनें
                             </button>
                         </div>
                     `;
@@ -705,312 +969,119 @@
         }
 
         function selectCardToForm(name, rate, img) {
-            document.getElementById('cardCategory').value = name;
-            document.getElementById('cardRate').value = rate;
-            calculateTotal();
-
-            sampleDataUrl = img;
-            sampleFileName = name;
-            document.getElementById('bottomPreviewImg').src = img;
-            document.getElementById('bottomPreviewContainer').style.display = 'block';
+            if (name.includes("बैनर") || name.includes("फ्लेक्स") || name.includes("पोस्टर")) {
+                switchServiceTab('banner');
+                document.getElementById('bannerRate').value = rate;
+                bannerSampleUrl = img;
+                document.getElementById('bannerPreviewImg').src = img;
+                document.getElementById('bannerPreviewContainer').style.display = 'block';
+                calculateBannerTotal();
+            } else if (name.includes("विजिटिंग") || name.includes("कार्ड्स (1000")) {
+                switchServiceTab('visiting');
+                visitingSampleUrl = img;
+                document.getElementById('visitingPreviewImg').src = img;
+                document.getElementById('visitingPreviewContainer').style.display = 'block';
+                calculateVisitingTotal();
+            } else {
+                switchServiceTab('wedding');
+                document.getElementById('cardCategory').value = name;
+                document.getElementById('cardRate').value = rate;
+                weddingSampleUrl = img;
+                document.getElementById('bottomPreviewImg').src = img;
+                document.getElementById('bottomPreviewContainer').style.display = 'block';
+                calculateWeddingTotal();
+            }
 
             const user = JSON.parse(localStorage.getItem('dp_current_user') || "null");
             if (!user) {
                 openAuthModal('register');
             } else {
-                document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('orderSectionContainer').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
-        function openAdminModal() {
-            document.getElementById('adminModal').style.display = 'flex';
-            document.getElementById('adminPinSection').style.display = 'block';
-            document.getElementById('adminWorkSection').style.display = 'none';
-            document.getElementById('adminPin').value = '';
-        }
-        function closeAdminModal() {
-            document.getElementById('adminModal').style.display = 'none';
-        }
-        function verifyAdminPin() {
-            if (document.getElementById('adminPin').value.trim() === ADMIN_PIN) {
-                document.getElementById('adminPinSection').style.display = 'none';
-                document.getElementById('adminWorkSection').style.display = 'block';
-                renderAdminTable();
-                renderAdminUsers();
-            } else {
-                alert("गलत एडमिन पिन!");
-            }
-        }
-        function showAdminTab(tab) {
-            document.getElementById('adminCardsTab').style.display = tab === 'cards' ? 'block' : 'none';
-            document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
-        }
-        function renderAdminTable() {
-            db.ref('catalog').once('value', (snapshot) => {
-                const catalog = snapshot.val() || [];
-                const tbody = document.getElementById('adminCardListBody');
-                tbody.innerHTML = "";
-                catalog.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><img src="${item.img}" style="width:35px; height:25px; object-fit:cover;"></td>
-                        <td>${item.name}</td>
-                        <td>₹${item.rate}</td>
-                        <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            });
-        }
-        function renderAdminUsers() {
-            db.ref('users').once('value', (snapshot) => {
-                const usersObj = snapshot.val() || {};
-                const tbody = document.getElementById('adminUserListBody');
-                tbody.innerHTML = "";
-                const userKeys = Object.keys(usersObj);
-                if (userKeys.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4'>कोई ग्राहक रिकॉर्ड नहीं है</td></tr>";
-                    return;
-                }
-                userKeys.forEach(key => {
-                    const u = usersObj[key];
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><img src="${u.idPhoto || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; object-fit:cover; border-radius:50%;"></td>
-                        <td>${u.name}</td>
-                        <td>${u.mobile}</td>
-                        <td>${u.village || '-'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            });
-        }
-        function handleAddNewCard(e) {
-            e.preventDefault();
-            const name = document.getElementById('admCardName').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value);
-            const stock = document.getElementById('admCardStock').value;
-            const file = document.getElementById('admCardFile').files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                db.ref('catalog').once('value', (snapshot) => {
-                    let catalog = snapshot.val() || [];
-                    catalog.unshift({ id: Date.now(), name: name, rate: rate, stock: stock, img: event.target.result });
-                    db.ref('catalog').set(catalog);
-                    alert("नया कार्ड कैटलॉग में जुड़ गया!");
-                    document.getElementById('adminCardForm').reset();
-                    renderAdminTable();
-                });
-            };
-            reader.readAsDataURL(file);
-        }
-        function deleteCatalogItem(id) {
-            if (confirm("क्या आप इसे हटाना चाहते हैं?")) {
-                db.ref('catalog').once('value', (snapshot) => {
-                    let catalog = snapshot.val() || [];
-                    catalog = catalog.filter(c => c.id !== id);
-                    db.ref('catalog').set(catalog);
-                    renderAdminTable();
-                });
-            }
-        }
-
-        // ==============================================================
-        // UNIVERSAL CLOUD AUTHENTICATION (हर डिवाइस पर एक जैसा लॉगिन)
-        // ==============================================================
-
-        // 1. नया रजिस्ट्रेशन (क्लाउड में सेव)
-        function handleRegisterSubmit(e) {
-            e.preventDefault();
-            const regBtn = document.getElementById('regBtn');
-            regBtn.innerText = "जांच हो रही है...";
-            regBtn.disabled = true;
-
-            const name = document.getElementById('regName').value.trim();
-            const mobile = document.getElementById('regMobile').value.trim();
-            const village = document.getElementById('regVillage').value.trim();
-            const address = document.getElementById('regAddress').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-            const file = document.getElementById('regPhotoId').files[0];
-
-            // जांचें कि यह नंबर पहले से किसी भी डिवाइस पर बना है या नहीं
-            db.ref('users/' + mobile).once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! कृपया सीधे इसी नंबर और पासवर्ड से लॉगिन करें।");
-                    regBtn.innerText = "अकाउंट रजिस्टर करें";
-                    regBtn.disabled = false;
-                    toggleAuthView('login');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const photoData = event.target.result;
-                    const newUser = {
-                        name: name,
-                        mobile: mobile,
-                        village: village,
-                        address: address,
-                        pass: pass,
-                        idPhoto: photoData,
-                        regDate: new Date().toLocaleDateString('hi-IN')
-                    };
-
-                    // Firebase क्लाउड डेटाबेस में सुरक्षित सेव
-                    db.ref('users/' + mobile).set(newUser, (error) => {
-                        if (error) {
-                            alert("डेटाबेस एरर: " + error.message);
-                        } else {
-                            localStorage.setItem('dp_current_user', JSON.stringify(newUser));
-                            alert("अकाउंट सफलतापूर्वक बन गया है! अब आप इस मोबाइल या किसी भी लैपटॉप पर इसी ID-पासवर्ड से लॉगिन कर सकते हैं।");
-                            closeAuthModal();
-                            checkUserSession();
-
-                            // आपके ईमेल पर अलर्ट
-                            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
-                                method: "POST",
-                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                                body: JSON.stringify({
-                                    _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${mobile})`,
-                                    प्रकार: "नया ग्राहक रजिस्ट्रेशन",
-                                    ग्राहक_नाम: name,
-                                    मोबाइल_नंबर: mobile,
-                                    गाँव_शहर: village,
-                                    पूरा_डाक_पता: address,
-                                    पहचान_पत्र_फ़ाइल: file ? file.name : "फ़ाइल",
-                                    पंजीकरण_दिनांक: newUser.regDate
-                                })
-                            });
-                        }
-                        regBtn.innerText = "अकाउंट रजिस्टर करें";
-                        regBtn.disabled = false;
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // 2. लॉगिन (क्लाउड से वेरिफाई - किसी भी फोन/लैपटॉप पर काम करेगा)
-        function handleLoginSubmit(e) {
-            e.preventDefault();
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.innerText = "लॉगिन हो रहा है...";
-            loginBtn.disabled = true;
-
-            const mobile = document.getElementById('loginMobile').value.trim();
-            const pass = document.getElementById('loginPass').value.trim();
-
-            db.ref('users/' + mobile).once('value', (snapshot) => {
-                loginBtn.innerText = "लॉगिन करें";
-                loginBtn.disabled = false;
-
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.pass === pass) {
-                        localStorage.setItem('dp_current_user', JSON.stringify(userData));
-                        alert("स्वागत है, " + userData.name + "! लॉगिन सफल रहा।");
-                        closeAuthModal();
-                        checkUserSession();
-                    } else {
-                        alert("गलत पासवर्ड! कृपया दोबारा जांचें।");
-                    }
-                } else {
-                    alert("यह मोबाइल नंबर नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
-                }
-            });
-        }
-
-        // 3. पासवर्ड भूलने पर रीसेट (क्लाउड में अपडेट)
-        function handleForgotSubmit(e) {
-            e.preventDefault();
-            const forgotBtn = document.getElementById('forgotBtn');
-            forgotBtn.innerText = "अपडेट हो रहा है...";
-            forgotBtn.disabled = true;
-
-            const mobile = document.getElementById('forgotMobile').value.trim();
-            const newPass = document.getElementById('forgotNewPass').value.trim();
-
-            db.ref('users/' + mobile).once('value', (snapshot) => {
-                forgotBtn.innerText = "पासवर्ड अपडेट करें";
-                forgotBtn.disabled = false;
-
-                if (snapshot.exists()) {
-                    db.ref('users/' + mobile + '/pass').set(newPass, (err) => {
-                        if (!err) {
-                            alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
-                            toggleAuthView('login');
-                        }
-                    });
-                } else {
-                    alert("यह मोबाइल नंबर सिस्टम में रजिस्टर्ड नहीं है!");
-                }
-            });
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('dp_current_user');
-            checkUserSession();
-        }
-
-        function checkUserSession() {
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            const navAuth = document.getElementById('authNavContainer');
-            const loggedBox = document.getElementById('userLoggedBox');
-            const display = document.getElementById('displayUserName');
-            const lockOverlay = document.getElementById('formLockOverlay');
-
-            if (currentUser) {
-                navAuth.style.display = 'none';
-                loggedBox.style.display = 'flex';
-                display.innerText = "नमस्ते, " + currentUser.name;
-                lockOverlay.style.display = 'none';
-            } else {
-                navAuth.style.display = 'block';
-                loggedBox.style.display = 'none';
-                display.innerText = "";
-                lockOverlay.style.display = 'flex';
-            }
-        }
-
-        function openAuthModal(view) {
-            document.getElementById('authModal').style.display = 'flex';
-            toggleAuthView(view);
-        }
-        function closeAuthModal() {
-            document.getElementById('authModal').style.display = 'none';
-        }
-        function toggleAuthView(view) {
-            document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
-            document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
-            document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
-        }
-
-        function calculateTotal() {
+        // Calculation: 1. Wedding Cards
+        function calculateWeddingTotal() {
             var rate = parseFloat(document.getElementById('cardRate').value) || 0;
             var qty = parseInt(document.getElementById('cardQty').value) || 0;
             var total = rate * qty;
-            document.getElementById('totalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
-            var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(PAYEE_NAME) + "&am=" + total + "&cu=INR";
+            document.getElementById('weddingTotalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
+            updateUpiQr(total);
+        }
+
+        // Calculation: 2. Banner & Poster
+        function calculateBannerTotal() {
+            var w = parseFloat(document.getElementById('bannerWidth').value) || 0;
+            var h = parseFloat(document.getElementById('bannerHeight').value) || 0;
+            var rate = parseFloat(document.getElementById('bannerRate').value) || 0;
+            var qty = parseInt(document.getElementById('bannerQty').value) || 1;
+
+            var sqft = w * h;
+            var total = sqft * rate * qty;
+
+            document.getElementById('bannerSizeDisplay').innerText = `कुल एरिया: ${sqft} Sq.Ft (${qty} पीस)`;
+            document.getElementById('bannerTotalDisplay').innerText = `कुल राशि: ₹${total.toLocaleString('en-IN')}`;
+            updateUpiQr(total);
+        }
+
+        // Calculation: 3. Visiting Cards
+        function calculateVisitingTotal() {
+            var rate = parseFloat(document.getElementById('visitingType').value) || 600;
+            var boxes = parseInt(document.getElementById('visitingBoxes').value) || 1;
+            var total = rate * boxes;
+
+            document.getElementById('visitingPiecesDisplay').value = `${boxes * 1000} कार्ड्स (${boxes} बॉक्स)`;
+            document.getElementById('visitingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
+            updateUpiQr(total);
+        }
+
+        function updateUpiQr(amount) {
+            var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(PAYEE_NAME) + "&am=" + amount + "&cu=INR";
             document.getElementById('gpayBtn').href = upiUrl;
             document.getElementById('phonepeBtn').href = upiUrl;
             document.getElementById('paytmBtn').href = upiUrl;
             document.getElementById('upiQrCode').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(upiUrl);
         }
 
+        // Image previews
         function previewBottomSample(event) {
             var file = event.target.files[0];
             if (file) {
-                sampleFileName = file.name;
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    sampleDataUrl = e.target.result;
-                    document.getElementById('bottomPreviewImg').src = sampleDataUrl;
+                    weddingSampleUrl = e.target.result;
+                    document.getElementById('bottomPreviewImg').src = weddingSampleUrl;
                     document.getElementById('bottomPreviewContainer').style.display = 'block';
                 }
                 reader.readAsDataURL(file);
             }
         }
+        function previewBannerSample(event) {
+            var file = event.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    bannerSampleUrl = e.target.result;
+                    document.getElementById('bannerPreviewImg').src = bannerSampleUrl;
+                    document.getElementById('bannerPreviewContainer').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        function previewVisitingSample(event) {
+            var file = event.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    visitingSampleUrl = e.target.result;
+                    document.getElementById('visitingPreviewImg').src = visitingSampleUrl;
+                    document.getElementById('visitingPreviewContainer').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
 
+        // Couples and Events dynamic additions
         function addCoupleField() {
             var group = document.getElementById('couplesGroup');
             var div = document.createElement('div');
@@ -1045,15 +1116,162 @@
             group.appendChild(div);
         }
 
-        function generateDirectPDF() {
+        // ==========================================
+        // SUBMISSIONS (Direct to mdsajadans@gmail.com)
+        // ==========================================
+
+        // 1. Submit Wedding Form
+        document.getElementById('weddingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
+            if (!currentUser) { alert("पहले लॉगिन करें!"); openAuthModal('login'); return; }
+
+            const btn = document.getElementById('weddingSubmitBtn');
+            btn.innerText = "भेजा जा रहा है..."; btn.disabled = true;
+
             var category = document.getElementById('cardCategory').value;
             var rate = document.getElementById('cardRate').value;
             var qty = document.getElementById('cardQty').value;
-            var totalAmt = document.getElementById('totalDisplay').innerText;
-            var txn = document.getElementById('transId').value || "भुगतान शेष";
-            var rsvp = document.getElementById('rsvpText').value || "लागू नहीं";
-            var from = document.getElementById('fromText').value || "लागू नहीं";
-            var notes = document.getElementById('extraText').value || "कोई नहीं";
+            var totalAmt = document.getElementById('weddingTotalDisplay').innerText;
+            var txn = document.getElementById('weddingTransId').value || "भुगतान शेष";
+
+            var coupleData = "";
+            var grooms = document.querySelectorAll('.groom-name');
+            var gFathers = document.querySelectorAll('.groom-father');
+            var gAddresses = document.querySelectorAll('.groom-address');
+            var brides = document.querySelectorAll('.bride-name');
+            var bFathers = document.querySelectorAll('.bride-father');
+            var bAddresses = document.querySelectorAll('.bride-address');
+            for (var i = 0; i < grooms.length; i++) {
+                coupleData += `\n[जोड़ी #${i+1}] दूल्हा: ${grooms[i].value} (${gFathers[i].value}) - पता: ${gAddresses[i].value} | संग (Weds) | दुल्हन: ${brides[i].value} (${bFathers[i].value}) - पता: ${bAddresses[i].value}`;
+            }
+
+            var eventData = "";
+            var titles = document.querySelectorAll('.event-title');
+            var dates = document.querySelectorAll('.event-date');
+            var times = document.querySelectorAll('.event-time');
+            for (var j = 0; j < titles.length; j++) {
+                eventData += `\n- ${titles[j].value}: ${dates[j].value} (${times[j].value || 'समय तय नहीं'})`;
+            }
+
+            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    _subject: `📦 शादी कार्ड ऑर्डर: ${currentUser.name} (${totalAmt})`,
+                    ऑर्डर_प्रकार: "शादी कार्ड",
+                    ग्राहक_नाम: currentUser.name,
+                    ग्राहक_फोन: currentUser.mobile,
+                    गाँव_शहर: currentUser.village || "-",
+                    कार्ड_मॉडल: category,
+                    रेट: "₹" + rate,
+                    मात्रा: qty + " कार्ड्स",
+                    कुल_बिल: totalAmt,
+                    पेमेंट_UTR: txn,
+                    दूल्हा_दुल्हन: coupleData,
+                    कार्यक्रम_तारीखें: eventData,
+                    RSVP: document.getElementById('rsvpText').value || "लागू नहीं",
+                    विनीत_From: document.getElementById('fromText').value || "लागू नहीं",
+                    निर्देश: document.getElementById('extraText').value || "कोई नहीं"
+                })
+            }).then(() => {
+                alert("शादी कार्ड ऑर्डर सफलतापूर्वक mdsajadans@gmail.com पर भेज दिया गया है!");
+            }).finally(() => { btn.innerText = "शादी कार्ड ऑर्डर ईमेल पर भेजें"; btn.disabled = false; });
+        });
+
+        // 2. Submit Banner Form
+        document.getElementById('bannerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
+            if (!currentUser) { alert("पहले लॉगिन करें!"); openAuthModal('login'); return; }
+
+            const btn = document.getElementById('bannerSubmitBtn');
+            btn.innerText = "भेजा जा रहा है..."; btn.disabled = true;
+
+            var w = document.getElementById('bannerWidth').value;
+            var h = document.getElementById('bannerHeight').value;
+            var quality = document.getElementById('bannerQuality').value;
+            var qty = document.getElementById('bannerQty').value;
+            var total = document.getElementById('bannerTotalDisplay').innerText;
+            var title = document.getElementById('bannerTitle').value;
+            var content = document.getElementById('bannerContent').value;
+            var phone = document.getElementById('bannerPhone').value;
+            var addr = document.getElementById('bannerAddress').value;
+            var txn = document.getElementById('bannerTransId').value || "भुगतान शेष";
+
+            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    _subject: `🚩 फ्लेक्स बैनर ऑर्डर: ${title} (${currentUser.name})`,
+                    ऑर्डर_प्रकार: "फ्लेक्स बैनर / पोस्टर",
+                    ग्राहक_नाम: currentUser.name,
+                    ग्राहक_फोन: currentUser.mobile,
+                    बैनर_साइज़: `${w} x ${h} फीट (${w*h} Sq.Ft)`,
+                    बैनर_संख्या: qty + " पीस",
+                    क्वालिटी: quality,
+                    कुल_बिल: total,
+                    बैनर_शीर्षक: title,
+                    बैनर_मैटर: content,
+                    बैनर_मोबाइल: phone,
+                    बैनर_पता: addr,
+                    पेमेंट_UTR: txn
+                })
+            }).then(() => {
+                alert("फ्लेक्स बैनर ऑर्डर सफलतापूर्वक mdsajadans@gmail.com पर भेज दिया गया है!");
+            }).finally(() => { btn.innerText = "बैनर ऑर्डर ईमेल पर भेजें"; btn.disabled = false; });
+        });
+
+        // 3. Submit Visiting Card Form
+        document.getElementById('visitingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
+            if (!currentUser) { alert("पहले लॉगिन करें!"); openAuthModal('login'); return; }
+
+            const btn = document.getElementById('visitingSubmitBtn');
+            btn.innerText = "भेजा जा रहा है..."; btn.disabled = true;
+
+            var typeSelect = document.getElementById('visitingType');
+            var cardTypeName = typeSelect.options[typeSelect.selectedIndex].getAttribute('data-name');
+            var pieces = document.getElementById('visitingPiecesDisplay').value;
+            var total = document.getElementById('visitingTotalDisplay').innerText;
+            var shop = document.getElementById('visitingShopName').value;
+            var person = document.getElementById('visitingPersonName').value;
+            var phone = document.getElementById('visitingPhone').value;
+            var email = document.getElementById('visitingEmail').value || "-";
+            var services = document.getElementById('visitingServices').value;
+            var addr = document.getElementById('visitingAddress').value;
+            var txn = document.getElementById('visitingTransId').value || "भुगतान शेष";
+
+            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    _subject: `💳 विजिटिंग कार्ड ऑर्डर: ${shop} (${currentUser.name})`,
+                    ऑर्डर_प्रकार: "विजिटिंग कार्ड",
+                    ग्राहक_नाम: currentUser.name,
+                    ग्राहक_फोन: currentUser.mobile,
+                    कार्ड_प्रकार: cardTypeName,
+                    कुल_संख्या: pieces,
+                    कुल_बिल: total,
+                    दुकान_फर्म_नाम: shop,
+                    प्रोपराइटर_नाम: person,
+                    कार्ड_मोबाइल: phone,
+                    कार्ड_ईमेल: email,
+                    कार्ड_सेवाएं: services,
+                    कार्ड_पता: addr,
+                    पेमेंट_UTR: txn
+                })
+            }).then(() => {
+                alert("विजिटिंग कार्ड ऑर्डर सफलतापूर्वक mdsajadans@gmail.com पर भेज दिया गया है!");
+            }).finally(() => { btn.innerText = "विजिटिंग कार्ड ऑर्डर ईमेल पर भेजें"; btn.disabled = false; });
+        });
+
+        // PDF / Print Receipts
+        function generateWeddingPDF() {
+            var category = document.getElementById('cardCategory').value;
+            var totalAmt = document.getElementById('weddingTotalDisplay').innerText;
+            var currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "{}");
 
             var grooms = document.querySelectorAll('.groom-name');
             var gFathers = document.querySelectorAll('.groom-father');
@@ -1064,154 +1282,292 @@
 
             var couplesHtml = "";
             for (var i = 0; i < grooms.length; i++) {
-                couplesHtml += '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; border:1px solid #999;">' +
-                    '<tr><th colspan="2" style="background:#eee; text-align:left; padding:6px; border:1px solid #999;">जोड़ी संख्या #' + (i+1) + '</th></tr>' +
-                    '<tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">दूल्हा का नाम</th><td style="padding:6px; border:1px solid #999;">' + (grooms[i].value || '-') + ' (पिता: ' + (gFathers[i].value || '-') + ')</td></tr>' +
-                    '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दूल्हे का पता</th><td style="padding:6px; border:1px solid #999;">' + (gAddresses[i].value || '-') + '</td></tr>' +
-                    '<tr><td colspan="2" style="text-align:center; padding:6px; font-weight:bold; background:#fff2f0; color:#c0392b; border:1px solid #999;">❤️ संग / Weds ❤️</td></tr>' +
-                    '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दुल्हन का नाम</th><td style="padding:6px; border:1px solid #999;">' + (brides[i].value || '-') + ' (पिता: ' + (bFathers[i].value || '-') + ')</td></tr>' +
-                    '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दुल्हन का पता</th><td style="padding:6px; border:1px solid #999;">' + (bAddresses[i].value || '-') + '</td></tr>' +
-                    '</table>';
+                couplesHtml += `<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">
+                    <tr><th colspan="2" style="background:#eee; text-align:left; padding:5px; border:1px solid #999;">जोड़ी #${i+1}</th></tr>
+                    <tr><th style="width:30%; text-align:left; padding:5px; border:1px solid #999;">दूल्हा</th><td style="padding:5px; border:1px solid #999;">${grooms[i].value} (${gFathers[i].value}) - ${gAddresses[i].value}</td></tr>
+                    <tr><td colspan="2" style="text-align:center; padding:4px; font-weight:bold; background:#fff2f0; color:#c0392b; border:1px solid #999;">❤️ संग / Weds ❤️</td></tr>
+                    <tr><th style="text-align:left; padding:5px; border:1px solid #999;">दुल्हन</th><td style="padding:5px; border:1px solid #999;">${brides[i].value} (${bFathers[i].value}) - ${bAddresses[i].value}</td></tr>
+                </table>`;
             }
 
-            var titles = document.querySelectorAll('.event-title');
-            var dates = document.querySelectorAll('.event-date');
-            var times = document.querySelectorAll('.event-time');
-            var eventsHtml = "";
-            for (var j = 0; j < titles.length; j++) {
-                eventsHtml += '<tr>' +
-                    '<td style="padding:6px; border:1px solid #999;">' + (titles[j].value || '-') + '</td>' +
-                    '<td style="padding:6px; border:1px solid #999;">' + (dates[j].value || '-') + '</td>' +
-                    '<td style="padding:6px; border:1px solid #999;">' + (times[j].value || 'समय तय नहीं') + '</td>' +
-                    '</tr>';
-            }
-
-            var samplePhotoHtml = sampleDataUrl ? '<div style="margin-top:15px;"><h4 style="border-bottom:1px solid #333; margin-bottom:5px;">कार्ड सैंपल फोटो:</h4><img src="' + sampleDataUrl + '" style="max-width:180px; max-height:180px; border:1px solid #999;"></div>' : '';
-
-            var currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "{}");
-            var userHtml = currentUser.name ? `<p style="margin:2px 0; font-size:12px;">ग्राहक: <b>${currentUser.name}</b> | गाँव: <b>${currentUser.village || '-'}</b> | फोन: <b>${currentUser.mobile}</b></p>` : '';
-
-            document.getElementById('printableReceiptArea').innerHTML = 
-                '<div style="font-family:sans-serif; color:#000; padding:20px; line-height:1.5;">' +
-                    '<div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:15px;">' +
-                        '<h2 style="margin:0; font-size:22px;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>' +
-                        '<h3 style="margin:2px 0; font-size:16px;">शादी कार्ड ऑर्डर एवं विवरण रसीद</h3>' +
-                        '<p style="margin:0; font-size:12px;">हेल्पलाइन: 9304509464 | UPI: 9304509464@okbizaxis</p>' +
-                        userHtml +
-                        '<p style="margin:4px 0 0; font-size:12px;">दिनांक: ' + new Date().toLocaleDateString('hi-IN') + '</p>' +
-                    '</div>' +
-                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">१. ऑर्डर एवं मूल्य विवरण</h4>' +
-                    '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
-                        '<tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">कार्ड कैटगरी</th><td style="padding:6px; border:1px solid #999;">' + category + '</td></tr>' +
-                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">प्रति पीस रेट</th><td style="padding:6px; border:1px solid #999;">₹' + rate + '</td></tr>' +
-                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">कुल कार्ड संख्या</th><td style="padding:6px; border:1px solid #999;">' + qty + ' पीस</td></tr>' +
-                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">कुल राशि</th><td style="padding:6px; border:1px solid #999; font-weight:bold;">' + totalAmt + '</td></tr>' +
-                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">पेमेंट UTR / Txn ID</th><td style="padding:6px; border:1px solid #999;">' + txn + '</td></tr>' +
-                    '</table>' +
-                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">२. दूल्हा एवं दुल्हन विवरण</h4>' +
-                    couplesHtml +
-                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">३. कार्यक्रम एवं तारीखें</h4>' +
-                    '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
-                        '<tr style="background:#f2f2f2;"><th style="padding:6px; border:1px solid #999; text-align:left;">कार्यक्रम</th><th style="padding:6px; border:1px solid #999; text-align:left;">तारीख</th><th style="padding:6px; border:1px solid #999; text-align:left;">समय</th></tr>' +
-                        eventsHtml +
-                    '</table>' +
-                    '<h4 style="background:#eee; padding:5px; margin:10px 0 5px; border-left:4px solid #c0392b;">४. निवेदक एवं अन्य विवरण</h4>' +
-                    '<table style="width:100%; border-collapse:collapse; margin-bottom:10px; border:1px solid #999;">' +
-                        '<tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">RSVP</th><td style="padding:6px; border:1px solid #999;">' + rsvp + '</td></tr>' +
-                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">दर्शनाभिलाषी / प्रेषक</th><td style="padding:6px; border:1px solid #999;">' + from + '</td></tr>' +
-                        '<tr><th style="text-align:left; padding:6px; border:1px solid #999;">शायरी / विशेष निर्देश</th><td style="padding:6px; border:1px solid #999;">' + notes + '</td></tr>' +
-                    '</table>' +
-                    samplePhotoHtml +
-                '</div>';
-
+            document.getElementById('printableReceiptArea').innerHTML = `
+                <div style="font-family:sans-serif; color:#000; padding:20px;">
+                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+                        <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
+                        <h3 style="margin:2px 0;">शादी कार्ड ऑर्डर रसीद</h3>
+                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || '-'}) | कुल राशि: <b>${totalAmt}</b></p>
+                    </div>
+                    <h4>१. कार्ड विवरण: ${category}</h4>
+                    <h4>२. दूल्हा-दुल्हन विवरण:</h4>
+                    ${couplesHtml}
+                </div>
+            `;
             window.print();
         }
 
-        document.getElementById('weddingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!currentUser) {
-                alert("ऑर्डर भेजने के लिए पहले लॉगिन करना अनिवार्य है!");
-                openAuthModal('register');
-                return;
-            }
+        function generateBannerPDF() {
+            var w = document.getElementById('bannerWidth').value;
+            var h = document.getElementById('bannerHeight').value;
+            var title = document.getElementById('bannerTitle').value;
+            var total = document.getElementById('bannerTotalDisplay').innerText;
+            var currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "{}");
 
-            const submitBtn = document.getElementById('orderSubmitBtn');
-            submitBtn.innerText = "ऑर्डर भेजा जा रहा है...";
-            submitBtn.disabled = true;
+            document.getElementById('printableReceiptArea').innerHTML = `
+                <div style="font-family:sans-serif; color:#000; padding:20px;">
+                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+                        <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
+                        <h3 style="margin:2px 0;">फ्लेक्स बैनर ऑर्डर रसीद</h3>
+                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || '-'}) | ${total}</p>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; border:1px solid #999;">
+                        <tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">बैनर साइज़</th><td style="padding:6px; border:1px solid #999;">${w} x ${h} फीट (${w*h} Sq.Ft)</td></tr>
+                        <tr><th style="text-align:left; padding:6px; border:1px solid #999;">बैनर शीर्षक</th><td style="padding:6px; border:1px solid #999;">${title}</td></tr>
+                        <tr><th style="text-align:left; padding:6px; border:1px solid #999;">मैटर विवरण</th><td style="padding:6px; border:1px solid #999;">${document.getElementById('bannerContent').value}</td></tr>
+                        <tr><th style="text-align:left; padding:6px; border:1px solid #999;">संपर्क फोन / पता</th><td style="padding:6px; border:1px solid #999;">${document.getElementById('bannerPhone').value} | ${document.getElementById('bannerAddress').value}</td></tr>
+                    </table>
+                </div>
+            `;
+            window.print();
+        }
 
-            var category = document.getElementById('cardCategory').value;
-            var rate = document.getElementById('cardRate').value;
-            var qty = document.getElementById('cardQty').value;
-            var totalAmt = document.getElementById('totalDisplay').innerText;
+        function generateVisitingPDF() {
+            var shop = document.getElementById('visitingShopName').value;
+            var pieces = document.getElementById('visitingPiecesDisplay').value;
+            var total = document.getElementById('visitingTotalDisplay').innerText;
+            var currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "{}");
 
-            var coupleData = "";
-            var grooms = document.querySelectorAll('.groom-name');
-            var gFathers = document.querySelectorAll('.groom-father');
-            var gAddresses = document.querySelectorAll('.groom-address');
-            var brides = document.querySelectorAll('.bride-name');
-            var bFathers = document.querySelectorAll('.bride-father');
-            var bAddresses = document.querySelectorAll('.bride-address');
+            document.getElementById('printableReceiptArea').innerHTML = `
+                <div style="font-family:sans-serif; color:#000; padding:20px;">
+                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+                        <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
+                        <h3 style="margin:2px 0;">विजिटिंग कार्ड ऑर्डर रसीद</h3>
+                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || '-'}) | कुल राशि: <b>${total}</b></p>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; border:1px solid #999;">
+                        <tr><th style="width:30%; text-align:left; padding:6px; border:1px solid #999;">दुकान / फर्म</th><td style="padding:6px; border:1px solid #999;">${shop}</td></tr>
+                        <tr><th style="text-align:left; padding:6px; border:1px solid #999;">प्रोपराइटर</th><td style="padding:6px; border:1px solid #999;">${document.getElementById('visitingPersonName').value}</td></tr>
+                        <tr><th style="text-align:left; padding:6px; border:1px solid #999;">संख्या / बॉक्स</th><td style="padding:6px; border:1px solid #999;">${pieces}</td></tr>
+                        <tr><th style="text-align:left; padding:6px; border:1px solid #999;">फोन / ईमेल</th><td style="padding:6px; border:1px solid #999;">${document.getElementById('visitingPhone').value} | ${document.getElementById('visitingEmail').value || '-'}</td></tr>
+                        <tr><th style="text-align:left; padding:6px; border:1px solid #999;">सेवाएं / पता</th><td style="padding:6px; border:1px solid #999;">${document.getElementById('visitingServices').value} - ${document.getElementById('visitingAddress').value}</td></tr>
+                    </table>
+                </div>
+            `;
+            window.print();
+        }
 
-            for (var i = 0; i < grooms.length; i++) {
-                coupleData += `\n[जोड़ी #${i+1}] दूल्हा: ${grooms[i].value} (पिता: ${gFathers[i].value}) - पता: ${gAddresses[i].value} | संग (Weds) | दुल्हन: ${brides[i].value} (पिता: ${bFathers[i].value}) - पता: ${bAddresses[i].value}`;
-            }
-
-            var eventData = "";
-            var titles = document.querySelectorAll('.event-title');
-            var dates = document.querySelectorAll('.event-date');
-            var times = document.querySelectorAll('.event-time');
-            for (var j = 0; j < titles.length; j++) {
-                var time = times[j].value ? ` (${times[j].value})` : "";
-                eventData += `\n- ${titles[j].value}: ${dates[j].value}${time}`;
-            }
-
-            var rsvp = document.getElementById('rsvpText').value || "लागू नहीं";
-            var from = document.getElementById('fromText').value || "लागू नहीं";
-            var notes = document.getElementById('extraText').value || "कोई नहीं";
-            var txn = document.getElementById('transId').value || "भुगतान शेष";
-
-            fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
-                method: "POST",
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    _subject: `📦 नया कार्ड ऑर्डर: ${currentUser.name} - ${category} (₹${totalAmt})`,
-                    प्रकार: "नया शादी कार्ड ऑर्डर",
-                    ग्राहक_नाम: currentUser.name,
-                    ग्राहक_फोन: currentUser.mobile,
-                    गाँव_शहर: currentUser.village || "-",
-                    ग्राहक_पता: currentUser.address || "-",
-                    कार्ड_मॉडल: category,
-                    प्रति_पीस_रेट: "₹" + rate,
-                    कार्ड_संख्या: qty + " पीस",
-                    कुल_अनुमानित_राशि: totalAmt,
-                    पेमेंट_Txn_UTR: txn,
-                    दूल्हा_दुल्हन_विवरण: coupleData,
-                    कार्यक्रम_एवं_तारीखें: eventData,
-                    RSVP: rsvp,
-                    दर्शनाभिलाषी_From: from,
-                    अतिरिक्त_निर्देश: notes,
-                    सैंपल_फ़ाइल: sampleFileName
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(`धन्यवाद ${currentUser.name}! आपका शादी कार्ड ऑर्डर सफलतापूर्वक mdsajadans@gmail.com पर भेज दिया गया है। हम जल्द ही आपसे संपर्क करेंगे।`);
-            })
-            .catch(error => {
-                alert("ऑर्डर रिकॉर्ड हो गया है!");
-            })
-            .finally(() => {
-                submitBtn.innerText = "ऑर्डर सबमिट करें (ईमेल पर भेजें)";
-                submitBtn.disabled = false;
+        // ==========================================
+        // AUTHENTICATION & ADMIN
+        // ==========================================
+        function openAdminModal() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('adminPinSection').style.display = 'block';
+            document.getElementById('adminWorkSection').style.display = 'none';
+            document.getElementById('adminPin').value = '';
+        }
+        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+        function verifyAdminPin() {
+            if (document.getElementById('adminPin').value.trim() === ADMIN_PIN) {
+                document.getElementById('adminPinSection').style.display = 'none';
+                document.getElementById('adminWorkSection').style.display = 'block';
+                renderAdminTable();
+                renderAdminUsers();
+            } else { alert("गलत पिन!"); }
+        }
+        function showAdminTab(tab) {
+            document.getElementById('adminCardsTab').style.display = tab === 'cards' ? 'block' : 'none';
+            document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
+        }
+        function renderAdminTable() {
+            db.ref('catalog').once('value', (snapshot) => {
+                const catalog = snapshot.val() || [];
+                const tbody = document.getElementById('adminCardListBody');
+                tbody.innerHTML = "";
+                catalog.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${item.img}" style="width:35px; height:25px; object-fit:cover;"></td>
+                        <td>${item.name}</td>
+                        <td>₹${item.rate}</td>
+                        <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             });
-        });
+        }
+        function renderAdminUsers() {
+            db.ref('users').once('value', (snapshot) => {
+                const usersObj = snapshot.val() || {};
+                const tbody = document.getElementById('adminUserListBody');
+                tbody.innerHTML = "";
+                Object.keys(usersObj).forEach(key => {
+                    const u = usersObj[key];
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${u.idPhoto || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; object-fit:cover; border-radius:50%;"></td>
+                        <td>${u.name}</td>
+                        <td>${u.mobile}</td>
+                        <td>${u.village || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+        function handleAddNewCard(e) {
+            e.preventDefault();
+            const name = document.getElementById('admCardName').value.trim();
+            const rate = parseFloat(document.getElementById('admCardRate').value);
+            const stock = document.getElementById('admCardStock').value;
+            const file = document.getElementById('admCardFile').files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                db.ref('catalog').once('value', (snapshot) => {
+                    let catalog = snapshot.val() || [];
+                    catalog.unshift({ id: Date.now(), name: name, rate: rate, stock: stock, img: event.target.result });
+                    db.ref('catalog').set(catalog);
+                    alert("कैटलॉग में जुड़ गया!");
+                    document.getElementById('adminCardForm').reset();
+                    renderAdminTable();
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+        function deleteCatalogItem(id) {
+            if (confirm("हटाना चाहते हैं?")) {
+                db.ref('catalog').once('value', (snapshot) => {
+                    let catalog = snapshot.val() || [];
+                    catalog = catalog.filter(c => c.id !== id);
+                    db.ref('catalog').set(catalog);
+                    renderAdminTable();
+                });
+            }
+        }
 
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const regBtn = document.getElementById('regBtn');
+            regBtn.innerText = "जांच हो रही है..."; regBtn.disabled = true;
+
+            const name = document.getElementById('regName').value.trim();
+            const mobile = document.getElementById('regMobile').value.trim();
+            const village = document.getElementById('regVillage').value.trim();
+            const address = document.getElementById('regAddress').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+            const file = document.getElementById('regPhotoId').files[0];
+
+            db.ref('users/' + mobile).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है! कृपया सीधे लॉगिन करें।");
+                    regBtn.innerText = "अकाउंट रजिस्टर करें"; regBtn.disabled = false;
+                    toggleAuthView('login');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const newUser = {
+                        name: name, mobile: mobile, village: village, address: address,
+                        pass: pass, idPhoto: event.target.result, regDate: new Date().toLocaleDateString('hi-IN')
+                    };
+
+                    db.ref('users/' + mobile).set(newUser, () => {
+                        localStorage.setItem('dp_current_user', JSON.stringify(newUser));
+                        alert("अकाउंट बन गया! अब आप ऑर्डर कर सकते हैं।");
+                        closeAuthModal();
+                        checkUserSession();
+
+                        fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                            method: "POST",
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({
+                                _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${mobile})`,
+                                नाम: name, फोन: mobile, गाँव: village, पता: address
+                            })
+                        });
+                    });
+                    regBtn.innerText = "अकाउंट रजिस्टर करें"; regBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.innerText = "लॉगिन हो रहा है..."; loginBtn.disabled = true;
+
+            const mobile = document.getElementById('loginMobile').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            db.ref('users/' + mobile).once('value', (snapshot) => {
+                loginBtn.innerText = "लॉगिन करें"; loginBtn.disabled = false;
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.pass === pass) {
+                        localStorage.setItem('dp_current_user', JSON.stringify(userData));
+                        alert("स्वागत है, " + userData.name + "!");
+                        closeAuthModal();
+                        checkUserSession();
+                    } else { alert("गलत पासवर्ड!"); }
+                } else { alert("यह मोबाइल नंबर नहीं मिला! पहले नया अकाउंट बनाएं।"); }
+            });
+        }
+
+        function handleForgotSubmit(e) {
+            e.preventDefault();
+            const mobile = document.getElementById('forgotMobile').value.trim();
+            const newPass = document.getElementById('forgotNewPass').value.trim();
+
+            db.ref('users/' + mobile).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    db.ref('users/' + mobile + '/pass').set(newPass, () => {
+                        alert("पासवर्ड अपडेट हो गया! अब लॉगिन करें।");
+                        toggleAuthView('login');
+                    });
+                } else { alert("यह मोबाइल नंबर नहीं मिला!"); }
+            });
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('dp_current_user');
+            checkUserSession();
+        }
+
+        function checkUserSession() {
+            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
+            const navAuth = document.getElementById('authNavContainer');
+            const loggedBox = document.getElementById('userLoggedBox');
+            const display = document.getElementById('displayUserName');
+            const lockOverlay = document.getElementById('formLockOverlay');
+
+            if (currentUser) {
+                navAuth.style.display = 'none';
+                loggedBox.style.display = 'flex';
+                display.innerText = "नमस्ते, " + currentUser.name;
+                lockOverlay.style.display = 'none';
+            } else {
+                navAuth.style.display = 'block';
+                loggedBox.style.display = 'none';
+                display.innerText = "";
+                lockOverlay.style.display = 'flex';
+            }
+        }
+
+        function openAuthModal(view) {
+            document.getElementById('authModal').style.display = 'flex';
+            toggleAuthView(view);
+        }
+        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+        function toggleAuthView(view) {
+            document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
+            document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
+            document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
+        }
+
+        // Init
         renderCatalog();
-        calculateTotal();
+        calculateWeddingTotal();
+        calculateBannerTotal();
+        calculateVisitingTotal();
         checkUserSession();
     </script>
 </body>
