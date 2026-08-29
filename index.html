@@ -813,10 +813,85 @@
     <div id="printableReceiptArea" style="display: none;"></div>
 
     <!-- Auth Modal -->
-    <div class="modal" id="authModal">
+     <!-- Auth Modal -->
+    <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAuthModal()">&times;</span>
-            
+
+            <!-- 1. Login Section -->
+            <div id="loginSection">
+                <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">लॉगिन</h3>
+                <form onsubmit="handleLoginSubmit(event)">
+                    <div class="form-group">
+                        <label>ईमेल एड्रेस:</label>
+                        <input type="email" id="loginEmail" required placeholder="ईमेल आईडी दर्ज करें">
+                    </div>
+                    <div class="form-group">
+                        <label>पासवर्ड:</label>
+                        <input type="password" id="loginPass" required placeholder="पासवर्ड">
+                    </div>
+                    <div style="text-align: right; margin-bottom: 10px;">
+                        <a onclick="toggleAuthView('forgot')" style="font-size: 12px; color: var(--secondary); text-decoration: none; cursor: pointer; font-weight: bold;">पासवर्ड भूल गए?</a>
+                    </div>
+                    <button type="submit" id="loginBtn" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
+                </form>
+                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
+                    नया खाता? <a onclick="toggleAuthView('register')" style="color: var(--primary); font-weight: bold; cursor: pointer;">नया अकाउंट बनाएं</a>
+                </div>
+            </div>
+
+            <!-- 2. Forgot Password Section -->
+            <div id="forgotSection" style="display: none;">
+                <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h3>
+                <form onsubmit="handleForgotSubmit(event)">
+                    <div class="form-group">
+                        <label>ईमेल एड्रेस:</label>
+                        <input type="email" id="forgotEmail" required placeholder="रजिस्टर्ड ईमेल दर्ज करें">
+                    </div>
+                    <div class="form-group">
+                        <label>नया पासवर्ड:</label>
+                        <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड">
+                    </div>
+                    <button type="submit" id="forgotBtn" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">पासवर्ड अपडेट करें</button>
+                </form>
+                <div style="font-size: 13px; text-align: center; margin-top: 10px;">
+                    <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन पर वापस जाएं</a>
+                </div>
+            </div>
+
+            <!-- 3. Register Section -->
+            <div id="registerSection" style="display: none;">
+                <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
+                <form onsubmit="handleRegisterSubmit(event)">
+                    <div class="form-group">
+                        <label>पूरा नाम:</label>
+                        <input type="text" id="regName" required placeholder="आपका नाम">
+                    </div>
+                    <div class="form-group">
+                        <label>ईमेल एड्रेस:</label>
+                        <input type="email" id="regEmail" required placeholder="ईमेल आईडी दर्ज करें">
+                    </div>
+                    <div class="form-group">
+                        <label>गाँव / मोहल्ला:</label>
+                        <input type="text" id="regVillage" placeholder="गाँव या वार्ड का नाम">
+                    </div>
+                    <div class="form-group">
+                        <label>पूरा पता:</label>
+                        <input type="text" id="regAddress" placeholder="थाना, पोस्ट, जिला...">
+                    </div>
+                    <div class="form-group">
+                        <label>पासवर्ड बनाएं:</label>
+                        <input type="password" id="regPass" required placeholder="पासवर्ड बनाएं">
+                    </div>
+                    <button type="submit" id="registerBtn" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">रजिस्टर करें</button>
+                </form>
+                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
+                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
             <div id="loginSection">
                 <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h3>
                 <form onsubmit="handleLoginSubmit(event)">
