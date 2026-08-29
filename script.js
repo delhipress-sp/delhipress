@@ -17,3 +17,21 @@ contactForm.addEventListener('submit', (e) => {
     alert('Thank you! Your message has been sent successfully. We will get back to you soon.');
     contactForm.reset();
 });
+async function handleLoginSubmit(event) {
+event.preventDefault();
+const mobile = event.target.loginMobile.value;
+const password = event.target.loginPass.value;
+try {
+const { data, error } = await supabase.auth.signInWithPassword({
+phone: mobile,
+password: password,
+});
+if (error) {
+alert("लॉगिन एरर! " + error.message);
+} else {
+alert("लॉगिन सफल!");
+}
+} catch (err) {
+alert("लॉगिन एरर! कृपया इंटरनेट जांचें।");
+}
+}
