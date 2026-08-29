@@ -32,7 +32,9 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 25px;
         }
-        .nav-brand h2 { color: var(--primary); font-size: 20px; }
+        .nav-brand h2 {
+            color: var(--primary); font-size: 20px; cursor: pointer; user-select: none;
+        }
         .nav-brand p { font-size: 11px; color: #666; }
 
         .nav-menu { display: flex; list-style: none; align-items: center; gap: 12px; }
@@ -41,13 +43,9 @@
             padding: 6px 10px; border-radius: 4px; transition: 0.3s;
         }
         .nav-menu a:hover { color: var(--primary); }
-        .btn-admin {
-            background: #2c3e50; color: white !important;
-            padding: 6px 12px !important; border-radius: 20px; cursor: pointer;
-        }
         .btn-login {
             background: var(--primary); color: white !important;
-            padding: 6px 12px !important; border-radius: 20px; cursor: pointer;
+            padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
         }
 
         .user-logged-box { display: none; align-items: center; gap: 8px; }
@@ -244,14 +242,14 @@
 
     <nav class="navbar">
         <div class="nav-brand">
-            <h2>दिल्ली प्रेस</h2>
+            <!-- गुप्त एडमिन पैनल: "दिल्ली प्रेस" पर लगातार 3 बार क्लिक करने पर खुलेगा -->
+            <h2 id="brandLogoTitle" onclick="handleSecretAdminClick()">दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
             <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="#orderForm">कार्ड ऑर्डर फॉर्म</a></li>
             <li><a href="#paymentSection">पेमेंट</a></li>
-            <li><a href="javascript:void(0)" class="btn-admin" onclick="openAdminModal()"><i class="fa-solid fa-gear"></i> एडमिन पैनल</a></li>
             <li id="authNavContainer">
                 <a href="javascript:void(0)" class="btn-login" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
@@ -452,7 +450,7 @@
 
     </div>
 
-    <!-- Admin Panel Modal -->
+    <!-- Hidden Admin Panel Modal -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAdminModal()">&times;</span>
@@ -460,7 +458,7 @@
             <div id="adminPinSection">
                 <h3 style="color: var(--dark); text-align: center; margin-bottom: 12px;">एडमिन लॉगिन</h3>
                 <div class="form-group">
-                    <label>एडमिन पिन (Default: 1234):</label>
+                    <label>एडमिन पिन:</label>
                     <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
                 </div>
                 <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 8px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
@@ -536,11 +534,12 @@
 
     <div id="printableReceiptArea" style="display: none;"></div>
 
-    <!-- Registration / Login Modal -->
+    <!-- Registration / Login / Forgot Password Modal -->
     <div class="modal" id="authModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAuthModal()">&times;</span>
             
+            <!-- 1. Login Screen -->
             <div id="loginSection">
                 <h3 style="margin-bottom: 15px; color: var(--primary); text-align: center;">दिल्ली प्रेस ग्राहक लॉगिन</h3>
                 <form onsubmit="handleLoginSubmit(event)">
@@ -552,13 +551,41 @@
                         <label>पासवर्ड:</label>
                         <input type="password" id="loginPass" required placeholder="पासवर्ड डालें">
                     </div>
+                    <div style="text-align: right; margin-bottom: 12px;">
+                        <a onclick="toggleAuthView('forgot')" style="font-size: 12px; color: var(--secondary); font-weight: bold; cursor: pointer; text-decoration: none;">
+                            पासवर्ड भूल गए? (Forgot Password)
+                        </a>
+                    </div>
                     <button type="submit" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
                 </form>
-                <div style="font-size:13px; text-align:center; margin-top:10px;">
+                <div style="font-size:13px; text-align:center; margin-top:12px;">
                     नया ग्राहक हैं? <a onclick="toggleAuthView('register')" style="color:var(--primary); font-weight:bold; cursor:pointer;">अकाउंट बनाएं व ID जोड़ें</a>
                 </div>
             </div>
 
+            <!-- 2. Forgot Password Screen -->
+            <div id="forgotSection" style="display: none;">
+                <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h3>
+                <p style="font-size: 12px; color: #555; text-align: center; margin-bottom: 12px;">अपना रजिस्टर्ड मोबाइल नंबर दर्ज करें और नया पासवर्ड बनाएं।</p>
+                <form onsubmit="handleForgotSubmit(event)">
+                    <div class="form-group">
+                        <label>रजिस्टर्ड मोबाइल नंबर:</label>
+                        <input type="tel" id="forgotMobile" required placeholder="१० अंकों का मोबाइल नंबर" pattern="[0-9]{10}">
+                    </div>
+                    <div class="form-group">
+                        <label>नया पासवर्ड बनाएं:</label>
+                        <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड" minlength="4">
+                    </div>
+                    <button type="submit" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                        पासवर्ड अपडेट करें
+                    </button>
+                </form>
+                <div style="font-size:13px; text-align:center; margin-top:12px;">
+                    <a onclick="toggleAuthView('login')" style="color:var(--primary); font-weight:bold; cursor:pointer;">वापस लॉगिन करें</a>
+                </div>
+            </div>
+
+            <!-- 3. Registration Screen -->
             <div id="registerSection" style="display: none;">
                 <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट व पहचान पत्र (ID)</h3>
                 <p style="font-size:12px; color:#555; text-align:center; margin-bottom:10px;">सही विवरण भरें, वेरिफिकेशन के बाद तुरंत ऑर्डर कर सकेंगे।</p>
@@ -607,10 +634,23 @@
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
         const ADMIN_PIN = "1234";
-        const OWNER_EMAIL = "mdsajadans@gmail.com"; // आपका ईमेल आईडी
+        const OWNER_EMAIL = "mdsajadans@gmail.com";
 
         let sampleFileName = "कोई सैंपल फोटो अटैच नहीं";
         let sampleDataUrl = "";
+
+        // गुप्त एडमिन ट्रिगर: "दिल्ली प्रेस" पर 3 बार क्लिक करने पर ही खुलेगा
+        let secretClickCount = 0;
+        let secretTimer = null;
+        function handleSecretAdminClick() {
+            secretClickCount++;
+            clearTimeout(secretTimer);
+            secretTimer = setTimeout(() => { secretClickCount = 0; }, 800);
+            if (secretClickCount >= 3) {
+                secretClickCount = 0;
+                openAdminModal();
+            }
+        }
 
         const defaultCatalog = [
             { id: 1, name: "मुस्लिम निकाह कार्ड (शाही)", rate: 12, stock: "in", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
@@ -749,7 +789,26 @@
             }
         }
 
-        // नया रजिस्ट्रेशन -> सीधे ईमेल पर भेजना
+        // पासवर्ड भूलने पर नया पासवर्ड रीसेट करने का लॉजिक
+        function handleForgotSubmit(e) {
+            e.preventDefault();
+            const mobile = document.getElementById('forgotMobile').value.trim();
+            const newPass = document.getElementById('forgotNewPass').value.trim();
+
+            let users = JSON.parse(localStorage.getItem('dp_users') || "[]");
+            const userIndex = users.findIndex(u => u.mobile === mobile);
+
+            if (userIndex === -1) {
+                alert("यह मोबाइल नंबर सिस्टम में नहीं मिला! कृपया सही नंबर डालें या नया अकाउंट बनाएं।");
+                return;
+            }
+
+            users[userIndex].pass = newPass;
+            localStorage.setItem('dp_users', JSON.stringify(users));
+            alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
+            toggleAuthView('login');
+        }
+
         function handleRegisterSubmit(e) {
             e.preventDefault();
             const regBtn = document.getElementById('regBtn');
@@ -789,7 +848,6 @@
                 localStorage.setItem('dp_users', JSON.stringify(users));
                 localStorage.setItem('dp_current_user', JSON.stringify(newUser));
 
-                // FormSubmit API के ज़रिए mdsajadans@gmail.com पर ईमेल भेजना
                 fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
                     method: "POST",
                     headers: { 
@@ -875,8 +933,9 @@
             document.getElementById('authModal').style.display = 'none';
         }
         function toggleAuthView(view) {
-            document.getElementById('loginSection').style.display = view === 'register' ? 'none' : 'block';
-            document.getElementById('registerSection').style.display = view === 'register' ? 'block' : 'none';
+            document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
+            document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
+            document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
         }
 
         function calculateTotal() {
@@ -1021,7 +1080,6 @@
             window.print();
         }
 
-        // शादी कार्ड ऑर्डर सबमिट -> सीधे mdsajadans@gmail.com पर भेजना
         document.getElementById('weddingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
@@ -1066,7 +1124,6 @@
             var notes = document.getElementById('extraText').value || "कोई नहीं";
             var txn = document.getElementById('transId').value || "भुगतान शेष";
 
-            // FormSubmit API कॉल
             fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
                 method: "POST",
                 headers: { 
