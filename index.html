@@ -153,6 +153,20 @@
             font-size: 13px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
         }
 
+        /* Form Sample Image Preview */
+        .sample-preview-box {
+            display: none;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .sample-preview-box img {
+            max-width: 180px;
+            max-height: 180px;
+            border-radius: 6px;
+            border: 2px dashed #cbd5e1;
+            object-fit: cover;
+        }
+
         /* Submit / PDF Buttons */
         .btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .submit-btn {
@@ -204,7 +218,7 @@
 
     <div class="container">
         
-        <!-- Showcase Gallery without Prices -->
+        <!-- Showcase Gallery -->
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 6px;">कार्ड मॉडल्स एवं डिजाइन गैलरी</h3>
             
@@ -235,11 +249,11 @@
                 </div>
             </div>
 
-            <!-- Upload Option to Show Custom Models -->
+            <!-- Upload Option for Gallery Display -->
             <div class="upload-field">
                 <label for="cardUpload" style="cursor: pointer; color: var(--blue);">
                     <i class="fa-solid fa-cloud-arrow-up fa-2x"></i><br>
-                    <strong>नया कार्ड मॉडल व फोटो यहाँ जोड़ें</strong>
+                    <strong>गैलरी में नया कार्ड मॉडल जोड़ें</strong>
                 </label>
                 <input type="file" id="cardUpload" accept="image/*" style="display:none;" onchange="previewUpload(event)">
             </div>
@@ -251,9 +265,9 @@
                 <div class="section-header">दिल्ली प्रेस - शादी कार्ड ऑर्डर फॉर्म</div>
                 
                 <form id="weddingForm">
-                    <!-- Step 1: Card Category & Manual Price -->
+                    <!-- Step 1: Card Category, Manual Price & Sample Upload -->
                     <div class="form-block">
-                        <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
+                        <h4>१. कार्ड कैटगरी, रेट एवं सैंपल अपलोड</h4>
                         <div class="row-3">
                             <div class="form-group">
                                 <label>कार्ड कैटगरी चुनें:</label>
@@ -272,6 +286,16 @@
                             <div class="form-group">
                                 <label>कार्ड संख्या (Quantity):</label>
                                 <input type="number" id="cardQty" placeholder="उदा: 200" value="100" min="1" oninput="calculateTotal()" required>
+                            </div>
+                        </div>
+
+                        <!-- Card Sample Upload Inside Form -->
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label><i class="fa-solid fa-image"></i> पसंद किए गए कार्ड का सैंपल / डिज़ाइन अपलोड करें:</label>
+                            <input type="file" id="orderCardSample" accept="image/*" onchange="previewFormSample(event)">
+                            <div class="sample-preview-box" id="samplePreviewContainer">
+                                <p style="font-size: 12px; color: #64748b; margin: 4px 0;">अपलोड किया गया सैंपल:</p>
+                                <img id="samplePreviewImg" src="" alt="कार्ड सैंपल प्रिव्यू">
                             </div>
                         </div>
 
@@ -368,7 +392,7 @@
                         </div>
                     </div>
 
-                    <!-- Step 5: Cashfree & UPI Payment Area -->
+                    <!-- Step 5: Cashfree & UPI Payment Area (9304509464@okbizaxis) -->
                     <div class="form-block" id="paymentSection">
                         <h4>५. भुगतान (Cashfree & UPI Payment)</h4>
                         <div class="payment-box">
@@ -385,7 +409,7 @@
                             <div class="qr-wrapper">
                                 <img id="upiQrCode" src="" alt="UPI पेमेंट QR">
                             </div>
-                            <p style="font-size: 13px; color: #475569;">UPI ID: <strong>9304509464@ptsbi</strong></p>
+                            <p style="font-size: 13px; color: #475569;">UPI ID: <strong>9304509464@okbizaxis</strong></p>
 
                             <!-- 3. Direct UPI App Buttons -->
                             <div class="upi-buttons">
@@ -449,8 +473,10 @@
 
     <!-- Script Logic -->
     <script>
-        const UPI_ID = "9304509464@ptsbi";
+        // अपडेटेड UPI ID
+        const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
+        let sampleFileName = "कोई सैंपल अपलोड नहीं किया गया";
 
         // ऑटोमैटिक बिल और UPI लिंक कैलकुलेशन
         function calculateTotal() {
@@ -460,7 +486,7 @@
             
             document.getElementById('totalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
 
-            // डायनामिक UPI Intent URL
+            // डायनामिक UPI URL
             var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(PAYEE_NAME) + "&am=" + total + "&cu=INR";
             
             // बटन लिंक अपडेट
@@ -471,6 +497,39 @@
             // ऑटोमैटिक QR कोड अपडेट
             var qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(upiUrl);
             document.getElementById('upiQrCode').src = qrApi;
+        }
+
+        // फॉर्म में कार्ड सैंपल फोटो प्रिव्यू
+        function previewFormSample(event) {
+            var file = event.target.files[0];
+            if (file) {
+                sampleFileName = file.name;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var previewBox = document.getElementById('samplePreviewContainer');
+                    var previewImg = document.getElementById('samplePreviewImg');
+                    previewImg.src = e.target.result;
+                    previewBox.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // गैलरी में फोटो अपलोड प्रिव्यू
+        function previewUpload(event) {
+            var file = event.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var gallery = document.getElementById('cardGallery');
+                    var div = document.createElement('div');
+                    div.className = 'card-sample';
+                    div.innerHTML = '<img src="' + e.target.result + '" alt="अपलोड कार्ड">' +
+                                    '<div class="card-info"><h4>नया मॉडल</h4></div>';
+                    gallery.prepend(div);
+                }
+                reader.readAsDataURL(file);
+            }
         }
 
         // दूल्हा-दुल्हन फ़ील्ड जोड़ना
@@ -507,23 +566,6 @@
                     '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>' +
                 '</div>';
             group.appendChild(div);
-        }
-
-        // फोटो अपलोड प्रिव्यू
-        function previewUpload(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var gallery = document.getElementById('cardGallery');
-                    var div = document.createElement('div');
-                    div.className = 'card-sample';
-                    div.innerHTML = '<img src="' + e.target.result + '" alt="अपलोड कार्ड">' +
-                                    '<div class="card-info"><h4>ग्राहक पसंद मॉडल</h4></div>';
-                    gallery.prepend(div);
-                }
-                reader.readAsDataURL(file);
-            }
         }
 
         // लॉगिन मोडल
@@ -594,6 +636,7 @@
                       "*प्रति पीस रेट:* ₹" + rate + "\n" +
                       "*कार्ड संख्या:* " + qty + "\n" +
                       "*कुल राशि:* " + totalAmt + "\n" +
+                      "*सैंपल फ़ाइल:* " + sampleFileName + "\n" +
                       "--------------------------------" +
                       coupleData + "\n\n" +
                       "*कार्यक्रम एवं तारीखें:*" + eventData + "\n\n" +
