@@ -786,7 +786,7 @@
                             <label>फोटो:</label>
                             <input type="file" id="admCardFile" accept="image/*" required>
                         </div>
-                        <button type="submit" style="width: 100%; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                        <button type="submit" id="admCardSubmitBtn" style="width: 100%; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
                             + कैटलॉग में जोड़ें
                         </button>
                     </form>
@@ -801,7 +801,7 @@
                 <div id="adminUsersTab" style="display: none;">
                     <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 13px;">ग्राहक रिकॉर्ड:</h4>
                     <table class="admin-table">
-                        <thead><tr><th>नाम</th><th>मोबाइल</th><th>गाँव</th></tr></thead>
+                        <thead><tr><th>नाम</th><th>मोबाइल / ईमेल</th><th>गाँव</th></tr></thead>
                         <tbody id="adminUserListBody"></tbody>
                     </table>
                 </div>
@@ -812,19 +812,18 @@
 
     <div id="printableReceiptArea" style="display: none;"></div>
 
-    <!-- Auth Modal -->
-     <!-- Auth Modal -->
+    <!-- Auth Modal (सिंगल एवं शुद्ध वर्शन) -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAuthModal()">&times;</span>
 
             <!-- 1. Login Section -->
             <div id="loginSection">
-                <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">लॉगिन</h3>
+                <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h3>
                 <form onsubmit="handleLoginSubmit(event)">
                     <div class="form-group">
                         <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="loginemail" required placeholder="ईमेल आईडी दर्ज करें">
+                        <input type="email" id="loginEmail" required placeholder="ईमेल आईडी दर्ज करें">
                     </div>
                     <div class="form-group">
                         <label>पासवर्ड:</label>
@@ -846,11 +845,11 @@
                 <form onsubmit="handleForgotSubmit(event)">
                     <div class="form-group">
                         <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="forgotemail" required placeholder="रजिस्टर्ड ईमेल दर्ज करें">
+                        <input type="email" id="forgotEmail" required placeholder="रजिस्टर्ड ईमेल दर्ज करें">
                     </div>
                     <div class="form-group">
                         <label>नया पासवर्ड:</label>
-                        <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड">
+                        <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड (कम से कम 4 अंक)" minlength="4">
                     </div>
                     <button type="submit" id="forgotBtn" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">पासवर्ड अपडेट करें</button>
                 </form>
@@ -862,7 +861,7 @@
             <!-- 3. Register Section -->
             <div id="registerSection" style="display: none;">
                 <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
-                <form onsubmit="handleRegisterSubmit(event)">
+                <form id="regForm" onsubmit="handleRegisterSubmit(event)">
                     <div class="form-group">
                         <label>पूरा नाम:</label>
                         <input type="text" id="regName" required placeholder="आपका नाम">
@@ -872,83 +871,16 @@
                         <input type="email" id="regEmail" required placeholder="ईमेल आईडी दर्ज करें">
                     </div>
                     <div class="form-group">
-                        <label>गाँव / मोहल्ला:</label>
-                        <input type="text" id="regVillage" placeholder="गाँव या वार्ड का नाम">
-                    </div>
-                    <div class="form-group">
-                        <label>पूरा पता:</label>
-                        <input type="text" id="regAddress" placeholder="थाना, पोस्ट, जिला...">
-                    </div>
-                    <div class="form-group">
-                        <label>पासवर्ड बनाएं:</label>
-                        <input type="password" id="regPass" required placeholder="पासवर्ड बनाएं">
-                    </div>
-                    <button type="submit" id="registerBtn" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">रजिस्टर करें</button>
-                </form>
-                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
-                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-            <div id="loginSection">
-                <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h3>
-                <form onsubmit="handleLoginSubmit(event)">
-                    <div class="form-group">
-                        <label>ईमेल:</label>
-                        <input type="tel" id="loginemail" required placeholder="ईमेल">
-                    </div>
-                    <div class="form-group">
-                        <label>पासवर्ड:</label>
-                        <input type="password" id="loginPass" required placeholder="पासवर्ड डालें">
-                    </div>
-                    <div style="text-align: right; margin-bottom: 10px;">
-                        <a onclick="toggleAuthView('forgot')" style="font-size: 12px; color: var(--secondary); font-weight: bold; cursor: pointer;">पासवर्ड भूल गए?</a>
-                    </div>
-                    <button type="submit" id="loginBtn" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
-                </form>
-                <div style="font-size:13px; text-align:center; margin-top:10px;">
-                    नया ग्राहक हैं? <a onclick="toggleAuthView('register')" style="color:var(--primary); font-weight:bold; cursor:pointer;">अकाउंट बनाएं</a>
-                </div>
-            </div>
-
-            <div id="forgotSection" style="display: none;">
-                <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट</h3>
-                <form onsubmit="handleForgotSubmit(event)">
-                    <div class="form-group">
-                        <label>ईमेल:</label>
-                        <input type="email" id="forgotemail" required placeholder="पंजीकृत ईमेल पता">
-                    </div>
-                    <div class="form-group">
-                        <label>नया पासवर्ड:</label>
-                        <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड" minlength="4">
-                    </div>
-                    <button type="submit" id="forgotBtn" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">पासवर्ड बदलें</button>
-                </form>
-                <div style="font-size:13px; text-align:center; margin-top:10px;">
-                    <a onclick="toggleAuthView('login')" style="color:var(--primary); font-weight:bold; cursor:pointer;">लॉगिन पर लौटें</a>
-                </div>
-            </div>
-
-            <div id="registerSection" style="display: none;">
-                <h3 style="margin-bottom: 10px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
-                <form id="regForm" onsubmit="handleRegisterSubmit(event)">
-                    <div class="form-group">
-                        <label>पूरा नाम:</label>
-                        <input type="text" id="regName" required placeholder="अपना नाम">
-                    </div>
-                    <div class="form-group">
-                        <label>ईमेल:</label>
-                        <input type="email" id="regemail" required placeholder="पंजीकृत ईमेल आईडी">
+                        <label>मोबाइल नंबर:</label>
+                        <input type="tel" id="regMobile" required placeholder="मोबाइल नंबर">
                     </div>
                     <div class="form-group">
                         <label>गाँव / शहर:</label>
-                        <input type="text" id="regVillage" required placeholder="गाँव या शहर">
+                        <input type="text" id="regVillage" placeholder="गाँव या शहर का नाम">
                     </div>
                     <div class="form-group">
-                        <label>पूरा डाक पता:</label>
-                        <textarea id="regAddress" rows="2" required placeholder="डाक पता, पिनकोड..."></textarea>
+                        <label>पूरा पता:</label>
+                        <textarea id="regAddress" rows="2" placeholder="थाना, पोस्ट, जिला..."></textarea>
                     </div>
                     <div class="form-group">
                         <label>पासवर्ड बनाएं:</label>
@@ -956,8 +888,8 @@
                     </div>
                     <button type="submit" id="regBtn" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">रजिस्टर करें</button>
                 </form>
-                <div style="font-size:13px; text-align:center; margin-top:10px;">
-                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color:var(--primary); font-weight:bold; cursor:pointer;">लॉगिन करें</a>
+                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
+                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
                 </div>
             </div>
         </div>
@@ -970,12 +902,10 @@
     <script>
         // =========================================================================
         // SUPABASE REALTIME CLOUD ENGINE
-        // (यहाँ अपनी Supabase डिटेल्स डालें)
         // =========================================================================
         const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_m95f5yk_QdBsUhpQxYXhPg_7iAvDhft";
-
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
@@ -985,21 +915,23 @@
         let bannerSampleUrl = "";
         let visitingSampleUrl = "";
 
-        // 1. Supabase Registration
+        // ==========================================
+        // AUTHENTICATION LOGIC (Supabase Users)
+        // ==========================================
         async function handleRegisterSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('regBtn');
             btn.innerText = "जांच हो रही है..."; btn.disabled = true;
 
             const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const mobile = document.getElementById('regMobile').value.trim();
             const village = document.getElementById('regVillage').value.trim();
             const address = document.getElementById('regAddress').value.trim();
             const pass = document.getElementById('regPass').value.trim();
 
             try {
-                // Check if already registered
-                const { data: existingUser } = await supabaseClient
+                const { data: existingUser, error: checkError } = await supabaseClient
                     .from('users')
                     .select('email')
                     .eq('email', email)
@@ -1007,58 +939,52 @@
 
                 if (existingUser) {
                     alert("यह ईमेल आईडी पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
-                    btn.innerText = "रजिस्टर करें"; btn.disabled = false;
                     toggleAuthView('login');
                     return;
                 }
 
-                // Insert into Supabase
                 const { error } = await supabaseClient
                     .from('users')
                     .insert([{
                         email: email,
+                        mobile: mobile,
                         name: name,
                         village: village,
                         address: address,
-                        pass: pass,
-                        reg_date: new Date().toISOString()
+                        pass: pass
                     }]);
 
-                if (error) {
-                    alert("त्रुटि: " + error.message);
-                } else {
-                    const newUser = { name, email, village, address };
-                    localStorage.setItem('dp_current_user', JSON.stringify(newUser));
+                if (error) throw error;
 
-                    // Background notification to email
-                    fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
-                        method: "POST",
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                        body: JSON.stringify({
-                            _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name} (${email})`,
-                            नाम: name, फोन: email, गाँव: village, पता: address
-                        })
-                    }).catch(() => {});
+                const newUser = { name, email, mobile, village, address };
+                localStorage.setItem('dp_current_user', JSON.stringify(newUser));
 
-                    alert("अकाउंट सफलतापूर्वक बन गया है! अब आप मोबाइल या लैपटॉप कहीं से भी लॉगिन कर सकते हैं।");
-                    closeAuthModal();
-                    checkUserSession();
-                }
+                fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name}`,
+                        नाम: name, ईमेल: email, फोन: mobile, गाँव: village, पता: address
+                    })
+                }).catch(() => {});
+
+                alert("अकाउंट सफलतापूर्वक बन गया है!");
+                closeAuthModal();
+                checkUserSession();
             } catch (err) {
-                alert("कनेक्शन एरर! कृपया दोबारा प्रयास करें।"); 
-                console.log(err);
+                alert("त्रुटि: " + err.message);
+                console.error(err);
             } finally {
                 btn.innerText = "रजिस्टर करें"; btn.disabled = false;
             }
         }
 
-        // 2. Supabase Login
         async function handleLoginSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
             btn.innerText = "जांच हो रही है..."; btn.disabled = true;
 
-            const email = document.getElementById('loginemail').value.trim();
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
             const pass = document.getElementById('loginPass').value.trim();
 
             try {
@@ -1067,6 +993,8 @@
                     .select('*')
                     .eq('email', email)
                     .maybeSingle();
+
+                if (error) throw error;
 
                 if (user) {
                     if (user.pass === pass) {
@@ -1078,22 +1006,21 @@
                         alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
                     }
                 } else {
-                    alert("यह ईमेल नहीं मिला ! कृपया पहले नया अकाउंट बनाएं।");
+                    alert("यह ईमेल नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
                 }
             } catch (err) {
-                alert("लॉगिन एरर! कृपया इंटरनेट जांचें।");
+                alert("लॉगिन एरर! " + err.message);
             } finally {
                 btn.innerText = "लॉगिन करें"; btn.disabled = false;
             }
         }
 
-        // 3. Supabase Forgot Password Reset
         async function handleForgotSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('forgotBtn');
             btn.innerText = "अपडेट हो रहा है..."; btn.disabled = true;
 
-            const email = document.getElementById('forgotemail').value.trim();
+            const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
             const newPass = document.getElementById('forgotNewPass').value.trim();
 
             try {
@@ -1103,16 +1030,18 @@
                     .eq('email', email)
                     .select();
 
+                if (error) throw error;
+
                 if (data && data.length > 0) {
                     alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
                     toggleAuthView('login');
                 } else {
-                    alert("यह  ईमेल सिस्टम में नहीं मिला!");
+                    alert("यह ईमेल सिस्टम में नहीं मिला!");
                 }
             } catch (err) {
-                alert("पासवर्ड अपडेट करने में त्रुटि हुई!");
+                alert("पासवर्ड अपडेट करने में त्रुटि: " + err.message);
             } finally {
-                btn.innerText = "पासवर्ड बदलें"; btn.disabled = false;
+                btn.innerText = "पासवर्ड अपडेट करें"; btn.disabled = false;
             }
         }
 
@@ -1132,7 +1061,7 @@
             if (currentUser) {
                 if(navAuth) navAuth.style.display = 'none';
                 if(loggedBox) loggedBox.style.display = 'flex';
-                if(display) display.innerHTML = "नमस्ते, " + currentUser.name + ' <button onclick="handleLogout()">लॉगआउट</button>';
+                if(display) display.innerText = "नमस्ते, " + currentUser.name;
                 if(lockOverlay) lockOverlay.style.display = 'none';
             } else {
                 if(navAuth) navAuth.style.display = 'block';
@@ -1152,59 +1081,12 @@
             document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
             document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
         }
-        // ==========================================
-        // 1. SUPABASE CLIENT CONFIGURATION
-        // ==========================================
-        const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
-        const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ==========================================
-        // 2. CUSTOMER CATALOG DISPLAY (कस्टमर के लिए)
-        // ==========================================
-        async function renderCatalog() {
-            const catalogContainer = document.getElementById('catalogContainer');
-            if (!catalogContainer) return;
-
-            catalogContainer.innerHTML = "<p>कार्ड लोड हो रहे हैं...</p>";
-
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                catalogContainer.innerHTML = "";
-                if (!cards || cards.length === 0) {
-                    catalogContainer.innerHTML = "<p>कोई कार्ड उपलब्ध नहीं है।</p>";
-                    return;
-                }
-
-                cards.forEach(card => {
-                    const cardElement = document.createElement('div');
-                    cardElement.className = 'card-item';
-                    cardElement.innerHTML = `
-                        <img src="${card.img_url}" alt="${card.name}" style="width:100%; height:180px; object-fit:cover;" onerror="this.src='placeholder.png'">
-                        <h3>${card.name}</h3>
-                        <p>रेट: ₹${card.rate}</p>
-                        <p>स्टॉक: ${card.stock || 'उपलब्ध'}</p>
-                    `;
-                    catalogContainer.appendChild(cardElement);
-                });
-            } catch (err) {
-                console.error("कैटलॉग लोड करने में त्रुटि:", err);
-                catalogContainer.innerHTML = "<p>कार्ड लोड नहीं हो सके।</p>";
-            }
-        }
-
-        // ==========================================
-        // 3. ADMIN PANEL & FORGOT PIN LOGIC
+        // ADMIN PANEL & FORGOT PIN LOGIC
         // ==========================================
         let secretClickCount = 0;
         let secretTimer = null;
-
         function handleSecretAdminClick() {
             secretClickCount++;
             clearTimeout(secretTimer);
@@ -1215,7 +1097,6 @@
             }
         }
 
-        // Supabase से एडमिन पिन लाना
         async function getAdminPin() {
             try {
                 const { data, error } = await supabaseClient
@@ -1223,11 +1104,9 @@
                     .select('pin')
                     .eq('id', 'admin_config')
                     .single();
-
                 if (error || !data) return "1234";
                 return data.pin;
             } catch (e) {
-                console.error("पिन लाने में त्रुटि:", e);
                 return "1234";
             }
         }
@@ -1240,20 +1119,16 @@
             document.getElementById('adminPin').value = '';
         }
 
-        function closeAdminModal() { 
-            document.getElementById('adminModal').style.display = 'none'; 
-        }
+        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
 
         function toggleAdminPinView(view) {
             document.getElementById('adminPinSection').style.display = view === 'login' ? 'block' : 'none';
             document.getElementById('adminForgotPinSection').style.display = view === 'forgot' ? 'block' : 'none';
         }
 
-        // एडमिन पिन वेरिफाई करना
         async function verifyAdminPin() {
             const enteredPin = document.getElementById('adminPin').value.trim();
             const correctPin = await getAdminPin();
-
             if (enteredPin === correctPin) {
                 document.getElementById('adminPinSection').style.display = 'none';
                 document.getElementById('adminWorkSection').style.display = 'block';
@@ -1264,7 +1139,6 @@
             }
         }
 
-        // मास्टर मोबाइल नंबर से पिन रीसेट करना
         async function handleAdminResetPin() {
             const phone = document.getElementById('adminMasterPhone').value.trim();
             const newPin = document.getElementById('newAdminPin').value.trim();
@@ -1275,19 +1149,17 @@
                         const { error } = await supabaseClient
                             .from('admin_settings')
                             .upsert({ id: 'admin_config', pin: newPin });
-
                         if (error) throw error;
-
                         alert("एडमिन पिन सफलतापूर्वक बदल दिया गया है! अब नए पिन से लॉगिन करें।");
                         toggleAdminPinView('login');
-                    } catch (err) {
-                        alert("पिन अपडेट करने में समस्या: " + err.message);
+                    } catch (e) {
+                        alert("पिन अपडेट में एरर: " + e.message);
                     }
                 } else {
                     alert("पिन कम से कम ४ अंकों का होना चाहिए!");
                 }
             } else {
-                alert("गलत मास्टर मोबाइल नंबर! केवल अधिकृत नंबर 9304509464 ही मान्य है।");
+                alert("गलत मास्टर मोबाइल नंबर! केवल 9304509464 ही मान्य है।");
             }
         }
 
@@ -1296,13 +1168,12 @@
             document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
         }
 
-        // एडमिन टेबल में कार्ड्स लोड करना
         async function renderAdminTable() {
             const tbody = document.getElementById('adminCardListBody');
             tbody.innerHTML = "<tr><td colspan='4'>लोड हो रहा है...</td></tr>";
 
             try {
-                const { data: catalog, error } = await supabaseClient
+                const { data: cards, error } = await supabaseClient
                     .from('cards')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -1310,15 +1181,15 @@
                 if (error) throw error;
 
                 tbody.innerHTML = "";
-                if (!catalog || catalog.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4'>कोई कार्ड उपलब्ध नहीं है</td></tr>";
+                if (!cards || cards.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>कोई कार्ड उपलब्ध नहीं</td></tr>";
                     return;
                 }
 
-                catalog.forEach(item => {
+                cards.forEach(item => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><img src="${item.img_url}" style="width:30px; height:20px; object-fit:cover;" onerror="this.src='placeholder.png'"></td>
+                        <td><img src="${item.img_url}" style="width:30px; height:20px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/30'"></td>
                         <td>${item.name}</td>
                         <td>₹${item.rate}</td>
                         <td><button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}', '${item.img_path}')">हटाएं</button></td>
@@ -1327,21 +1198,14 @@
                 });
             } catch (err) {
                 tbody.innerHTML = "<tr><td colspan='4'>डेटा लोड नहीं हुआ</td></tr>";
-                console.error(err);
             }
         }
 
-        // एडमिन पैनल में ग्राहक लिस्ट दिखाना
         async function renderAdminUsers() {
             const tbody = document.getElementById('adminUserListBody');
             tbody.innerHTML = "<tr><td colspan='3'>लोड हो रहा है...</td></tr>";
-
             try {
-                const { data: users, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
+                const { data: users, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
 
                 tbody.innerHTML = "";
@@ -1349,28 +1213,29 @@
                     tbody.innerHTML = "<tr><td colspan='3'>कोई ग्राहक नहीं</td></tr>";
                     return;
                 }
-
                 users.forEach(u => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${u.name}</td><td>${u.mobile}</td><td>${u.village || '-'}</td>`;
+                    tr.innerHTML = `<td>${u.name}</td><td>${u.mobile || u.email}</td><td>${u.village || '-'}</td>`;
                     tbody.appendChild(tr);
                 });
-            } catch (e) {
+            } catch(e) {
                 tbody.innerHTML = "<tr><td colspan='3'>डेटा लोड नहीं हुआ</td></tr>";
-                console.error(e);
             }
         }
 
-        // Supabase Storage में फोटो अपलोड और टेबल में कार्ड सेव करना
         async function handleAddNewCard(e) {
             e.preventDefault();
+            const btn = document.getElementById('admCardSubmitBtn');
+            btn.innerText = "अपलोड हो रहा है..."; btn.disabled = true;
+
             const name = document.getElementById('admCardName').value.trim();
             const rate = parseFloat(document.getElementById('admCardRate').value);
             const stock = document.getElementById('admCardStock').value;
             const file = document.getElementById('admCardFile').files[0];
 
             if (!file) {
-                alert("कृपया कार्ड की फोटो चुनें!");
+                alert("कृपया फोटो चुनें!");
+                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
                 return;
             }
 
@@ -1378,30 +1243,18 @@
                 const fileExt = file.name.split('.').pop();
                 const filePath = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-                // स्टोरेज में अपलोड
-                const { error: uploadError } = await supabaseClient
-                    .storage
-                    .from('cards_images')
-                    .upload(filePath, file);
-
+                const { error: uploadError } = await supabaseClient.storage.from('cards_images').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
-                // पब्लिक लिंक प्राप्त करना
-                const { data: { publicUrl } } = supabaseClient
-                    .storage
-                    .from('cards_images')
-                    .getPublicUrl(filePath);
+                const { data: { publicUrl } } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
 
-                // डेटाबेस में रिकॉर्ड डालना
-                const { error: insertError } = await supabaseClient
-                    .from('cards')
-                    .insert([{
-                        name: name,
-                        rate: rate,
-                        stock: stock,
-                        img_url: publicUrl,
-                        img_path: filePath
-                    }]);
+                const { error: insertError } = await supabaseClient.from('cards').insert([{
+                    name: name,
+                    rate: rate,
+                    stock: stock,
+                    img_url: publicUrl,
+                    img_path: filePath
+                }]);
 
                 if (insertError) throw insertError;
 
@@ -1410,21 +1263,17 @@
                 await renderAdminTable();
                 await renderCatalog();
             } catch (err) {
-                alert("कार्ड जोड़ने में त्रुटि: " + err.message);
-                console.error(err);
+                alert("अपलोड में समस्या: " + err.message);
+            } finally {
+                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
             }
         }
 
-        // डेटाबेस और स्टोरेज से कार्ड डिलीट करना
         async function deleteCatalogItem(id, imgPath) {
             if (confirm("हटाना चाहते हैं?")) {
                 try {
-                    const { error: dbError } = await supabaseClient
-                        .from('cards')
-                        .delete()
-                        .eq('id', id);
-
-                    if (dbError) throw dbError;
+                    const { error } = await supabaseClient.from('cards').delete().eq('id', id);
+                    if (error) throw error;
 
                     if (imgPath && imgPath !== 'undefined') {
                         await supabaseClient.storage.from('cards_images').remove([imgPath]);
@@ -1434,18 +1283,7 @@
                     await renderCatalog();
                 } catch (err) {
                     alert("हटाने में विफल: " + err.message);
-                    console.error(err);
                 }
-            }
-        }
-
-        // ==========================================
-        // 4. PAGE LOAD INITIALIZATION
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            renderCatalog();
-        });
-
             }
         }
 
@@ -1468,39 +1306,47 @@
             }
         }
 
-        const defaultCatalog = [
-            { id: 1, name: "मुस्लिम निकाह कार्ड (शाही)", rate: 12, stock: "in", category: "wedding", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
-            { id: 2, name: "हिंदू शादी कार्ड (गोल्डन)", rate: 15, stock: "in", category: "wedding", img: "https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?auto=format&fit=crop&w=400&q=80" },
-            { id: 3, name: "एचडी फ्लेक्स बैनर", rate: 10, stock: "in", category: "banner", img: "https://images.unsplash.com/photo-1616628188506-4ad8c6585149?auto=format&fit=crop&w=400&q=80" },
-            { id: 4, name: "विजिटिंग कार्ड (1000 पीस)", rate: 600, stock: "in", category: "visiting", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=400&q=80" }
-        ];
-
-        function getCatalog() {
-            return JSON.parse(localStorage.getItem('dp_catalog') || JSON.stringify(defaultCatalog));
-        }
-
-        function renderCatalog() {
-            const catalog = getCatalog();
+        async function renderCatalog() {
             const container = document.getElementById('catalogContainer');
-            container.innerHTML = "";
+            if (!container) return;
 
-            catalog.forEach(item => {
-                const isOut = item.stock === 'out';
-                const div = document.createElement('div');
-                div.className = "card-sample";
-                div.innerHTML = `
-                    <img src="${item.img}" alt="${item.name}">
-                    <div class="card-info">
-                        <h4>${item.name}</h4>
-                        <div class="card-price-tag">₹${item.rate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
-                        <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'समाप्त' : 'उपलब्ध'}</span>
-                        <button type="button" class="btn-select-card" onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img}')">
-                            यह चुनें
-                        </button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
+            container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड हो रहे हैं...</p>";
+
+            try {
+                const { data: cards, error } = await supabaseClient
+                    .from('cards')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                container.innerHTML = "";
+                if (!cards || cards.length === 0) {
+                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कोई कार्ड उपलब्ध नहीं है।</p>";
+                    return;
+                }
+
+                cards.forEach(item => {
+                    const isOut = item.stock === 'out';
+                    const div = document.createElement('div');
+                    div.className = "card-sample";
+                    div.innerHTML = `
+                        <img src="${item.img_url}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="card-info">
+                            <h4>${item.name}</h4>
+                            <div class="card-price-tag">₹${item.rate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
+                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'समाप्त' : 'उपलब्ध'}</span>
+                            <button type="button" class="btn-select-card" onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img_url}')">
+                                यह चुनें
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) {
+                console.error("कैटलॉग एरर:", err);
+                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड नहीं हो सके।</p>";
+            }
         }
 
         function selectCardToForm(name, rate, img) {
@@ -1682,7 +1528,7 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     _subject: `📦 शादी कार्ड ऑर्डर: ${currentUser.name} (${totalAmt})`,
-                    ग्राहक_नाम: currentUser.name, फोन: currentUser.mobile, पता: currentUser.address,
+                    ग्राहक_नाम: currentUser.name, फोन: currentUser.mobile || currentUser.email, पता: currentUser.address,
                     कार्ड_मॉडल: category, रेट: "₹" + rate, मात्रा: qty, कुल_बिल: totalAmt, UTR: txn,
                     दूल्हा_दुल्हन: coupleData, कार्यक्रम: eventData
                 })
@@ -1704,7 +1550,7 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     _subject: `🚩 फ्लेक्स बैनर ऑर्डर: ${document.getElementById('bannerTitle').value} (${currentUser.name})`,
-                    ग्राहक_नाम: currentUser.name, फोन: currentUser.mobile,
+                    ग्राहक_नाम: currentUser.name, फोन: currentUser.mobile || currentUser.email,
                     साइज़: `${document.getElementById('bannerWidth').value} x ${document.getElementById('bannerHeight').value} Feet`,
                     मात्रा: document.getElementById('bannerQty').value, क्वालिटी: document.getElementById('bannerQuality').value,
                     कुल_बिल: document.getElementById('bannerTotalDisplay').innerText,
@@ -1730,7 +1576,7 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     _subject: `💳 विजिटिंग कार्ड ऑर्डर: ${document.getElementById('visitingShopName').value} (${currentUser.name})`,
-                    ग्राहक_नाम: currentUser.name, फोन: currentUser.mobile,
+                    ग्राहक_नाम: currentUser.name, फोन: currentUser.mobile || currentUser.email,
                     कार्ड_प्रकार: typeSelect.options[typeSelect.selectedIndex].getAttribute('data-name'),
                     कुल_संख्या: document.getElementById('visitingPiecesDisplay').value,
                     कुल_बिल: document.getElementById('visitingTotalDisplay').innerText,
@@ -1753,7 +1599,7 @@
                     <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:10px;">
                         <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
                         <h3 style="margin:2px 0;">शादी कार्ड ऑर्डर रसीद</h3>
-                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || '-'}) | कुल राशि: <b>${totalAmt}</b></p>
+                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || currentUser.email || '-'}) | कुल राशि: <b>${totalAmt}</b></p>
                     </div>
                     <h4>कार्ड विवरण: ${category}</h4>
                 </div>
@@ -1771,7 +1617,7 @@
                     <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:10px;">
                         <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
                         <h3 style="margin:2px 0;">फ्लेक्स बैनर ऑर्डर रसीद</h3>
-                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || '-'}) | ${total}</p>
+                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || currentUser.email || '-'}) | ${total}</p>
                     </div>
                     <p>साइज़: ${w} x ${h} Feet | शीर्षक: ${document.getElementById('bannerTitle').value}</p>
                 </div>
@@ -1793,12 +1639,14 @@
             window.print();
         }
 
-        // Initialization
-        renderCatalog();
-        calculateWeddingTotal();
-        calculateBannerTotal();
-        calculateVisitingTotal();
-        checkUserSession();
+        // Initialization on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCatalog();
+            calculateWeddingTotal();
+            calculateBannerTotal();
+            calculateVisitingTotal();
+            checkUserSession();
+        });
     </script>
 </body>
 </html>
