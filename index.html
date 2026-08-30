@@ -7,9 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Supabase JS Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         :root {
             --primary: #c0392b;
@@ -19,6 +16,9 @@
             --green: #27ae60;
             --blue: #2980b9;
             --wa-green: #25D366;
+            --warning-bg: #fff3cd;
+            --warning-border: #ffeeba;
+            --warning-text: #856404;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -52,14 +52,21 @@
             padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
         }
 
-        .user-logged-box { display: none; align-items: center; gap: 8px; }
-        .user-name-display { font-weight: 600; color: var(--primary); font-size: 13px; }
-        .btn-logout {
-            background: #e74c3c; color: white; border: none;
-            padding: 4px 8px; border-radius: 12px; font-size: 11px; cursor: pointer;
-        }
-
         .container { max-width: 900px; margin: 15px auto; padding: 0 12px; }
+
+        .notice-banner {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: var(--warning-text);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
         .showcase-box {
             background: #fff; padding: 15px; border-radius: 8px;
@@ -88,53 +95,14 @@
             color: white; border: none; font-size: 13px; font-weight: 600;
             border-radius: 4px; cursor: pointer; margin-top: 8px;
         }
-
-        .service-tabs-nav {
-            display: flex;
-            background: #fff;
-            border-radius: 8px 8px 0 0;
-            border: 1px solid #cbd5e1;
-            border-bottom: none;
-            overflow-x: auto;
-            white-space: nowrap;
+        .btn-select-card:disabled {
+            background: #94a3b8; cursor: not-allowed;
         }
-        .service-tab-btn {
-            flex: 1; min-width: 140px;
-            padding: 12px 10px;
-            background: #f1f5f9;
-            border: none;
-            font-size: 14px;
-            font-weight: 700;
-            color: #475569;
-            cursor: pointer;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .service-tab-btn.active {
-            background: #fff;
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-        }
-
-        .form-lock-wrapper { position: relative; }
-        .form-lock-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px);
-            z-index: 100; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-            padding: 20px; border-radius: 0 0 8px 8px;
-        }
-        .form-lock-overlay i { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
-        .form-lock-overlay h3 { font-size: 18px; color: var(--dark); margin-bottom: 6px; }
-        .form-lock-overlay p { font-size: 13px; color: #666; margin-bottom: 12px; max-width: 400px; }
 
         .form-wrapper {
-            background: #fff; padding: 18px; border-radius: 0 0 8px 8px;
+            background: #fff; padding: 18px; border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #cbd5e1;
-            border-top: none; margin-bottom: 25px;
+            margin-bottom: 25px;
         }
         .section-header {
             color: var(--primary); font-size: 20px; text-align: center;
@@ -157,20 +125,6 @@
         }
         input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
-        .dynamic-item {
-            background: #fff; padding: 12px; border-radius: 6px;
-            margin-bottom: 12px; border: 1px solid #e2e8f0; position: relative;
-        }
-        .btn-add {
-            background: #4f46e5; color: white; padding: 6px 12px;
-            font-size: 12px; border-radius: 4px; border: none; cursor: pointer;
-        }
-        .btn-remove {
-            background: #ef4444; color: white; padding: 3px 6px;
-            font-size: 10px; border-radius: 3px; border: none; cursor: pointer;
-            position: absolute; right: 8px; top: 8px;
-        }
-
         .weds-divider {
             display: flex; align-items: center; justify-content: center; margin: 10px 0; position: relative;
         }
@@ -190,108 +144,53 @@
             font-size: 15px; font-weight: bold; color: #854d0e;
         }
 
-        .payment-box {
-            background: #f0fdf4; border: 1px solid #bbf7d0;
-            padding: 14px; border-radius: 8px; text-align: center;
-        }
-        .btn-cashfree {
-            background: #097939; color: white; border: none; padding: 10px 18px;
-            font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer;
-            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
-        }
-        .qr-wrapper {
-            background: #fff; border: 1px solid #ddd; display: inline-block;
-            padding: 8px; border-radius: 8px; margin: 10px 0;
-        }
-        .qr-wrapper img { width: 130px; height: 130px; display: block; }
-
-        .upi-buttons { display: flex; justify-content: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
-        .upi-btn {
-            background: #3b82f6; color: white; padding: 7px 12px; border-radius: 5px;
-            font-size: 12px; text-decoration: none; font-weight: 600;
-        }
-
-        .bottom-upload-box {
-            background: #f8fafc; border: 2px dashed #94a3b8; padding: 15px;
-            border-radius: 8px; text-align: center; margin-top: 10px; cursor: pointer;
-        }
-        .sample-preview-box { display: none; margin-top: 10px; text-align: center; }
-        .sample-preview-box img {
-            max-width: 180px; max-height: 180px; border-radius: 6px;
-            border: 1px solid #cbd5e1; object-fit: cover;
-        }
-
         .btn-row { display: flex; gap: 10px; margin-top: 15px; }
-        .submit-btn {
-            flex: 1; padding: 12px; background: var(--wa-green); color: white;
+        .btn-review {
+            flex: 1; padding: 13px; background: var(--blue); color: white;
             font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .pdf-btn {
-            flex: 1; padding: 12px; background: var(--blue); color: white;
-            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-
-        .mobile-bottom-bar {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #fff; border-top: 1px solid #cbd5e1;
-            padding: 6px 0; z-index: 1001; justify-content: space-around;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-        .mobile-bottom-bar a {
-            color: var(--dark); text-decoration: none; text-align: center; font-size: 11px; font-weight: 600;
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
-        }
-        .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;
-            padding: 10px;
+            background: rgba(0,0,0,0.65); z-index: 2000; justify-content: center; align-items: center;
+            padding: 12px;
         }
         .modal-content {
-            background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 480px;
+            background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 520px;
             max-height: 90vh; overflow-y: auto; position: relative;
         }
-        .close-btn { position: absolute; right: 12px; top: 10px; font-size: 22px; cursor: pointer; }
+        .close-btn { position: absolute; right: 14px; top: 12px; font-size: 22px; cursor: pointer; }
+
+        .review-box {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+            padding: 12px; font-size: 13px; line-height: 1.6; margin: 12px 0;
+            max-height: 300px; overflow-y: auto; white-space: pre-line;
+        }
 
         .admin-table {
-            width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 11px;
+            width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px;
         }
         .admin-table th, .admin-table td {
-            border: 1px solid #ddd; padding: 6px; text-align: center;
+            border: 1px solid #ddd; padding: 8px 6px; text-align: center;
         }
         .admin-table th { background: #f1f5f9; }
+        .btn-stock-toggle {
+            border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px;
+            font-weight: 600; cursor: pointer; color: white;
+        }
+        .btn-stock-in { background: #27ae60; }
+        .btn-stock-out { background: #d35400; }
         .btn-del {
             background: #ef4444; color: white; border: none; padding: 4px 6px;
             border-radius: 3px; cursor: pointer; font-size: 11px;
-        }
-        .btn-view-pdf {
-            background: #2980b9; color: white; border: none; padding: 4px 6px;
-            border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;
         }
 
         footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 25px; }
 
         @media (max-width: 768px) {
-            .navbar .nav-menu { display: none; }
-            .mobile-bottom-bar { display: flex; }
             .row-2, .row-3 { flex-direction: column; gap: 0; }
-            .btn-row { flex-direction: column; }
-            .total-bill-box { flex-direction: column; gap: 5px; text-align: center; }
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .card-sample img { height: 110px; }
-            .showcase-box { padding: 10px; }
-            .form-wrapper { padding: 12px; }
-        }
-
-        @media print {
-            body * { visibility: hidden; }
-            #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
-            #printableReceiptArea {
-                position: absolute; left: 0; top: 0; width: 100%; display: block !important; background: #fff; padding: 20px;
-            }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -304,1631 +203,380 @@
 
     <nav class="navbar">
         <div class="nav-brand">
-            <h2 id="brandLogoTitle" onclick="handleSecretAdminClick()">दिल्ली प्रेस</h2>
+            <h2 id="brandLogoTitle" onclick="openAdminModal()">दिल्ली प्रेस <small style="font-size:10px; color:#666;">(एडमिन)</small></h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
             <li><a href="#showcaseSection">कैटलॉग</a></li>
-            <li><a href="#orderSectionContainer">ऑर्डर फॉर्म</a></li>
-            <li><a href="#paymentSection">पेमेंट</a></li>
-            <li id="authNavContainer">
-                <a href="javascript:void(0)" class="btn-login" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
-            </li>
-            <li class="user-logged-box" id="userLoggedBox">
-                <span class="user-name-display" id="displayUserName"></span>
-                <button class="btn-logout" onclick="handleLogout()">लॉगआउट</button>
-            </li>
+            <li><a href="#weddingForm">ऑर्डर फॉर्म</a></li>
         </ul>
     </nav>
 
     <div class="container">
         
+        <div class="notice-banner">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 16px;"></i>
+            <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
+        </div>
+
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 4px; font-size: 16px;">
-                शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग
+                शादी कार्ड एवं प्रिंटिंग कैटलॉग
             </h3>
-            <p style="font-size:12px; color:#666; margin-top:2px;">(पसंद करें और 'यह चुनें' दबाएं)</p>
+            <p style="font-size:12px; color:#666; margin-top:2px;">(मॉडल चुनें और विवरण फॉर्म में भरें)</p>
             <div class="gallery-grid" id="catalogContainer"></div>
         </div>
 
-        <div id="orderSectionContainer">
-            <div class="service-tabs-nav">
-                <button type="button" class="service-tab-btn active" id="tabBtnWedding" onclick="switchServiceTab('wedding')">
-                    <i class="fa-solid fa-heart"></i> १. शादी कार्ड
-                </button>
-                <button type="button" class="service-tab-btn" id="tabBtnBanner" onclick="switchServiceTab('banner')">
-                    <i class="fa-solid fa-image"></i> २. फ्लेक्स बैनर
-                </button>
-                <button type="button" class="service-tab-btn" id="tabBtnVisiting" onclick="switchServiceTab('visiting')">
-                    <i class="fa-solid fa-address-card"></i> ३. विजिटिंग कार्ड
-                </button>
-            </div>
-        </div>
-
-        <div class="form-lock-wrapper">
-            <div class="form-lock-overlay" id="formLockOverlay">
-                <i class="fa-solid fa-lock"></i>
-                <h3>ऑर्डर फॉर्म लॉक है</h3>
-                <p>ऑर्डर दर्ज करने के लिए लॉगिन अनिवार्य है।</p>
-                <button type="button" class="btn-login" onclick="openAuthModal('register')" style="border:none; padding:8px 18px !important; font-size:14px;">
-                    <i class="fa-solid fa-user-plus"></i> नया अकाउंट बनाएं
-                </button>
-                <a onclick="openAuthModal('login')" style="margin-top:10px; font-size:13px; color:var(--blue); text-decoration:none; cursor:pointer; font-weight:bold;">
-                    पहले से अकाउंट है? यहाँ लॉगिन करें
-                </a>
-            </div>
-
-            <!-- 1. WEDDING CARD FORM -->
-            <div class="form-wrapper service-form-section" id="weddingFormSection">
-                <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
-                
-                <form id="weddingForm">
-                    <div class="form-block">
-                        <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
-                        <div class="row-3">
-                            <div class="form-group">
-                                <label>कार्ड मॉडल / कैटगरी:</label>
-                                <input type="text" id="cardCategory" value="मुस्लिम निकाह कार्ड (शाही)" required>
-                            </div>
-                            <div class="form-group">
-                                <label>प्रति पीस रेट (₹):</label>
-                                <input type="number" id="cardRate" value="12" min="1" step="any" oninput="calculateWeddingTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>संख्या (Quantity):</label>
-                                <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal()" required>
-                            </div>
-                        </div>
-                        <div class="total-bill-box">
-                            <span>कुल राशि:</span>
-                            <span id="weddingTotalDisplay">₹1,200</span>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता</h4>
-                        <div id="couplesGroup">
-                            <div class="dynamic-item couple-item">
-                                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label>दूल्हा का नाम:</label>
-                                        <input type="text" class="groom-name" placeholder="लड़का का नाम" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>पिता का नाम:</label>
-                                        <input type="text" class="groom-father" placeholder="लड़के के पिता का नाम" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>लड़के का पूरा पता:</label>
-                                    <input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
-                                </div>
-
-                                <div class="weds-divider">
-                                    <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span>
-                                </div>
-
-                                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label>दुल्हन का नाम:</label>
-                                        <input type="text" class="bride-name" placeholder="लड़की का नाम" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>पिता का नाम:</label>
-                                        <input type="text" class="bride-father" placeholder="लड़की के पिता का नाम" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>लड़की का पूरा पता:</label>
-                                    <input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-add" onclick="addCoupleField()">+ और दूल्हा-दुल्हन जोड़ें</button>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>३. वैवाहिक कार्यक्रम एवं तारीखें</h4>
-                        <div id="eventsGroup">
-                            <div class="dynamic-item event-item">
-                                <div class="form-group">
-                                    <label>कार्यक्रम का नाम:</label>
-                                    <input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required>
-                                </div>
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label>तारीख:</label>
-                                        <input type="date" class="event-date" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>समय:</label>
-                                        <input type="time" class="event-time">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-add" onclick="addEventField()">+ और कार्यक्रम / तारीख जोड़ें</button>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>४. निवेदक, दर्शनाभिलाषी एवं RSVP</h4>
-                        <div class="form-group">
-                            <label>आर.एस.वी.पी (RSVP) नाम व फोन:</label>
-                            <textarea id="rsvpText" rows="2" placeholder="नाम और संपर्क नंबर..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>दर्शनाभिलाषी / विनीत (From):</label>
-                            <textarea id="fromText" rows="2" placeholder="परिवारजनों के नाम..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>शायरी / विशेष संदेश:</label>
-                            <textarea id="extraText" rows="2" placeholder="कोई खास शायरी या निर्देश..."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>५. कार्ड का सैंपल फोटो अपलोड</h4>
-                        <div class="bottom-upload-box" onclick="document.getElementById('bottomCardSample').click()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
-                            <p style="font-weight: 600; font-size: 13px;">यहाँ क्लिक करके कार्ड सैंपल अपलोड करें</p>
-                            <input type="file" id="bottomCardSample" accept="image/*" style="display: none;" onchange="previewBottomSample(event)">
-                        </div>
-                        <div class="sample-preview-box" id="bottomPreviewContainer">
-                            <img id="bottomPreviewImg" src="" alt="कार्ड सैंपल">
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>६. भुगतान संदर्भ संख्या (Payment UTR)</h4>
-                        <div class="form-group">
-                            <label>Transaction ID / UTR No.:</label>
-                            <input type="text" id="weddingTransId" placeholder="पेमेंट के बाद UTR दर्ज करें">
-                        </div>
-                    </div>
-
-                    <div class="btn-row">
-                        <button type="submit" class="submit-btn" id="weddingSubmitBtn">
-                            <i class="fa-brands fa-whatsapp fa-lg"></i> 9304509464 पर WhatsApp भेजें
-                        </button>
-                        <button type="button" class="pdf-btn" onclick="generateWeddingPDF()">
-                            <i class="fa-solid fa-file-pdf"></i> रसीद PDF निकालें
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- 2. BANNER & POSTER FORM -->
-            <div class="form-wrapper service-form-section" id="bannerFormSection" style="display: none;">
-                <div class="section-header">फ्लेक्स बैनर एवं पोस्टर ऑर्डर फॉर्म</div>
-                
-                <form id="bannerForm">
-                    <div class="form-block">
-                        <h4>१. साइज़ (Feet) एवं कैलकुलेशन</h4>
-                        <div class="row-3">
-                            <div class="form-group">
-                                <label>चौड़ाई (Width Feet):</label>
-                                <input type="number" id="bannerWidth" value="6" min="1" step="any" oninput="calculateBannerTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>ऊंचाई (Height Feet):</label>
-                                <input type="number" id="bannerHeight" value="3" min="1" step="any" oninput="calculateBannerTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>रेट / Sq.Ft (₹):</label>
-                                <input type="number" id="bannerRate" value="10" min="1" step="any" oninput="calculateBannerTotal()" required>
-                            </div>
-                        </div>
-                        <div class="row-2">
-                            <div class="form-group">
-                                <label>संख्या (Qty):</label>
-                                <input type="number" id="bannerQty" value="1" min="1" oninput="calculateBannerTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>क्वालिटी:</label>
-                                <select id="bannerQuality">
-                                    <option value="नॉर्मल एचडी फ्लेक्स">नॉर्मल एचडी फ्लेक्स</option>
-                                    <option value="स्टार फ्लेक्स (मजबूत)">स्टार फ्लेक्स (Heavy)</option>
-                                    <option value="बैकलाइट बोर्ड प्रिंट">बैकलाइट बोर्ड</option>
-                                    <option value="विनाइल पोस्टर">विनाइल पोस्टर</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="total-bill-box">
-                            <span id="bannerSizeDisplay">18 Sq.Ft (1 पीस)</span>
-                            <span id="bannerTotalDisplay">कुल राशि: ₹180</span>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>२. बैनर पर छपने वाला मैटर</h4>
-                        <div class="form-group">
-                            <label>दुकान / संस्था / शीर्षक:</label>
-                            <input type="text" id="bannerTitle" placeholder="उदा: सज्जाद डिजिटल प्रिंट्स" required>
-                        </div>
-                        <div class="form-group">
-                            <label>बैनर का पूरा मैटर:</label>
-                            <textarea id="bannerContent" rows="3" placeholder="सुविधाएं, प्रचार सामग्री, नाम आदि..." required></textarea>
-                        </div>
-                        <div class="row-2">
-                            <div class="form-group">
-                                <label>बैनर पर मोबाइल नंबर:</label>
-                                <input type="text" id="bannerPhone" placeholder="संपर्क नंबर" required>
-                            </div>
-                            <div class="form-group">
-                                <label>बैनर पर पता:</label>
-                                <input type="text" id="bannerAddress" placeholder="स्थान / पता" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>३. लोगो या पुराना डिज़ाइन फोटो</h4>
-                        <div class="bottom-upload-box" onclick="document.getElementById('bannerSampleFile').click()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
-                            <p style="font-weight: 600; font-size: 13px;">लोगो या बैनर फोटो अपलोड करें</p>
-                            <input type="file" id="bannerSampleFile" accept="image/*" style="display: none;" onchange="previewBannerSample(event)">
-                        </div>
-                        <div class="sample-preview-box" id="bannerPreviewContainer">
-                            <img id="bannerPreviewImg" src="" alt="बैनर सैंपल">
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>४. पेमेंट UTR नंबर</h4>
-                        <div class="form-group">
-                            <label>Transaction ID / UTR:</label>
-                            <input type="text" id="bannerTransId" placeholder="UTR दर्ज करें">
-                        </div>
-                    </div>
-
-                    <div class="btn-row">
-                        <button type="submit" class="submit-btn" id="bannerSubmitBtn">
-                            <i class="fa-brands fa-whatsapp fa-lg"></i> 9304509464 पर WhatsApp भेजें
-                        </button>
-                        <button type="button" class="pdf-btn" onclick="generateBannerPDF()">
-                            <i class="fa-solid fa-file-pdf"></i> बैनर रसीद
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- 3. VISITING CARD FORM (मैन्युअल रेट विकल्प) -->
-            <div class="form-wrapper service-form-section" id="visitingFormSection" style="display: none;">
-                <div class="section-header">विजिटिंग कार्ड ऑर्डर फॉर्म</div>
-                
-                <form id="visitingForm">
-                    <div class="form-block">
-                        <h4>१. कार्ड का प्रकार व मात्रा</h4>
-                        <div class="row-3">
-                            <div class="form-group">
-                                <label>कार्ड क्वालिटी / फिनिशिंग:</label>
-                                <input type="text" id="visitingType" value="सिंगल साइड मैट" placeholder="उदा: मैट / ग्लॉसी" required>
-                            </div>
-                            <div class="form-group">
-                                <label>रेट प्रति बॉक्स (₹):</label>
-                                <input type="number" id="visitingRate" value="600" min="1" step="any" oninput="calculateVisitingTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>बॉक्स संख्या (हज़ार पीस):</label>
-                                <input type="number" id="visitingBoxes" value="1" min="1" oninput="calculateVisitingTotal()" required>
-                            </div>
-                        </div>
-                        <div class="total-bill-box">
-                            <span id="visitingPiecesDisplay">1000 कार्ड्स (1 बॉक्स)</span>
-                            <span id="visitingTotalDisplay">कुल राशि: ₹600</span>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>२. कार्ड पर छपने वाली जानकारी</h4>
-                        <div class="row-2">
-                            <div class="form-group">
-                                <label>दुकान / कंपनी का नाम:</label>
-                                <input type="text" id="visitingShopName" placeholder="उदा: सज्जाद प्रिंटर्स" required>
-                            </div>
-                            <div class="form-group">
-                                <label>मालिक / प्रोपराइटर का नाम:</label>
-                                <input type="text" id="visitingPersonName" placeholder="आपका नाम" required>
-                            </div>
-                        </div>
-                        <div class="row-2">
-                            <div class="form-group">
-                                <label>मोबाइल नंबर:</label>
-                                <input type="text" id="visitingPhone" placeholder="फ़ोन नंबर" required>
-                            </div>
-                            <div class="form-group">
-                                <label>ईमेल / वेबसाइट:</label>
-                                <input type="text" id="visitingEmail" placeholder="ईमेल (वैकल्पिक)">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>मुख्य सेवाएं / प्रोडक्ट्स:</label>
-                            <textarea id="visitingServices" rows="2" placeholder="कार्ड पर क्या-क्या काम लिखना है..." required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>पूरा पता:</label>
-                            <input type="text" id="visitingAddress" placeholder="दुकान/ऑफिस का पता" required>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>३. लोगो या पुराना कार्ड फोटो</h4>
-                        <div class="bottom-upload-box" onclick="document.getElementById('visitingSampleFile').click()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
-                            <p style="font-weight: 600; font-size: 13px;">लोगो या कार्ड फोटो अपलोड करें</p>
-                            <input type="file" id="visitingSampleFile" accept="image/*" style="display: none;" onchange="previewVisitingSample(event)">
-                        </div>
-                        <div class="sample-preview-box" id="visitingPreviewContainer">
-                            <img id="visitingPreviewImg" src="" alt="विजिटिंग कार्ड सैंपल">
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>४. पेमेंट UTR नंबर</h4>
-                        <div class="form-group">
-                            <label>Transaction ID / UTR:</label>
-                            <input type="text" id="visitingTransId" placeholder="UTR दर्ज करें">
-                        </div>
-                    </div>
-
-                    <div class="btn-row">
-                        <button type="submit" class="submit-btn" id="visitingSubmitBtn">
-                            <i class="fa-brands fa-whatsapp fa-lg"></i> 9304509464 पर WhatsApp भेजें
-                        </button>
-                        <button type="button" class="pdf-btn" onclick="generateVisitingPDF()">
-                            <i class="fa-solid fa-file-pdf"></i> विजिटिंग कार्ड रसीद
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Payment Section -->
-            <div class="form-wrapper" id="paymentSection" style="margin-top: 15px;">
-                <div class="payment-box">
-                    <p style="font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">ऑनलाइन भुगतान विकल्प:</p>
-
-                    <a id="cashfreeBtn" href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
-                        <i class="fa-solid fa-bolt"></i> Cashfree Pay
-                    </a>
-
-                    <div style="margin: 10px 0; font-size: 12px; color: #64748b;">— अथवा UPI से भुगतान करें —</div>
-
-                    <div class="qr-wrapper">
-                        <img id="upiQrCode" src="" alt="UPI पेमेंट QR">
-                    </div>
-                    <p style="font-size: 13px; color: #475569;">UPI: <strong>9304509464@okbizaxis</strong></p>
-
-                    <div class="upi-buttons">
-                        <a id="gpayBtn" href="#" class="upi-btn" style="background:#ea4335;">GPay</a>
-                        <a id="phonepeBtn" href="#" class="upi-btn" style="background:#5f259f;">PhonePe</a>
-                        <a id="paytmBtn" href="#" class="upi-btn" style="background:#00b9f5;">Paytm</a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Mobile Bottom Navigation -->
-    <div class="mobile-bottom-bar">
-        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i>कॉल करें</a>
-        <a href="#showcaseSection"><i class="fa-solid fa-images"></i>कैटलॉग</a>
-        <a href="#orderSectionContainer"><i class="fa-solid fa-file-pen"></i>ऑर्डर</a>
-        <a href="javascript:void(0)" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i>खाता</a>
-    </div>
-
-    <!-- Hidden Admin Panel Modal -->
-    <div class="modal" id="adminModal">
-        <div class="modal-content" style="max-width: 600px;">
-            <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+        <div class="form-wrapper">
+            <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
             
-            <div id="adminPinSection">
-                <h3 style="color: var(--dark); text-align: center; margin-bottom: 12px;">एडमिन लॉगिन</h3>
-                <div class="form-group">
-                    <label>एडमिन पिन:</label>
-                    <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
-                </div>
-                <div style="text-align: right; margin-bottom: 10px;">
-                    <a onclick="toggleAdminPinView('forgot')" style="font-size: 12px; color: var(--secondary); font-weight: bold; cursor: pointer;">
-                        पिन भूल गए? (Forgot PIN)
-                    </a>
-                </div>
-                <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 8px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                    प्रवेश करें
-                </button>
-            </div>
-
-            <!-- Forgot Admin PIN Section -->
-            <div id="adminForgotPinSection" style="display: none;">
-                <h3 style="color: var(--secondary); text-align: center; margin-bottom: 10px;">एडमिन पिन रीसेट</h3>
-                <div class="form-group">
-                    <label>मास्टर मोबाइल नंबर:</label>
-                    <input type="tel" id="adminMasterPhone" placeholder="9304509464 दर्ज करें">
-                </div>
-                <div class="form-group">
-                    <label>नया एडमिन पिन बनाएं:</label>
-                    <input type="password" id="newAdminPin" placeholder="नया ४ अंकों का पिन">
-                </div>
-                <button type="button" onclick="handleAdminResetPin()" style="width: 100%; padding: 8px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                    पिन अपडेट करें
-                </button>
-                <div style="text-align:center; margin-top:10px;">
-                    <a onclick="toggleAdminPinView('login')" style="font-size:12px; color:var(--primary); cursor:pointer;">वापस लॉगिन करें</a>
-                </div>
-            </div>
-
-            <div id="adminWorkSection" style="display: none;">
-                <h3 style="color: var(--primary); text-align: center; margin-bottom: 10px;">कंट्रोल पैनल</h3>
-                <div style="display:flex; gap:6px; margin-bottom:10px; flex-wrap: wrap;">
-                    <button type="button" onclick="showAdminTab('orders')" style="flex:1; min-width:120px; padding:6px; background:#d35400; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📦 ग्राहक ऑर्डर्स</button>
-                    <button type="button" onclick="showAdminTab('cards')" style="flex:1; min-width:120px; padding:6px; background:#2980b9; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">कैटलॉग जोड़ें</button>
-                    <button type="button" onclick="showAdminTab('users')" style="flex:1; min-width:120px; padding:6px; background:#27ae60; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">ग्राहक लिस्ट</button>
-                </div>
-
-                <!-- 1. Orders Tab -->
-                <div id="adminOrdersTab">
-                    <h4 style="margin-top: 10px; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 13px;">प्राप्त ऑर्डर्स व डिज़ाइन मैटर:</h4>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>दिनांक</th>
-                                <th>सर्विस</th>
-                                <th>ग्राहक</th>
-                                <th>राशि</th>
-                                <th>PDF रसीद</th>
-                                <th>हटाएं</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminOrdersListBody"></tbody>
-                    </table>
-                </div>
-
-                <!-- 2. Catalog Tab -->
-                <div id="adminCardsTab" style="display: none;">
-                    <form id="adminCardForm" onsubmit="handleAddNewCard(event)">
+            <form id="weddingForm" onsubmit="event.preventDefault(); openReviewModal();">
+                <div class="form-block">
+                    <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
+                    <div class="row-3">
                         <div class="form-group">
-                            <label>आइटम का नाम:</label>
-                            <input type="text" id="admCardName" placeholder="उदा: शादी कार्ड / फ्लेक्स" required>
+                            <label>कार्ड मॉडल / कैटगरी:</label>
+                            <input type="text" id="cardCategory" value="शाही निकाह कार्ड (रेड)" required>
                         </div>
                         <div class="form-group">
-                            <label>रेट (₹):</label>
-                            <input type="number" id="admCardRate" placeholder="उदा: 12" required>
+                            <label>प्रति पीस रेट (₹):</label>
+                            <input type="number" id="cardRate" value="12" min="1" step="any" oninput="calculateTotal()" required>
                         </div>
                         <div class="form-group">
-                            <label>स्टॉक स्टेटस:</label>
-                            <select id="admCardStock">
-                                <option value="in">उपलब्ध (In Stock)</option>
-                                <option value="out">स्टॉक समाप्त (Out)</option>
-                            </select>
+                            <label>संख्या (Quantity):</label>
+                            <input type="number" id="cardQty" value="100" min="1" oninput="calculateTotal()" required>
+                        </div>
+                    </div>
+                    <div class="total-bill-box">
+                        <span>कुल देय राशि:</span>
+                        <span id="weddingTotalDisplay">₹1,200</span>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h4>२. दूल्हा-दुल्हन व परिवार का विवरण</h4>
+                    <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label>दूल्हा का नाम:</label>
+                            <input type="text" id="groomName" placeholder="लड़के का नाम" required>
                         </div>
                         <div class="form-group">
-                            <label>फोटो:</label>
-                            <input type="file" id="admCardFile" accept="image/*" required>
+                            <label>पिता का नाम:</label>
+                            <input type="text" id="groomFather" placeholder="पिता का नाम" required>
                         </div>
-                        <button type="submit" id="admCardSubmitBtn" style="width: 100%; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                            + कैटलॉग में जोड़ें
-                        </button>
-                    </form>
+                    </div>
+                    <div class="form-group">
+                        <label>लड़के का पूरा पता:</label>
+                        <input type="text" id="groomAddress" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
+                    </div>
 
-                    <h4 style="margin-top: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 13px;">कैटलॉग लिस्ट:</h4>
-                    <table class="admin-table">
-                        <thead><tr><th>फोटो</th><th>नाम</th><th>रेट</th><th>हटाएं</th></tr></thead>
-                        <tbody id="adminCardListBody"></tbody>
-                    </table>
+                    <div class="weds-divider">
+                        <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span>
+                    </div>
+
+                    <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label>दुल्हन का नाम:</label>
+                            <input type="text" id="brideName" placeholder="लड़की का नाम" required>
+                        </div>
+                        <div class="form-group">
+                            <label>पिता का नाम:</label>
+                            <input type="text" id="brideFather" placeholder="पिता का नाम" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>लड़की का पूरा पता:</label>
+                        <input type="text" id="brideAddress" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
+                    </div>
                 </div>
 
-                <!-- 3. Users Tab -->
-                <div id="adminUsersTab" style="display: none;">
-                    <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 13px;">ग्राहक रिकॉर्ड:</h4>
-                    <table class="admin-table">
-                        <thead><tr><th>नाम</th><th>मोबाइल / ईमेल</th><th>गाँव</th></tr></thead>
-                        <tbody id="adminUserListBody"></tbody>
-                    </table>
+                <div class="form-block">
+                    <h4>३. वैवाहिक कार्यक्रम की तिथियां</h4>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label>शादी / निकाह की तिथि:</label>
+                            <input type="date" id="eventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>रवानगी बारात / रिसेप्शन:</label>
+                            <input type="text" id="receptionInfo" placeholder="समय एवं विवरण">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>दर्शनाभिलाषी / निवेदक के नाम:</label>
+                        <textarea id="inviters" rows="2" placeholder="समस्त परिजन एवं रिश्तेदार..."></textarea>
+                    </div>
                 </div>
 
-            </div>
+                <div class="notice-banner" style="margin-top: 10px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>कृपया रिव्यू बटन दबाकर अपनी जानकारियाँ मिला लें।</span>
+                </div>
+
+                <div class="btn-row">
+                    <button type="submit" class="btn-review">
+                        <i class="fa-solid fa-eye"></i> ऑर्डर रिव्यू करें एवं पुष्टि करें
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Auth Modal -->
-    <div id="authModal" class="modal">
+    <!-- ऑर्डर रिव्यू मॉडल -->
+    <div class="modal" id="orderReviewModal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeAuthModal()">&times;</span>
-
-            <!-- 1. Login Section -->
-            <div id="loginSection">
-                <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h3>
-                <form onsubmit="handleLoginSubmit(event)">
-                    <div class="form-group">
-                        <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="loginEmail" required placeholder="ईमेल आईडी दर्ज करें">
-                    </div>
-                    <div class="form-group">
-                        <label>पासवर्ड:</label>
-                        <input type="password" id="loginPass" required placeholder="पासवर्ड">
-                    </div>
-                    <div style="text-align: right; margin-bottom: 10px;">
-                        <a onclick="toggleAuthView('forgot')" style="font-size: 12px; color: var(--secondary); text-decoration: none; cursor: pointer; font-weight: bold;">पासवर्ड भूल गए?</a>
-                    </div>
-                    <button type="submit" id="loginBtn" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
-                </form>
-                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
-                    नया खाता? <a onclick="toggleAuthView('register')" style="color: var(--primary); font-weight: bold; cursor: pointer;">नया अकाउंट बनाएं</a>
-                </div>
+            <span class="close-btn" onclick="closeModal('orderReviewModal')">&times;</span>
+            <h3 style="color: var(--primary); text-align: center; margin-bottom: 8px;">ऑर्डर मैटर रिव्यू</h3>
+            
+            <div class="notice-banner" style="font-size: 12px;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
             </div>
 
-            <!-- 2. Forgot Password Section -->
-            <div id="forgotSection" style="display: none;">
-                <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h3>
-                <form onsubmit="handleForgotSubmit(event)">
-                    <div class="form-group">
-                        <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="forgotEmail" required placeholder="रजिस्टर्ड ईमेल दर्ज करें">
-                    </div>
-                    <div class="form-group">
-                        <label>नया पासवर्ड:</label>
-                        <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड (कम से कम 4 अंक)" minlength="4">
-                    </div>
-                    <button type="submit" id="forgotBtn" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">पासवर्ड अपडेट करें</button>
-                </form>
-                <div style="font-size: 13px; text-align: center; margin-top: 10px;">
-                    <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन पर वापस जाएं</a>
-                </div>
-            </div>
+            <div class="review-box" id="reviewContentBox"></div>
 
-            <!-- 3. Register Section -->
-            <div id="registerSection" style="display: none;">
-                <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
-                <form id="regForm" onsubmit="handleRegisterSubmit(event)">
-                    <div class="form-group">
-                        <label>पूरा नाम:</label>
-                        <input type="text" id="regName" required placeholder="आपका नाम">
-                    </div>
-                    <div class="form-group">
-                        <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="regEmail" required placeholder="ईमेल आईडी दर्ज करें">
-                    </div>
-                    <div class="form-group">
-                        <label>मोबाइल नंबर:</label>
-                        <input type="tel" id="regMobile" required placeholder="मोबाइल नंबर">
-                    </div>
-                    <div class="form-group">
-                        <label>गाँव / शहर:</label>
-                        <input type="text" id="regVillage" placeholder="गाँव या शहर का नाम">
-                    </div>
-                    <div class="form-group">
-                        <label>पूरा पता:</label>
-                        <textarea id="regAddress" rows="2" placeholder="थाना, पोस्ट, जिला..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>पासवर्ड बनाएं:</label>
-                        <input type="password" id="regPass" required placeholder="कम से कम ४ अंक" minlength="4">
-                    </div>
-                    <button type="submit" id="regBtn" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">रजिस्टर करें</button>
-                </form>
-                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
-                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
-                </div>
-            </div>
+            <button type="button" class="btn-review" style="background: var(--wa-green); width: 100%;" onclick="sendToWhatsApp()">
+                <i class="fa-brands fa-whatsapp"></i> मैटर सही है, व्हाट्सएप पर भेजें
+            </button>
         </div>
     </div>
 
-    <!-- Print Area -->
-    <div id="printableReceiptArea" style="display: none;"></div>
+    <!-- एडमिन पैनल मॉडल -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('adminModal')">&times;</span>
+            <h3 style="color: var(--dark); margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                एडमिन पैनल - कैटलॉग व स्टॉक नियंत्रण
+            </h3>
+            
+            <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                <h4 style="font-size: 13px; margin-bottom: 8px;">नया कार्ड/आइटम जोड़ें</h4>
+                <div class="form-group">
+                    <input type="text" id="newItemTitle" placeholder="कार्ड का नाम / मॉडल">
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <input type="number" id="newItemPrice" placeholder="रेट (₹)">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="newItemImg" placeholder="इमेज URL">
+                    </div>
+                </div>
+                <button type="button" onclick="addNewItem()" style="background: var(--green); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%;">
+                    + आइटम सुरक्षित करें
+                </button>
+            </div>
+
+            <h4 style="font-size: 13px; margin-bottom: 6px;">स्टॉक स्थिति अपडेट करें</h4>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>नाम</th>
+                        <th>रेट</th>
+                        <th>स्टॉक स्थिति</th>
+                        <th>एक्शन</th>
+                    </tr>
+                </thead>
+                <tbody id="adminItemsList"></tbody>
+            </table>
+        </div>
+    </div>
 
     <footer>
-        <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | 9304509464</p>
+        <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | सर्वाधिकार सुरक्षित</p>
     </footer>
 
     <script>
-        // =========================================================================
-        // SUPABASE REALTIME CLOUD ENGINE
-        // =========================================================================
-        const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // प्रारंभिक कैटलॉग डाटा (लोकल स्टोरेज सपोर्ट सहित)
+        const defaultCatalog = [
+            { id: 1, title: "शाही मुस्लिम निकाह कार्ड", price: 15, inStock: true, img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300" },
+            { id: 2, title: "गोल्डन फ्लोरल शादी कार्ड", price: 12, inStock: true, img: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=300" },
+            { id: 3, title: "प्रीमियम लेजर कट कार्ड", price: 25, inStock: false, img: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=300" }
+        ];
 
-        const UPI_ID = "9304509464@okbizaxis";
-        const PAYEE_NAME = "Delhi Press Sajjad Prints";
-        const OWNER_PHONE = "919304509464"; // 9304509464
-        const OWNER_EMAIL = "mdsajadans@gmail.com";
+        let catalogData = JSON.parse(localStorage.getItem('dp_catalog')) || defaultCatalog;
 
-        let weddingSampleUrl = "";
-        let bannerSampleUrl = "";
-        let visitingSampleUrl = "";
-
-        // ==========================================
-        // AUTHENTICATION LOGIC (Supabase Users)
-        // ==========================================
-        async function handleRegisterSubmit(e) {
-            e.preventDefault();
-            const btn = document.getElementById('regBtn');
-            btn.innerText = "जांच हो रही है..."; btn.disabled = true;
-
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim().toLowerCase();
-            const mobile = document.getElementById('regMobile').value.trim();
-            const village = document.getElementById('regVillage').value.trim();
-            const address = document.getElementById('regAddress').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-
-            try {
-                const { data: existingUser } = await supabaseClient
-                    .from('users')
-                    .select('email')
-                    .eq('email', email)
-                    .maybeSingle();
-
-                if (existingUser) {
-                    alert("यह ईमेल आईडी पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
-                    toggleAuthView('login');
-                    return;
-                }
-
-                const { error } = await supabaseClient
-                    .from('users')
-                    .insert([{
-                        email: email,
-                        mobile: mobile,
-                        name: name,
-                        village: village,
-                        address: address,
-                        pass: pass
-                    }]);
-
-                if (error) throw error;
-
-                const newUser = { name, email, mobile, village, address };
-                localStorage.setItem('dp_current_user', JSON.stringify(newUser));
-
-                fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({
-                        _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name}`,
-                        नाम: name, ईमेल: email, फोन: mobile, गाँव: village, पता: address
-                    })
-                }).catch(() => {});
-
-                alert("अकाउंट सफलतापूर्वक बन गया है!");
-                closeAuthModal();
-                checkUserSession();
-            } catch (err) {
-                alert("त्रुटि: " + err.message);
-            } finally {
-                btn.innerText = "रजिस्टर करें"; btn.disabled = false;
-            }
+        function saveCatalog() {
+            localStorage.setItem('dp_catalog', JSON.stringify(catalogData));
+            renderCatalog();
+            renderAdminTable();
         }
 
-        async function handleLoginSubmit(e) {
-            e.preventDefault();
-            const btn = document.getElementById('loginBtn');
-            btn.innerText = "जांच हो रही है..."; btn.disabled = true;
-
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const pass = document.getElementById('loginPass').value.trim();
-
-            try {
-                const { data: user, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('email', email)
-                    .maybeSingle();
-
-                if (error) throw error;
-
-                if (user) {
-                    if (user.pass === pass) {
-                        localStorage.setItem('dp_current_user', JSON.stringify(user));
-                        alert("स्वागत है, " + user.name + "! लॉगिन सफल रहा।");
-                        closeAuthModal();
-                        checkUserSession();
-                    } else {
-                        alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
-                    }
-                } else {
-                    alert("यह ईमेल नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
-                }
-            } catch (err) {
-                alert("लॉगिन एरर! " + err.message);
-            } finally {
-                btn.innerText = "लॉगिन करें"; btn.disabled = false;
-            }
-        }
-
-        async function handleForgotSubmit(e) {
-            e.preventDefault();
-            const btn = document.getElementById('forgotBtn');
-            btn.innerText = "अपडेट हो रहा है..."; btn.disabled = true;
-
-            const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
-            const newPass = document.getElementById('forgotNewPass').value.trim();
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('users')
-                    .update({ pass: newPass })
-                    .eq('email', email)
-                    .select();
-
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
-                    toggleAuthView('login');
-                } else {
-                    alert("यह ईमेल सिस्टम में नहीं मिला!");
-                }
-            } catch (err) {
-                alert("पासवर्ड अपडेट करने में त्रुटि: " + err.message);
-            } finally {
-                btn.innerText = "पासवर्ड अपडेट करें"; btn.disabled = false;
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('dp_current_user');
-            checkUserSession();
-            alert("लॉगआउट हो गया!");
-        }
-
-        function checkUserSession() {
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            const navAuth = document.getElementById('authNavContainer');
-            const loggedBox = document.getElementById('userLoggedBox');
-            const display = document.getElementById('displayUserName');
-            const lockOverlay = document.getElementById('formLockOverlay');
-
-            if (currentUser) {
-                if(navAuth) navAuth.style.display = 'none';
-                if(loggedBox) loggedBox.style.display = 'flex';
-                if(display) display.innerText = "नमस्ते, " + currentUser.name;
-                if(lockOverlay) lockOverlay.style.display = 'none';
-            } else {
-                if(navAuth) navAuth.style.display = 'block';
-                if(loggedBox) loggedBox.style.display = 'none';
-                if(display) display.innerText = "";
-                if(lockOverlay) lockOverlay.style.display = 'flex';
-            }
-        }
-
-        function openAuthModal(view) {
-            document.getElementById('authModal').style.display = 'flex';
-            toggleAuthView(view);
-        }
-        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
-        function toggleAuthView(view) {
-            document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
-            document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
-            document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
-        }
-
-        // ==========================================
-        // ADMIN PANEL & PIN CONTROL
-        // ==========================================
-        let secretClickCount = 0;
-        let secretTimer = null;
-        function handleSecretAdminClick() {
-            secretClickCount++;
-            clearTimeout(secretTimer);
-            secretTimer = setTimeout(() => { secretClickCount = 0; }, 800);
-            if (secretClickCount >= 3) {
-                secretClickCount = 0;
-                openAdminModal();
-            }
-        }
-
-        async function getAdminPin() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('admin_settings')
-                    .select('pin')
-                    .eq('id', 'admin_config')
-                    .single();
-                if (error || !data) return "1234";
-                return data.pin;
-            } catch (e) {
-                return "1234";
-            }
-        }
-
-        function openAdminModal() {
-            document.getElementById('adminModal').style.display = 'flex';
-            document.getElementById('adminPinSection').style.display = 'block';
-            document.getElementById('adminForgotPinSection').style.display = 'none';
-            document.getElementById('adminWorkSection').style.display = 'none';
-            document.getElementById('adminPin').value = '';
-        }
-
-        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
-
-        function toggleAdminPinView(view) {
-            document.getElementById('adminPinSection').style.display = view === 'login' ? 'block' : 'none';
-            document.getElementById('adminForgotPinSection').style.display = view === 'forgot' ? 'block' : 'none';
-        }
-
-        async function verifyAdminPin() {
-            const enteredPin = document.getElementById('adminPin').value.trim();
-            const correctPin = await getAdminPin();
-            if (enteredPin === correctPin) {
-                document.getElementById('adminPinSection').style.display = 'none';
-                document.getElementById('adminWorkSection').style.display = 'block';
-                showAdminTab('orders');
-            } else {
-                alert("गलत एडमिन पिन! यदि पिन भूल गए हैं तो 'Forgot PIN' पर क्लिक करें।");
-            }
-        }
-
-        async function handleAdminResetPin() {
-            const phone = document.getElementById('adminMasterPhone').value.trim();
-            const newPin = document.getElementById('newAdminPin').value.trim();
-
-            if (phone === "9304509464") {
-                if (newPin.length >= 4) {
-                    try {
-                        const { error } = await supabaseClient
-                            .from('admin_settings')
-                            .upsert({ id: 'admin_config', pin: newPin });
-                        if (error) throw error;
-                        alert("एडमिन पिन बदल दिया गया है! अब नए पिन से लॉगिन करें।");
-                        toggleAdminPinView('login');
-                    } catch (e) {
-                        alert("पिन अपडेट में एरर: " + e.message);
-                    }
-                } else {
-                    alert("पिन कम से कम ४ अंकों का होना चाहिए!");
-                }
-            } else {
-                alert("गलत मास्टर मोबाइल नंबर! केवल 9304509464 ही मान्य है।");
-            }
-        }
-
-        function showAdminTab(tab) {
-            document.getElementById('adminOrdersTab').style.display = tab === 'orders' ? 'block' : 'none';
-            document.getElementById('adminCardsTab').style.display = tab === 'cards' ? 'block' : 'none';
-            document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
-
-            if (tab === 'orders') renderAdminOrders();
-            if (tab === 'cards') renderAdminTable();
-            if (tab === 'users') renderAdminUsers();
-        }
-
-        // ==========================================
-        // ADMIN ORDERS TAB LOGIC (PDF GENERATOR)
-        // ==========================================
-        let adminOrdersCache = [];
-
-        async function renderAdminOrders() {
-            const tbody = document.getElementById('adminOrdersListBody');
-            tbody.innerHTML = "<tr><td colspan='6'>ऑर्डर्स लोड हो रहे हैं...</td></tr>";
-
-            try {
-                const { data: orders, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                adminOrdersCache = orders || [];
-
-                tbody.innerHTML = "";
-                if (!orders || orders.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='6'>कोई नया ऑर्डर नहीं मिला।</td></tr>";
-                    return;
-                }
-
-                orders.forEach((ord, index) => {
-                    const tr = document.createElement('tr');
-                    const d = new Date(ord.created_at);
-                    const formattedDate = `${d.getDate()}/${d.getMonth()+1} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
-                    tr.innerHTML = `
-                        <td>${formattedDate}</td>
-                        <td><b>${ord.service_type}</b></td>
-                        <td>${ord.customer_name}<br><small>${ord.customer_phone}</small></td>
-                        <td><b style="color:var(--primary);">${ord.total_bill}</b></td>
-                        <td>
-                            <button type="button" class="btn-view-pdf" onclick="viewOrderPrint(${index})">
-                                <i class="fa-solid fa-print"></i> PDF / प्रिंट
-                            </button>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-del" onclick="deleteOrderRecord(${ord.id})">हटाएं</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                tbody.innerHTML = "<tr><td colspan='6'>ऑर्डर लोड करने में समस्या: " + err.message + "</td></tr>";
-            }
-        }
-
-        async function deleteOrderRecord(id) {
-            if (confirm("क्या आप इस ऑर्डर को सूची से हटाना चाहते हैं?")) {
-                try {
-                    await supabaseClient.from('orders').delete().eq('id', id);
-                    renderAdminOrders();
-                } catch (e) {
-                    alert("हटाने में विफल: " + e.message);
-                }
-            }
-        }
-
-        // एडमिन पैनल से परफेक्ट प्रिंट/PDF देखने के लिए
-        function viewOrderPrint(index) {
-            const ord = adminOrdersCache[index];
-            if (!ord) return;
-
-            const printArea = document.getElementById('printableReceiptArea');
-            const data = ord.order_data || {};
-            const d = new Date(ord.created_at).toLocaleDateString('hi-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-
-            let detailsHtml = "";
-
-            if (ord.service_type === "शादी कार्ड") {
-                detailsHtml = `
-                    <div style="background:#fdfaf6; padding:10px; border-left:4px solid #d35400; margin-bottom:12px;">
-                        <h4 style="margin:0 0 5px 0; color:#c0392b;">कार्ड मॉडल: ${data.category || '-'}</h4>
-                        <p style="margin:0; font-size:13px;">रेट: ₹${data.rate} प्रति पीस | संख्या: ${data.qty} कार्ड्स | UTR: ${data.txn || 'भुगतान शेष'}</p>
+        function renderCatalog() {
+            const container = document.getElementById('catalogContainer');
+            container.innerHTML = '';
+            catalogData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card-sample';
+                card.innerHTML = `
+                    <img src="${item.img}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/200x130?text=No+Image'">
+                    <div class="card-info">
+                        <h4>${item.title}</h4>
+                        <div class="card-price-tag">₹${item.price} / पीस</div>
+                        <span class="stock-badge ${item.inStock ? 'in-stock' : 'out-stock'}">
+                            ${item.inStock ? 'उपलब्ध (In Stock)' : 'स्टॉक समाप्त (Out of Stock)'}
+                        </span>
+                        <button class="btn-select-card" ${!item.inStock ? 'disabled' : ''} onclick="selectCard('${item.title}', ${item.price})">
+                            ${item.inStock ? 'यह चुनें' : 'उपलब्ध नहीं'}
+                        </button>
                     </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0; border-bottom:1px solid #eee; padding-bottom:4px;">दूल्हा-दुल्हन एवं पारिवारिक विवरण:</h4>
-                        <pre style="white-space:pre-wrap; font-family:sans-serif; font-size:13px; margin:0; line-height:1.6;">${data.couples}</pre>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0; border-bottom:1px solid #eee; padding-bottom:4px;">कार्यक्रम एवं शुभ तिथियां:</h4>
-                        <pre style="white-space:pre-wrap; font-family:sans-serif; font-size:13px; margin:0; line-height:1.6;">${data.events}</pre>
-                    </div>
-                    <div style="display:flex; gap:10px; font-size:13px; margin-bottom:10px;">
-                        <div style="flex:1; border:1px solid #cbd5e1; padding:8px; border-radius:4px;"><b>RSVP:</b><br>${data.rsvp || '-'}</div>
-                        <div style="flex:1; border:1px solid #cbd5e1; padding:8px; border-radius:4px;"><b>विनीत / निवेदक:</b><br>${data.from || '-'}</div>
-                    </div>
-                    ${data.extra ? `<div style="border:1px solid #cbd5e1; padding:8px; border-radius:4px; font-size:13px; margin-bottom:10px;"><b>शायरी / संदेश:</b> ${data.extra}</div>` : ''}
                 `;
-            } else if (ord.service_type === "फ्लेक्स बैनर") {
-                detailsHtml = `
-                    <div style="background:#fdfaf6; padding:10px; border-left:4px solid #2980b9; margin-bottom:12px;">
-                        <h4 style="margin:0 0 5px 0;">शीर्षक: ${data.title}</h4>
-                        <p style="margin:0; font-size:13px;">साइज़: ${data.size} | क्वालिटी: ${data.quality} | मात्रा: ${data.qty} | UTR: ${data.txn || 'शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0;">बैनर पर छपने वाला संपूर्ण मैटर:</h4>
-                        <p style="white-space:pre-wrap; font-size:14px; margin:0; line-height:1.6;">${data.content}</p>
-                    </div>
-                    <p style="font-size:13px; margin:0;"><b>संपर्क फोन:</b> ${data.phone} | <b>स्थान/पता:</b> ${data.address}</p>
-                `;
-            } else {
-                detailsHtml = `
-                    <div style="background:#fdfaf6; padding:10px; border-left:4px solid #27ae60; margin-bottom:12px;">
-                        <h4 style="margin:0 0 5px 0;">प्रतिष्ठान: ${data.shopName} (प्रोप: ${data.personName})</h4>
-                        <p style="margin:0; font-size:13px;">प्रकार: ${data.type} | दर: ₹${data.rate} | बॉक्स: ${data.boxes} (${data.pieces}) | UTR: ${data.txn || 'शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0;">विजिटिंग कार्ड मैटर / सेवाएं:</h4>
-                        <p style="white-space:pre-wrap; font-size:14px; margin:0;">${data.services}</p>
-                    </div>
-                    <p style="font-size:13px; margin:0;"><b>फोन:</b> ${data.phone} | <b>ईमेल:</b> ${data.email || '-'} | <b>पता:</b> ${data.address}</p>
-                `;
-            }
+                container.appendChild(card);
+            });
+        }
 
-            printArea.innerHTML = `
-                <div style="font-family:'Mukta', sans-serif; max-width:800px; margin:auto; padding:20px; border:2px solid #333; border-radius:8px;">
-                    <div style="text-align:center; border-bottom:2px solid #333; padding-bottom:8px; margin-bottom:12px;">
-                        <h2 style="margin:0; color:#c0392b; font-size:24px;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-                        <p style="margin:2px 0; font-size:13px;">मो: 9304509464 | ईमेल: mdsajadans@gmail.com</p>
-                        <h3 style="margin:4px 0 0 0; background:#f1f5f9; display:inline-block; padding:3px 15px; border-radius:4px; font-size:16px;">
-                            ${ord.service_type} डिज़ाइन वर्कशॉप रसीद
-                        </h3>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:12px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">
-                        <span><b>ग्राहक:</b> ${ord.customer_name} (${ord.customer_phone})</span>
-                        <span><b>दिनांक:</b> ${d}</span>
-                        <span><b>कुल बिल:</b> <span style="font-size:16px; color:#c0392b; font-weight:bold;">${ord.total_bill}</span></span>
-                    </div>
-                    ${detailsHtml}
-                    <div style="margin-top:20px; border-top:1px solid #ddd; padding-top:6px; display:flex; justify-content:space-between; font-size:11px; color:#666;">
-                        <span>कंप्यूटर प्रिंटिंग डिज़ाइन कॉपी</span>
-                        <span>अधिकृत हस्ताक्षर: सज्जाद डिजिटल प्रिंट्स</span>
-                    </div>
-                </div>
+        function calculateTotal() {
+            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
+            const qty = parseInt(document.getElementById('cardQty').value) || 0;
+            const total = rate * qty;
+            document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
+            return total;
+        }
+
+        function selectCard(title, price) {
+            document.getElementById('cardCategory').value = title;
+            document.getElementById('cardRate').value = price;
+            calculateTotal();
+            document.getElementById('weddingForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // रिव्यु मॉडल फंक्शन्स
+        function openReviewModal() {
+            const category = document.getElementById('cardCategory').value;
+            const rate = document.getElementById('cardRate').value;
+            const qty = document.getElementById('cardQty').value;
+            const total = calculateTotal();
+
+            const groom = document.getElementById('groomName').value;
+            const groomFather = document.getElementById('groomFather').value;
+            const groomAddr = document.getElementById('groomAddress').value;
+
+            const bride = document.getElementById('brideName').value;
+            const brideFather = document.getElementById('brideFather').value;
+            const brideAddr = document.getElementById('brideAddress').value;
+
+            const date = document.getElementById('eventDate').value;
+            const reception = document.getElementById('receptionInfo').value || 'लागू नहीं';
+            const inviters = document.getElementById('inviters').value || 'समस्त परिवार';
+
+            const summary = `
+📌 *कार्ड विवरण:* ${category}
+💵 *रेट:* ₹${rate} | *संख्या:* ${qty} पीस
+💰 *कुल राशि:* ₹${total}
+
+🤵 *दूल्हा पक्ष:*
+• नाम: ${groom}
+• पिता: ${groomFather}
+• पता: ${groomAddr}
+
+👰 *दुल्हन पक्ष:*
+• नाम: ${bride}
+• पिता: ${brideFather}
+• पता: ${brideAddr}
+
+📅 *कार्यक्रम:*
+• वैवाहिक तिथि: ${date}
+• विदाई/रिसेप्शन: ${reception}
+• निवेदक/दर्शनाभिलाषी: ${inviters}
             `;
 
-            window.print();
+            document.getElementById('reviewContentBox').innerText = summary.trim();
+            document.getElementById('orderReviewModal').style.display = 'flex';
         }
 
-        // ==========================================
-        // CATALOG & USERS TAB
-        // ==========================================
-        async function renderAdminTable() {
-            const tbody = document.getElementById('adminCardListBody');
-            tbody.innerHTML = "<tr><td colspan='4'>लोड हो रहा है...</td></tr>";
+        function sendToWhatsApp() {
+            const reviewText = document.getElementById('reviewContentBox').innerText;
+            const warningText = "\n\n⚠️ *नोट:* मैंने पूरा मैटर जांच लिया है, कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।";
+            const fullMessage = encodeURIComponent(reviewText + warningText);
+            const phone = "919304509464";
+            window.open(`https://wa.me/${phone}?text=${fullMessage}`, '_blank');
+        }
 
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                tbody.innerHTML = "";
-                if (!cards || cards.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4'>कोई कार्ड उपलब्ध नहीं</td></tr>";
-                    return;
-                }
-
-                cards.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><img src="${item.img_url}" style="width:30px; height:20px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/30'"></td>
-                        <td>${item.name}</td>
-                        <td>₹${item.rate}</td>
-                        <td><button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}', '${item.img_path}')">हटाएं</button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                tbody.innerHTML = "<tr><td colspan='4'>डेटा लोड नहीं हुआ</td></tr>";
+        // एडमिन स्टॉक नियंत्रण फंक्शन्स
+        function openAdminModal() {
+            const pass = prompt("एडमिन पासवर्ड दर्ज करें:");
+            if (pass === "admin123" || pass === "9304509464") {
+                renderAdminTable();
+                document.getElementById('adminModal').style.display = 'flex';
+            } else {
+                alert("गलत पासवर्ड!");
             }
         }
 
-        async function renderAdminUsers() {
-            const tbody = document.getElementById('adminUserListBody');
-            tbody.innerHTML = "<tr><td colspan='3'>लोड हो रहा है...</td></tr>";
-            try {
-                const { data: users, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminItemsList');
+            tbody.innerHTML = '';
+            catalogData.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.title}</td>
+                    <td>₹${item.price}</td>
+                    <td>
+                        <button type="button" class="btn-stock-toggle ${item.inStock ? 'btn-stock-in' : 'btn-stock-out'}" onclick="toggleStock(${index})">
+                            ${item.inStock ? 'In Stock' : 'Out of Stock'}
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn-del" onclick="deleteItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
-                tbody.innerHTML = "";
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='3'>कोई ग्राहक नहीं</td></tr>";
-                    return;
-                }
-                users.forEach(u => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${u.name}</td><td>${u.mobile || u.email}</td><td>${u.village || '-'}</td>`;
-                    tbody.appendChild(tr);
-                });
-            } catch(e) {
-                tbody.innerHTML = "<tr><td colspan='3'>डेटा लोड नहीं हुआ</td></tr>";
+        function toggleStock(index) {
+            catalogData[index].inStock = !catalogData[index].inStock;
+            saveCatalog();
+        }
+
+        function deleteItem(index) {
+            if (confirm("क्या आप इसे हटाना चाहते हैं?")) {
+                catalogData.splice(index, 1);
+                saveCatalog();
             }
         }
 
-        async function handleAddNewCard(e) {
-            e.preventDefault();
-            const btn = document.getElementById('admCardSubmitBtn');
-            btn.innerText = "अपलोड हो रहा है..."; btn.disabled = true;
+        function addNewItem() {
+            const title = document.getElementById('newItemTitle').value.trim();
+            const price = parseFloat(document.getElementById('newItemPrice').value);
+            const img = document.getElementById('newItemImg').value.trim() || 'https://via.placeholder.com/200x130?text=Card';
 
-            const name = document.getElementById('admCardName').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value);
-            const stock = document.getElementById('admCardStock').value;
-            const file = document.getElementById('admCardFile').files[0];
-
-            if (!file) {
-                alert("कृपया फोटो चुनें!");
-                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
+            if (!title || !price) {
+                alert("कृपया नाम और रेट भरें!");
                 return;
             }
 
-            try {
-                const fileExt = file.name.split('.').pop();
-                const filePath = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            catalogData.push({
+                id: Date.now(),
+                title: title,
+                price: price,
+                inStock: true,
+                img: img
+            });
 
-                const { error: uploadError } = await supabaseClient.storage.from('cards_images').upload(filePath, file);
-                if (uploadError) throw uploadError;
+            saveCatalog();
+            document.getElementById('newItemTitle').value = '';
+            document.getElementById('newItemPrice').value = '';
+            document.getElementById('newItemImg').value = '';
+        }
 
-                const { data: { publicUrl } } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
 
-                const { error: insertError } = await supabaseClient.from('cards').insert([{
-                    name: name,
-                    rate: rate,
-                    stock: stock,
-                    img_url: publicUrl,
-                    img_path: filePath
-                }]);
-
-                if (insertError) throw insertError;
-
-                alert("कैटलॉग में जुड़ गया!");
-                document.getElementById('adminCardForm').reset();
-                await renderAdminTable();
-                await renderCatalog();
-            } catch (err) {
-                alert("अपलोड में समस्या: " + err.message);
-            } finally {
-                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
             }
-        }
+        };
 
-        async function deleteCatalogItem(id, imgPath) {
-            if (confirm("हटाना चाहते हैं?")) {
-                try {
-                    const { error } = await supabaseClient.from('cards').delete().eq('id', id);
-                    if (error) throw error;
-
-                    if (imgPath && imgPath !== 'undefined') {
-                        await supabaseClient.storage.from('cards_images').remove([imgPath]);
-                    }
-
-                    await renderAdminTable();
-                    await renderCatalog();
-                } catch (err) {
-                    alert("हटाने में विफल: " + err.message);
-                }
-            }
-        }
-
-        // ==========================================
-        // TABS, CATALOG & CALCULATIONS
-        // ==========================================
-        function switchServiceTab(tabName) {
-            document.querySelectorAll('.service-tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.service-form-section').forEach(sec => sec.style.display = 'none');
-
-            if (tabName === 'wedding') {
-                document.getElementById('tabBtnWedding').classList.add('active');
-                document.getElementById('weddingFormSection').style.display = 'block';
-            } else if (tabName === 'banner') {
-                document.getElementById('tabBtnBanner').classList.add('active');
-                document.getElementById('bannerFormSection').style.display = 'block';
-            } else if (tabName === 'visiting') {
-                document.getElementById('tabBtnVisiting').classList.add('active');
-                document.getElementById('visitingFormSection').style.display = 'block';
-            }
-        }
-
-        async function renderCatalog() {
-            const container = document.getElementById('catalogContainer');
-            if (!container) return;
-
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड हो रहे हैं...</p>";
-
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                container.innerHTML = "";
-                if (!cards || cards.length === 0) {
-                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कोई कार्ड उपलब्ध नहीं है।</p>";
-                    return;
-                }
-
-                cards.forEach(item => {
-                    const isOut = item.stock === 'out';
-                    const div = document.createElement('div');
-                    div.className = "card-sample";
-                    div.innerHTML = `
-                        <img src="${item.img_url}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
-                        <div class="card-info">
-                            <h4>${item.name}</h4>
-                            <div class="card-price-tag">₹${item.rate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
-                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'समाप्त' : 'उपलब्ध'}</span>
-                            <button type="button" class="btn-select-card" onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img_url}')">
-                                यह चुनें
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch (err) {
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड नहीं हो सके।</p>";
-            }
-        }
-
-        function selectCardToForm(name, rate, img) {
-            if (name.includes("बैनर") || name.includes("फ्लेक्स") || name.includes("पोस्टर")) {
-                switchServiceTab('banner');
-                document.getElementById('bannerRate').value = rate;
-                bannerSampleUrl = img;
-                document.getElementById('bannerPreviewImg').src = img;
-                document.getElementById('bannerPreviewContainer').style.display = 'block';
-                calculateBannerTotal();
-            } else if (name.includes("विजिटिंग") || name.includes("1000")) {
-                switchServiceTab('visiting');
-                document.getElementById('visitingRate').value = rate;
-                visitingSampleUrl = img;
-                document.getElementById('visitingPreviewImg').src = img;
-                document.getElementById('visitingPreviewContainer').style.display = 'block';
-                calculateVisitingTotal();
-            } else {
-                switchServiceTab('wedding');
-                document.getElementById('cardCategory').value = name;
-                document.getElementById('cardRate').value = rate;
-                weddingSampleUrl = img;
-                document.getElementById('bottomPreviewImg').src = img;
-                document.getElementById('bottomPreviewContainer').style.display = 'block';
-                calculateWeddingTotal();
-            }
-
-            const user = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!user) {
-                openAuthModal('register');
-            } else {
-                document.getElementById('orderSectionContainer').scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        function calculateWeddingTotal() {
-            var rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            var qty = parseInt(document.getElementById('cardQty').value) || 0;
-            var total = rate * qty;
-            document.getElementById('weddingTotalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
-            updateUpiQr(total);
-        }
-
-        function calculateBannerTotal() {
-            var w = parseFloat(document.getElementById('bannerWidth').value) || 0;
-            var h = parseFloat(document.getElementById('bannerHeight').value) || 0;
-            var rate = parseFloat(document.getElementById('bannerRate').value) || 0;
-            var qty = parseInt(document.getElementById('bannerQty').value) || 1;
-            var sqft = w * h;
-            var total = sqft * rate * qty;
-            document.getElementById('bannerSizeDisplay').innerText = `${sqft} Sq.Ft (${qty} पीस)`;
-            document.getElementById('bannerTotalDisplay').innerText = `कुल राशि: ₹${total.toLocaleString('en-IN')}`;
-            updateUpiQr(total);
-        }
-
-        function calculateVisitingTotal() {
-            var rate = parseFloat(document.getElementById('visitingRate').value) || 0;
-            var boxes = parseInt(document.getElementById('visitingBoxes').value) || 1;
-            var total = rate * boxes;
-            document.getElementById('visitingPiecesDisplay').innerText = `${boxes * 1000} कार्ड्स (${boxes} बॉक्स)`;
-            document.getElementById('visitingTotalDisplay').innerText = `कुल राशि: ₹${total.toLocaleString('en-IN')}`;
-            updateUpiQr(total);
-        }
-
-        function updateUpiQr(amount) {
-            var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(PAYEE_NAME) + "&am=" + amount + "&cu=INR";
-            document.getElementById('gpayBtn').href = upiUrl;
-            document.getElementById('phonepeBtn').href = upiUrl;
-            document.getElementById('paytmBtn').href = upiUrl;
-            document.getElementById('upiQrCode').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(upiUrl);
-        }
-
-        function previewBottomSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    weddingSampleUrl = e.target.result;
-                    document.getElementById('bottomPreviewImg').src = weddingSampleUrl;
-                    document.getElementById('bottomPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        function previewBannerSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    bannerSampleUrl = e.target.result;
-                    document.getElementById('bannerPreviewImg').src = bannerSampleUrl;
-                    document.getElementById('bannerPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        function previewVisitingSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    visitingSampleUrl = e.target.result;
-                    document.getElementById('visitingPreviewImg').src = visitingSampleUrl;
-                    document.getElementById('visitingPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function addCoupleField() {
-            var group = document.getElementById('couplesGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item couple-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दूल्हा पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दूल्हा:</label><input type="text" class="groom-name" placeholder="लड़का का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>' +
-                '<div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दुल्हन पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दुल्हन:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>';
-            group.appendChild(div);
-        }
-
-        function addEventField() {
-            var group = document.getElementById('eventsGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item event-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required></div>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>' +
-                    '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>' +
-                '</div>';
-            group.appendChild(div);
-        }
-
-        // =========================================================================
-        // ORDER SUBMISSIONS (WHATSAPP 9304509464 + SUPABASE DATABASE FOR ADMIN PDF)
-        // =========================================================================
-
-        // 1. शादी कार्ड ऑर्डर
-        document.getElementById('weddingForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!currentUser) { alert("पहले लॉगिन करें!"); openAuthModal('login'); return; }
-
-            const btn = document.getElementById('weddingSubmitBtn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> सबमिट हो रहा है...`;
-            btn.disabled = true;
-
-            var category = document.getElementById('cardCategory').value;
-            var rate = document.getElementById('cardRate').value;
-            var qty = document.getElementById('cardQty').value;
-            var totalAmt = document.getElementById('weddingTotalDisplay').innerText;
-            var txn = document.getElementById('weddingTransId').value || "भुगतान शेष";
-
-            var coupleData = "";
-            var grooms = document.querySelectorAll('.groom-name');
-            var gFathers = document.querySelectorAll('.groom-father');
-            var gAddresses = document.querySelectorAll('.groom-address');
-            var brides = document.querySelectorAll('.bride-name');
-            var bFathers = document.querySelectorAll('.bride-father');
-            var bAddresses = document.querySelectorAll('.bride-address');
-            for (var i = 0; i < grooms.length; i++) {
-                coupleData += `\n[जोड़ी #${i+1}]\nदूल्हा: ${grooms[i].value} (पिता: ${gFathers[i].value})\nपता: ${gAddresses[i].value}\n-- संग --\nदुल्हन: ${brides[i].value} (पिता: ${bFathers[i].value})\nपता: ${bAddresses[i].value}\n`;
-            }
-
-            var eventData = "";
-            var titles = document.querySelectorAll('.event-title');
-            var dates = document.querySelectorAll('.event-date');
-            var times = document.querySelectorAll('.event-time');
-            for (var j = 0; j < titles.length; j++) {
-                eventData += `\n- ${titles[j].value}: ${dates[j].value} (${times[j].value || 'समय तय नहीं'})`;
-            }
-
-            var rsvp = document.getElementById('rsvpText').value;
-            var from = document.getElementById('fromText').value;
-            var extra = document.getElementById('extraText').value;
-
-            // Save in Supabase for Admin Panel PDF view
-            try {
-                await supabaseClient.from('orders').insert([{
-                    service_type: "शादी कार्ड",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: {
-                        category, rate, qty, txn,
-                        couples: coupleData, events: eventData,
-                        rsvp, from, extra
-                    }
-                }]);
-            } catch (err) {
-                console.error("Database save warning:", err);
-            }
-
-            // WhatsApp Message
-            var waMsg = `*📦 नया शादी कार्ड ऑर्डर - दिल्ली प्रेस*\n` +
-                        `---------------------------------\n` +
-                        `*ग्राहक:* ${currentUser.name}\n` +
-                        `*मोबाइल:* ${currentUser.mobile || currentUser.email}\n` +
-                        `*पता:* ${currentUser.address || currentUser.village || '-'}\n` +
-                        `---------------------------------\n` +
-                        `*कार्ड मॉडल:* ${category}\n` +
-                        `*रेट:* ₹${rate} | *मात्रा:* ${qty}\n` +
-                        `*कुल राशि:* ${totalAmt}\n` +
-                        `*पेमेंट UTR:* ${txn}\n` +
-                        `---------------------------------\n` +
-                        `*दूल्हा-दुल्हन विवरण:*${coupleData}\n` +
-                        `*कार्यक्रम:*${eventData}\n` +
-                        `---------------------------------\n` +
-                        (rsvp ? `*RSVP:* ${rsvp}\n` : '') +
-                        (from ? `*विनीत:* ${from}\n` : '') +
-                        (extra ? `*शायरी / संदेश:* ${extra}\n` : '');
-
-            // Open WhatsApp directly
-            var waUrl = `https://wa.me/${OWNER_PHONE}?text=` + encodeURIComponent(waMsg);
-            window.open(waUrl, '_blank');
-
-            btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> 9304509464 पर WhatsApp भेजें`;
-            btn.disabled = false;
-        });
-
-        // 2. फ्लेक्स बैनर ऑर्डर
-        document.getElementById('bannerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!currentUser) { alert("पहले लॉगिन करें!"); openAuthModal('login'); return; }
-
-            const btn = document.getElementById('bannerSubmitBtn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> सबमिट हो रहा है...`;
-            btn.disabled = true;
-
-            var w = document.getElementById('bannerWidth').value;
-            var h = document.getElementById('bannerHeight').value;
-            var qty = document.getElementById('bannerQty').value;
-            var quality = document.getElementById('bannerQuality').value;
-            var totalAmt = document.getElementById('bannerTotalDisplay').innerText;
-            var title = document.getElementById('bannerTitle').value;
-            var content = document.getElementById('bannerContent').value;
-            var phone = document.getElementById('bannerPhone').value;
-            var address = document.getElementById('bannerAddress').value;
-            var txn = document.getElementById('bannerTransId').value || "भुगतान शेष";
-
-            try {
-                await supabaseClient.from('orders').insert([{
-                    service_type: "फ्लेक्स बैनर",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: {
-                        size: `${w} x ${h} Feet`, qty, quality,
-                        title, content, phone, address, txn
-                    }
-                }]);
-            } catch (err) {
-                console.error(err);
-            }
-
-            var waMsg = `*🚩 नया फ्लेक्स बैनर ऑर्डर - दिल्ली प्रेस*\n` +
-                        `---------------------------------\n` +
-                        `*ग्राहक:* ${currentUser.name} (${currentUser.mobile || currentUser.email})\n` +
-                        `*शीर्षक:* ${title}\n` +
-                        `*साइज़:* ${w} x ${h} Feet (${qty} पीस)\n` +
-                        `*क्वालिटी:* ${quality}\n` +
-                        `*कुल राशि:* ${totalAmt}\n` +
-                        `*पेमेंट UTR:* ${txn}\n` +
-                        `---------------------------------\n` +
-                        `*बैनर का पूरा मैटर:*\n${content}\n` +
-                        `---------------------------------\n` +
-                        `*बैनर पर फोन:* ${phone}\n` +
-                        `*बैनर पर पता:* ${address}`;
-
-            var waUrl = `https://wa.me/${OWNER_PHONE}?text=` + encodeURIComponent(waMsg);
-            window.open(waUrl, '_blank');
-
-            btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> 9304509464 पर WhatsApp भेजें`;
-            btn.disabled = false;
-        });
-
-        // 3. विजिटिंग कार्ड ऑर्डर
-        document.getElementById('visitingForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!currentUser) { alert("पहले लॉगिन करें!"); openAuthModal('login'); return; }
-
-            const btn = document.getElementById('visitingSubmitBtn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> सबमिट हो रहा है...`;
-            btn.disabled = true;
-
-            var type = document.getElementById('visitingType').value;
-            var rate = document.getElementById('visitingRate').value;
-            var boxes = document.getElementById('visitingBoxes').value;
-            var pieces = document.getElementById('visitingPiecesDisplay').innerText;
-            var totalAmt = document.getElementById('visitingTotalDisplay').innerText;
-            var shopName = document.getElementById('visitingShopName').value;
-            var personName = document.getElementById('visitingPersonName').value;
-            var phone = document.getElementById('visitingPhone').value;
-            var email = document.getElementById('visitingEmail').value;
-            var services = document.getElementById('visitingServices').value;
-            var address = document.getElementById('visitingAddress').value;
-            var txn = document.getElementById('visitingTransId').value || "भुगतान शेष";
-
-            try {
-                await supabaseClient.from('orders').insert([{
-                    service_type: "विजिटिंग कार्ड",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: {
-                        type, rate, boxes, pieces,
-                        shopName, personName, phone, email, services, address, txn
-                    }
-                }]);
-            } catch (err) {
-                console.error(err);
-            }
-
-            var waMsg = `*💳 नया विजिटिंग कार्ड ऑर्डर - दिल्ली प्रेस*\n` +
-                        `---------------------------------\n` +
-                        `*ग्राहक:* ${currentUser.name} (${currentUser.mobile || currentUser.email})\n` +
-                        `*दुकान/फर्म:* ${shopName}\n` +
-                        `*प्रोपराइटर:* ${personName}\n` +
-                        `*प्रकार:* ${type}\n` +
-                        `*संख्या:* ${pieces} (दर: ₹${rate}/बॉक्स)\n` +
-                        `*कुल राशि:* ${totalAmt}\n` +
-                        `*पेमेंट UTR:* ${txn}\n` +
-                        `---------------------------------\n` +
-                        `*कार्ड पर सेवाएं:*\n${services}\n` +
-                        `---------------------------------\n` +
-                        `*कार्ड फोन:* ${phone}\n` +
-                        `*कार्ड पता:* ${address}`;
-
-            var waUrl = `https://wa.me/${OWNER_PHONE}?text=` + encodeURIComponent(waMsg);
-            window.open(waUrl, '_blank');
-
-            btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> 9304509464 पर WhatsApp भेजें`;
-            btn.disabled = false;
-        });
-
-        // ==========================================
-        // CLIENT PDF GENERATION
-        // ==========================================
-        function generateWeddingPDF() {
-            var category = document.getElementById('cardCategory').value;
-            var totalAmt = document.getElementById('weddingTotalDisplay').innerText;
-            var currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "{}");
-            document.getElementById('printableReceiptArea').innerHTML = `
-                <div style="font-family:sans-serif; color:#000; padding:20px; border:1px solid #333;">
-                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:10px;">
-                        <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-                        <h3 style="margin:2px 0;">शादी कार्ड ऑर्डर रसीद</h3>
-                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || currentUser.email || '-'}) | कुल राशि: <b>${totalAmt}</b></p>
-                    </div>
-                    <h4>कार्ड विवरण: ${category}</h4>
-                    <p style="font-size:12px; color:#555;">(विस्तृत डिज़ाइन मैटर एडमिन पैनल पर सुरक्षित कर दिया गया है)</p>
-                </div>
-            `;
-            window.print();
-        }
-
-        function generateBannerPDF() {
-            var w = document.getElementById('bannerWidth').value;
-            var h = document.getElementById('bannerHeight').value;
-            var total = document.getElementById('bannerTotalDisplay').innerText;
-            var currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "{}");
-            document.getElementById('printableReceiptArea').innerHTML = `
-                <div style="font-family:sans-serif; color:#000; padding:20px; border:1px solid #333;">
-                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:10px;">
-                        <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-                        <h3 style="margin:2px 0;">फ्लेक्स बैनर ऑर्डर रसीद</h3>
-                        <p style="margin:0; font-size:12px;">ग्राहक: <b>${currentUser.name || '-'}</b> (${currentUser.mobile || currentUser.email || '-'}) | ${total}</p>
-                    </div>
-                    <p>साइज़: ${w} x ${h} Feet | शीर्षक: ${document.getElementById('bannerTitle').value}</p>
-                </div>
-            `;
-            window.print();
-        }
-
-        function generateVisitingPDF() {
-            var total = document.getElementById('visitingTotalDisplay').innerText;
-            document.getElementById('printableReceiptArea').innerHTML = `
-                <div style="font-family:sans-serif; color:#000; padding:20px; border:1px solid #333;">
-                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:10px;">
-                        <h2 style="margin:0;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-                        <h3 style="margin:2px 0;">विजिटिंग कार्ड ऑर्डर रसीद</h3>
-                        <p style="margin:0; font-size:12px;">दुकान: <b>${document.getElementById('visitingShopName').value}</b> | कुल राशि: <b>${total}</b></p>
-                    </div>
-                </div>
-            `;
-            window.print();
-        }
-
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
+        // पेज लोड इनिशियलाइजेशन
+        window.onload = function() {
             renderCatalog();
-            calculateWeddingTotal();
-            calculateBannerTotal();
-            calculateVisitingTotal();
-            checkUserSession();
-        });
+            calculateTotal();
+        };
     </script>
 </body>
 </html>
