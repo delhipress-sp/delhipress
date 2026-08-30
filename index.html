@@ -100,6 +100,7 @@
         }
         .btn-select-card:disabled {
             background: #94a3b8; cursor: not-allowed;
+            opacity: 0.6;
         }
 
         .service-tabs-nav {
@@ -859,6 +860,7 @@
                                 <th>रेट</th>
                                 <th>वर्तमान स्टॉक</th>
                                 <th>स्टॉक एक्शन</th>
+                                <th>हटाएं</th> <!-- नया कॉलम -->
                             </tr>
                         </thead>
                         <tbody id="adminCardListBody"></tbody>
@@ -1351,579 +1353,235 @@
             } else {
                 detailsHtml = `
                     <div style="background:#fdfaf6; padding:10px; border-left:4px solid #27ae60; margin-bottom:12px;">
-                        <h4 style="margin:0 0 5px 0;">प्रतिष्ठान: ${data.shopName} (प्रोप: ${data.personName})</h4>
-                        <p style="margin:0; font-size:13px;">प्रकार: ${data.type} | दर: ₹${data.rate} | बॉक्स: ${data.boxes} (${data.pieces}) | UTR: ${data.txn || 'शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0;">विजिटिंग कार्ड मैटर / सेवाएं:</h4>
-                        <p style="white-space:pre-wrap; font-size:14px; margin:0;">${data.services}</p>
-                    </div>
-                    <p style="font-size:13px; margin:0;"><b>फोन:</b> ${data.phone} | <b>ईमेल:</b> ${data.email || '-'} | <b>पता:</b> ${data.address}</p>
-                `;
-            }
+                        <h4 style="margin:0 0 5px 0;">प्रतिष्ठान: ${data.shopName}यहाँ आपके द्वारा दिए गए HTML कोड में आवश्यक सुधार कर दिए गए हैं।
 
-            printArea.innerHTML = `
-                <div style="font-family:'Mukta', sans-serif; max-width:800px; margin:auto; padding:20px; border:2px solid #333; border-radius:8px;">
-                    <div style="text-align:center; border-bottom:2px solid #333; padding-bottom:8px; margin-bottom:12px;">
-                        <h2 style="margin:0; color:#c0392b; font-size:24px;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-                        <p style="margin:2px 0; font-size:13px;">मो: 9304509464 | ईमेल: mdsajadans@gmail.com</p>
-                        <h3 style="margin:4px 0 0 0; background:#f1f5f9; display:inline-block; padding:3px 15px; border-radius:4px; font-size:16px;">
-                            ${ord.service_type} डिज़ाइन वर्कशॉप रसीद
-                        </h3>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:12px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">
-                        <span><b>ग्राहक:</b> ${ord.customer_name} (${ord.customer_phone})</span>
-                        <span><b>दिनांक:</b> ${d}</span>
-                        <span><b>कुल बिल:</b> <span style="font-size:16px; color:#c0392b; font-weight:bold;">${ord.total_bill}</span></span>
-                    </div>
-                    ${detailsHtml}
-                    <div style="margin-top:20px; border-top:1px solid #ddd; padding-top:6px; display:flex; justify-content:space-between; font-size:11px; color:#666;">
-                        <span>कंप्यूटर प्रिंटिंग डिज़ाइन कॉपी</span>
-                        <span>अधिकृत हस्ताक्षर: सज्जाद डिजिटल प्रिंट्स</span>
-                    </div>
-                </div>
-            `;
+**किए गए सुधार:**
+1.  **आउट ऑफ स्टॉक (Out of Stock) बटन:** एडमिन पैनल में 'कैटलॉग व स्टॉक' टैब के अंदर स्टॉक स्थिति को **In Stock** से **Out of Stock** (और इसके विपरीत) में बदलने के लिए बटन को क्रियाशील (functional) बना दिया गया है। अब बटन दबाने पर डेटाबेस (Supabase) में स्थिति अपडेट हो जाएगी और यूजर साइड पर 'यह चुनें' बटन अपने आप डिसएबल (disable) हो जाएगा।
+2.  **हटाने (Delete) का विकल्प:** एडमिन पैनल में कैटलॉग लिस्ट में प्रत्येक आइटम के आगे एक लाल रंग का **'हटाएं' (Trash icon)** बटन जोड़ दिया गया है। इस पर क्लिक करने पर वह आइटम डेटाबेस और कैटलॉग दोनों से हट जाएगा।
 
-            window.print();
+यहाँ पूर्ण संशोधित कोड है:
+
+```html
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</title>
+    <link href="[https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap](https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap)" rel="stylesheet">
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+
+    <!-- Supabase JS Client Library -->
+    <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+
+    <style>
+        :root {
+            --primary: #c0392b;
+            --secondary: #d35400;
+            --dark: #1e272e;
+            --light: #fdfbf7;
+            --green: #27ae60;
+            --blue: #2980b9;
+            --wa-green: #25D366;
+            --warn-bg: #fff3cd;
+            --warn-border: #ffeeba;
+            --warn-text: #856404;
         }
 
-        // ==========================================
-        // CATALOG & USERS TAB (स्टॉक इन / आउट ऑफ स्टॉक)
-        // ==========================================
-        async function renderAdminTable() {
-            const tbody = document.getElementById('adminCardListBody');
-            tbody.innerHTML = "<tr><td colspan='5'>लोड हो रहा है...</td></tr>";
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f4f6f9; color: #333; line-height: 1.5; padding-bottom: 70px; }
 
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+        .top-bar {
+            background: var(--dark); color: #fff; padding: 6px 15px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 13px;
+        }
+        .top-bar a { color: #f1c40f; text-decoration: none; margin-left: 10px; font-weight: bold; }
 
-                if (error) throw error;
+        .navbar {
+            background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px;
+        }
+        .nav-brand h2 {
+            color: var(--primary); font-size: 20px; cursor: pointer; user-select: none;
+        }
+        .nav-brand p { font-size: 11px; color: #666; }
 
-                tbody.innerHTML = "";
-                if (!cards || cards.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='5'>कोई कार्ड उपलब्ध नहीं</td></tr>";
-                    return;
-                }
-
-                cards.forEach(item => {
-                    const isOut = item.stock === 'out';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><img src="${item.img_url}" style="width:30px; height:20px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/30'"></td>
-                        <td>${item.name}</td>
-                        <td>₹${item.rate}</td>
-                        <td>
-                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">
-                                ${isOut ? 'Out of Stock' : 'In Stock'}
-                            </span>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-stock-toggle ${isOut ? 'btn-stock-in' : 'btn-stock-out'}" onclick="toggleCardStockStatus('${item.id}', '${item.stock}')">
-                                ${isOut ? 'Stock In करें' : 'Out of Stock करें'}
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                tbody.innerHTML = "<tr><td colspan='5'>डेटा लोड नहीं हुआ</td></tr>";
-            }
+        .nav-menu { display: flex; list-style: none; align-items: center; gap: 10px; }
+        .nav-menu a {
+            text-decoration: none; color: #333; font-weight: 600; font-size: 14px;
+            padding: 6px 10px; border-radius: 4px; transition: 0.2s;
+        }
+        .nav-menu a:hover { color: var(--primary); }
+        .btn-login {
+            background: var(--primary); color: white !important;
+            padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
         }
 
-        async function toggleCardStockStatus(id, currentStock) {
-            const newStock = (currentStock === 'out') ? 'in' : 'out';
-            try {
-                const { error } = await supabaseClient
-                    .from('cards')
-                    .update({ stock: newStock })
-                    .eq('id', id);
-
-                if (error) throw error;
-                await renderAdminTable();
-                await renderCatalog();
-            } catch (err) {
-                alert("स्टॉक स्थिति अपडेट करने में त्रुटि: " + err.message);
-            }
+        .user-logged-box { display: none; align-items: center; gap: 8px; }
+        .user-name-display { font-weight: 600; color: var(--primary); font-size: 13px; }
+        .btn-logout {
+            background: #e74c3c; color: white; border: none;
+            padding: 4px 8px; border-radius: 12px; font-size: 11px; cursor: pointer;
         }
 
-        async function renderAdminUsers() {
-            const tbody = document.getElementById('adminUserListBody');
-            tbody.innerHTML = "<tr><td colspan='3'>लोड हो रहा है...</td></tr>";
-            try {
-                const { data: users, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
+        .container { max-width: 900px; margin: 15px auto; padding: 0 12px; }
 
-                tbody.innerHTML = "";
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='3'>कोई ग्राहक नहीं</td></tr>";
-                    return;
-                }
-                users.forEach(u => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${u.name}</td><td>${u.mobile || u.email}</td><td>${u.village || '-'}</td>`;
-                    tbody.appendChild(tr);
-                });
-            } catch(e) {
-                tbody.innerHTML = "<tr><td colspan='3'>डेटा लोड नहीं हुआ</td></tr>";
-            }
+        .notice-banner {
+            background: var(--warn-bg); border: 1px solid var(--warn-border);
+            color: var(--warn-text); padding: 10px 14px; border-radius: 6px;
+            font-size: 13px; font-weight: 700; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 8px;
         }
 
-        async function handleAddNewCard(e) {
-            e.preventDefault();
-            const btn = document.getElementById('admCardSubmitBtn');
-            btn.innerText = "अपलोड हो रहा है..."; btn.disabled = true;
-
-            const name = document.getElementById('admCardName').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value);
-            const stock = document.getElementById('admCardStock').value;
-            const file = document.getElementById('admCardFile').files[0];
-
-            if (!file) {
-                alert("कृपया फोटो चुनें!");
-                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
-                return;
-            }
-
-            try {
-                const fileExt = file.name.split('.').pop();
-                const filePath = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                const { error: uploadError } = await supabaseClient.storage.from('cards_images').upload(filePath, file);
-                if (uploadError) throw uploadError;
-
-                const { data: { publicUrl } } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
-
-                const { error: insertError } = await supabaseClient.from('cards').insert([{
-                    name: name,
-                    rate: rate,
-                    stock: stock,
-                    img_url: publicUrl,
-                    img_path: filePath
-                }]);
-
-                if (insertError) throw insertError;
-
-                alert("कैटलॉग में जुड़ गया!");
-                document.getElementById('adminCardForm').reset();
-                await renderAdminTable();
-                await renderCatalog();
-            } catch (err) {
-                alert("अपलोड में समस्या: " + err.message);
-            } finally {
-                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
-            }
+        .showcase-box {
+            background: #fff; padding: 15px; border-radius: 8px;
+            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .gallery-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px; margin-top: 12px;
+        }
+        .card-sample {
+            border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;
+            background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .card-sample img { width: 100%; height: 130px; object-fit: cover; }
+        .card-info { padding: 10px; text-align: center; }
+        .card-info h4 { font-size: 14px; color: #2d3748; margin-bottom: 4px; }
+        .card-price-tag { color: var(--primary); font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .stock-badge {
+            display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: bold;
+        }
+        .in-stock { background: #dcfce7; color: #15803d; }
+        .out-stock { background: #fee2e2; color: #b91c1c; }
+        .btn-select-card {
+            display: block; width: 100%; padding: 6px; background: var(--blue);
+            color: white; border: none; font-size: 13px; font-weight: 600;
+            border-radius: 4px; cursor: pointer; margin-top: 8px;
+        }
+        .btn-select-card:disabled {
+            background: #94a3b8; cursor: not-allowed;
+            opacity: 0.6;
         }
 
-        // ==========================================
-        // TABS, CATALOG & CALCULATIONS
-        // ==========================================
-        function switchServiceTab(tabName) {
-            document.querySelectorAll('.service-tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.service-form-section').forEach(sec => sec.style.display = 'none');
-
-            if (tabName === 'wedding') {
-                document.getElementById('tabBtnWedding').classList.add('active');
-                document.getElementById('weddingFormSection').style.display = 'block';
-            } else if (tabName === 'banner') {
-                document.getElementById('tabBtnBanner').classList.add('active');
-                document.getElementById('bannerFormSection').style.display = 'block';
-            } else if (tabName === 'visiting') {
-                document.getElementById('tabBtnVisiting').classList.add('active');
-                document.getElementById('visitingFormSection').style.display = 'block';
-            }
+        .service-tabs-nav {
+            display: flex;
+            background: #fff;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #cbd5e1;
+            border-bottom: none;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .service-tab-btn {
+            flex: 1; min-width: 140px;
+            padding: 12px 10px;
+            background: #f1f5f9;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .service-tab-btn.active {
+            background: #fff;
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
         }
 
-        async function renderCatalog() {
-            const container = document.getElementById('catalogContainer');
-            if (!container) return;
+        .form-lock-wrapper { position: relative; }
+        .form-lock-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px);
+            z-index: 100; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 20px; border-radius: 0 0 8px 8px;
+        }
+        .form-lock-overlay i { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
+        .form-lock-overlay h3 { font-size: 18px; color: var(--dark); margin-bottom: 6px; }
+        .form-lock-overlay p { font-size: 13px; color: #666; margin-bottom: 12px; max-width: 400px; }
 
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड हो रहे हैं...</p>";
+        .form-wrapper {
+            background: #fff; padding: 18px; border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #cbd5e1;
+            border-top: none; margin-bottom: 25px;
+        }
+        .section-header {
+            color: var(--primary); font-size: 20px; text-align: center;
+            margin-bottom: 15px; font-weight: bold;
+        }
+        .form-block {
+            background: #fdfaf6; padding: 14px; border-radius: 6px;
+            margin-bottom: 15px; border-left: 4px solid var(--secondary);
+        }
+        .form-block h4 { margin-bottom: 10px; color: var(--dark); font-size: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
+        
+        .form-group { margin-bottom: 12px; }
+        .row-2, .row-3 { display: flex; gap: 10px; }
+        .row-2 .form-group, .row-3 .form-group { flex: 1; }
 
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+        label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #475569; }
+        input, select, textarea {
+            width: 100%; padding: 10px; border: 1px solid #cbd5e1;
+            border-radius: 4px; font-size: 14px; outline: none; background: #fff;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
-                if (error) throw error;
-
-                container.innerHTML = "";
-                if (!cards || cards.length === 0) {
-                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कोई कार्ड उपलब्ध नहीं है।</p>";
-                    return;
-                }
-
-                cards.forEach(item => {
-                    const isOut = item.stock === 'out';
-                    const div = document.createElement('div');
-                    div.className = "card-sample";
-                    div.innerHTML = `
-                        <img src="${item.img_url}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
-                        <div class="card-info">
-                            <h4>${item.name}</h4>
-                            <div class="card-price-tag">₹${item.rate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
-                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध'}</span>
-                            <button type="button" class="btn-select-card" ${isOut ? 'disabled' : ''} onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img_url}')">
-                                ${isOut ? 'उपलब्ध नहीं' : 'यह चुनें'}
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch (err) {
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड नहीं हो सके।</p>";
-            }
+        .dynamic-item {
+            background: #fff; padding: 12px; border-radius: 6px;
+            margin-bottom: 12px; border: 1px solid #e2e8f0; position: relative;
+        }
+        .btn-add {
+            background: #4f46e5; color: white; padding: 6px 12px;
+            font-size: 12px; border-radius: 4px; border: none; cursor: pointer;
+        }
+        .btn-remove {
+            background: #ef4444; color: white; padding: 3px 6px;
+            font-size: 10px; border-radius: 3px; border: none; cursor: pointer;
+            position: absolute; right: 8px; top: 8px;
         }
 
-        function selectCardToForm(name, rate, img) {
-            if (name.includes("बैनर") || name.includes("फ्लेक्स") || name.includes("पोस्टर")) {
-                switchServiceTab('banner');
-                document.getElementById('bannerRate').value = rate;
-                bannerSampleUrl = img;
-                document.getElementById('bannerPreviewImg').src = img;
-                document.getElementById('bannerPreviewContainer').style.display = 'block';
-                calculateBannerTotal();
-            } else if (name.includes("विजिटिंग") || name.includes("1000")) {
-                switchServiceTab('visiting');
-                document.getElementById('visitingRate').value = rate;
-                visitingSampleUrl = img;
-                document.getElementById('visitingPreviewImg').src = img;
-                document.getElementById('visitingPreviewContainer').style.display = 'block';
-                calculateVisitingTotal();
-            } else {
-                switchServiceTab('wedding');
-                document.getElementById('cardCategory').value = name;
-                document.getElementById('cardRate').value = rate;
-                weddingSampleUrl = img;
-                document.getElementById('bottomPreviewImg').src = img;
-                document.getElementById('bottomPreviewContainer').style.display = 'block';
-                calculateWeddingTotal();
-            }
-
-            const user = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!user) {
-                openAuthModal('register');
-            } else {
-                document.getElementById('orderSectionContainer').scrollIntoView({ behavior: 'smooth' });
-            }
+        .weds-divider {
+            display: flex; align-items: center; justify-content: center; margin: 10px 0; position: relative;
+        }
+        .weds-divider::before {
+            content: ""; position: absolute; width: 100%; height: 1px; background: #e2e8f0; top: 50%; left: 0; z-index: 1;
+        }
+        .weds-badge {
+            background: linear-gradient(135deg, #c0392b, #d35400); color: #fff;
+            padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            position: relative; z-index: 2; box-shadow: 0 2px 5px rgba(192, 57, 43, 0.2);
         }
 
-        function calculateWeddingTotal() {
-            var rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            var qty = parseInt(document.getElementById('cardQty').value) || 0;
-            var total = rate * qty;
-            document.getElementById('weddingTotalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
-            updateUpiQr(total);
+        .total-bill-box {
+            background: #fef9c3; border: 1px solid #facc15;
+            padding: 10px; border-radius: 6px; margin: 10px 0;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 15px; font-weight: bold; color: #854d0e;
         }
 
-        function calculateBannerTotal() {
-            var w = parseFloat(document.getElementById('bannerWidth').value) || 0;
-            var h = parseFloat(document.getElementById('bannerHeight').value) || 0;
-            var rate = parseFloat(document.getElementById('bannerRate').value) || 0;
-            var qty = parseInt(document.getElementById('bannerQty').value) || 1;
-            var sqft = w * h;
-            var total = sqft * rate * qty;
-            document.getElementById('bannerSizeDisplay').innerText = `${sqft} Sq.Ft (${qty} पीस)`;
-            document.getElementById('bannerTotalDisplay').innerText = `कुल राशि: ₹${total.toLocaleString('en-IN')}`;
-            updateUpiQr(total);
+        .payment-box {
+            background: #f0fdf4; border: 1px solid #bbf7d0;
+            padding: 14px; border-radius: 8px; text-align: center;
         }
-
-        function calculateVisitingTotal() {
-            var rate = parseFloat(document.getElementById('visitingRate').value) || 0;
-            var boxes = parseInt(document.getElementById('visitingBoxes').value) || 1;
-            var total = rate * boxes;
-            document.getElementById('visitingPiecesDisplay').innerText = `${boxes * 1000} कार्ड्स (${boxes} बॉक्स)`;
-            document.getElementById('visitingTotalDisplay').innerText = `कुल राशि: ₹${total.toLocaleString('en-IN')}`;
-            updateUpiQr(total);
+        .btn-cashfree {
+            background: #097939; color: white; border: none; padding: 10px 18px;
+            font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
         }
-
-        function updateUpiQr(amount) {
-            var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(PAYEE_NAME) + "&am=" + amount + "&cu=INR";
-            document.getElementById('gpayBtn').href = upiUrl;
-            document.getElementById('phonepeBtn').href = upiUrl;
-            document.getElementById('paytmBtn').href = upiUrl;
-            document.getElementById('upiQrCode').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(upiUrl);
+        .qr-wrapper {
+            background: #fff; border: 1px solid #ddd; display: inline-block;
+            padding: 8px; border-radius: 8px; margin: 10px 0;
         }
+        .qr-wrapper img { width: 130px; height: 130px; display: block; }
 
-        function previewBottomSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    weddingSampleUrl = e.target.result;
-                    document.getElementById('bottomPreviewImg').src = weddingSampleUrl;
-                    document.getElementById('bottomPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        function previewBannerSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    bannerSampleUrl = e.target.result;
-                    document.getElementById('bannerPreviewImg').src = bannerSampleUrl;
-                    document.getElementById('bannerPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        function previewVisitingSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    visitingSampleUrl = e.target.result;
-                    document.getElementById('visitingPreviewImg').src = visitingSampleUrl;
-                    document.getElementById('visitingPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function addCoupleField() {
-            var group = document.getElementById('couplesGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item couple-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दूल्हा पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दूल्हा:</label><input type="text" class="groom-name" placeholder="लड़का का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>' +
-                '<div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दुल्हन पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दुल्हन:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>';
-            group.appendChild(div);
-        }
-
-        function addEventField() {
-            var group = document.getElementById('eventsGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item event-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required></div>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>' +
-                    '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>' +
-                '</div>';
-            group.appendChild(div);
-        }
-
-        // =========================================================================
-        // ORDER REVIEW & FINAL WHATSAPP DISPATCH
-        // =========================================================================
-        function openServiceOrderReview(type) {
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!currentUser) {
-                alert("ऑर्डर दर्ज करने के लिए पहले लॉगिन करें!");
-                openAuthModal('login');
-                return;
-            }
-
-            pendingOrderType = type;
-            let displayDetails = "";
-
-            if (type === 'wedding') {
-                var category = document.getElementById('cardCategory').value;
-                var rate = document.getElementById('cardRate').value;
-                var qty = document.getElementById('cardQty').value;
-                var totalAmt = document.getElementById('weddingTotalDisplay').innerText;
-                var txn = document.getElementById('weddingTransId').value || "भुगतान शेष";
-
-                var coupleData = "";
-                var grooms = document.querySelectorAll('.groom-name');
-                var gFathers = document.querySelectorAll('.groom-father');
-                var gAddresses = document.querySelectorAll('.groom-address');
-                var brides = document.querySelectorAll('.bride-name');
-                var bFathers = document.querySelectorAll('.bride-father');
-                var bAddresses = document.querySelectorAll('.bride-address');
-
-                if (grooms.length === 0 || !grooms[0].value) {
-                    alert("कृपया दूल्हा-दुल्हन का नाम भरें!");
-                    return;
-                }
-
-                for (var i = 0; i < grooms.length; i++) {
-                    coupleData += `\n[जोड़ी #${i+1}]\nदूल्हा: ${grooms[i].value} (पिता: ${gFathers[i].value})\nपता: ${gAddresses[i].value}\n-- संग --\nदुल्हन: ${brides[i].value} (पिता: ${bFathers[i].value})\nपता: ${bAddresses[i].value}\n`;
-                }
-
-                var eventData = "";
-                var titles = document.querySelectorAll('.event-title');
-                var dates = document.querySelectorAll('.event-date');
-                var times = document.querySelectorAll('.event-time');
-                for (var j = 0; j < titles.length; j++) {
-                    eventData += `\n- ${titles[j].value}: ${dates[j].value} (${times[j].value || 'समय तय नहीं'})`;
-                }
-
-                var rsvp = document.getElementById('rsvpText').value;
-                var from = document.getElementById('fromText').value;
-                var extra = document.getElementById('extraText').value;
-
-                pendingOrderData = {
-                    service_type: "शादी कार्ड",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: { category, rate, qty, txn, couples: coupleData, events: eventData, rsvp, from, extra }
-                };
-
-                displayDetails = `📋 *शादी कार्ड ऑर्डर रिव्यू*
-──────────────────────
-• ग्राहक: ${currentUser.name} (${currentUser.mobile || currentUser.email})
-• मॉडल: ${category}
-• रेट: ₹${rate} | मात्रा: ${qty}
-• कुल राशि: ${totalAmt}
-• पेमेंट UTR: ${txn}
-──────────────────────
-*दूल्हा-दुल्हन विवरण:*
-${coupleData}
-*कार्यक्रम:*
-${eventData}
-──────────────────────
-• RSVP: ${rsvp || '-'}
-• विनीत: ${from || '-'}
-• विशेष संदेश: ${extra || '-'}`;
-
-            } else if (type === 'banner') {
-                var w = document.getElementById('bannerWidth').value;
-                var h = document.getElementById('bannerHeight').value;
-                var qty = document.getElementById('bannerQty').value;
-                var quality = document.getElementById('bannerQuality').value;
-                var totalAmt = document.getElementById('bannerTotalDisplay').innerText;
-                var title = document.getElementById('bannerTitle').value;
-                var content = document.getElementById('bannerContent').value;
-                var phone = document.getElementById('bannerPhone').value;
-                var address = document.getElementById('bannerAddress').value;
-                var txn = document.getElementById('bannerTransId').value || "भुगतान शेष";
-
-                if (!title || !content) {
-                    alert("कृपया बैनर का शीर्षक और मैटर भरें!");
-                    return;
-                }
-
-                pendingOrderData = {
-                    service_type: "फ्लेक्स बैनर",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: { size: `${w} x ${h} Feet`, qty, quality, title, content, phone, address, txn }
-                };
-
-                displayDetails = `📋 *फ्लेक्स बैनर ऑर्डर रिव्यू*
-──────────────────────
-• ग्राहक: ${currentUser.name} (${currentUser.mobile || currentUser.email})
-• शीर्षक: ${title}
-• साइज़: ${w} x ${h} Feet (${qty} पीस)
-• क्वालिटी: ${quality}
-• कुल राशि: ${totalAmt}
-• पेमेंट UTR: ${txn}
-──────────────────────
-*बैनर का मैटर:*
-${content}
-──────────────────────
-• फोन: ${phone} | पता: ${address}`;
-
-            } else if (type === 'visiting') {
-                var typeVal = document.getElementById('visitingType').value;
-                var rate = document.getElementById('visitingRate').value;
-                var boxes = document.getElementById('visitingBoxes').value;
-                var pieces = document.getElementById('visitingPiecesDisplay').innerText;
-                var totalAmt = document.getElementById('visitingTotalDisplay').innerText;
-                var shopName = document.getElementById('visitingShopName').value;
-                var personName = document.getElementById('visitingPersonName').value;
-                var phone = document.getElementById('visitingPhone').value;
-                var email = document.getElementById('visitingEmail').value;
-                var services = document.getElementById('visitingServices').value;
-                var address = document.getElementById('visitingAddress').value;
-                var txn = document.getElementById('visitingTransId').value || "भुगतान शेष";
-
-                if (!shopName || !phone) {
-                    alert("कृपया दुकान का नाम और फ़ोन भरें!");
-                    return;
-                }
-
-                pendingOrderData = {
-                    service_type: "विजिटिंग कार्ड",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: { type: typeVal, rate, boxes, pieces, shopName, personName, phone, email, services, address, txn }
-                };
-
-                displayDetails = `📋 *विजिटिंग कार्ड ऑर्डर रिव्यू*
-──────────────────────
-• ग्राहक: ${currentUser.name} (${currentUser.mobile || currentUser.email})
-• दुकान/फर्म: ${shopName}
-• प्रोपराइटर: ${personName}
-• प्रकार: ${typeVal} | मात्रा: ${pieces}
-• कुल राशि: ${totalAmt}
-• पेमेंट UTR: ${txn}
-──────────────────────
-*कार्ड सेवाएं / विवरण:*
-${services}
-──────────────────────
-• फोन: ${phone} | पता: ${address}`;
-            }
-
-            pendingWhatsAppText = displayDetails;
-            document.getElementById('reviewContentDisplay').innerText = displayDetails;
-            document.getElementById('orderReviewModal').style.display = 'flex';
-        }
-
-        async function submitFinalOrderToWhatsApp() {
-            const btn = document.getElementById('confirmAndSendWaBtn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> भेजा जा रहा है...`;
-            btn.disabled = true;
-
-            try {
-                if (pendingOrderData) {
-                    await supabaseClient.from('orders').insert([pendingOrderData]);
-                }
-            } catch (err) {
-                console.error("Supabase Save Error:", err);
-            }
-
-            const warningNotice = "\n\n⚠️ *महत्वपूर्ण नोट:* मैंने पूरा मैटर जांच लिया है, कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।";
-            const fullWaMessage = pendingWhatsAppText + warningNotice;
-            const waUrl = `https://wa.me/${OWNER_PHONE}?text=` + encodeURIComponent(fullWaMessage);
-
-            window.open(waUrl, '_blank');
-
-            btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> मैटर सही है, 9304509464 पर WhatsApp भेजें`;
-            btn.disabled = false;
-            closeModal('orderReviewModal');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        window.onclick = function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        };
-
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            renderCatalog();
-            calculateWeddingTotal();
-            calculateBannerTotal();
-            calculateVisitingTotal();
-            checkUserSession();
-        });
-    </script>
-</body>
-</html>
+        .upi-buttons { display: flex; justify-content: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+        .upi-
