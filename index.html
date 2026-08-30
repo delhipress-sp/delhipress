@@ -1152,12 +1152,59 @@
             document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
             document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
         }
+        // ==========================================
+        // 1. SUPABASE CLIENT CONFIGURATION
+        // ==========================================
+        const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
+        const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ==========================================
-        // ADMIN PANEL & FORGOT PIN LOGIC
+        // 2. CUSTOMER CATALOG DISPLAY (कस्टमर के लिए)
+        // ==========================================
+        async function renderCatalog() {
+            const catalogContainer = document.getElementById('catalogContainer');
+            if (!catalogContainer) return;
+
+            catalogContainer.innerHTML = "<p>कार्ड लोड हो रहे हैं...</p>";
+
+            try {
+                const { data: cards, error } = await supabaseClient
+                    .from('cards')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                catalogContainer.innerHTML = "";
+                if (!cards || cards.length === 0) {
+                    catalogContainer.innerHTML = "<p>कोई कार्ड उपलब्ध नहीं है।</p>";
+                    return;
+                }
+
+                cards.forEach(card => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card-item';
+                    cardElement.innerHTML = `
+                        <img src="${card.img_url}" alt="${card.name}" style="width:100%; height:180px; object-fit:cover;" onerror="this.src='placeholder.png'">
+                        <h3>${card.name}</h3>
+                        <p>रेट: ₹${card.rate}</p>
+                        <p>स्टॉक: ${card.stock || 'उपलब्ध'}</p>
+                    `;
+                    catalogContainer.appendChild(cardElement);
+                });
+            } catch (err) {
+                console.error("कैटलॉग लोड करने में त्रुटि:", err);
+                catalogContainer.innerHTML = "<p>कार्ड लोड नहीं हो सके।</p>";
+            }
+        }
+
+        // ==========================================
+        // 3. ADMIN PANEL & FORGOT PIN LOGIC
         // ==========================================
         let secretClickCount = 0;
         let secretTimer = null;
+
         function handleSecretAdminClick() {
             secretClickCount++;
             clearTimeout(secretTimer);
@@ -1168,8 +1215,21 @@
             }
         }
 
-        function getAdminPin() {
-            return localStorage.getItem('dp_admin_pin') || "1234";
+        // Supabase से एडमिन पिन लाना
+        async function getAdminPin() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('admin_settings')
+                    .select('pin')
+                    .eq('id', 'admin_config')
+                    .single();
+
+                if (error || !data) return "1234";
+                return data.pin;
+            } catch (e) {
+                console.error("पिन लाने में त्रुटि:", e);
+                return "1234";
+            }
         }
 
         function openAdminModal() {
@@ -1180,34 +1240,49 @@
             document.getElementById('adminPin').value = '';
         }
 
-        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+        function closeAdminModal() { 
+            document.getElementById('adminModal').style.display = 'none'; 
+        }
 
         function toggleAdminPinView(view) {
             document.getElementById('adminPinSection').style.display = view === 'login' ? 'block' : 'none';
             document.getElementById('adminForgotPinSection').style.display = view === 'forgot' ? 'block' : 'none';
         }
 
-        function verifyAdminPin() {
+        // एडमिन पिन वेरिफाई करना
+        async function verifyAdminPin() {
             const enteredPin = document.getElementById('adminPin').value.trim();
-            if (enteredPin === getAdminPin()) {
+            const correctPin = await getAdminPin();
+
+            if (enteredPin === correctPin) {
                 document.getElementById('adminPinSection').style.display = 'none';
                 document.getElementById('adminWorkSection').style.display = 'block';
-                renderAdminTable();
-                renderAdminUsers();
+                await renderAdminTable();
+                await renderAdminUsers();
             } else {
                 alert("गलत एडमिन पिन! यदि पिन भूल गए हैं तो 'Forgot PIN' पर क्लिक करें।");
             }
         }
 
-        function handleAdminResetPin() {
+        // मास्टर मोबाइल नंबर से पिन रीसेट करना
+        async function handleAdminResetPin() {
             const phone = document.getElementById('adminMasterPhone').value.trim();
             const newPin = document.getElementById('newAdminPin').value.trim();
 
             if (phone === "9304509464") {
                 if (newPin.length >= 4) {
-                    localStorage.setItem('dp_admin_pin', newPin);
-                    alert("एडमिन पिन सफलतापूर्वक बदल दिया गया है! अब नए पिन से लॉगिन करें।");
-                    toggleAdminPinView('login');
+                    try {
+                        const { error } = await supabaseClient
+                            .from('admin_settings')
+                            .upsert({ id: 'admin_config', pin: newPin });
+
+                        if (error) throw error;
+
+                        alert("एडमिन पिन सफलतापूर्वक बदल दिया गया है! अब नए पिन से लॉगिन करें।");
+                        toggleAdminPinView('login');
+                    } catch (err) {
+                        alert("पिन अपडेट करने में समस्या: " + err.message);
+                    }
                 } else {
                     alert("पिन कम से कम ४ अंकों का होना चाहिए!");
                 }
@@ -1221,66 +1296,156 @@
             document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
         }
 
-        function renderAdminTable() {
-            const catalog = getCatalog();
+        // एडमिन टेबल में कार्ड्स लोड करना
+        async function renderAdminTable() {
             const tbody = document.getElementById('adminCardListBody');
-            tbody.innerHTML = "";
-            catalog.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${item.img}" style="width:30px; height:20px; object-fit:cover;"></td>
-                    <td>${item.name}</td>
-                    <td>₹${item.rate}</td>
-                    <td><button type="button" class="btn-del" onclick="deleteCatalogItem(${item.id})">हटाएं</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
+            tbody.innerHTML = "<tr><td colspan='4'>लोड हो रहा है...</td></tr>";
+
+            try {
+                const { data: catalog, error } = await supabaseClient
+                    .from('cards')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                tbody.innerHTML = "";
+                if (!catalog || catalog.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>कोई कार्ड उपलब्ध नहीं है</td></tr>";
+                    return;
+                }
+
+                catalog.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${item.img_url}" style="width:30px; height:20px; object-fit:cover;" onerror="this.src='placeholder.png'"></td>
+                        <td>${item.name}</td>
+                        <td>₹${item.rate}</td>
+                        <td><button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}', '${item.img_path}')">हटाएं</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = "<tr><td colspan='4'>डेटा लोड नहीं हुआ</td></tr>";
+                console.error(err);
+            }
         }
 
+        // एडमिन पैनल में ग्राहक लिस्ट दिखाना
         async function renderAdminUsers() {
             const tbody = document.getElementById('adminUserListBody');
-            tbody.innerHTML = "";
+            tbody.innerHTML = "<tr><td colspan='3'>लोड हो रहा है...</td></tr>";
+
             try {
-                const { data: users } = await supabaseClient.from('users').select('*');
+                const { data: users, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                tbody.innerHTML = "";
                 if (!users || users.length === 0) {
                     tbody.innerHTML = "<tr><td colspan='3'>कोई ग्राहक नहीं</td></tr>";
                     return;
                 }
+
                 users.forEach(u => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${u.name}</td><td>${u.mobile}</td><td>${u.village || '-'}</td>`;
                     tbody.appendChild(tr);
                 });
-            } catch(e) {
+            } catch (e) {
                 tbody.innerHTML = "<tr><td colspan='3'>डेटा लोड नहीं हुआ</td></tr>";
+                console.error(e);
             }
         }
 
-        function handleAddNewCard(e) {
+        // Supabase Storage में फोटो अपलोड और टेबल में कार्ड सेव करना
+        async function handleAddNewCard(e) {
             e.preventDefault();
             const name = document.getElementById('admCardName').value.trim();
             const rate = parseFloat(document.getElementById('admCardRate').value);
             const stock = document.getElementById('admCardStock').value;
             const file = document.getElementById('admCardFile').files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const catalog = getCatalog();
-                catalog.unshift({ id: Date.now(), name: name, rate: rate, stock: stock, img: event.target.result });
-                localStorage.setItem('dp_catalog', JSON.stringify(catalog));
+
+            if (!file) {
+                alert("कृपया कार्ड की फोटो चुनें!");
+                return;
+            }
+
+            try {
+                const fileExt = file.name.split('.').pop();
+                const filePath = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                // स्टोरेज में अपलोड
+                const { error: uploadError } = await supabaseClient
+                    .storage
+                    .from('cards_images')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                // पब्लिक लिंक प्राप्त करना
+                const { data: { publicUrl } } = supabaseClient
+                    .storage
+                    .from('cards_images')
+                    .getPublicUrl(filePath);
+
+                // डेटाबेस में रिकॉर्ड डालना
+                const { error: insertError } = await supabaseClient
+                    .from('cards')
+                    .insert([{
+                        name: name,
+                        rate: rate,
+                        stock: stock,
+                        img_url: publicUrl,
+                        img_path: filePath
+                    }]);
+
+                if (insertError) throw insertError;
+
                 alert("कैटलॉग में जुड़ गया!");
                 document.getElementById('adminCardForm').reset();
-                renderCatalog();
-                renderAdminTable();
-            };
-            reader.readAsDataURL(file);
+                await renderAdminTable();
+                await renderCatalog();
+            } catch (err) {
+                alert("कार्ड जोड़ने में त्रुटि: " + err.message);
+                console.error(err);
+            }
         }
 
-        function deleteCatalogItem(id) {
+        // डेटाबेस और स्टोरेज से कार्ड डिलीट करना
+        async function deleteCatalogItem(id, imgPath) {
             if (confirm("हटाना चाहते हैं?")) {
-                let catalog = getCatalog().filter(c => c.id !== id);
-                localStorage.setItem('dp_catalog', JSON.stringify(catalog));
-                renderCatalog();
-                renderAdminTable();
+                try {
+                    const { error: dbError } = await supabaseClient
+                        .from('cards')
+                        .delete()
+                        .eq('id', id);
+
+                    if (dbError) throw dbError;
+
+                    if (imgPath && imgPath !== 'undefined') {
+                        await supabaseClient.storage.from('cards_images').remove([imgPath]);
+                    }
+
+                    await renderAdminTable();
+                    await renderCatalog();
+                } catch (err) {
+                    alert("हटाने में विफल: " + err.message);
+                    console.error(err);
+                }
+            }
+        }
+
+        // ==========================================
+        // 4. PAGE LOAD INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCatalog();
+        });
+
             }
         }
 
