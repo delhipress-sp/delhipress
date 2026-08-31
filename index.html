@@ -53,6 +53,7 @@
         .btn-login {
             background: var(--primary); color: white !important;
             padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
         }
 
         .user-logged-box { display: none; align-items: center; gap: 8px; }
@@ -103,33 +104,17 @@
         }
 
         .service-tabs-nav {
-            display: flex;
-            background: #fff;
-            border-radius: 8px 8px 0 0;
-            border: 1px solid #cbd5e1;
-            border-bottom: none;
-            overflow-x: auto;
-            white-space: nowrap;
+            display: flex; background: #fff; border-radius: 8px 8px 0 0;
+            border: 1px solid #cbd5e1; border-bottom: none; overflow-x: auto; white-space: nowrap;
         }
         .service-tab-btn {
-            flex: 1; min-width: 140px;
-            padding: 12px 10px;
-            background: #f1f5f9;
-            border: none;
-            font-size: 14px;
-            font-weight: 700;
-            color: #475569;
-            cursor: pointer;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            flex: 1; min-width: 140px; padding: 12px 10px; background: #f1f5f9;
+            border: none; font-size: 14px; font-weight: 700; color: #475569;
+            cursor: pointer; text-align: center; display: flex; align-items: center;
+            justify-content: center; gap: 6px;
         }
         .service-tab-btn.active {
-            background: #fff;
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
+            background: #fff; color: var(--primary); border-bottom: 3px solid var(--primary);
         }
 
         .form-lock-wrapper { position: relative; }
@@ -270,29 +255,6 @@
             max-height: 320px; overflow-y: auto; white-space: pre-line;
         }
 
-        .admin-table {
-            width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 11px;
-        }
-        .admin-table th, .admin-table td {
-            border: 1px solid #ddd; padding: 6px; text-align: center;
-        }
-        .admin-table th { background: #f1f5f9; }
-        .btn-del {
-            background: #ef4444; color: white; border: none; padding: 4px 6px;
-            border-radius: 3px; cursor: pointer; font-size: 11px;
-        }
-        .btn-view-pdf {
-            background: #2980b9; color: white; border: none; padding: 4px 6px;
-            border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;
-        }
-
-        .btn-stock-toggle {
-            border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px;
-            font-weight: 700; cursor: pointer; color: white;
-        }
-        .btn-stock-in { background: #27ae60; }
-        .btn-stock-out { background: #d35400; }
-
         footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 25px; }
 
         @media (max-width: 768px) {
@@ -306,14 +268,6 @@
             .showcase-box { padding: 10px; }
             .form-wrapper { padding: 12px; }
         }
-
-        @media print {
-            body * { visibility: hidden; }
-            #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
-            #printableReceiptArea {
-                position: absolute; left: 0; top: 0; width: 100%; display: block !important; background: #fff; padding: 20px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -325,7 +279,7 @@
 
     <nav class="navbar">
         <div class="nav-brand">
-            <h2 id="brandLogoTitle" onclick="handleSecretAdminClick()">दिल्ली प्रेस</h2>
+            <h2 id="brandLogoTitle" onclick="window.location.href='admin.html'">दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
@@ -333,7 +287,7 @@
             <li><a href="#orderSectionContainer">ऑर्डर फॉर्म</a></li>
             <li><a href="#paymentSection">पेमेंट</a></li>
             <li id="authNavContainer">
-                <a href="javascript:void(0)" class="btn-login" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
+                <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
             <li class="user-logged-box" id="userLoggedBox">
                 <span class="user-name-display" id="displayUserName"></span>
@@ -344,7 +298,6 @@
 
     <div class="container">
         
-        <!-- नोटिस बैनर -->
         <div class="notice-banner">
             <i class="fa-solid fa-triangle-exclamation" style="font-size: 16px;"></i>
             <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
@@ -377,10 +330,10 @@
                 <i class="fa-solid fa-lock"></i>
                 <h3>ऑर्डर फॉर्म लॉक है</h3>
                 <p>ऑर्डर दर्ज करने के लिए लॉगिन अनिवार्य है।</p>
-                <button type="button" class="btn-login" onclick="openAuthModal('register')" style="border:none; padding:8px 18px !important; font-size:14px;">
+                <a href="login.html?mode=register" class="btn-login" style="border:none; padding:8px 18px !important; font-size:14px;">
                     <i class="fa-solid fa-user-plus"></i> नया अकाउंट बनाएं
-                </button>
-                <a onclick="openAuthModal('login')" style="margin-top:10px; font-size:13px; color:var(--blue); text-decoration:none; cursor:pointer; font-weight:bold;">
+                </a>
+                <a href="login.html?mode=login" style="margin-top:10px; font-size:13px; color:var(--blue); text-decoration:none; cursor:pointer; font-weight:bold;">
                     पहले से अकाउंट है? यहाँ लॉगिन करें
                 </a>
             </div>
@@ -754,206 +707,14 @@
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i>कॉल करें</a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i>कैटलॉग</a>
         <a href="#orderSectionContainer"><i class="fa-solid fa-file-pen"></i>ऑर्डर</a>
-        <a href="javascript:void(0)" onclick="openAuthModal('login')"><i class="fa-solid fa-user"></i>खाता</a>
+        <a href="login.html"><i class="fa-solid fa-user"></i>खाता</a>
     </div>
-
-    <script>window.location.href = "admin.html";</script>
-
-            <!-- Forgot Admin PIN Section -->
-            <div id="adminForgotPinSection" style="display: none;">
-                <h3 style="color: var(--secondary); text-align: center; margin-bottom: 10px;">एडमिन पिन रीसेट</h3>
-                <div class="form-group">
-                    <label>मास्टर मोबाइल नंबर:</label>
-                    <input type="tel" id="adminMasterPhone" placeholder="9304509464 दर्ज करें">
-                </div>
-                <div class="form-group">
-                    <label>नया एडमिन पिन बनाएं:</label>
-                    <input type="password" id="newAdminPin" placeholder="नया ४ अंकों का पिन">
-                </div>
-                <button type="button" onclick="handleAdminResetPin()" style="width: 100%; padding: 8px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                    पिन अपडेट करें
-                </button>
-                <div style="text-align:center; margin-top:10px;">
-                    <a onclick="toggleAdminPinView('login')" style="font-size:12px; color:var(--primary); cursor:pointer;">वापस लॉगिन करें</a>
-                </div>
-            </div>
-
-            <div id="adminWorkSection" style="display: none;">
-                <h3 style="color: var(--primary); text-align: center; margin-bottom: 10px;">कंट्रोल पैनल</h3>
-                <div style="display:flex; gap:6px; margin-bottom:10px; flex-wrap: wrap;">
-                    <button type="button" onclick="showAdminTab('orders')" style="flex:1; min-width:120px; padding:6px; background:#d35400; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📦 ग्राहक ऑर्डर्स</button>
-                    <button type="button" onclick="showAdminTab('cards')" style="flex:1; min-width:120px; padding:6px; background:#2980b9; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">कैटलॉग व स्टॉक</button>
-                    <button type="button" onclick="showAdminTab('users')" style="flex:1; min-width:120px; padding:6px; background:#27ae60; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">ग्राहक लिस्ट</button>
-                </div>
-
-                <!-- 1. Orders Tab -->
-                <div id="adminOrdersTab">
-                    <h4 style="margin-top: 10px; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 13px;">प्राप्त ऑर्डर्स व डिज़ाइन मैटर:</h4>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>दिनांक</th>
-                                <th>सर्विस</th>
-                                <th>ग्राहक</th>
-                                <th>राशि</th>
-                                <th>प्रिंट</th>
-                                <th>हटाएं</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminOrdersListBody"></tbody>
-                    </table>
-                </div>
-
-                <!-- 2. Catalog Tab -->
-                <div id="adminCardsTab" style="display: none;">
-                    <form id="adminCardForm" onsubmit="handleAddNewCard(event)">
-                        <div class="form-group">
-                            <label>आइटम का नाम:</label>
-                            <input type="text" id="admCardName" placeholder="उदा: शादी कार्ड / फ्लेक्स" required>
-                        </div>
-                        <div class="form-group">
-                            <label>रेट (₹):</label>
-                            <input type="number" id="admCardRate" placeholder="उदा: 12" required>
-                        </div>
-                        <div class="form-group">
-                            <label>स्टॉक स्टेटस:</label>
-                            <select id="admCardStock">
-                                <option value="in">उपलब्ध (In Stock)</option>
-                                <option value="out">स्टॉक समाप्त (Out of Stock)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>फोटो:</label>
-                            <input type="file" id="admCardFile" accept="image/*" required>
-                        </div>
-                        <button type="submit" id="admCardSubmitBtn" style="width: 100%; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                            + कैटलॉग में जोड़ें
-                        </button>
-                    </form>
-
-                    <h4 style="margin-top: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 13px;">कैटलॉग स्टॉक लिस्ट:</h4>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>फोटो</th>
-                                <th>नाम</th>
-                                <th>रेट</th>
-                                <th>वर्तमान स्थिति</th>
-                                <th>स्टॉक एक्शन</th>
-                                <th>हटाएं</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminCardListBody"></tbody>
-                    </table>
-                </div>
-
-                <!-- 3. Users Tab -->
-                <div id="adminUsersTab" style="display: none;">
-                    <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 13px;">ग्राहक रिकॉर्ड:</h4>
-                    <table class="admin-table">
-                        <thead><tr><th>नाम</th><th>मोबाइल / ईमेल</th><th>गाँव</th></tr></thead>
-                        <tbody id="adminUserListBody"></tbody>
-                    </table>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Auth Modal -->
-    <div id="authModal" class="modal">
-        <div class="modal-content" style="max-width: 420px;">
-            <span class="close-btn" onclick="closeAuthModal()">&times;</span>
-
-            <!-- 1. Login Section -->
-            <div id="loginSection">
-                <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h3>
-                <form onsubmit="handleLoginSubmit(event)">
-                    <div class="form-group">
-                        <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="loginEmail" required placeholder="ईमेल आईडी दर्ज करें">
-                    </div>
-                    <div class="form-group">
-                        <label>पासवर्ड:</label>
-                        <input type="password" id="loginPass" required placeholder="पासवर्ड">
-                    </div>
-                    <div style="text-align: right; margin-bottom: 10px;">
-                        <a onclick="toggleAuthView('forgot')" style="font-size: 12px; color: var(--secondary); text-decoration: none; cursor: pointer; font-weight: bold;">पासवर्ड भूल गए?</a>
-                    </div>
-                    <button type="submit" id="loginBtn" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगिन करें</button>
-                </form>
-                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
-                    नया खाता? <a onclick="toggleAuthView('register')" style="color: var(--primary); font-weight: bold; cursor: pointer;">नया अकाउंट बनाएं</a>
-                </div>
-            </div>
-
-            <!-- 2. Forgot Password Section -->
-            <div id="forgotSection" style="display: none;">
-                <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h3>
-                <form onsubmit="handleForgotSubmit(event)">
-                    <div class="form-group">
-                        <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="forgotEmail" required placeholder="रजिस्टर्ड ईमेल दर्ज करें">
-                    </div>
-                    <div class="form-group">
-                        <label>नया पासवर्ड:</label>
-                        <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड (कम से कम 4 अंक)" minlength="4">
-                    </div>
-                    <button type="submit" id="forgotBtn" style="width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">पासवर्ड अपडेट करें</button>
-                </form>
-                <div style="font-size: 13px; text-align: center; margin-top: 10px;">
-                    <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन पर वापस जाएं</a>
-                </div>
-            </div>
-
-            <!-- 3. Register Section -->
-            <div id="registerSection" style="display: none;">
-                <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
-                <form id="regForm" onsubmit="handleRegisterSubmit(event)">
-                    <div class="form-group">
-                        <label>पूरा नाम:</label>
-                        <input type="text" id="regName" required placeholder="आपका नाम">
-                    </div>
-                    <div class="form-group">
-                        <label>ईमेल एड्रेस:</label>
-                        <input type="email" id="regEmail" required placeholder="ईमेल आईडी दर्ज करें">
-                    </div>
-                    <div class="form-group">
-                        <label>मोबाइल नंबर:</label>
-                        <input type="tel" id="regMobile" required placeholder="मोबाइल नंबर">
-                    </div>
-                    <div class="form-group">
-                        <label>गाँव / शहर:</label>
-                        <input type="text" id="regVillage" placeholder="गाँव या शहर का नाम">
-                    </div>
-                    <div class="form-group">
-                        <label>पूरा पता:</label>
-                        <textarea id="regAddress" rows="2" placeholder="थाना, पोस्ट, जिला..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>पासवर्ड बनाएं:</label>
-                        <input type="password" id="regPass" required placeholder="कम से कम ४ अंक" minlength="4">
-                    </div>
-                    <button type="submit" id="regBtn" style="width: 100%; padding: 10px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">रजिस्टर करें</button>
-                </form>
-                <div style="font-size: 13px; text-align: center; margin-top: 15px;">
-                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Print Area -->
-    <div id="printableReceiptArea" style="display: none;"></div>
 
     <footer>
         <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | 9304509464</p>
     </footer>
 
     <script>
-        // =========================================================================
-        // SUPABASE REALTIME CLOUD ENGINE
-        // =========================================================================
         const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -961,146 +722,13 @@
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "Delhi Press Sajjad Prints";
         const OWNER_PHONE = "919304509464";
-        const OWNER_EMAIL = "mdsajadans@gmail.com";
 
         let weddingSampleUrl = "";
         let bannerSampleUrl = "";
         let visitingSampleUrl = "";
 
         let pendingOrderData = null;
-        let pendingOrderType = "";
         let pendingWhatsAppText = "";
-
-        // ==========================================
-        // AUTHENTICATION LOGIC (Supabase Users)
-        // ==========================================
-        async function handleRegisterSubmit(e) {
-            if (e) e.preventDefault();
-            const btn = document.getElementById('regBtn');
-            btn.innerText = "जांच हो रही है..."; btn.disabled = true;
-
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim().toLowerCase();
-            const mobile = document.getElementById('regMobile').value.trim();
-            const village = document.getElementById('regVillage').value.trim();
-            const address = document.getElementById('regAddress').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-
-            try {
-                const { data: existingUser } = await supabaseClient
-                    .from('users')
-                    .select('email')
-                    .eq('email', email)
-                    .maybeSingle();
-
-                if (existingUser) {
-                    alert("यह ईमेल आईडी पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
-                    toggleAuthView('login');
-                    return;
-                }
-
-                const { error } = await supabaseClient
-                    .from('users')
-                    .insert([{
-                        email: email,
-                        mobile: mobile,
-                        name: name,
-                        village: village,
-                        address: address,
-                        pass: pass
-                    }]);
-
-                if (error) throw error;
-
-                const newUser = { name, email, mobile, village, address };
-                localStorage.setItem('dp_current_user', JSON.stringify(newUser));
-
-                fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({
-                        _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name}`,
-                        नाम: name, ईमेल: email, फोन: mobile, गाँव: village, पता: address
-                    })
-                }).catch(() => {});
-
-                alert("अकाउंट सफलतापूर्वक बन गया है!");
-                closeAuthModal();
-                checkUserSession();
-            } catch (err) {
-                alert("त्रुटि: " + err.message);
-            } finally {
-                btn.innerText = "रजिस्टर करें"; btn.disabled = false;
-            }
-        }
-
-        async function handleLoginSubmit(e) {
-            if (e) e.preventDefault();
-            const btn = document.getElementById('loginBtn');
-            const originalText = btn.innerText;
-            btn.innerText = "जांच हो रही है..."; btn.disabled = true;
-
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const pass = document.getElementById('loginPass').value.trim();
-
-            try {
-                const { data: user, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('email', email)
-                    .maybeSingle();
-
-                if (error) throw error;
-
-                if (user) {
-                    if (String(user.pass).trim() === pass) {
-                        localStorage.setItem('dp_current_user', JSON.stringify(user));
-                        alert("स्वागत है, " + user.name + "! लॉगिन सफल रहा।");
-                        closeAuthModal();
-                        checkUserSession();
-                    } else {
-                        alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
-                    }
-                } else {
-                    alert("यह ईमेल नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
-                    toggleAuthView('register');
-                }
-            } catch (err) {
-                alert("लॉगिन एरर: " + err.message);
-            } finally {
-                btn.innerText = originalText; btn.disabled = false;
-            }
-        }
-
-        async function handleForgotSubmit(e) {
-            if (e) e.preventDefault();
-            const btn = document.getElementById('forgotBtn');
-            btn.innerText = "अपडेट हो रहा है..."; btn.disabled = true;
-
-            const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
-            const newPass = document.getElementById('forgotNewPass').value.trim();
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('users')
-                    .update({ pass: newPass })
-                    .eq('email', email)
-                    .select();
-
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    alert("पासवर्ड सफलतापूर्वक बदल दिया गया है! अब नए पासवर्ड से लॉगिन करें।");
-                    toggleAuthView('login');
-                } else {
-                    alert("यह ईमेल सिस्टम में नहीं मिला!");
-                }
-            } catch (err) {
-                alert("पासवर्ड अपडेट करने में त्रुटि: " + err.message);
-            } finally {
-                btn.innerText = "पासवर्ड अपडेट करें"; btn.disabled = false;
-            }
-        }
 
         function handleLogout() {
             localStorage.removeItem('dp_current_user');
@@ -1128,404 +756,6 @@
             }
         }
 
-        function openAuthModal(view) {
-            document.getElementById('authModal').style.display = 'flex';
-            toggleAuthView(view);
-        }
-        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
-        function toggleAuthView(view) {
-            document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
-            document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
-            document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
-        }
-
-        // ==========================================
-        // ADMIN PANEL & PIN CONTROL
-        // ==========================================
-        let secretClickCount = 0;
-        let secretTimer = null;
-        function handleSecretAdminClick() {
-            secretClickCount++;
-            clearTimeout(secretTimer);
-            secretTimer = setTimeout(() => { secretClickCount = 0; }, 800);
-            if (secretClickCount >= 3) {
-                secretClickCount = 0;
-                openAdminModal();
-            }
-        }
-
-        async function getAdminPin() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('admin_settings')
-                    .select('pin')
-                    .eq('id', 'admin_config')
-                    .single();
-                if (error || !data) return "1234";
-                return data.pin;
-            } catch (e) {
-                return "1234";
-            }
-        }
-
-        function openAdminModal() {
-            document.getElementById('adminModal').style.display = 'flex';
-            document.getElementById('adminPinSection').style.display = 'block';
-            document.getElementById('adminForgotPinSection').style.display = 'none';
-            document.getElementById('adminWorkSection').style.display = 'none';
-            document.getElementById('adminPin').value = '';
-        }
-
-        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
-
-        function toggleAdminPinView(view) {
-            document.getElementById('adminPinSection').style.display = view === 'login' ? 'block' : 'none';
-            document.getElementById('adminForgotPinSection').style.display = view === 'forgot' ? 'block' : 'none';
-        }
-
-        async function verifyAdminPin() {
-            const enteredPin = document.getElementById('adminPin').value.trim();
-            const correctPin = await getAdminPin();
-            if (enteredPin === correctPin) {
-                document.getElementById('adminPinSection').style.display = 'none';
-                document.getElementById('adminWorkSection').style.display = 'block';
-                showAdminTab('orders');
-            } else {
-                alert("गलत एडमिन पिन! यदि पिन भूल गए हैं तो 'Forgot PIN' पर क्लिक करें।");
-            }
-        }
-
-        async function handleAdminResetPin() {
-            const phone = document.getElementById('adminMasterPhone').value.trim();
-            const newPin = document.getElementById('newAdminPin').value.trim();
-
-            if (phone === "9304509464") {
-                if (newPin.length >= 4) {
-                    try {
-                        const { error } = await supabaseClient
-                            .from('admin_settings')
-                            .upsert({ id: 'admin_config', pin: newPin });
-                        if (error) throw error;
-                        alert("एडमिन पिन बदल दिया गया है! अब नए पिन से लॉगिन करें।");
-                        toggleAdminPinView('login');
-                    } catch (e) {
-                        alert("पिन अपडेट में एरर: " + e.message);
-                    }
-                } else {
-                    alert("पिन कम से कम ४ अंकों का होना चाहिए!");
-                }
-            } else {
-                alert("गलत मास्टर मोबाइल नंबर! केवल 9304509464 ही मान्य है।");
-            }
-        }
-
-        function showAdminTab(tab) {
-            document.getElementById('adminOrdersTab').style.display = tab === 'orders' ? 'block' : 'none';
-            document.getElementById('adminCardsTab').style.display = tab === 'cards' ? 'block' : 'none';
-            document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
-
-            if (tab === 'orders') renderAdminOrders();
-            if (tab === 'cards') renderAdminTable();
-            if (tab === 'users') renderAdminUsers();
-        }
-
-        // ==========================================
-        // ADMIN ORDERS TAB LOGIC
-        // ==========================================
-        let adminOrdersCache = [];
-
-        async function renderAdminOrders() {
-            const tbody = document.getElementById('adminOrdersListBody');
-            tbody.innerHTML = "<tr><td colspan='6'>ऑर्डर्स लोड हो रहे हैं...</td></tr>";
-
-            try {
-                const { data: orders, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                adminOrdersCache = orders || [];
-
-                tbody.innerHTML = "";
-                if (!orders || orders.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='6'>कोई नया ऑर्डर नहीं मिला।</td></tr>";
-                    return;
-                }
-
-                orders.forEach((ord, index) => {
-                    const tr = document.createElement('tr');
-                    const d = new Date(ord.created_at);
-                    const formattedDate = `${d.getDate()}/${d.getMonth()+1} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
-                    tr.innerHTML = `
-                        <td>${formattedDate}</td>
-                        <td><b>${ord.service_type}</b></td>
-                        <td>${ord.customer_name}<br><small>${ord.customer_phone}</small></td>
-                        <td><b style="color:var(--primary);">${ord.total_bill}</b></td>
-                        <td>
-                            <button type="button" class="btn-view-pdf" onclick="viewOrderPrint(${index})">
-                                <i class="fa-solid fa-print"></i> प्रिंट
-                            </button>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-del" onclick="deleteOrderRecord(${ord.id})">हटाएं</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                tbody.innerHTML = "<tr><td colspan='6'>ऑर्डर लोड करने में समस्या: " + err.message + "</td></tr>";
-            }
-        }
-
-        async function deleteOrderRecord(id) {
-            if (confirm("क्या आप इस ऑर्डर को सूची से हटाना चाहते हैं?")) {
-                try {
-                    await supabaseClient.from('orders').delete().eq('id', id);
-                    renderAdminOrders();
-                } catch (e) {
-                    alert("हटाने में विफल: " + e.message);
-                }
-            }
-        }
-
-        function viewOrderPrint(index) {
-            const ord = adminOrdersCache[index];
-            if (!ord) return;
-
-            const printArea = document.getElementById('printableReceiptArea');
-            const data = ord.order_data || {};
-            const d = new Date(ord.created_at).toLocaleDateString('hi-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-
-            let detailsHtml = "";
-
-            if (ord.service_type === "शादी कार्ड") {
-                detailsHtml = `
-                    <div style="background:#fdfaf6; padding:10px; border-left:4px solid #d35400; margin-bottom:12px;">
-                        <h4 style="margin:0 0 5px 0; color:#c0392b;">कार्ड मॉडल: ${data.category || '-'}</h4>
-                        <p style="margin:0; font-size:13px;">रेट: ₹${data.rate} प्रति पीस | संख्या: ${data.qty} कार्ड्स | UTR: ${data.txn || 'भुगतान शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0; border-bottom:1px solid #eee; padding-bottom:4px;">दूल्हा-दुल्हन एवं पारिवारिक विवरण:</h4>
-                        <pre style="white-space:pre-wrap; font-family:sans-serif; font-size:13px; margin:0; line-height:1.6;">${data.couples}</pre>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0; border-bottom:1px solid #eee; padding-bottom:4px;">कार्यक्रम एवं शुभ तिथियां:</h4>
-                        <pre style="white-space:pre-wrap; font-family:sans-serif; font-size:13px; margin:0; line-height:1.6;">${data.events}</pre>
-                    </div>
-                    <div style="display:flex; gap:10px; font-size:13px; margin-bottom:10px;">
-                        <div style="flex:1; border:1px solid #cbd5e1; padding:8px; border-radius:4px;"><b>RSVP:</b><br>${data.rsvp || '-'}</div>
-                        <div style="flex:1; border:1px solid #cbd5e1; padding:8px; border-radius:4px;"><b>विनीत / निवेदक:</b><br>${data.from || '-'}</div>
-                    </div>
-                    ${data.extra ? `<div style="border:1px solid #cbd5e1; padding:8px; border-radius:4px; font-size:13px; margin-bottom:10px;"><b>शायरी / संदेश:</b> ${data.extra}</div>` : ''}
-                `;
-            } else if (ord.service_type === "फ्लेक्स बैनर") {
-                detailsHtml = `
-                    <div style="background:#fdfaf6; padding:10px; border-left:4px solid #2980b9; margin-bottom:12px;">
-                        <h4 style="margin:0 0 5px 0;">शीर्षक: ${data.title}</h4>
-                        <p style="margin:0; font-size:13px;">साइज़: ${data.size} | क्वालिटी: ${data.quality} | मात्रा: ${data.qty} | UTR: ${data.txn || 'शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0;">बैनर पर छपने वाला संपूर्ण मैटर:</h4>
-                        <p style="white-space:pre-wrap; font-size:14px; margin:0; line-height:1.6;">${data.content}</p>
-                    </div>
-                    <p style="font-size:13px; margin:0;"><b>संपर्क फोन:</b> ${data.phone} | <b>स्थान/पता:</b> ${data.address}</p>
-                `;
-            } else {
-                detailsHtml = `
-                    <div style="background:#fdfaf6; padding:10px; border-left:4px solid #27ae60; margin-bottom:12px;">
-                        <h4 style="margin:0 0 5px 0;">प्रतिष्ठान: ${data.shopName} (प्रोप: ${data.personName})</h4>
-                        <p style="margin:0; font-size:13px;">प्रकार: ${data.type} | दर: ₹${data.rate} | बॉक्स: ${data.boxes} (${data.pieces}) | UTR: ${data.txn || 'शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; padding:10px; border-radius:6px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0;">विजिटिंग कार्ड मैटर / सेवाएं:</h4>
-                        <p style="white-space:pre-wrap; font-size:14px; margin:0;">${data.services}</p>
-                    </div>
-                    <p style="font-size:13px; margin:0;"><b>फोन:</b> ${data.phone} | <b>ईमेल:</b> ${data.email || '-'} | <b>पता:</b> ${data.address}</p>
-                `;
-            }
-
-            printArea.innerHTML = `
-                <div style="font-family:'Mukta', sans-serif; max-width:800px; margin:auto; padding:20px; border:2px solid #333; border-radius:8px;">
-                    <div style="text-align:center; border-bottom:2px solid #333; padding-bottom:8px; margin-bottom:12px;">
-                        <h2 style="margin:0; color:#c0392b; font-size:24px;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-                        <p style="margin:2px 0; font-size:13px;">मो: 9304509464 | ईमेल: mdsajadans@gmail.com</p>
-                        <h3 style="margin:4px 0 0 0; background:#f1f5f9; display:inline-block; padding:3px 15px; border-radius:4px; font-size:16px;">
-                            ${ord.service_type} डिज़ाइन वर्कशॉप रसीद
-                        </h3>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:12px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">
-                        <span><b>ग्राहक:</b> ${ord.customer_name} (${ord.customer_phone})</span>
-                        <span><b>दिनांक:</b> ${d}</span>
-                        <span><b>कुल बिल:</b> <span style="font-size:16px; color:#c0392b; font-weight:bold;">${ord.total_bill}</span></span>
-                    </div>
-                    ${detailsHtml}
-                    <div style="margin-top:20px; border-top:1px solid #ddd; padding-top:6px; display:flex; justify-content:space-between; font-size:11px; color:#666;">
-                        <span>कंप्यूटर प्रिंटिंग डिज़ाइन कॉपी</span>
-                        <span>अधिकृत हस्ताक्षर: सज्जाद डिजिटल प्रिंट्स</span>
-                    </div>
-                </div>
-            `;
-
-            window.print();
-        }
-
-        // ==========================================
-        // CATALOG TAB (स्टॉक टॉगल + डिलीट)
-        // ==========================================
-        async function renderAdminTable() {
-            const tbody = document.getElementById('adminCardListBody');
-            tbody.innerHTML = "<tr><td colspan='6'>लोड हो रहा है...</td></tr>";
-
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                tbody.innerHTML = "";
-                if (!cards || cards.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='6'>कोई कार्ड उपलब्ध नहीं</td></tr>";
-                    return;
-                }
-
-                cards.forEach(item => {
-                    const isOut = item.stock === 'out';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><img src="${item.img_url}" style="width:30px; height:20px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/30'"></td>
-                        <td>${item.name}</td>
-                        <td>₹${item.rate}</td>
-                        <td>
-                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">
-                                ${isOut ? 'Out of Stock' : 'In Stock'}
-                            </span>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-stock-toggle ${isOut ? 'btn-stock-in' : 'btn-stock-out'}" onclick="toggleCardStockStatus('${item.id}', '${item.stock || 'in'}')">
-                                ${isOut ? 'Stock In करें' : 'Out of Stock करें'}
-                            </button>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}', '${item.img_path}')">
-                                <i class="fa-solid fa-trash"></i> हटाएं
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                tbody.innerHTML = "<tr><td colspan='6'>डेटा लोड नहीं हुआ: " + err.message + "</td></tr>";
-            }
-        }
-
-        async function toggleCardStockStatus(id, currentStock) {
-            const newStock = (currentStock === 'out') ? 'in' : 'out';
-            try {
-                const { error } = await supabaseClient
-                    .from('cards')
-                    .update({ stock: newStock })
-                    .eq('id', id);
-
-                if (error) throw error;
-                await renderAdminTable();
-                await renderCatalog();
-            } catch (err) {
-                alert("स्टॉक स्थिति बदलने में समस्या: " + err.message);
-            }
-        }
-
-        async function deleteCatalogItem(id, imgPath) {
-            if (confirm("क्या आप इस आइटम को कैटलॉग से स्थायी रूप से हटाना चाहते हैं?")) {
-                try {
-                    const { error } = await supabaseClient.from('cards').delete().eq('id', id);
-                    if (error) throw error;
-
-                    if (imgPath && imgPath !== 'undefined') {
-                        await supabaseClient.storage.from('cards_images').remove([imgPath]);
-                    }
-
-                    await renderAdminTable();
-                    await renderCatalog();
-                } catch (err) {
-                    alert("हटाने में समस्या: " + err.message);
-                }
-            }
-        }
-
-        async function renderAdminUsers() {
-            const tbody = document.getElementById('adminUserListBody');
-            tbody.innerHTML = "<tr><td colspan='3'>लोड हो रहा है...</td></tr>";
-            try {
-                const { data: users, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
-
-                tbody.innerHTML = "";
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='3'>कोई ग्राहक नहीं</td></tr>";
-                    return;
-                }
-                users.forEach(u => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${u.name}</td><td>${u.mobile || u.email}</td><td>${u.village || '-'}</td>`;
-                    tbody.appendChild(tr);
-                });
-            } catch(e) {
-                tbody.innerHTML = "<tr><td colspan='3'>डेटा लोड नहीं हुआ</td></tr>";
-            }
-        }
-
-        async function handleAddNewCard(e) {
-            if (e) e.preventDefault();
-            const btn = document.getElementById('admCardSubmitBtn');
-            btn.innerText = "अपलोड हो रहा है..."; btn.disabled = true;
-
-            const name = document.getElementById('admCardName').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value);
-            const stock = document.getElementById('admCardStock').value;
-            const file = document.getElementById('admCardFile').files[0];
-
-            if (!file) {
-                alert("कृपया फोटो चुनें!");
-                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
-                return;
-            }
-
-            try {
-                const fileExt = file.name.split('.').pop();
-                const filePath = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                const { error: uploadError } = await supabaseClient.storage.from('cards_images').upload(filePath, file);
-                if (uploadError) throw uploadError;
-
-                const { data: { publicUrl } } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
-
-                const { error: insertError } = await supabaseClient.from('cards').insert([{
-                    name: name,
-                    rate: rate,
-                    stock: stock,
-                    img_url: publicUrl,
-                    img_path: filePath
-                }]);
-
-                if (insertError) throw insertError;
-
-                alert("कैटलॉग में जुड़ गया!");
-                document.getElementById('adminCardForm').reset();
-                await renderAdminTable();
-                await renderCatalog();
-            } catch (err) {
-                alert("अपलोड में समस्या: " + err.message);
-            } finally {
-                btn.innerText = "+ कैटलॉग में जोड़ें"; btn.disabled = false;
-            }
-        }
-
-        // ==========================================
-        // TABS, CATALOG & CALCULATIONS
-        // ==========================================
         function switchServiceTab(tabName) {
             document.querySelectorAll('.service-tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.service-form-section').forEach(sec => sec.style.display = 'none');
@@ -1545,7 +775,6 @@
         async function renderCatalog() {
             const container = document.getElementById('catalogContainer');
             if (!container) return;
-
             container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड हो रहे हैं...</p>";
 
             try {
@@ -1555,7 +784,6 @@
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-
                 container.innerHTML = "";
                 if (!cards || cards.length === 0) {
                     container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कोई कार्ड उपलब्ध नहीं है।</p>";
@@ -1611,7 +839,7 @@
 
             const user = JSON.parse(localStorage.getItem('dp_current_user') || "null");
             if (!user) {
-                openAuthModal('register');
+                window.location.href = "login.html?mode=register";
             } else {
                 document.getElementById('orderSectionContainer').scrollIntoView({ behavior: 'smooth' });
             }
@@ -1683,21 +911,56 @@
             if (file) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-
+                    visitingSampleUrl = e.target.result;
+                    document.getElementById('visitingPreviewImg').src = visitingSampleUrl;
+                    document.getElementById('visitingPreviewContainer').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
         }
 
-        // =========================================================================
-        // ORDER REVIEW & FINAL WHATSAPP DISPATCH
-        // =========================================================================
+        function addCoupleField() {
+            var group = document.getElementById('couplesGroup');
+            var div = document.createElement('div');
+            div.className = 'dynamic-item couple-item';
+            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
+                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दूल्हा पक्ष]</p>' +
+                '<div class="row-2">' +
+                    '<div class="form-group"><label>दूल्हा:</label><input type="text" class="groom-name" placeholder="लड़का का नाम" required></div>' +
+                    '<div class="form-group"><label>पिता:</label><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>' +
+                '</div>' +
+                '<div class="form-group"><label>पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>' +
+                '<div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>' +
+                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दुल्हन पक्ष]</p>' +
+                '<div class="row-2">' +
+                    '<div class="form-group"><label>दुल्हन:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>' +
+                    '<div class="form-group"><label>पिता:</label><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>' +
+                '</div>' +
+                '<div class="form-group"><label>पता:</label><input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>';
+            group.appendChild(div);
+        }
+
+        function addEventField() {
+            var group = document.getElementById('eventsGroup');
+            var div = document.createElement('div');
+            div.className = 'dynamic-item event-item';
+            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
+                '<div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required></div>' +
+                '<div class="row-2">' +
+                    '<div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>' +
+                    '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>' +
+                '</div>';
+            group.appendChild(div);
+        }
+
         function openServiceOrderReview(type) {
             const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
             if (!currentUser) {
                 alert("ऑर्डर दर्ज करने के लिए पहले लॉगिन करें!");
-                openAuthModal('login');
+                window.location.href = "login.html?mode=login";
                 return;
             }
 
-            pendingOrderType = type;
             let displayDetails = "";
 
             if (type === 'wedding') {
@@ -1881,9 +1144,6 @@ ${services}
             }
         };
 
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
             renderCatalog();
             calculateWeddingTotal();
