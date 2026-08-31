@@ -147,14 +147,14 @@
             ordersBox.style.display = 'block';
             greetDisplay.innerText = currentUser.name ? "ग्राहक: " + currentUser.name : "";
 
-            const phone = currentUser.mobile || currentUser.phone || "";
+            const email = currentUser.email || currentUser.email || "";
 
             try {
                 // Supabase से ग्राहक के ऑर्डर्स निकालना
                 const { data: orders, error } = await supabaseClient
                     .from('orders')
                     .select('*')
-                    .eq('customer_phone', phone)
+                    .eq('customer_email', email)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -164,7 +164,7 @@
                         <div class="auth-card" style="padding: 25px;">
                             <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #94a3b8;"></i>
                             <h4 style="margin-top: 8px;">कोई ऑर्डर नहीं मिला</h4>
-                            <p style="margin-bottom: 0;">नंबर (${phone}) से अभी कोई ऑर्डर दर्ज नहीं है।</p>
+                            <p style="margin-bottom: 0;">ईमेल (${email}) से अभी कोई ऑर्डर दर्ज नहीं है।</p>
                         </div>
                     `;
                     return;
