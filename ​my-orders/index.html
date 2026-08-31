@@ -117,12 +117,12 @@
 
     <div class="container">
         
-        <!-- लॉगिन न होने पर यह दिखेगा -->
+        <!-- लॉगिन न होने पर यह कार्ड दिखेगा -->
         <div id="loginRequiredCard" class="auth-card" style="display: none;">
             <i class="fa-solid fa-user-lock"></i>
             <h3>ऑर्डर्स देखने के लिए पहले लॉगिन करें</h3>
             <p>आप अभी लॉग इन नहीं हैं अथवा आपका सत्र समाप्त हो चुका है।</p>
-            <a href="../login.html" class="btn-login-now">
+            <a href="../login.html?redirect=my-orders/index.html" class="btn-login-now">
                 <i class="fa-solid fa-right-to-bracket"></i> अभी लॉगिन करें
             </a>
         </div>
@@ -170,16 +170,22 @@
             const listArea = document.getElementById('ordersList');
             const logoutBtn = document.getElementById('navLogoutBtn');
 
-            // 1. लोकल स्टोरेज से डेटा जांचें (दोनों keys चेक करें)
             let currentUser = null;
+
+            // 1. दोनों keys से चेक करें
             try {
                 const stored = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
-                if (stored) currentUser = JSON.parse(stored);
+                if (stored && stored !== "null" && stored !== "undefined") {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && (parsed.email || parsed.mobile)) {
+                        currentUser = parsed;
+                    }
+                }
             } catch(e) {
                 currentUser = null;
             }
 
-            // अगर यूजर बिल्कुल नहीं है या खाली ऑब्जेक्ट है
+            // अगर यूजर लॉग इन नहीं है
             if (!currentUser) {
                 loginCard.style.display = 'block';
                 ordersBox.style.display = 'none';
@@ -187,7 +193,7 @@
                 return;
             }
 
-            // यूज़र लॉगिन है
+            // यूजर लॉग इन है
             loginCard.style.display = 'none';
             ordersBox.style.display = 'block';
             if (logoutBtn) logoutBtn.style.display = 'block';
@@ -198,14 +204,13 @@
             const userPhone = (currentUser.mobile || '').trim();
 
             try {
-                // ग्राहक के ऑर्डर्स निकालना: ईमेल अथवा मोबाइल नंबर किसी से भी मैच हो तो ऑर्डर दिखेगा
                 let query = supabaseClient.from('orders').select('*');
 
                 if (cleanEmail && userPhone) {
                     query = query.or(`customer_email.ilike.${cleanEmail},customer_mobile.eq.${userPhone}`);
                 } else if (cleanEmail) {
                     query = query.ilike('customer_email', cleanEmail);
-                } else {
+                } else if (userPhone) {
                     query = query.eq('customer_mobile', userPhone);
                 }
 
