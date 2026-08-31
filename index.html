@@ -50,6 +50,14 @@
             padding: 6px 10px; border-radius: 4px; transition: 0.2s;
         }
         .nav-menu a:hover { color: var(--primary); }
+        
+        .btn-my-orders-nav {
+            background: #f1f5f9; color: var(--dark) !important; border: 1px solid #cbd5e1;
+            padding: 5px 12px !important; border-radius: 6px; display: inline-flex;
+            align-items: center; gap: 6px; font-weight: 700 !important;
+        }
+        .btn-my-orders-nav:hover { background: #e2e8f0; color: var(--primary) !important; }
+
         .btn-login {
             background: var(--primary); color: white !important;
             padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
@@ -194,10 +202,17 @@
         <ul class="nav-menu">
             <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
+            
+            <!-- लॉगिन नहीं होने पर दिखने वाला बटन -->
             <li id="authNavContainer">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
+            
+            <!-- लॉगिन होने पर My Orders, यूजर नाम और लॉगआउट दिखेगा -->
             <li class="user-logged-box" id="userLoggedBox">
+                <a href="my-orders/index.html" class="btn-my-orders-nav">
+                    <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स
+                </a>
                 <span class="user-name-display" id="displayUserName"></span>
                 <button class="btn-logout" onclick="handleLogout()">लॉगआउट</button>
             </li>
@@ -237,18 +252,24 @@
             <span class="close-btn" onclick="closeModal('mobileAccountModal')">&times;</span>
             <div style="font-size: 45px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-circle-user"></i></div>
             <h3 id="mobAccName" style="color: var(--dark); margin-bottom: 4px;">उपयोगकर्ता</h3>
-            <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 20px;">फोन / ईमेल</p>
-            <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px;" onclick="handleLogout()">
+            <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 14px;">फोन / ईमेल</p>
+            
+            <a href="my-orders/index.html" style="display: block; width: 100%; padding: 9px; background: var(--blue); color: white; border-radius: 6px; font-weight: bold; text-decoration: none; margin-bottom: 10px; font-size: 13px;">
+                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें
+            </a>
+
+            <button type="button" class="btn-logout" style="width: 100%; padding: 9px; font-size: 13px;" onclick="handleLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
             </button>
         </div>
     </div>
 
-    <!-- Mobile Bottom Navigation (पहले जैसा लॉगिन / खाता विकल्प) -->
+    <!-- Mobile Bottom Navigation Bar (मेरे ऑर्डर्स बटन सहित) -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="order.html"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
+        <a href="my-orders/index.html"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
         <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
             <i class="fa-solid fa-user"></i><span id="mobAccountBtnText">खाता</span>
         </button>
@@ -324,7 +345,6 @@
                 }
 
                 cards.forEach(item => {
-                    // स्टॉक स्थिति का सही मिलान
                     const stockVal = String(item.stock || '').toLowerCase().trim();
                     const isOut = stockVal === 'out' || stockVal === 'आउट' || stockVal === 'false' || stockVal === 'out of stock';
 
@@ -357,7 +377,6 @@
         }
 
         function selectCardAndGo(name, rate, img) {
-            // चुने गए कार्ड का डेटा सुरक्षित करके नए ऑर्डर पेज पर ले जाएं
             sessionStorage.setItem('selectedCard', JSON.stringify({
                 name: decodeURIComponent(name),
                 rate: rate,
