@@ -59,11 +59,6 @@
 
         .user-logged-box { display: none; align-items: center; gap: 8px; }
         .user-name-display { font-weight: 600; color: var(--primary); font-size: 13px; }
-        .btn-orders-nav {
-            background: #ebf8ff; color: #0284c7 !important; border: 1px solid #bae6fd;
-            padding: 5px 12px !important; border-radius: 16px; font-size: 13px; font-weight: bold;
-            display: inline-flex; align-items: center; gap: 5px; text-decoration: none;
-        }
         .btn-logout {
             background: #e74c3c; color: white; border: none;
             padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold;
@@ -93,27 +88,6 @@
             box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: 0.2s;
         }
         .btn-main-order:hover { opacity: 0.92; }
-
-        /* My Orders Box */
-        .orders-box {
-            background: #fff; border-radius: 8px; padding: 16px;
-            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border: 1px solid #e2e8f0;
-        }
-        .order-card-row {
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-            padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between;
-            align-items: center; flex-wrap: wrap; gap: 8px;
-        }
-        .order-status-badge {
-            font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: bold;
-            background: #fef3c7; color: #b45309;
-        }
-        .status-success { background: #dcfce7; color: #15803d; }
-        .btn-receipt {
-            background: var(--blue); color: #fff; border: none; padding: 6px 12px;
-            border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: 600;
-        }
 
         .showcase-box {
             background: #fff; padding: 15px; border-radius: 8px;
@@ -214,8 +188,8 @@
             padding: 10px;
         }
         .modal-content {
-            background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 440px;
-            text-align: center; position: relative; max-height: 85vh; overflow-y: auto;
+            background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 360px;
+            text-align: center; position: relative;
         }
         .close-btn { position: absolute; right: 12px; top: 10px; font-size: 22px; cursor: pointer; }
 
@@ -254,7 +228,6 @@
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
             <li class="user-logged-box" id="userLoggedBox">
-                <a href="#myOrdersSection" class="btn-orders-nav"><i class="fa-solid fa-box-open"></i> My Orders</a>
                 <span class="user-name-display" id="displayUserName"></span>
                 <button class="btn-logout" onclick="handleLogout()">लॉगआउट</button>
             </li>
@@ -275,19 +248,6 @@
             <a href="order.html" class="btn-main-order">
                 <i class="fa-solid fa-file-signature"></i> शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें
             </a>
-        </div>
-
-        <!-- My Orders Section -->
-        <div class="orders-box" id="myOrdersSection">
-            <div class="info-card-header">
-                <i class="fa-solid fa-box-open"></i> My Orders (हालिया ऑर्डर्स सूची)
-                <button onclick="fetchMyOrders()" style="margin-left:auto; background:#f1f5f9; border:1px solid #cbd5e1; padding:3px 8px; border-radius:4px; font-size:12px; cursor:pointer;">
-                    <i class="fa-solid fa-rotate"></i> रीफ्रेश
-                </button>
-            </div>
-            <div id="ordersListContainer">
-                <p style="text-align:center; font-size:13px; color:#64748b; padding:10px;">ऑर्डर लोड हो रहे हैं...</p>
-            </div>
         </div>
 
         <!-- कैटलॉग सेक्शन -->
@@ -369,6 +329,7 @@
                 </p>
             </div>
 
+            <!-- लाइव इंटरएक्टिव गूगल मैप -->
             <div class="map-wrapper">
                 <iframe 
                     src="https://maps.google.com/maps?q=Eidgah+More+Karmatar+Jamtara+815352&t=&z=16&ie=UTF8&iwloc=&output=embed" 
@@ -394,30 +355,9 @@
             <h3 id="mobAccName" style="color: var(--dark); margin-bottom: 4px;">उपयोगकर्ता</h3>
             <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 14px;">फोन / ईमेल</p>
 
-            <a href="#myOrdersSection" onclick="closeModal('mobileAccountModal')" style="display:block; width:100%; padding:10px; margin-bottom:10px; background:#0284c7; color:white; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">
-                <i class="fa-solid fa-box-open"></i> My Orders देखें
-            </a>
-
-            <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px; border-radius: 8px;" onclick="handleLogout()">
+            <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px;" onclick="handleLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
             </button>
-        </div>
-    </div>
-
-    <!-- Receipt Details Modal -->
-    <div id="receiptModal" class="modal">
-        <div class="modal-content" style="text-align:left;">
-            <span class="close-btn" onclick="closeModal('receiptModal')">&times;</span>
-            <div style="text-align:center; border-bottom:2px dashed #cbd5e1; padding-bottom:8px; margin-bottom:12px;">
-                <h3 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h3>
-                <p style="font-size:12px; color:#64748b;">ऑर्डर रसीद / डिजाइन विवरण</p>
-            </div>
-            <div id="receiptContent" style="font-size:13px; line-height:1.7;"></div>
-            <div style="text-align:center; margin-top:15px;">
-                <button onclick="window.print()" style="background:var(--green); color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-print"></i> प्रिंट निकालें
-                </button>
-            </div>
         </div>
     </div>
 
@@ -426,7 +366,7 @@
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
-        <a href="#myOrdersSection"><i class="fa-solid fa-box-open"></i><span>My Orders</span></a>
+        <a href="#mapSection"><i class="fa-solid fa-map-location-dot"></i><span>लोकेशन</span></a>
         <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
             <i class="fa-solid fa-user"></i><span id="mobAccountBtnText">खाता</span>
         </button>
@@ -465,8 +405,6 @@
         const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let cachedOrders = [];
 
         function getStoredUser() {
             const keys = ['dp_current_user', 'user'];
@@ -522,104 +460,6 @@
             } else {
                 window.location.href = "login.html";
             }
-        }
-
-        async function fetchMyOrders() {
-            const container = document.getElementById('ordersListContainer');
-            if (!container) return;
-
-            const currentUser = getStoredUser();
-            container.innerHTML = "<p style='text-align:center; font-size:13px; color:#64748b;'>ऑर्डर लोड हो रहे हैं...</p>";
-
-            try {
-                let query = supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
-
-                // यदि साधारण यूज़र लॉगिन है तो उसका ऑर्डर दिखाएं, नहीं तो हालिया सभी ऑर्डर्स
-                if (currentUser && currentUser.mobile) {
-                    query = query.or(`mobile.eq.${currentUser.mobile},email.eq.${currentUser.email || ''}`);
-                }
-
-                const { data, error } = await query;
-
-                if (error) {
-                    // यदि फ़िल्टर कॉलम में समस्या हो तो बिना फ़िल्टर के पूरे ऑर्डर्स लें
-                    const fallback = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(20);
-                    if (fallback.error) throw fallback.error;
-                    cachedOrders = fallback.data || [];
-                } else {
-                    cachedOrders = data || [];
-                }
-
-                if (!cachedOrders || cachedOrders.length === 0) {
-                    container.innerHTML = "<p style='text-align:center; font-size:13px; color:#64748b; padding:15px;'>अभी कोई ऑर्डर उपलब्ध नहीं है।</p>";
-                    return;
-                }
-
-                let html = "";
-                cachedOrders.forEach((o, index) => {
-                    const dateStr = o.created_at ? new Date(o.created_at).toLocaleString('hi-IN', { dateStyle: 'short', timeStyle: 'short' }) : 'हाल ही में';
-                    const customer = o.customer_name || o.name || o.client_name || 'ग्राहक';
-                    const cardName = o.card_model || o.card_type || o.service_type || 'शादी कार्ड प्रिंटिंग';
-                    const bill = o.total_bill || o.total_amount || o.bill || 0;
-                    const status = o.status || 'विचाराधीन';
-
-                    html += `
-                        <div class="order-card-row">
-                            <div>
-                                <div style="font-weight:bold; font-size:14px; color:var(--dark);">
-                                    #${index + 1} - ${cardName}
-                                </div>
-                                <div style="font-size:12px; color:#64748b; margin-top:2px;">
-                                    दिनांक: ${dateStr} | ग्राहक: ${customer}
-                                </div>
-                                <div style="font-size:12px; margin-top:3px;">
-                                    कुल बिल: <b style="color:var(--primary);">₹${bill}</b>
-                                </div>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span class="order-status-badge ${status.includes('पूर्ण') || status.toLowerCase().includes('comp') ? 'status-success' : ''}">${status}</span>
-                                <button type="button" class="btn-receipt" onclick="viewReceiptDetails(${index})">
-                                    <i class="fa-solid fa-receipt"></i> रसीद
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML = html;
-
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = "<p style='text-align:center; font-size:13px; color:#c0392b;'>ऑर्डर लोड नहीं हो सके।</p>";
-            }
-        }
-
-        function viewReceiptDetails(index) {
-            const o = cachedOrders[index];
-            if (!o) return;
-
-            const modalContent = document.getElementById('receiptContent');
-            const dateStr = o.created_at ? new Date(o.created_at).toLocaleString('hi-IN') : 'N/A';
-
-            modalContent.innerHTML = `
-                <p><strong>ऑर्डर क्रमांक:</strong> #${o.id || (index + 1)}</p>
-                <p><strong>दिनांक:</strong> ${dateStr}</p>
-                <p><strong>ग्राहक का नाम:</strong> ${o.customer_name || o.name || o.client_name || 'N/A'}</p>
-                <p><strong>फोन नंबर:</strong> ${o.mobile || o.phone || o.whatsapp || 'N/A'}</p>
-                <p><strong>पता:</strong> ${o.address || o.village || 'N/A'}</p>
-                <hr style="margin:8px 0; border:0; border-top:1px dashed #cbd5e1;">
-                <p><strong>सर्विस / मॉडल:</strong> ${o.card_model || o.card_type || o.service_type || 'शादी कार्ड'}</p>
-                <p><strong>संख्या (Quantity):</strong> ${o.quantity || o.qty || 100} पीस</p>
-                ${o.groom_name ? `<p><strong>दूल्हा:</strong> ${o.groom_name}</p>` : ''}
-                ${o.bride_name ? `<p><strong>दुल्हन:</strong> ${o.bride_name}</p>` : ''}
-                <hr style="margin:8px 0; border:0; border-top:1px dashed #cbd5e1;">
-                <p><strong>कुल बिल:</strong> ₹${o.total_bill || o.total_amount || o.bill || 0}</p>
-                <p><strong>एडवांस जमा:</strong> ₹${o.advance_paid || o.advance || 0}</p>
-                <p><strong>बाकी राशि:</strong> ₹${o.balance_amount || o.balance || 0}</p>
-                <p><strong>स्थिति:</strong> ${o.status || 'प्रक्रिया में'}</p>
-            `;
-
-            document.getElementById('receiptModal').style.display = 'flex';
         }
 
         async function renderCatalog() {
@@ -697,7 +537,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderCatalog();
             checkUserSession();
-            fetchMyOrders();
         });
     </script>
 </body>
