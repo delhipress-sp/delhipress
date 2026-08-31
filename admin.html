@@ -400,128 +400,87 @@
                 cachedOrders.forEach((ord, index) => {
                     const d = new Date(ord.created_at);
                     const dt = `${d.getDate()}/${d.getMonth()+1} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
-                    const itemDesc = ord.order_data?.category || ord.order_data?.title || ord.order_data?.shopName || ord.service_type || "-";
-
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${dt}</td>
-                        <td><b>${ord.service_type}</b></td>
-                        <td>${itemDesc}</td>
-                        <td><b>${ord.customer_name}</b><br><small>${ord.customer_phone}</small></td>
-                        <td><b style="color:var(--primary);">${ord.total_bill}</b><br><small>UTR: ${ord.order_data?.txn || 'शेष'}</small></td>
+                        <td><b>${ord.service_type || '-'}</b></td>
+                        <td>${ord.order_title || ord.order_data?.card_model || '-'}</td>
+                        <td style="text-align:left;"><b>${ord.customer_name || '-'}</b><br><small>${ord.customer_phone || ''}</small></td>
+                        <td><b>₹${ord.total_amount || 0}</b></td>
                         <td>
-                            <button type="button" class="btn-view-pdf" onclick="printReceiptWithSample(${index})">
-                                <i class="fa-solid fa-print"></i> रसीद प्रिंट
+                            <button type="button" class="btn-view-pdf" onclick="printReceiptDetails(${index})">
+                                <i class="fa-solid fa-receipt"></i> रसीद प्रिंट
                             </button>
                         </td>
                         <td>
-                            <button type="button" class="btn-del" onclick="deleteOrder('${ord.id}')">हटाएं</button>
+                            <button type="button" class="btn-del" onclick="deleteOrder('${ord.id}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
-            } catch(e) {
-                tbody.innerHTML = "<tr><td colspan='7'>त्रुटि: " + e.message + "</td></tr>";
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='7'>त्रुटि: ${e.message}</td></tr>`;
             }
         }
 
         async function deleteOrder(id) {
-            if (confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) {
-                await supabaseClient.from('orders').delete().eq('id', id);
+            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
+            try {
+                const { error } = await supabaseClient.from('orders').delete().eq('id', id);
+                if (error) throw error;
                 loadAdminOrders();
+            } catch (e) {
+                alert("त्रुटि: " + e.message);
             }
         }
 
-        function printReceiptWithSample(index) {
-            const ord = cachedOrders[index];
+        function printReceiptDetails(idx) {
+            const ord = cachedOrders[idx];
             if (!ord) return;
-
             const printArea = document.getElementById('printableReceiptArea');
-            const data = ord.order_data || {};
-            const d = new Date(ord.created_at).toLocaleDateString('hi-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-            const sampleImgSrc = data.sampleImg || '';
-
-            let detailsBody = '';
-
-            if (ord.service_type === "शादी कार्ड") {
-                detailsBody = `
-                    <div style="background:#fdfaf6; border-left:4px solid #d35400; padding:10px; margin-bottom:12px;">
-                        <h4 style="margin:0 0 4px 0; color:#c0392b;">कार्ड मॉडल: ${data.category || '-'}</h4>
-                        <p style="margin:0; font-size:13px;">दर: ₹${data.rate || '-'} | मात्रा: ${data.qty || '-'} कार्ड्स | UTR: ${data.txn || 'भुगतान शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; border-radius:6px; padding:10px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0; border-bottom:1px solid #eee; padding-bottom:4px;">दूल्हा-दुल्हन एवं पारिवारिक विवरण:</h4>
-                        <pre style="white-space:pre-wrap; font-family:sans-serif; font-size:13px; line-height:1.6; margin:0;">${data.couples || '-'}</pre>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; border-radius:6px; padding:10px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0; border-bottom:1px solid #eee; padding-bottom:4px;">शुभ कार्यक्रम एवं तिथियां:</h4>
-                        <pre style="white-space:pre-wrap; font-family:sans-serif; font-size:13px; line-height:1.6; margin:0;">${data.events || '-'}</pre>
-                    </div>
-                    <div style="display:flex; gap:10px; font-size:13px;">
-                        <div style="flex:1; border:1px solid #cbd5e1; padding:8px; border-radius:4px;"><b>RSVP:</b><br>${data.rsvp || '-'}</div>
-                        <div style="flex:1; border:1px solid #cbd5e1; padding:8px; border-radius:4px;"><b>दर्शनाभिलाषी:</b><br>${data.from || '-'}</div>
-                    </div>
-                `;
-            } else if (ord.service_type === "फ्लेक्स बैनर") {
-                detailsBody = `
-                    <div style="background:#fdfaf6; border-left:4px solid #2980b9; padding:10px; margin-bottom:12px;">
-                        <h4 style="margin:0 0 4px 0;">बैनर शीर्षक: ${data.title || '-'}</h4>
-                        <p style="margin:0; font-size:13px;">साइज़: ${data.size || '-'} | क्वालिटी: ${data.quality || '-'} | मात्रा: ${data.qty || '-'} | UTR: ${data.txn || 'शेष'}</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; border-radius:6px; padding:10px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0;">बैनर मैटर:</h4>
-                        <p style="white-space:pre-wrap; font-size:13px; margin:0;">${data.content || '-'}</p>
-                    </div>
-                    <p style="font-size:13px; margin:0;"><b>फोन:</b> ${data.phone || '-'} | <b>स्थान:</b> ${data.address || '-'}</p>
-                `;
-            } else {
-                detailsBody = `
-                    <div style="background:#fdfaf6; border-left:4px solid #27ae60; padding:10px; margin-bottom:12px;">
-                        <h4 style="margin:0 0 4px 0;">फर्म: ${data.shopName || '-'} (प्रोप: ${data.personName || '-'})</h4>
-                        <p style="margin:0; font-size:13px;">प्रकार: ${data.type || '-'} | दर: ₹${data.rate || '-'} | बॉक्स: ${data.boxes || '-'} (${data.pieces || '-'})</p>
-                    </div>
-                    <div style="border:1px solid #cbd5e1; border-radius:6px; padding:10px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 6px 0;">सेवाएं / मैटर:</h4>
-                        <p style="white-space:pre-wrap; font-size:13px; margin:0;">${data.services || '-'}</p>
-                    </div>
-                    <p style="font-size:13px; margin:0;"><b>फोन:</b> ${data.phone || '-'} | <b>पता:</b> ${data.address || '-'}</p>
-                `;
-            }
-
+            const d = new Date(ord.created_at);
+            const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+            
             printArea.innerHTML = `
-                <div style="font-family:'Mukta', sans-serif; max-width:800px; margin:auto; padding:20px; border:2px solid #333; border-radius:8px;">
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; padding-bottom:10px; margin-bottom:12px;">
-                        <div>
-                            <h2 style="margin:0; color:#c0392b; font-size:24px;">दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</h2>
-                            <p style="margin:2px 0; font-size:13px;">मो: 9304509464 | ईमेल: mdsajadans@gmail.com</p>
-                            <h3 style="margin:4px 0 0 0; background:#f1f5f9; display:inline-block; padding:3px 12px; border-radius:4px; font-size:15px;">
-                                ${ord.service_type} - अधिकृत वर्कशॉप जॉब रसीद
-                            </h3>
-                        </div>
-                        ${sampleImgSrc ? `
-                            <div style="text-align:center; border:2px solid #c0392b; padding:4px; border-radius:6px; background:#fff;">
-                                <img src="${sampleImgSrc}" style="width:110px; height:100px; object-fit:cover; border-radius:4px; display:block;" onerror="this.style.display='none'">
-                                <span style="font-size:10px; font-weight:bold; color:#c0392b;">ऑर्डर किया गया कार्ड</span>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:12px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">
-                        <span><b>ग्राहक:</b> ${ord.customer_name} (${ord.customer_phone})</span>
-                        <span><b>दिनांक:</b> ${d}</span>
-                        <span><b>कुल बिल:</b> <span style="font-size:16px; color:#c0392b; font-weight:bold;">${ord.total_bill}</span></span>
-                    </div>
-
-                    ${detailsBody}
-
-                    <div style="margin-top:25px; border-top:1px solid #ddd; padding-top:8px; display:flex; justify-content:space-between; font-size:11px; color:#666;">
-                        <span>प्रिंटिंग प्रेस कॉपी | समय पर डिलीवरी सुनिश्चित करें</span>
-                        <span>अधिकृत हस्ताक्षर: सज्जाद डिजिटल प्रिंट्स</span>
-                    </div>
+                <div style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
+                    <h2 style="color: #c0392b; margin:0;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                    <p style="margin:2px 0; font-size: 13px;">जामाडोब, जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
+                    <h4 style="margin-top: 8px; text-decoration: underline;">ऑर्डर बिल / पावती रसीद</h4>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size: 13px; margin-bottom: 10px;">
+                    <div><b>ग्राहक का नाम:</b> ${ord.customer_name || '-'}</div>
+                    <div><b>दिनांक:</b> ${dt}</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size: 13px; margin-bottom: 15px;">
+                    <div><b>मोबाइल:</b> ${ord.customer_phone || '-'}</div>
+                    <div><b>सर्विस प्रकार:</b> ${ord.service_type || '-'}</div>
+                </div>
+                <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;" border="1">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:6px;">विवरण / आइटम</th>
+                            <th style="padding:6px;">मात्रा</th>
+                            <th style="padding:6px;">दर</th>
+                            <th style="padding:6px;">कुल राशि</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding:6px; text-align:center;">${ord.order_title || ord.service_type}</td>
+                            <td style="padding:6px; text-align:center;">${ord.order_data?.quantity || 1}</td>
+                            <td style="padding:6px; text-align:center;">₹${ord.order_data?.rate || ord.total_amount}</td>
+                            <td style="padding:6px; text-align:center;"><b>₹${ord.total_amount}</b></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="text-align:right; font-size: 14px; margin-bottom: 20px;">
+                    <b>कुल भुगतान योग्य राशि: ₹${ord.total_amount}</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top: 40px; font-size: 12px;">
+                    <div>ग्राहक का हस्ताक्षर</div>
+                    <div>अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)</div>
                 </div>
             `;
-
             window.print();
         }
 
@@ -542,7 +501,7 @@
                 tbody.innerHTML = "";
 
                 if (!cards || cards.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='7'>कोई कार्ड स्टॉक उपलब्ध नहीं है।</td></tr>";
+                    tbody.innerHTML = "<tr><td colspan='7'>कोई कार्ड मॉडल उपलब्ध नहीं है।</td></tr>";
                     return;
                 }
 
@@ -553,28 +512,28 @@
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><img src="${item.img_url}" style="width:45px; height:35px; object-fit:cover; border-radius:4px;" onerror="this.src='https://via.placeholder.com/45'"></td>
-                        <td style="font-weight:bold;">${item.name}</td>
-                        <td style="color:var(--secondary); font-weight:600;">${modelName}</td>
+                        <td><img src="${item.img_url}" style="width: 45px; height: 35px; object-fit: cover; border-radius: 4px;"></td>
+                        <td style="font-weight: bold;">${item.name}</td>
+                        <td style="color: var(--secondary); font-weight: 600;">${modelName}</td>
                         <td>₹${item.rate}</td>
                         <td>
                             <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">
                                 ${isOut ? 'आउट ऑफ स्टॉक' : 'उपलब्ध'}
                             </span>
                         </td>
-                        <td> 
+                        <td>
                             <button type="button" class="btn-stock-toggle ${isOut ? 'btn-stock-in' : 'btn-stock-out'}" onclick="toggleStock('${item.id}', '${currentStock}')">
                                 ${isOut ? 'Stock In करें' : 'Out of Stock करें'}
-                            </button> onclick="toggleStock('${item.id}', '${currentStock}')".
-                        </td> 
+                            </button>
+                        </td>
                         <td>
-                            <button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}')">हटाएं</button>
+                            <button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
-            } catch(e) {
-                tbody.innerHTML = "<tr><td colspan='7'>डेटा लोड नहीं हुआ: " + e.message + "</td></tr>";
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='7'>डेटा लोड नहीं हुआ: ${e.message}</td></tr>`;
             }
         }
 
@@ -595,14 +554,14 @@
                 const { error: uploadError } = await supabaseClient.storage.from('cards_images').upload(filePath, file);
                 if (uploadError) throw uploadError;
 
-                const { data: { publicUrl } } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
+                const { data: publicUrl } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
 
                 const { error: insertError } = await supabaseClient.from('cards').insert([{
                     name: name,
                     model: model,
                     rate: rate,
                     stock: stock,
-                    img_url: publicUrl,
+                    img_url: publicUrl.publicUrl,
                     img_path: filePath
                 }]);
 
@@ -611,17 +570,17 @@
                 alert("नया कार्ड मॉडल सफलतापूर्वक स्टॉक में जुड़ गया!");
                 document.getElementById('newCardForm').reset();
                 loadCatalogStock();
-            } catch(err) {
-                alert("अपलोड में समस्या: " + err.message);
+            } catch (err) {
+                alert("त्रुटि: " + err.message);
             } finally {
                 btn.innerText = "+ स्टॉक में सुरक्षित करें"; btn.disabled = false;
             }
         }
 
-        // स्टॉक स्थिति टॉगल (Stock In <-> Out)
-        async function toggleStock(cardId, currentStockVal) {
-            const newStockVal = (currentStockVal === 'out') ? 'in' : 'out';
-            
+        // स्टॉक टॉगल स्थिति (Stock In <-> Out)
+        async function toggleStock(cardId, currentStock) {
+            const newStockVal = (currentStock === 'out') ? 'in' : 'out';
+
             try {
                 const { error } = await supabaseClient
                     .from('cards')
@@ -640,13 +599,16 @@
         }
 
         async function deleteCatalogItem(id) {
-            if (confirm("क्या आप इसे कैटलॉग से हटाना चाहते हैं?")) {
+            if (!confirm("क्या आप इस मॉडल को कैटलॉग से हटाना चाहते हैं?")) return;
+            try {
                 const { error } = await supabaseClient.from('cards').delete().eq('id', id);
                 if (error) {
-                    alert("हटाने में समस्या: " + error.message);
+                    alert("त्रुटि: " + error.message);
                     return;
                 }
                 loadCatalogStock();
+            } catch (err) {
+                alert("त्रुटि: " + err.message);
             }
         }
 
@@ -655,7 +617,7 @@
         // ==========================================
         async function loadUsersList() {
             const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = "<tr><td colspan='4'>लोड हो रहा है...</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='4'>डेटा लोड हो रहा है...</td></tr>";
 
             try {
                 const { data: users, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
@@ -670,15 +632,15 @@
                 users.forEach(u => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><b>${u.name}</b></td>
-                        <td>${u.mobile || u.email}</td>
-                        <td>${u.village || '-'}</td>
-                        <td>${u.address || '-'}</td>
+                        <td><b>${u.name || '-'}</b></td>
+                        <td>${u.mobile || u.phone || u.email || '-'}</td>
+                        <td>${u.village || u.city || '-'}</td>
+                        <td style="text-align:left;">${u.address || '-'}</td>
                     `;
                     tbody.appendChild(tr);
                 });
-            } catch(e) {
-                tbody.innerHTML = "<tr><td colspan='4'>लोड नहीं हुआ: " + e.message + "</td></tr>";
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='4'>त्रुटि: ${e.message}</td></tr>`;
             }
         }
 
