@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</title>
+    <title>दिल्ली प्रेस (सज्जाद प्रिंटर्स) - जामताड़ा</title>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -34,12 +34,18 @@
             background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 20px;
+            padding: 8px 16px;
         }
-        .nav-brand h2 { color: var(--primary); font-size: 20px; cursor: pointer; user-select: none; }
-        .nav-brand p { font-size: 11px; color: #666; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+        .nav-logo-img {
+            width: 46px; height: 46px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .nav-brand-text h2 { color: var(--primary); font-size: 19px; line-height: 1.1; font-weight: 700; }
+        .nav-brand-text p { font-size: 11px; color: #64748b; margin: 0; }
 
-        .nav-menu { display: flex; list-style: none; align-items: center; gap: 10px; }
+        .nav-menu { display: flex; list-style: none; align-items: center; gap: 12px; }
         .nav-menu a {
             text-decoration: none; color: #333; font-weight: 600; font-size: 14px;
             padding: 6px 10px; border-radius: 4px; transition: 0.2s;
@@ -114,6 +120,55 @@
             background: #94a3b8; cursor: not-allowed; opacity: 0.6;
         }
 
+        /* About Section */
+        .info-card {
+            background: #fff; border-radius: 8px; padding: 18px;
+            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .info-card-header {
+            display: flex; align-items: center; gap: 8px;
+            color: var(--primary); font-size: 17px; font-weight: 700;
+            border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px;
+        }
+
+        /* Terms List */
+        .terms-list { list-style: none; padding-left: 0; }
+        .terms-list li {
+            position: relative; padding-left: 24px; margin-bottom: 8px;
+            font-size: 13px; color: #475569; line-height: 1.6;
+        }
+        .terms-list li i {
+            position: absolute; left: 0; top: 3px; color: var(--secondary); font-size: 14px;
+        }
+
+        /* Map Card */
+        .map-wrapper {
+            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+            border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 10px;
+        }
+        .map-wrapper iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
+        }
+
+        /* Footer */
+        .main-footer {
+            background: var(--dark); color: #cbd5e1; padding: 30px 15px 20px;
+            margin-top: 30px; font-size: 13px;
+        }
+        .footer-grid {
+            max-width: 900px; margin: 0 auto; display: grid;
+            grid-template-columns: 1.2fr 1fr; gap: 20px;
+        }
+        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+        .footer-col p { margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
+        .footer-col p i { color: #f1c40f; width: 18px; }
+        .footer-bottom {
+            max-width: 900px; margin: 20px auto 0; padding-top: 15px;
+            border-top: 1px solid #334155; text-align: center; font-size: 12px; color: #64748b;
+        }
+        .footer-bottom a { color: #94a3b8; text-decoration: none; margin: 0 6px; }
+
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
@@ -138,15 +193,13 @@
         }
         .close-btn { position: absolute; right: 12px; top: 10px; font-size: 22px; cursor: pointer; }
 
-        footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 25px; }
-        footer a { color: #888; text-decoration: none; margin-left: 10px; font-size: 11px; }
-
         @media (max-width: 768px) {
             .navbar .nav-menu { display: none; }
             .mobile-bottom-bar { display: flex; }
             .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
             .card-sample img { height: 110px; }
             .showcase-box { padding: 10px; }
+            .footer-grid { grid-template-columns: 1fr; gap: 15px; }
         }
     </style>
 </head>
@@ -154,16 +207,21 @@
 
     <div class="top-bar">
         <span><i class="fa-solid fa-phone"></i> 9304509464 | mdsajadans@gmail.com</span>
-        <div><a href="tel:9304509464"><i class="fa-solid fa-phone"></i> कॉल</a></div>
+        <div><a href="tel:9304509464"><i class="fa-solid fa-phone"></i> कॉल करें</a></div>
     </div>
 
     <nav class="navbar">
-        <div class="nav-brand">
-            <h2 id="brandLogoTitle" onclick="window.location.href='index.html'">दिल्ली प्रेस</h2>
-            <p>सज्जाद डिजिटल प्रिंट्स</p>
+        <div class="nav-brand" onclick="window.location.href='index.html'">
+            <img src="logo.png" alt="Delhi Press Logo" class="nav-logo-img" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=DelhiPress'">
+            <div class="nav-brand-text">
+                <h2>दिल्ली प्रेस</h2>
+                <p>सज्जाद प्रिंटर्स (Design • Print • Quality)</p>
+            </div>
         </div>
         <ul class="nav-menu">
             <li><a href="#showcaseSection">कैटलॉग</a></li>
+            <li><a href="#aboutSection">हमारे बारे में</a></li>
+            <li><a href="#mapSection">शॉप लोकेशन</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
             
             <li id="authNavContainer">
@@ -183,7 +241,7 @@
             <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
         </div>
 
-        <!-- ऑर्डर बटन -->
+        <!-- मुख्य ऑर्डर बटन -->
         <div class="order-btn-card">
             <h3>शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
             <p>यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।</p>
@@ -199,6 +257,92 @@
             </h3>
             <p style="font-size:12px; color:#666; margin-top:2px;">(पसंद करें और 'यह चुनें' दबाकर ऑर्डर करें)</p>
             <div class="gallery-grid" id="catalogContainer"></div>
+        </div>
+
+        <!-- हमारे बारे में (About Section) -->
+        <div class="info-card" id="aboutSection">
+            <div class="info-card-header">
+                <i class="fa-solid fa-circle-info"></i> हमारे बारे में (About Delhi Press)
+            </div>
+            <p style="font-size: 14px; color: #475569; line-height: 1.7; margin-bottom: 10px;">
+                <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px;">
+                <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary);">
+                    <b style="color: var(--primary); font-size: 13px;">शादी कार्ड प्रिंटिंग:</b>
+                    <p style="font-size: 12px; color: #64748b; margin: 0;">मुस्लिम निकाह कार्ड, हिंदू विवाह पत्रिका, फैंसी एवं शाही कार्ड उपलब्ध।</p>
+                </div>
+                <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid var(--secondary);">
+                    <b style="color: var(--secondary); font-size: 13px;">फ्लेक्स व प्रचार सामग्री:</b>
+                    <p style="font-size: 12px; color: #64748b; margin: 0;">हाई-क्वालिटी फ्लेक्स बैनर, पोस्टर, स्टिकर व विनाइल बोर्ड प्रिंटिंग।</p>
+                </div>
+                <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid var(--green);">
+                    <b style="color: var(--green); font-size: 13px;">कमर्शियल व डिजिटल प्रिंट्स:</b>
+                    <p style="font-size: 12px; color: #64748b; margin: 0;">विजिटिंग कार्ड, बिल बुक, रसीद, लिफाफा, टी-शर्ट एवं मग प्रिंटिंग।</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- नियम एवं शर्तें (Terms & Conditions) -->
+        <div class="info-card" id="termsSection">
+            <div class="info-card-header">
+                <i class="fa-solid fa-file-contract"></i> नियम एवं शर्तें (Terms & Conditions)
+            </div>
+            <ul class="terms-list">
+                <li>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <strong>मैटर प्रूफ-रीडिंग:</strong> कार्ड की छपाई से पहले ग्राहक द्वारा डिजिटल प्रूफ की जांच अनिवार्य है। फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।
+                </li>
+                <li>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <strong>एडवांस भुगतान:</strong> काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है। शेष राशि कार्य पूर्ण होने व डिलीवरी के समय देय होगी।
+                </li>
+                <li>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <strong>डिलीवरी समय:</strong> सामान्यतः शादी कार्ड 2 से 4 कार्य दिवसों में तैयार कर दिए जाते हैं। आपातकालीन (Urgent) काम के लिए पहले संपर्क करें।
+                </li>
+                <li>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <strong>कैंसिलेशन पॉलिसी:</strong> मैटर स्वीकृत होने या प्रिंटिंग प्रक्रिया शुरू होने के बाद ऑर्डर रद्द नहीं किया जा सकेगा।
+                </li>
+            </ul>
+        </div>
+
+        <!-- दुकान का पता एवं गूगल मैप्स (Google Maps & Location) -->
+        <div class="info-card" id="mapSection">
+            <div class="info-card-header">
+                <i class="fa-solid fa-location-dot"></i> शॉप लोकेशन एवं संपर्क (Visit Our Press)
+            </div>
+            <div style="margin-bottom: 12px;">
+                <p style="font-size: 15px; font-weight: bold; color: var(--dark); margin-bottom: 3px;">
+                    दिल्ली प्रेस (सज्जाद प्रिंटर्स)
+                </p>
+                <p style="font-size: 13px; color: #475569;">
+                    <i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> 
+                    <strong>पता:</strong> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352
+                </p>
+                <p style="font-size: 13px; color: #475569;">
+                    <i class="fa-solid fa-phone" style="color: var(--green);"></i> 
+                    <strong>मोबाइल:</strong> 9304509464 | 
+                    <i class="fa-solid fa-envelope" style="color: var(--blue);"></i> 
+                    <strong>ईमेल:</strong> mdsajadans@gmail.com
+                </p>
+            </div>
+
+            <!-- लाइव इंटरएक्टिव गूगल मैप -->
+            <div class="map-wrapper">
+                <iframe 
+                    src="https://maps.google.com/maps?q=Eidgah+More+Karmatar+Jamtara+815352&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            </div>
+
+            <div style="text-align: center; margin-top: 14px;">
+                <a href="https://share.google/dmV4uXNQ8KWnP1EHQ" target="_blank" style="background: #c0392b; color: white; padding: 10px 22px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 8px rgba(192, 57, 43, 0.3);">
+                    <i class="fa-solid fa-diamond-turn-right"></i> Google Maps पर रास्ता देखें (Open Map)
+                </a>
+            </div>
         </div>
 
     </div>
@@ -222,15 +366,38 @@
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
+        <a href="#mapSection"><i class="fa-solid fa-map-location-dot"></i><span>लोकेशन</span></a>
         <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
             <i class="fa-solid fa-user"></i><span id="mobAccountBtnText">खाता</span>
         </button>
     </div>
 
-    <footer>
-        <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | 9304509464</p>
-        <div style="margin-top: 6px;">
-            <a href="admin.html"><i class="fa-solid fa-lock"></i> एडमिन पैनल</a>
+    <!-- मुख्य फुटर -->
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4 style="color: #fca5a5;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा - 815352</p>
+                <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
+                <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
+                <p><i class="fa-solid fa-clock"></i> समय: प्रतिदिन सुबह 8:00 से रात्रि 9:00 बजे तक</p>
+            </div>
+            <div class="footer-col">
+                <h4>त्वरित लिंक्स</h4>
+                <p><a href="order.html" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> शादी कार्ड ऑर्डर फॉर्म</a></p>
+                <p><a href="#showcaseSection" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> कार्ड व फ्लेक्स कैटलॉग</a></p>
+                <p><a href="#termsSection" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> नियम एवं शर्तें</a></p>
+                <p><a href="https://share.google/dmV4uXNQ8KWnP1EHQ" target="_blank" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> गूगल मैप्स लोकेशन</a></p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स) | All Rights Reserved.</p>
+            <div style="margin-top: 5px;">
+                <a href="admin.html"><i class="fa-solid fa-lock"></i> एडमिन लॉगिन</a> |
+                <a href="#aboutSection">About Us</a> |
+                <a href="#termsSection">Terms</a>
+            </div>
         </div>
     </footer>
 
@@ -334,7 +501,6 @@
                         </div>
                     `;
 
-                    // क्लिक इवेंट लिसनर (क्लिक करने पर डेटा आर्डर फॉर्म पर जाएगा)
                     const btn = div.querySelector('.btn-select-card');
                     if (btn && !isOut) {
                         btn.addEventListener('click', () => {
@@ -349,15 +515,11 @@
             }
         }
 
-        // किसी भी कार्ड को चुनकर ऑर्डर फॉर्म में भेजने का डायनामिक फंक्शन
         function selectCardToOrder(name, rate) {
             const cleanRate = parseFloat(rate.toString().replace(/[^0-9.]/g, '')) || 0;
-            
-            // 1. LocalStorage में भी सुरक्षित रखें
             localStorage.setItem('selected_card_title', name);
             localStorage.setItem('selected_card_rate', cleanRate);
 
-            // 2. URL में पैरामीटर जोड़कर order.html पर भेजें
             const targetUrl = `order.html?card=${encodeURIComponent(name)}&rate=${cleanRate}`;
             window.location.href = targetUrl;
         }
