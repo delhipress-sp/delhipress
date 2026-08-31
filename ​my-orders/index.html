@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Supabase JS Client Library -->
+    <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -43,17 +43,9 @@
 
         .container { max-width: 800px; margin: 20px auto; padding: 0 12px; }
 
-        .auth-card {
+        .status-box {
             background: #fff; border-radius: 8px; padding: 35px 20px;
             text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        }
-        .auth-card i { font-size: 45px; color: var(--primary); margin-bottom: 12px; }
-        .auth-card h3 { font-size: 18px; margin-bottom: 8px; }
-        .auth-card p { font-size: 13px; color: #64748b; margin-bottom: 18px; }
-        .btn-login-now {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: var(--primary); color: white; padding: 10px 24px;
-            border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px;
         }
 
         .order-card {
@@ -107,27 +99,22 @@
 
     <nav class="navbar">
         <div class="nav-brand">
-            <h2 onclick="window.location.href='../index.html'">दिल्ली प्रेस</h2>
+            <h2 onclick="window.location.href='/index.html'">दिल्ली प्रेस</h2>
         </div>
         <div class="nav-actions">
-            <a href="../index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम पेज</a>
+            <a href="/index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम पेज</a>
             <button id="navLogoutBtn" class="btn-logout" style="display: none;" onclick="handleLogout()">लॉगआउट</button>
         </div>
     </nav>
 
     <div class="container">
-        
-        <!-- जब यूजर लॉगिन नहीं होगा तब यह दिखेगा -->
-        <div id="loginRequiredCard" class="auth-card" style="display: none;">
-            <i class="fa-solid fa-user-lock"></i>
-            <h3>ऑर्डर्स देखने के लिए पहले लॉगिन करें</h3>
-            <p>आप अभी लॉग इन नहीं हैं अथवा आपका सत्र समाप्त हो चुका है।</p>
-            <a href="../login.html?redirect=my-orders/index.html" class="btn-login-now">
-                <i class="fa-solid fa-right-to-bracket"></i> अभी लॉगिन करें
-            </a>
+        <!-- स्थिति या ऑर्डर्स लोड होने का मैसेज -->
+        <div id="loadingStatus" class="status-box">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: var(--primary); margin-bottom: 10px;"></i>
+            <p>जांच हो रही है, कृपया प्रतीक्षा करें...</p>
         </div>
 
-        <!-- जब यूजर लॉगिन होगा तब यह सेक्शन दिखेगा -->
+        <!-- ऑर्डर्स कंटेनर -->
         <div id="ordersContainer" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <h3 style="font-size: 17px; color: var(--dark);">
@@ -136,19 +123,16 @@
                 <span id="userGreetName" style="font-size: 13px; font-weight: 700; color: #475569;"></span>
             </div>
 
-            <div id="ordersList">
-                <p style="text-align: center; color: #64748b; padding: 25px;">ऑर्डर्स लोड हो रहे हैं...</p>
-            </div>
+            <div id="ordersList"></div>
         </div>
-
     </div>
 
     <!-- Mobile Bottom Navigation -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
-        <a href="../index.html#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="../order.html"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
-        <a href="index.html" style="color: var(--primary);"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
+        <a href="/index.html#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
+        <a href="/order.html"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
+        <a href="/my-orders/index.html" style="color: var(--primary);"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
     </div>
 
     <script>
@@ -160,47 +144,42 @@
             localStorage.removeItem('dp_current_user');
             localStorage.removeItem('user');
             alert("लॉगआउट हो गया!");
-            window.location.href = "../index.html";
+            window.location.href = "/index.html";
         }
 
-        // यूजर सेशन निकालने का फ़ंक्शन
-        function getActiveUser() {
+        function getUserFromStorage() {
             const keys = ['dp_current_user', 'user'];
             for (let k of keys) {
-                try {
-                    const item = localStorage.getItem(k);
-                    if (item && item !== 'null' && item !== 'undefined') {
-                        const parsed = JSON.parse(item);
+                const raw = localStorage.getItem(k);
+                if (raw && raw !== 'null' && raw !== 'undefined') {
+                    try {
+                        const parsed = JSON.parse(raw);
                         if (parsed && (parsed.email || parsed.mobile)) {
                             return parsed;
                         }
-                    }
-                } catch (e) {
-                    console.error("Session parse error:", e);
+                    } catch (e) {}
                 }
             }
             return null;
         }
 
-        async function initMyOrdersPage() {
-            const loginCard = document.getElementById('loginRequiredCard');
+        async function loadOrders() {
+            const statusBox = document.getElementById('loadingStatus');
             const ordersBox = document.getElementById('ordersContainer');
             const greetDisplay = document.getElementById('userGreetName');
             const listArea = document.getElementById('ordersList');
             const logoutBtn = document.getElementById('navLogoutBtn');
 
-            const currentUser = getActiveUser();
+            const currentUser = getUserFromStorage();
 
-            // यदि यूजर लॉगिन नहीं है
+            // अगर यूजर लॉग इन नहीं है तो सीधे लॉगिन पेज पर भेजें
             if (!currentUser) {
-                loginCard.style.display = 'block';
-                ordersBox.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'none';
+                window.location.replace('/login.html?redirect=/my-orders/index.html');
                 return;
             }
 
-            // यदि यूजर लॉगिन है
-            loginCard.style.display = 'none';
+            // यूजर लॉग इन है
+            statusBox.style.display = 'none';
             ordersBox.style.display = 'block';
             if (logoutBtn) logoutBtn.style.display = 'block';
 
@@ -212,7 +191,6 @@
             try {
                 let query = supabaseClient.from('orders').select('*');
 
-                // ईमेल या मोबाइल दोनों में से किसी से भी मैच होने पर डेटा आएगा
                 if (cleanEmail && userPhone) {
                     query = query.or(`customer_email.ilike.${cleanEmail},customer_mobile.eq.${userPhone}`);
                 } else if (cleanEmail) {
@@ -227,10 +205,10 @@
 
                 if (!orders || orders.length === 0) {
                     listArea.innerHTML = `
-                        <div class="auth-card" style="padding: 25px;">
-                            <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #94a3b8;"></i>
-                            <h4 style="margin-top: 8px;">कोई ऑर्डर नहीं मिला</h4>
-                            <p style="margin-bottom: 0;">(${cleanEmail || userPhone}) के नाम से अभी कोई ऑर्डर दर्ज नहीं है।</p>
+                        <div class="status-box">
+                            <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #94a3b8; margin-bottom: 8px;"></i>
+                            <h4>कोई ऑर्डर नहीं मिला</h4>
+                            <p style="color: #64748b; font-size: 13px;">(${cleanEmail || userPhone}) के नाम से कोई ऑर्डर मौजूद नहीं है।</p>
                         </div>
                     `;
                     return;
@@ -283,11 +261,11 @@
                 listArea.innerHTML = html;
 
             } catch (err) {
-                listArea.innerHTML = `<p style="color:red; text-align:center;">डेटा लोड नहीं हो सका: ${err.message}</p>`;
+                listArea.innerHTML = `<p style="color:red; text-align:center; padding: 20px;">डेटा लोड नहीं हो सका: ${err.message}</p>`;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initMyOrdersPage);
+        document.addEventListener('DOMContentLoaded', loadOrders);
     </script>
 </body>
 </html>
