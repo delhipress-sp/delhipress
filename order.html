@@ -447,6 +447,34 @@
         let constructedWaMessage = "";
         let preparedOrderPayload = null;
 
+        // URL या LocalStorage से कैटलॉग डेटा स्वतः भरने का फ़ंक्शन
+        function loadCatalogItemFromParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const modelParam = urlParams.get('card') || urlParams.get('model') || urlParams.get('name') || localStorage.getItem('selected_card_title');
+            const rateParam = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selected_card_rate');
+
+            if (modelParam) {
+                const categoryInput = document.getElementById('cardCategory');
+                if (categoryInput) {
+                    categoryInput.value = decodeURIComponent(modelParam);
+                }
+            }
+
+            if (rateParam) {
+                const rateInput = document.getElementById('cardRate');
+                if (rateInput) {
+                    const cleanRate = parseFloat(rateParam.toString().replace(/[^0-9.]/g, ''));
+                    if (!isNaN(cleanRate) && cleanRate > 0) {
+                        rateInput.value = cleanRate;
+                    }
+                }
+            }
+
+            // एक बार इस्तेमाल करने के बाद LocalStorage साफ़ करें
+            localStorage.removeItem('selected_card_title');
+            localStorage.removeItem('selected_card_rate');
+        }
+
         function getStoredUser() {
             const keys = ['dp_current_user', 'user'];
             for (let k of keys) {
@@ -672,6 +700,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserAuth();
+            loadCatalogItemFromParams(); // कैटलॉग से आया हुआ कार्ड और रेट सेट करेगा
             calculateWeddingTotal();
         });
     </script>
