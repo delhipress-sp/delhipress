@@ -44,16 +44,16 @@
         .container { max-width: 800px; margin: 20px auto; padding: 0 12px; }
 
         .auth-card {
-            background: #fff; border-radius: 8px; padding: 40px 20px;
+            background: #fff; border-radius: 8px; padding: 35px 20px;
             text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
-        .auth-card i { font-size: 50px; color: var(--primary); margin-bottom: 15px; }
+        .auth-card i { font-size: 45px; color: var(--primary); margin-bottom: 12px; }
         .auth-card h3 { font-size: 18px; margin-bottom: 8px; }
-        .auth-card p { font-size: 14px; color: #64748b; margin-bottom: 20px; }
+        .auth-card p { font-size: 13px; color: #64748b; margin-bottom: 18px; }
         .btn-login-now {
             display: inline-flex; align-items: center; gap: 8px;
             background: var(--primary); color: white; padding: 10px 24px;
-            border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 15px;
+            border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px;
         }
 
         .order-card {
@@ -158,47 +158,56 @@
 
         function handleLogout() {
             localStorage.removeItem('dp_current_user');
+            localStorage.removeItem('user');
             alert("लॉगआउट हो गया!");
             window.location.href = "../index.html";
         }
 
         async function initMyOrdersPage() {
-            let currentUser = null;
-            try {
-                currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            } catch(e) {
-                currentUser = null;
-            }
-
             const loginCard = document.getElementById('loginRequiredCard');
             const ordersBox = document.getElementById('ordersContainer');
             const greetDisplay = document.getElementById('userGreetName');
             const listArea = document.getElementById('ordersList');
             const logoutBtn = document.getElementById('navLogoutBtn');
 
-            // 1. यदि यूज़र लॉग इन नहीं है
-            if (!currentUser || !currentUser.email) {
+            // 1. लोकल स्टोरेज से डेटा जांचें (दोनों keys चेक करें)
+            let currentUser = null;
+            try {
+                const stored = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
+                if (stored) currentUser = JSON.parse(stored);
+            } catch(e) {
+                currentUser = null;
+            }
+
+            // अगर यूजर बिल्कुल नहीं है या खाली ऑब्जेक्ट है
+            if (!currentUser || (!currentUser.email && !currentUser.mobile)) {
                 loginCard.style.display = 'block';
                 ordersBox.style.display = 'none';
                 if (logoutBtn) logoutBtn.style.display = 'none';
                 return;
             }
 
-            // 2. यदि यूज़र लॉग इन है
+            // यूज़र लॉगिन है
             loginCard.style.display = 'none';
             ordersBox.style.display = 'block';
             if (logoutBtn) logoutBtn.style.display = 'block';
 
             greetDisplay.innerText = currentUser.name ? "ग्राहक: " + currentUser.name : "";
 
-            const cleanEmail = currentUser.email.trim();
+            const cleanEmail = (currentUser.email || '').trim().toLowerCase();
+            const userPhone = (currentUser.mobile || '').trim();
 
             try {
-                // दोनों केस (ilike) या फोन दोनों से जांच ताकि कोई ऑर्डर न छूटे
-                let query = supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .ilike('customer_email', cleanEmail);
+                // ग्राहक के ऑर्डर्स निकालना: ईमेल अथवा मोबाइल नंबर किसी से भी मैच हो तो ऑर्डर दिखेगा
+                let query = supabaseClient.from('orders').select('*');
+
+                if (cleanEmail && userPhone) {
+                    query = query.or(`customer_email.ilike.${cleanEmail},customer_mobile.eq.${userPhone}`);
+                } else if (cleanEmail) {
+                    query = query.ilike('customer_email', cleanEmail);
+                } else {
+                    query = query.eq('customer_mobile', userPhone);
+                }
 
                 const { data: orders, error } = await query.order('created_at', { ascending: false });
 
@@ -209,7 +218,7 @@
                         <div class="auth-card" style="padding: 25px;">
                             <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #94a3b8;"></i>
                             <h4 style="margin-top: 8px;">कोई ऑर्डर नहीं मिला</h4>
-                            <p style="margin-bottom: 0;">ईमेल (${cleanEmail}) से अभी कोई ऑर्डर दर्ज नहीं है।</p>
+                            <p style="margin-bottom: 0;">(${cleanEmail || userPhone}) के नाम से अभी कोई ऑर्डर दर्ज नहीं है।</p>
                         </div>
                     `;
                     return;
