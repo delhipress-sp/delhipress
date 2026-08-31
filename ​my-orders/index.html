@@ -8,20 +8,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- पेज लोड होते ही तुरंत यूज़र की जाँच करें -->
     <script>
-        var activeUser = null;
-        try {
-            var rawData = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
-            if (rawData && rawData !== 'null' && rawData !== 'undefined') {
-                activeUser = JSON.parse(rawData);
+        // पेज रेंडर होने से पहले ही लॉगिन चेक
+        function getSavedUser() {
+            var keys = ['dp_current_user', 'user'];
+            for (var i = 0; i < keys.length; i++) {
+                var str = localStorage.getItem(keys[i]);
+                if (str && str !== 'null' && str !== 'undefined') {
+                    try {
+                        var parsed = JSON.parse(str);
+                        if (parsed && typeof parsed === 'object') {
+                            if (parsed.email || parsed.mobile || parsed.name) {
+                                return parsed;
+                            }
+                        }
+                    } catch (e) {}
+                }
             }
-        } catch(e) {
-            activeUser = null;
+            return null;
         }
 
-        // अगर लॉगिन नहीं है, तो बिना कोई पॉपअप दिखाए सीधे लॉगिन पेज पर भेजें
-        if (!activeUser || (!activeUser.email && !activeUser.mobile && !activeUser.name)) {
+        var activeUser = getSavedUser();
+
+        // यदि लॉगिन नहीं है, तो तुरंत लॉगिन पेज पर रीडायरेक्ट
+        if (!activeUser) {
             window.location.replace("../login.html?redirect=my-orders/index.html");
         }
     </script>
@@ -85,6 +95,12 @@
         }
         .matter-box h5 { color: var(--secondary); margin-bottom: 4px; }
 
+        .empty-box {
+            background: #fff; border-radius: 8px; padding: 35px 20px;
+            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        /* Mobile Bottom Bar */
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
@@ -116,19 +132,17 @@
     </nav>
 
     <div class="container">
-        <div id="ordersContainer">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 style="font-size: 17px; color: var(--dark);">
-                    <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> आपके हालिया ऑर्डर्स
-                </h3>
-                <span id="userGreetName" style="font-size: 13px; font-weight: 700; color: #475569;"></span>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 17px; color: var(--dark);">
+                <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> आपके हालिया ऑर्डर्स
+            </h3>
+            <span id="userGreetName" style="font-size: 13px; font-weight: 700; color: #475569;"></span>
+        </div>
 
-            <div id="ordersList">
-                <p style="text-align: center; color: #64748b; padding: 25px;">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--primary);"></i> ऑर्डर्स लोड हो रहे हैं...
-                </p>
-            </div>
+        <div id="ordersList">
+            <p style="text-align: center; color: #64748b; padding: 30px;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block;"></i> ऑर्डर्स लोड हो रहे हैं...
+            </p>
         </div>
     </div>
 
@@ -148,11 +162,12 @@
         function handleLogout() {
             localStorage.removeItem('dp_current_user');
             localStorage.removeItem('user');
+            sessionStorage.clear();
             alert("लॉगआउट हो गया!");
             window.location.href = "../index.html";
         }
 
-        async function fetchCustomerOrders() {
+        async function fetchMyOrders() {
             if (!activeUser) return;
 
             const greetDisplay = document.getElementById('userGreetName');
@@ -182,10 +197,10 @@
 
                 if (!orders || orders.length === 0) {
                     listArea.innerHTML = `
-                        <div style="background:#fff; border-radius:8px; padding:30px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-                            <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #94a3b8; margin-bottom: 8px;"></i>
+                        <div class="empty-box">
+                            <i class="fa-regular fa-folder-open" style="font-size: 40px; color: #94a3b8; margin-bottom: 10px;"></i>
                             <h4>कोई ऑर्डर नहीं मिला</h4>
-                            <p style="color:#64748b; font-size:13px; margin:0;">(${cleanEmail || userPhone}) के नाम से अभी कोई ऑर्डर दर्ज नहीं है।</p>
+                            <p style="color:#64748b; font-size:13px; margin-top: 4px;">(${cleanEmail || userPhone}) के नाम से अभी कोई ऑर्डर दर्ज नहीं है।</p>
                         </div>
                     `;
                     return;
@@ -242,8 +257,7 @@
             }
         }
 
-        // पेज लोड होते ही तुरंत रन करें
-        fetchCustomerOrders();
+        fetchMyOrders();
     </script>
 </body>
 </html>
