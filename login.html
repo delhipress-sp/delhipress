@@ -34,9 +34,6 @@
         .brand p { font-size: 11px; color: #64748b; }
 
         /* प्रोफ़ाइल / लॉगिन आइकन बटन */
-        .user-nav-wrapper {
-            position: relative;
-        }
         .user-nav-btn {
             background: #fee2e2;
             color: var(--primary);
@@ -53,50 +50,6 @@
         }
         .user-nav-btn:hover {
             border-color: var(--primary);
-        }
-
-        /* लॉगिन होने के बाद आइकन दबाने पर ड्रॉपडाउन */
-        .user-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 50px;
-            width: 220px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            z-index: 200;
-        }
-        .user-dropdown.show {
-            display: block;
-        }
-        .dropdown-user-info {
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .dropdown-user-info h4 { font-size: 15px; color: var(--dark); margin-bottom: 2px; }
-        .dropdown-user-info p { font-size: 12px; color: #64748b; word-break: break-all; }
-
-        .dropdown-btn-logout {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 9px;
-            background: #fff;
-            color: #dc2626;
-            border: 1px solid #fca5a5;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .dropdown-btn-logout:hover {
-            background: #fee2e2;
         }
 
         /* लॉगिन / रजिस्ट्रेशन मोडल */
@@ -151,21 +104,10 @@
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
 
-        <div class="user-nav-wrapper">
+        <div>
             <button type="button" class="user-nav-btn" id="userIconBtn" onclick="checkAndOpenAuth()" title="ग्राहक खाता">
                 <i class="fa-solid fa-user" id="userIconState"></i>
             </button>
-
-            <!-- केवल लॉगिन होने पर दिखने वाला लॉगआउट मेन्यू -->
-            <div class="user-dropdown" id="userDropdown">
-                <div class="dropdown-user-info">
-                    <h4 id="dropCustName">ग्राहक नाम</h4>
-                    <p id="dropCustEmail">ईमेल या फ़ोन</p>
-                </div>
-                <button type="button" onclick="handleLogout()" class="dropdown-btn-logout">
-                    <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
-                </button>
-            </div>
         </div>
     </header>
 
@@ -280,18 +222,16 @@
             const iconState = document.getElementById('userIconState');
             if (user) {
                 iconState.className = "fa-solid fa-user-check";
-                document.getElementById('dropCustName').innerText = user.name || 'ग्राहक';
-                document.getElementById('dropCustEmail').innerText = user.mobile || user.email || '';
             } else {
                 iconState.className = "fa-solid fa-user";
-                document.getElementById('userDropdown').classList.remove('show');
             }
         }
 
         function checkAndOpenAuth() {
             const user = getLoggedInUser();
             if (user) {
-                document.getElementById('userDropdown').classList.toggle('show');
+                // अगर पहले से लॉगिन है, तो कोई मेन्यू नहीं खुलेगा, सीधे लॉगआउट विकल्प पूछेगा
+                handleLogout();
             } else {
                 openAuthModal('login');
             }
@@ -324,10 +264,11 @@
         }
 
         function handleLogout() {
-            if (confirm("क्या आप लॉगआउट करना चाहते हैं?")) {
+            const user = getLoggedInUser();
+            const userName = user ? (user.name || 'ग्राहक') : 'ग्राहक';
+            if (confirm(`नमस्ते ${userName}, क्या आप लॉगआउट करना चाहते हैं?`)) {
                 localStorage.removeItem('dp_current_user');
                 localStorage.removeItem('user');
-                document.getElementById('userDropdown').classList.remove('show');
                 updateUIState();
                 alert("सफलतापूर्वक लॉगआउट हो गया।");
             }
@@ -452,13 +393,6 @@
                 btn.innerText = "पासवर्ड अपडेट करें"; btn.disabled = false;
             }
         }
-
-        document.addEventListener('click', (e) => {
-            const wrapper = document.querySelector('.user-nav-wrapper');
-            if (wrapper && !wrapper.contains(e.target)) {
-                document.getElementById('userDropdown').classList.remove('show');
-            }
-        });
 
         window.addEventListener('DOMContentLoaded', () => {
             updateUIState();
