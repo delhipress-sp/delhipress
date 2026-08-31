@@ -32,11 +32,11 @@ async function handleLoginSubmit(event) {
       password: password,
     });
 
-    if (error) {
+    if (error) { 
       alert("लॉगिन एरर! " + error.message);
     } else {
       alert("लॉगिन सफल!");
-    }
+    } window.location.href = 'index.html';
   } catch (err) {
     alert("लॉगिन एरर! कृपया इंटरनेट जांचें।");
   }
