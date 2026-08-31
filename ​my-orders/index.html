@@ -8,6 +8,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- पेज लोड होते ही तुरंत यूज़र की जाँच करें -->
+    <script>
+        var activeUser = null;
+        try {
+            var rawData = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
+            if (rawData && rawData !== 'null' && rawData !== 'undefined') {
+                activeUser = JSON.parse(rawData);
+            }
+        } catch(e) {
+            activeUser = null;
+        }
+
+        // अगर लॉगिन नहीं है, तो बिना कोई पॉपअप दिखाए सीधे लॉगिन पेज पर भेजें
+        if (!activeUser || (!activeUser.email && !activeUser.mobile && !activeUser.name)) {
+            window.location.replace("../login.html?redirect=my-orders/index.html");
+        }
+    </script>
+
     <style>
         :root {
             --primary: #c0392b;
@@ -38,21 +56,6 @@
         }
 
         .container { max-width: 800px; margin: 20px auto; padding: 0 12px; }
-
-        /* डिफ़ॉल्ट रूप से पॉपअप पूरी तरह गायब रहेगा */
-        .auth-card {
-            display: none;
-            background: #fff; border-radius: 8px; padding: 35px 20px;
-            text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        }
-        .auth-card i { font-size: 45px; color: var(--primary); margin-bottom: 12px; }
-        .auth-card h3 { font-size: 18px; margin-bottom: 8px; }
-        .auth-card p { font-size: 13px; color: #64748b; margin-bottom: 18px; }
-        .btn-login-now {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: var(--primary); color: white; padding: 10px 24px;
-            border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px;
-        }
 
         .order-card {
             background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;
@@ -108,24 +111,12 @@
         </div>
         <div class="nav-actions">
             <a href="../index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम पेज</a>
-            <button id="navLogoutBtn" class="btn-logout" style="display: none;" onclick="handleLogout()">लॉगआउट</button>
+            <button class="btn-logout" onclick="handleLogout()">लॉगआउट</button>
         </div>
     </nav>
 
     <div class="container">
-        
-        <!-- लॉगिन न होने पर केवल यह पॉपअप/कार्ड आएगा -->
-        <div id="loginRequiredCard" class="auth-card">
-            <i class="fa-solid fa-user-lock"></i>
-            <h3>ऑर्डर्स देखने के लिए पहले लॉगिन करें</h3>
-            <p>आप अभी लॉग इन नहीं हैं अथवा आपका सत्र समाप्त हो चुका है।</p>
-            <a href="../login.html?redirect=my-orders/index.html" class="btn-login-now">
-                <i class="fa-solid fa-right-to-bracket"></i> अभी लॉगिन करें
-            </a>
-        </div>
-
-        <!-- लॉगिन होने पर ऑर्डर्स वाला बॉक्स लोड होगा -->
-        <div id="ordersContainer" style="display: none;">
+        <div id="ordersContainer">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <h3 style="font-size: 17px; color: var(--dark);">
                     <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> आपके हालिया ऑर्डर्स
@@ -134,10 +125,11 @@
             </div>
 
             <div id="ordersList">
-                <p style="text-align: center; color: #64748b; padding: 25px;">ऑर्डर्स लोड हो रहे हैं...</p>
+                <p style="text-align: center; color: #64748b; padding: 25px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--primary);"></i> ऑर्डर्स लोड हो रहे हैं...
+                </p>
             </div>
         </div>
-
     </div>
 
     <!-- Mobile Navigation -->
@@ -160,52 +152,18 @@
             window.location.href = "../index.html";
         }
 
-        // लोकल स्टोरेज से यूजर डेटा सही ढंग से निकालना
-        function getLoggedInUser() {
-            const keys = ['dp_current_user', 'user'];
-            for (let k of keys) {
-                const item = localStorage.getItem(k);
-                if (item && item !== 'null' && item !== 'undefined') {
-                    try {
-                        const parsed = JSON.parse(item);
-                        // यदि ऑब्जेक्ट में नाम, ईमेल या मोबाइल कुछ भी मौजूद हो
-                        if (parsed && typeof parsed === 'object') {
-                            if (parsed.email || parsed.mobile || parsed.name) {
-                                return parsed;
-                            }
-                        }
-                    } catch (e) {}
-                }
-            }
-            return null;
-        }
+        async function fetchCustomerOrders() {
+            if (!activeUser) return;
 
-        async function initMyOrdersPage() {
-            const loginCard = document.getElementById('loginRequiredCard');
-            const ordersBox = document.getElementById('ordersContainer');
             const greetDisplay = document.getElementById('userGreetName');
             const listArea = document.getElementById('ordersList');
-            const logoutBtn = document.getElementById('navLogoutBtn');
 
-            const currentUser = getLoggedInUser();
-
-            // 1. यदि यूजर लॉग इन नहीं है - केवल तभी लॉगिन कार्ड दिखाएँ
-            if (!currentUser) {
-                loginCard.style.display = 'block';
-                ordersBox.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'none';
-                return;
+            if (greetDisplay && activeUser.name) {
+                greetDisplay.innerText = "ग्राहक: " + activeUser.name;
             }
 
-            // 2. यदि यूजर लॉग इन है - कार्ड पूरी तरह हटा दें और ऑर्डर्स दिखाएँ
-            loginCard.style.display = 'none';
-            ordersBox.style.display = 'block';
-            if (logoutBtn) logoutBtn.style.display = 'block';
-
-            greetDisplay.innerText = currentUser.name ? "ग्राहक: " + currentUser.name : "";
-
-            const cleanEmail = (currentUser.email || '').trim().toLowerCase();
-            const userPhone = (currentUser.mobile || '').trim();
+            const cleanEmail = (activeUser.email || '').trim().toLowerCase();
+            const userPhone = (activeUser.mobile || '').trim();
 
             try {
                 let query = supabaseClient.from('orders').select('*');
@@ -284,7 +242,8 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initMyOrdersPage);
+        // पेज लोड होते ही तुरंत रन करें
+        fetchCustomerOrders();
     </script>
 </body>
 </html>
