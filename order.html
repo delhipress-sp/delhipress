@@ -124,7 +124,6 @@
             position: relative; z-index: 2; box-shadow: 0 2px 5px rgba(192, 57, 43, 0.2);
         }
 
-        /* कुल बिल एवं एडवांस पेमेंट बॉक्स */
         .total-bill-box {
             background: #fef9c3; border: 1px solid #facc15;
             padding: 10px; border-radius: 6px; margin: 10px 0;
@@ -168,7 +167,6 @@
             border: 1px solid #cbd5e1; object-fit: cover;
         }
 
-        /* डिजिटल हस्ताक्षर एवं घोषणा स्टाइल */
         .signature-box-wrapper {
             background: #fff; border: 2px dashed #94a3b8; border-radius: 6px;
             padding: 8px; text-align: center; margin-top: 6px; position: relative;
@@ -241,7 +239,6 @@
             .form-wrapper { padding: 12px; }
         }
 
-        /* प्रिंट / रसीद डाउनलोड स्टाइल */
         @media print {
             body * { visibility: hidden; }
             #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
@@ -293,7 +290,7 @@
                 
                 <form id="weddingForm" onsubmit="event.preventDefault(); openReviewModal();">
                     
-                    <!-- ०. ग्राहक का व्यक्तिगत विवरण (Customer Details) -->
+                    <!-- ०. ग्राहक का व्यक्तिगत विवरण -->
                     <div class="form-block" style="border-left-color: var(--blue);">
                         <h4><i class="fa-solid fa-user-tag"></i> ग्राहक का विवरण (Customer Details)</h4>
                         <div class="row-2">
@@ -330,7 +327,6 @@
                             </div>
                         </div>
 
-                        <!-- बिल और एडवांस पेमेंट कैलकुलेटर -->
                         <div class="total-bill-box">
                             <span>कुल बिल राशि:</span>
                             <span id="weddingTotalDisplay">₹1,200</span>
@@ -565,7 +561,6 @@
         let constructedWaMessage = "";
         let signatureDataUrl = "";
 
-        // Canvas Signature Logic
         const canvas = document.getElementById('sigCanvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -631,7 +626,6 @@
             signatureDataUrl = "";
         }
 
-        // Check Login Session & Auto Fill User Data
         function checkAuthStatus() {
             const userJson = localStorage.getItem('dp_current_user');
             const overlay = document.getElementById('formLockOverlay');
@@ -642,7 +636,6 @@
             overlay.style.display = 'none';
             try { 
                 const user = JSON.parse(userJson);
-                // ऑटो-फिल कस्टमर इनपुट्स यदि पहले से खाली हैं
                 if (user) {
                     const nameField = document.getElementById('custFullName');
                     const phoneField = document.getElementById('custMobile');
@@ -658,14 +651,12 @@
             }
         }
 
-        // कैलकुलेशन लॉजिक (कुल राशि, एडवांस एवं बैलेंस)
         function calculateWeddingTotal() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const total = rate * qty;
             document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
 
-            // डिफ़ॉल्ट 50% एडवांस सेट करें
             const currentAdvanceInput = document.getElementById('advancePaidInput');
             if (!currentAdvanceInput.dataset.userModified) {
                 const defAdvance = Math.round(total * 0.5);
@@ -766,7 +757,6 @@
 
             signatureDataUrl = canvas.toDataURL('image/png');
 
-            // ग्राहक का विवरण लेना
             const custName = document.getElementById('custFullName').value.trim();
             const custMobile = document.getElementById('custMobile').value.trim();
             const custAddress = document.getElementById('custFullAddress').value.trim();
@@ -831,7 +821,6 @@
                 created_at: new Date().toISOString()
             };
 
-            // Review Modal Content
             let summaryText = `👤 **ग्राहक विवरण**:\n`;
             summaryText += `नाम: ${custName}\n`;
             summaryText += `मोबाइल: ${custMobile}\n`;
@@ -861,7 +850,6 @@
 
             document.getElementById('reviewContent').innerText = summaryText;
 
-            // WhatsApp Message Text
             constructedWaMessage = `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर*\n\n` +
                 `*ग्राहक का नाम:* ${custName}\n` +
                 `*मोबाइल नंबर:* ${custMobile}\n` +
@@ -883,13 +871,14 @@
             document.getElementById('reviewModal').style.display = 'none';
         }
 
-        // रसीद जनरेट एवं प्रिंट / PDF डाउनलोड
+        // रसीद जनरेट एवं प्रिंट / PDF डाउनलोड (मैप लिंक व मैप QR कोड सहित)
         function downloadAndPrintReceipt() {
             if (!preparedOrderPayload) return;
             const ord = preparedOrderPayload;
             const printArea = document.getElementById('printableReceiptArea');
             const d = new Date();
             const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+            const mapShareUrl = "https://share.google/dmV4uXNQ8KWnP1EHQ";
 
             let couplesHtml = '';
             ord.couples.forEach((c, i) => {
@@ -922,17 +911,26 @@
             printArea.innerHTML = `
                 <div style="max-width: 780px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
                     
-                    <!-- Header -->
+                    <!-- Header with Google Maps Link & Map QR -->
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
                         <div>
                             <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
                             <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
+                            <a href="${mapShareUrl}" target="_blank" style="display: inline-block; margin-top: 4px; color: #0284c7; text-decoration: none; font-size: 12px; font-weight: bold;">
+                                <i class="fa-solid fa-location-dot" style="color: #dc2626;"></i> 📍 शॉप लोकेशन देखें (Google Maps)
+                            </a>
                         </div>
-                        <div style="text-align: right;">
-                            <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-                                ग्राहक ऑर्डर रसीद / पावती
-                            </span>
-                            <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
+                        <div style="display: flex; align-items: center; gap: 10px; text-align: right;">
+                            <div style="text-align: center;">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(mapShareUrl)}" style="width: 60px; height: 60px; border: 1px solid #cbd5e1; border-radius: 4px; display: block;" alt="Map QR">
+                                <span style="font-size: 9px; color: #64748b;">लोकेशन QR</span>
+                            </div>
+                            <div>
+                                <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
+                                    ग्राहक ऑर्डर रसीद / पावती
+                                </span>
+                                <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
+                            </div>
                         </div>
                     </div>
 
@@ -1024,7 +1022,6 @@
             window.print();
         }
 
-        // डेटाबेस में सबमिट एवं WhatsApp पर भेजना
         async function submitOrderToDatabase() {
             if (!preparedOrderPayload) return;
             const btn = document.getElementById('btnSubmitOrder');
@@ -1053,13 +1050,11 @@
             }
         }
 
-        // Initialize Page
         window.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
             calculateWeddingTotal();
             resizeCanvas();
 
-            // कैटलॉग से सीधे ऑर्डर करने पर कार्ड का नाम ऑटो-भरना
             const urlParams = new URLSearchParams(window.location.search);
             const cardParam = urlParams.get('card');
             const rateParam = urlParams.get('rate');
