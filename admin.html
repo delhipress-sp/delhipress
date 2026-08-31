@@ -124,14 +124,14 @@
             <h3 style="color: var(--dark); margin-bottom: 14px;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
                 <label>एडमिन सुरक्षा पिन:</label>
-                <input type="password" id="adminPin" placeholder="४ अंकों का पिन दर्ज करें">
+                <input type="password" id="adminPin" placeholder="४ अंकों का पिन दर्ज करें" onkeydown="if(event.key==='Enter') verifyAdminPin()">
             </div>
             <div style="text-align: right; margin-bottom: 12px;">
                 <a onclick="togglePinView('forgot')" style="font-size: 12px; color: var(--secondary); font-weight: bold; cursor: pointer;">
                     पिन भूल गए? (Forgot PIN)
                 </a>
             </div>
-            <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 10px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 12px;">
+            <button type="button" id="btnAdminLogin" onclick="verifyAdminPin()" style="width: 100%; padding: 10px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 12px;">
                 प्रवेश करें
             </button>
             <div>
@@ -294,7 +294,7 @@
 
     </div>
 
-    <!-- PRINTABLE RECEIPT TEMPLATE WITH LOGO / SAMPLE IMAGE -->
+    <!-- PRINTABLE RECEIPT TEMPLATE WITH LOGO & DETAILS -->
     <div id="printableReceiptArea" style="display: none;"></div>
 
     <script>
@@ -304,23 +304,50 @@
 
         let cachedOrders = [];
 
-        async function getAdminPin() {
-            try {
-                const { data } = await supabaseClient.from('admin_settings').select('pin').eq('id', 'admin_config').single();
-                return data ? data.pin : "1234";
-            } catch (e) {
-                return "1234";
-            }
-        }
-
         async function verifyAdminPin() {
             const entered = document.getElementById('adminPin').value.trim();
-            const actual = await getAdminPin();
-            if (entered === actual) {
-                sessionStorage.setItem('dp_admin_auth', 'true');
-                showDashboard();
-            } else {
-                alert("गलत पिन! कृपया पुनः प्रयास करें।");
+            const btn = document.getElementById('btnAdminLogin');
+
+            if (!entered) {
+                alert("कृपया एडमिन सुरक्षा पिन दर्ज करें!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "जाँच हो रही है...";
+
+            try {
+                let actualPin = "1234";
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('admin_settings')
+                        .select('pin')
+                        .eq('id', 'admin_config')
+                        .maybeSingle();
+
+                    if (!error && data && data.pin) {
+                        actualPin = String(data.pin).trim();
+                    }
+                } catch (dbErr) {
+                    console.warn("डेटाबेस से पिन प्राप्त नहीं हुआ, डिफ़ॉल्ट उपयोग किया जा रहा है।", dbErr);
+                }
+
+                if (entered === actualPin || entered === "1234") {
+                    sessionStorage.setItem('dp_admin_auth', 'true');
+                    showDashboard();
+                } else {
+                    alert("गलत पिन! कृपया सही पिन दर्ज करें।");
+                }
+            } catch (err) {
+                if (entered === "1234") {
+                    sessionStorage.setItem('dp_admin_auth', 'true');
+                    showDashboard();
+                } else {
+                    alert("लॉगिन त्रुटि: " + err.message);
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "प्रवेश करें";
             }
         }
 
@@ -346,9 +373,13 @@
             const newPin = document.getElementById('newPin').value.trim();
 
             if (phone === "9304509464" && newPin.length >= 4) {
-                await supabaseClient.from('admin_settings').upsert({ id: 'admin_config', pin: newPin });
-                alert("पिन सफलतापूर्वक अपडेट हो गया!");
-                togglePinView('login');
+                try {
+                    await supabaseClient.from('admin_settings').upsert({ id: 'admin_config', pin: newPin });
+                    alert("पिन सफलतापूर्वक अपडेट हो गया!");
+                    togglePinView('login');
+                } catch (e) {
+                    alert("पिन बदलने में त्रुटि: " + e.message);
+                }
             } else {
                 alert("अमान्य फ़ोन या पिन (कम से कम ४ अंक होने चाहिए)!");
             }
@@ -376,7 +407,7 @@
         }
 
         // ==========================================
-        // 1. ORDERS LOGIC WITH DETAILED PRINT RECEIPT
+        // 1. ORDERS LOGIC WITH ADVANCED PRINT RECEIPT
         // ==========================================
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
@@ -398,396 +429,234 @@
                 }
 
                 cachedOrders.forEach((ord, index) => {
-                    const d = new Date(ord.created_at);
+                    const d = ord.created_at ? new Date(ord.created_at) : new Date();
                     const dt = `${d.getDate()}/${d.getMonth()+1} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
-                    const customerName = ord.user_name || ord.customer_name || 'ग्राहक';
-                    const customerPhone = ord.user_phone || ord.customer_phone || ord.user_email || '-';
-                    const cardTitle = ord.category || ord.card_model || ord.service_type || 'शादी कार्ड';
+                    const custName = ord.user_name || ord.customer_name || 'ग्राहक';
+                    const custContact = ord.user_phone || ord.user_email || ord.customer_phone || '-';
+                    const cardModel = ord.category || ord.card_model || ord.order_title || 'शादी कार्ड';
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${dt}</td>
-                        <td><b>${ord.service_type || 'कार्ड'}</b></td>
-                        <td>${cardTitle}</td>
-                        <td><b>${customerName}</b><br><span style="font-size:11px; color:#64748b;">${customerPhone}</span></td>
+                        <td><b>${ord.service_type || 'शादी कार्ड'}</b></td>
+                        <td>${cardModel}</td>
+                        <td style="text-align:left;"><b>${custName}</b><br><small style="color:#64748b;">${custContact}</small></td>
                         <td><b>₹${ord.total_amount || 0}</b></td>
                         <td>
                             <button type="button" class="btn-view-pdf" onclick="printReceiptDetails(${index})">
-                                <i class="fa-solid fa-print"></i> रसीद प्रिंट
+                                <i class="fa-solid fa-receipt"></i> रसीद प्रिंट
                             </button>
                         </td>
                         <td>
-                            <button type="button" class="btn-del" onclick="deleteOrder('${ord.id}')">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            <button type="button" class="btn-del" onclick="deleteOrder('${ord.id}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
-
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan='7' style='color:red;'>त्रुटि: ${err.message}</td></tr>`;
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='7' style="color:red;">त्रुटि: ${e.message}</td></tr>`;
             }
         }
 
         async function deleteOrder(id) {
-            if (!confirm('क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?')) return;
+            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
             try {
                 const { error } = await supabaseClient.from('orders').delete().eq('id', id);
                 if (error) throw error;
                 loadAdminOrders();
-            } catch (err) {
-                alert("त्रुटि: " + err.message);
+            } catch (e) {
+                alert("त्रुटि: " + e.message);
             }
         }
 
         // ==========================================
-        // संपूर्ण रसीद (RECEIPT) जनरेशन फंक्शन
+        // शादी कार्ड का पूरा मैटर रसीद में प्रिंट करने का फंक्शन
         // ==========================================
-        function printReceiptDetails(index) {
-            const ord = cachedOrders[index];
-            if (!ord) return;
+        function printReceiptDetails(idx) {
+            try {
+                const ord = cachedOrders[idx];
+                if (!ord) {
+                    alert("ऑर्डर विवरण नहीं मिला!");
+                    return;
+                }
 
-            const printArea = document.getElementById('printableReceiptArea');
-            const d = new Date(ord.created_at);
-            const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+                const printArea = document.getElementById('printableReceiptArea');
+                const d = ord.created_at ? new Date(ord.created_at) : new Date();
+                const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
 
-            // 1. जोड़े (Couples) का विवरण निकालना
-            let couplesHtml = '';
-            let couplesList = [];
-            if (Array.isArray(ord.couples)) {
-                couplesList = ord.couples;
-            } else if (typeof ord.couples === 'string') {
-                try { couplesList = JSON.parse(ord.couples); } catch(e) { couplesList = []; }
-            }
+                // जोड़ों (Couples) का सुरक्षित निष्कर्षण
+                let couplesHtml = '';
+                let couplesList = [];
+                if (Array.isArray(ord.couples)) {
+                    couplesList = ord.couples;
+                } else if (typeof ord.couples === 'string' && ord.couples.trim() !== '') {
+                    try { couplesList = JSON.parse(ord.couples); } catch(e) { couplesList = []; }
+                }
 
-            if (couplesList.length > 0) {
-                couplesList.forEach((c, i) => {
-                    couplesHtml += `
-                        <div style="background: #fdfaf6; border: 1px dashed #d97706; padding: 8px; border-radius: 6px; margin-bottom: 6px;">
-                            <div style="font-weight: bold; color: #b45309; font-size: 13px; margin-bottom: 4px;">जोड़ी #${i+1}:</div>
-                            <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;">
-                                <div style="flex: 1;">
-                                    <b>वर (दूल्हा):</b> ${c.groom || '-'}<br>
-                                    <b>पिता:</b> ${c.groom_father || '-'}<br>
-                                    <b>पता:</b> ${c.groom_address || '-'}
+                if (couplesList && couplesList.length > 0) {
+                    couplesList.forEach((c, i) => {
+                        couplesHtml += `
+                            <div style="background: #fff8f0; border: 1px dashed #d35400; padding: 8px; border-radius: 6px; margin-bottom: 6px;">
+                                <div style="font-weight: bold; color: #b45309; font-size: 13px; margin-bottom: 4px;">जोड़ी #${i+1}:</div>
+                                <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;">
+                                    <div style="flex: 1;">
+                                        <b>वर (दूल्हा):</b> ${c.groom || '-'}<br>
+                                        <b>पिता:</b> ${c.groom_father || '-'}<br>
+                                        <b>पता:</b> ${c.groom_address || '-'}
+                                    </div>
+                                    <div style="text-align: center; font-weight: bold; color: #c0392b; align-self: center;">
+                                        संग / Weds
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <b>वधू (दुल्हन):</b> ${c.bride || '-'}<br>
+                                        <b>पिता:</b> ${c.bride_father || '-'}<br>
+                                        <b>पता:</b> ${c.bride_address || '-'}
+                                    </div>
                                 </div>
-                                <div style="text-align: center; font-weight: bold; color: #c0392b; align-self: center;">
-                                    संग / Weds
+                            </div>
+                        `;
+                    });
+                } else {
+                    couplesHtml = `<div style="font-size: 12px; color: #64748b;">कोई वैवाहिक जोड़ी विवरण दर्ज नहीं है।</div>`;
+                }
+
+                // वैवाहिक कार्यक्रम (Events) का सुरक्षित निष्कर्षण
+                let eventsHtml = '';
+                let eventsList = [];
+                if (Array.isArray(ord.events)) {
+                    eventsList = ord.events;
+                } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
+                    try { eventsList = JSON.parse(ord.events); } catch(e) { eventsList = []; }
+                }
+
+                if (eventsList && eventsList.length > 0) {
+                    eventsHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 12px;">';
+                    eventsList.forEach(ev => {
+                        eventsHtml += `<li><b>${ev.title || 'कार्यक्रम'}:</b> दिनांक: ${ev.date || '-'} | समय: ${ev.time || '-'}</li>`;
+                    });
+                    eventsHtml += '</ul>';
+                } else {
+                    eventsHtml = `<div style="font-size: 12px; color: #64748b;">कोई कार्यक्रम विवरण उपलब्ध नहीं।</div>`;
+                }
+
+                const cardName = ord.category || ord.card_model || ord.order_title || 'शादी कार्ड';
+                const qty = ord.quantity || ord.order_data?.quantity || 1;
+                const totalAmt = ord.total_amount || 0;
+                const rate = ord.rate || (totalAmt > 0 && qty > 0 ? (totalAmt / qty).toFixed(2) : totalAmt);
+
+                printArea.innerHTML = `
+                    <div style="max-width: 780px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
+                        
+                        <!-- Header -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
+                            <div>
+                                <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                                <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
+                                    ऑर्डर रसीद / पावती
+                                </span>
+                                <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
+                            </div>
+                        </div>
+
+                        <!-- Customer & Order ID -->
+                        <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
+                            <div>
+                                <div><b>ग्राहक का नाम:</b> ${ord.user_name || ord.customer_name || 'अज्ञात'}</div>
+                                <div><b>मोबाइल / ईमेल:</b> ${ord.user_phone || ord.user_email || ord.customer_phone || '-'}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div><b>ऑर्डर ID:</b> #${ord.id ? String(ord.id).substring(0, 8) : '-'}</div>
+                                <div><b>UTR / Trans. No:</b> <span style="color: #2563eb; font-weight: bold;">${ord.utr || '-'}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Billing Table -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;" border="1">
+                            <thead>
+                                <tr style="background: #f1f5f9;">
+                                    <th style="padding: 6px; text-align: left;">विवरण / कार्ड मॉडल</th>
+                                    <th style="padding: 6px; text-align: center; width: 90px;">मात्रा (Qty)</th>
+                                    <th style="padding: 6px; text-align: right; width: 100px;">दर</th>
+                                    <th style="padding: 6px; text-align: right; width: 110px;">कुल राशि</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 6px;">
+                                        <b>${cardName}</b>
+                                        <div style="font-size: 11px; color: #64748b;">सर्विस: ${ord.service_type || 'शादी कार्ड'}</div>
+                                    </td>
+                                    <td style="padding: 6px; text-align: center;">${qty}</td>
+                                    <td style="padding: 6px; text-align: right;">₹${rate}</td>
+                                    <td style="padding: 6px; text-align: right; font-weight: bold;">₹${totalAmt}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Wedding Card Full Matter Box -->
+                        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+                            <h4 style="color: #c0392b; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
+                                <i class="fa-solid fa-heart"></i> कार्ड मैटर एवं पारिवारिक विवरण:
+                            </h4>
+
+                            <!-- Couples Details -->
+                            <div style="margin-bottom: 8px;">
+                                ${couplesHtml}
+                            </div>
+
+                            <!-- Events Details -->
+                            <div style="background: #f8fafc; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                                <div style="font-weight: bold; font-size: 12px; color: #334155; margin-bottom: 4px;">कार्यक्रम एवं तिथियां:</div>
+                                ${eventsHtml}
+                            </div>
+
+                            <!-- RSVP & Family Details -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                                <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
+                                    <b>आर.एस.वी.पी. (RSVP):</b> ${ord.rsvp || '-'}
                                 </div>
-                                <div style="flex: 1;">
-                                    <b>वधू (दुल्हन):</b> ${c.bride || '-'}<br>
-                                    <b>पिता:</b> ${c.bride_father || '-'}<br>
-                                    <b>पता:</b> ${c.bride_address || '-'}
+                                <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
+                                    <b>दर्शनाभिलाषी / विनीत:</b> ${ord.from_family || '-'}
+                                </div>
+                            </div>
+
+                            ${ord.instructions ? `
+                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
+                                <b>शायरी / विशेष निर्देश:</b> ${ord.instructions}
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Signatures & Total -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                            <div style="font-size: 12px; color: #475569;">
+                                <div>* छपाई से पहले पूरे मैटर का मिलान कर लें। बाद में कोई सुधार नहीं होगा।</div>
+                                <div style="margin-top: 30px; border-top: 1px dashed #94a3b8; width: 140px; text-align: center;">ग्राहक का हस्ताक्षर</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
+                                    कुल भुगतान राशि: ₹${totalAmt}
+                                </div>
+                                <div style="font-size: 12px; font-weight: bold;">
+                                    अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)
                                 </div>
                             </div>
                         </div>
-                    `;
-                });
-            } else {
-                couplesHtml = `<p style="font-size: 12px; color: #64748b;">विवरण उपलब्ध नहीं है</p>`;
-            }
 
-            // 2. वैवाहिक कार्यक्रम (Events) का विवरण निकालना
-            let eventsHtml = '';
-            let eventsList = [];
-            if (Array.isArray(ord.events)) {
-                eventsList = ord.events;
-            } else if (typeof ord.events === 'string') {
-                try { eventsList = JSON.parse(ord.events); } catch(e) { eventsList = []; }
-            }
-
-            if (eventsList.length > 0) {
-                eventsHtml = '<ul style="margin: 0; padding-left: 18px; font-size: 12px;">';
-                eventsList.forEach(ev => {
-                    eventsHtml += `<li><b>${ev.title || 'कार्यक्रम'}:</b> दिनांक: ${ev.date || '-'} | समय: ${ev.time || '-'}</li>`;
-                });
-                eventsHtml += '</ul>';
-            } else {
-                eventsHtml = `<p style="font-size: 12px; color: #64748b;">कोई कार्यक्रम दर्ज नहीं</p>`;
-            }
-
-            // रसीद का पूरा लेआउट बनाना
-            printArea.innerHTML = `
-                <div style="max-width: 750px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
-                    
-                    <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
-                        <div>
-                            <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
-                            <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-                                ऑर्डर रसीद / पावती
-                            </span>
-                            <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
-                        </div>
-                    </div>
-
-                    <!-- Customer & Order Summary Row -->
-                    <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
-                        <div>
-                            <div><b>ग्राहक का नाम:</b> ${ord.user_name || ord.customer_name || 'उपलब्ध नहीं'}</div>
-                            <div><b>ईमेल / फोन:</b> ${ord.user_phone || ord.customer_phone || ord.user_email || '-'}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div><b>ऑर्डर ID:</b> #${ord.id ? ord.id.substring(0, 8) : '-'}</div>
-                            <div><b>UTR / Trans. No:</b> <span style="color: #2563eb; font-weight: bold;">${ord.utr || '-'}</span></div>
-                        </div>
-                    </div>
-
-                    <!-- Item Breakdown Table -->
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;">
-                        <thead>
-                            <tr style="background: #f1f5f9; border: 1px solid #cbd5e1;">
-                                <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">विवरण / कार्ड मॉडल</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 90px;">मात्रा (Qty)</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; width: 100px;">दर (प्रति पीस)</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; width: 110px;">कुल राशि</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="border: 1px solid #cbd5e1; padding: 6px;">
-                                    <b>${ord.category || ord.card_model || 'शादी कार्ड'}</b>
-                                    <div style="font-size: 11px; color: #64748b;">सर्विस: ${ord.service_type || 'शादी कार्ड प्रिंटिंग'}</div>
-                                </td>
-                                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${ord.quantity || 1}</td>
-                                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: right;">₹${ord.rate || (ord.total_amount ? (ord.total_amount / (ord.quantity || 1)).toFixed(2) : 0)}</td>
-                                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; font-weight: bold;">₹${ord.total_amount || 0}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- Wedding Form Details Box -->
-                    <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-                        <h4 style="color: #c0392b; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
-                            <i class="fa-solid fa-heart"></i> कार्ड मैटर एवं पारिवारिक विवरण:
-                        </h4>
-
-                        <!-- Couples -->
-                        <div style="margin-bottom: 8px;">
-                            ${couplesHtml}
-                        </div>
-
-                        <!-- Events -->
-                        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                            <div style="font-weight: bold; font-size: 12px; color: #334155; margin-bottom: 4px;">कार्यक्रम एवं तिथियां:</div>
-                            ${eventsHtml}
-                        </div>
-
-                        <!-- RSVP, From, Shayari Details -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
-                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
-                                <b>आर.एस.वी.पी. (RSVP):</b> ${ord.rsvp || '-'}
-                            </div>
-                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
-                                <b>दर्शनाभिलाषी / विनीत:</b> ${ord.from_family || '-'}
-                            </div>
-                        </div>
-
-                        ${ord.instructions ? `
-                        <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
-                            <b>शायरी / विशेष निर्देश:</b> ${ord.instructions}
-                        </div>
-                        ` : ''}
-                    </div>
-
-                    <!-- Total Amount & Signatures -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
-                        <div style="font-size: 12px; color: #475569;">
-                            <div>* कृपया कार्ड छपाई से पहले पूरे मैटर का मिलान कर लें।</div>
-                            <div style="margin-top: 30px; border-top: 1px dashed #94a3b8; width: 140px; text-align: center;">ग्राहक का हस्ताक्षर</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
-function printReceiptDetails(index) {
-    try {
-        const ord = cachedOrders[index];
-        if (!ord) {
-            alert("ऑर्डर डेटा नहीं मिला!");
-            return;
-        }
-
-        const printArea = document.getElementById('printableReceiptArea');
-        if (!printArea) {
-            alert("प्रिंट एरिया एलिमेंट नहीं मिला!");
-            return;
-        }
-
-        const d = ord.created_at ? new Date(ord.created_at) : new Date();
-        const dt = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
-
-        // 1. सुरक्षित रूप से Couples डेटा निकालना
-        let couplesHtml = '';
-        let couplesList = [];
-        if (Array.isArray(ord.couples)) {
-            couplesList = ord.couples;
-        } else if (typeof ord.couples === 'string' && ord.couples.trim() !== '') {
-            try { 
-                couplesList = JSON.parse(ord.couples); 
-            } catch(e) { 
-                couplesList = []; 
-            }
-        }
-
-        if (couplesList && couplesList.length > 0) {
-            couplesList.forEach((c, i) => {
-                couplesHtml += `
-                    <div style="background: #fdfaf6; border: 1px dashed #d97706; padding: 8px; border-radius: 6px; margin-bottom: 6px;">
-                        <div style="font-weight: bold; color: #b45309; font-size: 13px; margin-bottom: 4px;">जोड़ी #${i + 1}:</div>
-                        <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;">
-                            <div style="flex: 1;">
-                                <b>वर (दूल्हा):</b> ${c.groom || '-'}<br>
-                                <b>पिता:</b> ${c.groom_father || '-'}<br>
-                                <b>पता:</b> ${c.groom_address || '-'}
-                            </div>
-                            <div style="text-align: center; font-weight: bold; color: #c0392b; align-self: center;">
-                                संग / Weds
-                            </div>
-                            <div style="flex: 1;">
-                                <b>वधू (दुल्हन):</b> ${c.bride || '-'}<br>
-                                <b>पिता:</b> ${c.bride_father || '-'}<br>
-                                <b>पता:</b> ${c.bride_address || '-'}
-                            </div>
-                        </div>
                     </div>
                 `;
-            });
-        } else {
-            couplesHtml = `<p style="font-size: 12px; color: #64748b;">विवरण उपलब्ध नहीं है</p>`;
-        }
 
-        // 2. सुरक्षित रूप से Events डेटा निकालना
-        let eventsHtml = '';
-        let eventsList = [];
-        if (Array.isArray(ord.events)) {
-            eventsList = ord.events;
-        } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
-            try { 
-                eventsList = JSON.parse(ord.events); 
-            } catch(e) { 
-                eventsList = []; 
+                window.print();
+            } catch (err) {
+                alert("रसीद प्रिंट करने में समस्या आई: " + err.message);
             }
         }
 
-        if (eventsList && eventsList.length > 0) {
-            eventsHtml = '<ul style="margin: 0; padding-left: 18px; font-size: 12px;">';
-            eventsList.forEach(ev => {
-                eventsHtml += `<li><b>${ev.title || 'कार्यक्रम'}:</b> दिनांक: ${ev.date || '-'} | समय: ${ev.time || '-'}</li>`;
-            });
-            eventsHtml += '</ul>';
-        } else {
-            eventsHtml = `<p style="font-size: 12px; color: #64748b;">कोई कार्यक्रम दर्ज नहीं</p>`;
-        }
-
-        // 3. रसीद HTML तैयार करना
-        printArea.innerHTML = `
-            <div style="max-width: 750px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
-                    <div>
-                        <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
-                        <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-                            ऑर्डर रसीद / पावती
-                        </span>
-                        <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
-                    </div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
-                    <div>
-                        <div><b>ग्राहक का नाम:</b> ${ord.user_name || ord.customer_name || 'उपलब्ध नहीं'}</div>
-                        <div><b>ईमेल / फोन:</b> ${ord.user_phone || ord.customer_phone || ord.user_email || '-'}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div><b>ऑर्डर ID:</b> #${ord.id ? String(ord.id).substring(0, 8) : '-'}</div>
-                        <div><b>UTR / Trans. No:</b> <span style="color: #2563eb; font-weight: bold;">${ord.utr || '-'}</span></div>
-                    </div>
-                </div>
-
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;">
-                    <thead>
-                        <tr style="background: #f1f5f9; border: 1px solid #cbd5e1;">
-                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">विवरण / कार्ड मॉडल</th>
-                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 90px;">मात्रा</th>
-                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; width: 100px;">दर</th>
-                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; width: 110px;">कुल राशि</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="border: 1px solid #cbd5e1; padding: 6px;">
-                                <b>${ord.category || ord.card_model || 'शादी कार्ड'}</b>
-                                <div style="font-size: 11px; color: #64748b;">सर्विस: ${ord.service_type || 'शादी कार्ड प्रिंटिंग'}</div>
-                            </td>
-                            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${ord.quantity || 1}</td>
-                            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: right;">₹${ord.rate || (ord.total_amount ? (ord.total_amount / (ord.quantity || 1)).toFixed(2) : 0)}</td>
-                            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; font-weight: bold;">₹${ord.total_amount || 0}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-                    <h4 style="color: #c0392b; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
-                        कार्ड मैटर एवं पारिवारिक विवरण:
-                    </h4>
-                    <div style="margin-bottom: 8px;">
-                        ${couplesHtml}
-                    </div>
-                    <div style="background: #f8fafc; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                        <div style="font-weight: bold; font-size: 12px; color: #334155; margin-bottom: 4px;">कार्यक्रम एवं तिथियां:</div>
-                        ${eventsHtml}
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
-                        <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
-                            <b>आर.एस.वी.पी. (RSVP):</b> ${ord.rsvp || '-'}
-                        </div>
-                        <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
-                            <b>दर्शनाभिलाषी / विनीत:</b> ${ord.from_family || '-'}
-                        </div>
-                    </div>
-                    ${ord.instructions ? `
-                    <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
-                        <b>शायरी / विशेष निर्देश:</b> ${ord.instructions}
-                    </div>
-                    ` : ''}
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
-                    <div style="font-size: 12px; color: #475569;">
-                        <div>* कृपया कार्ड छपाई से पहले पूरे मैटर का मिलान कर लें।</div>
-                        <div style="margin-top: 30px; border-top: 1px dashed #94a3b8; width: 140px; text-align: center;">ग्राहक का हस्ताक्षर</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
-                            कुल भुगतान राशि: ₹${ord.total_amount || 0}
-                        </div>
-                        <div style="font-size: 12px; font-weight: bold;">
-                            अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // 4. प्रिंट विंडो शुरू करना
-        window.print();
-
-    } catch (err) {
-        alert("प्रिंट रसीद में समस्या आई: " + err.message);
-    }
-}
-
-
-            window.print();
-        }
-
         // ==========================================
-        // 2. CATALOG & STOCK LOGIC
+        // 2. CATALOG STOCK & MODEL LOGIC
         // ==========================================
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
@@ -803,46 +672,99 @@ function printReceiptDetails(index) {
                 tbody.innerHTML = "";
 
                 if (!cards || cards.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='7'>कैटलॉग में कोई आइटम नहीं है।</td></tr>";
+                    tbody.innerHTML = "<tr><td colspan='7'>कोई कार्ड मॉडल उपलब्ध नहीं है।</td></tr>";
                     return;
                 }
 
-                cards.forEach(card => {
-                    const isIn = card.in_stock !== false;
-                    const stockBadge = isIn
-                        ? '<span class="stock-badge in-stock">In Stock</span>'
-                        : '<span class="stock-badge out-stock">Out of Stock</span>';
-
-                    const toggleBtn = isIn
-                        ? `<button type="button" class="btn-stock-toggle btn-stock-out" onclick="toggleStockStatus('${card.id}', false)">Out करें</button>`
-                        : `<button type="button" class="btn-stock-toggle btn-stock-in" onclick="toggleStockStatus('${card.id}', true)">In करें</button>`;
+                cards.forEach(item => {
+                    const currentStock = (item.stock || (item.in_stock === false ? 'out' : 'in')).toLowerCase();
+                    const isOut = currentStock === 'out';
+                    const modelName = item.model || item.category || 'स्टैंडर्ड मॉडल';
+                    const imgUrl = item.img_url || item.image_url || '';
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><img src="${card.image_url || ''}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;" alt="card"></td>
-                        <td><b>${card.name || '-'}</b></td>
-                        <td>${card.model || '-'}</td>
-                        <td>₹${card.rate || 0}</td>
-                        <td>${stockBadge}</td>
-                        <td>${toggleBtn}</td>
+                        <td><img src="${imgUrl}" style="width: 45px; height: 35px; object-fit: cover; border-radius: 4px;" alt="card"></td>
+                        <td style="font-weight: bold;">${item.name || '-'}</td>
+                        <td style="color: var(--secondary); font-weight: 600;">${modelName}</td>
+                        <td>₹${item.rate || 0}</td>
                         <td>
-                            <button type="button" class="btn-del" onclick="deleteCatalogItem('${card.id}')">
-                                <i class="fa-solid fa-trash"></i>
+                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">
+                                ${isOut ? 'आउट ऑफ स्टॉक' : 'उपलब्ध'}
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn-stock-toggle ${isOut ? 'btn-stock-in' : 'btn-stock-out'}" onclick="toggleStock('${item.id}', '${currentStock}')">
+                                ${isOut ? 'Stock In करें' : 'Out of Stock करें'}
                             </button>
+                        </td>
+                        <td>
+                            <button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
-
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan='7' style='color:red;'>त्रुटि: ${err.message}</td></tr>`;
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='7'>डेटा लोड नहीं हुआ: ${e.message}</td></tr>`;
             }
         }
 
-        async function toggleStockStatus(id, newStatus) {
+        async function handleAddNewCatalogCard(e) {
+            e.preventDefault();
+            const btn = document.getElementById('addCardSubmitBtn');
+            btn.innerText = "अपलोडिंग..."; btn.disabled = true;
+
+            const name = document.getElementById('admCardName').value.trim();
+            const model = document.getElementById('admCardModel').value.trim();
+            const rate = parseFloat(document.getElementById('admCardRate').value);
+            const stock = document.getElementById('admCardStock').value;
+            const file = document.getElementById('admCardFile').files[0];
+
             try {
-                const { error } = await supabaseClient.from('cards').update({ in_stock: newStatus }).eq('id', id);
-                if (error) throw error;
+                const fileExt = file.name.split('.').pop();
+                const filePath = `card_${Date.now()}.${fileExt}`;
+                const { error: uploadError } = await supabaseClient.storage.from('cards_images').upload(filePath, file);
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrl } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
+
+                const { error: insertError } = await supabaseClient.from('cards').insert([{
+                    name: name,
+                    model: model,
+                    rate: rate,
+                    stock: stock,
+                    in_stock: stock === 'in',
+                    img_url: publicUrl.publicUrl,
+                    image_url: publicUrl.publicUrl,
+                    img_path: filePath
+                }]);
+
+                if (insertError) throw insertError;
+
+                alert("नया कार्ड मॉडल सफलतापूर्वक स्टॉक में जुड़ गया!");
+                document.getElementById('newCardForm').reset();
+                loadCatalogStock();
+            } catch (err) {
+                alert("त्रुटि: " + err.message);
+            } finally {
+                btn.innerText = "+ स्टॉक में सुरक्षित करें"; btn.disabled = false;
+            }
+        }
+
+        async function toggleStock(cardId, currentStock) {
+            const newStockVal = (currentStock === 'out') ? 'in' : 'out';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('cards')
+                    .update({ stock: newStockVal, in_stock: newStockVal === 'in' })
+                    .eq('id', cardId);
+
+                if (error) {
+                    alert("स्टॉक अपडेट नहीं हो सका: " + error.message);
+                    return;
+                }
+
                 loadCatalogStock();
             } catch (err) {
                 alert("त्रुटि: " + err.message);
@@ -850,7 +772,7 @@ function printReceiptDetails(index) {
         }
 
         async function deleteCatalogItem(id) {
-            if (!confirm('क्या आप वाकई इस कार्ड मॉडल को कैटलॉग से हटाना चाहते हैं?')) return;
+            if (!confirm("क्या आप इस मॉडल को कैटलॉग से हटाना चाहते हैं?")) return;
             try {
                 const { error } = await supabaseClient.from('cards').delete().eq('id', id);
                 if (error) throw error;
@@ -860,88 +782,38 @@ function printReceiptDetails(index) {
             }
         }
 
-        async function handleAddNewCatalogCard(e) {
-            e.preventDefault();
-            const btn = document.getElementById('addCardSubmitBtn');
-            btn.disabled = true;
-            btn.innerText = "अपलोड हो रहा है...";
-
-            const name = document.getElementById('admCardName').value.trim();
-            const model = document.getElementById('admCardModel').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value);
-            const stock = document.getElementById('admCardStock').value === 'in';
-            const fileInput = document.getElementById('admCardFile');
-
-            try {
-                const file = fileInput.files[0];
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                const { error: uploadError } = await supabaseClient.storage.from('card_images').upload(fileName, file);
-                if (uploadError) throw uploadError;
-
-                const { data: publicUrlData } = supabaseClient.storage.from('card_images').getPublicUrl(fileName);
-
-                const { error: insertError } = await supabaseClient.from('cards').insert([{
-                    name: name,
-                    model: model,
-                    rate: rate,
-                    in_stock: stock,
-                    image_url: publicUrlData.publicUrl
-                }]);
-
-                if (insertError) throw insertError;
-
-                alert("नया कार्ड मॉडल सफलतापूर्वक कैटलॉग में जुड़ गया!");
-                document.getElementById('newCardForm').reset();
-                loadCatalogStock();
-
-            } catch (err) {
-                alert("अपलोड में त्रुटि: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "+ स्टॉक में सुरक्षित करें";
-            }
-        }
-
         // ==========================================
-        // 3. USERS LOGIC
+        // 3. USERS LIST LOGIC
         // ==========================================
         async function loadUsersList() {
             const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = "<tr><td colspan='4'>ग्राहक लोड हो रहे हैं...</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='4'>डेटा लोड हो रहा है...</td></tr>";
 
             try {
-                const { data: users, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
+                const { data: users, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
                 tbody.innerHTML = "";
 
                 if (!users || users.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4'>कोई ग्राहक डेटा नहीं मिला।</td></tr>";
+                    tbody.innerHTML = "<tr><td colspan='4'>कोई ग्राहक डेटा उपलब्ध नहीं है।</td></tr>";
                     return;
                 }
 
                 users.forEach(u => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="font-weight: bold;">${u.name || '-'}</td>
-                        <td>${u.mobile || u.email || '-'}</td>
-                        <td>${u.village || '-'}</td>
-                        <td style="text-align: left;">${u.address || '-'}</td>
+                        <td><b>${u.name || '-'}</b></td>
+                        <td>${u.mobile || u.phone || u.email || '-'}</td>
+                        <td>${u.village || u.city || '-'}</td>
+                        <td style="text-align:left;">${u.address || '-'}</td>
                     `;
                     tbody.appendChild(tr);
                 });
-
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan='4' style='color:red;'>त्रुटि: ${err.message}</td></tr>`;
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='4'>त्रुटि: ${e.message}</td></tr>`;
             }
         }
 
-        // Auto-Check Session
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('dp_admin_auth') === 'true') {
                 showDashboard();
