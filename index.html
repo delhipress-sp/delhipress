@@ -165,7 +165,6 @@
         <ul class="nav-menu">
             <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
-            <li><a href="javascript:void(0)" onclick="goToMyOrders()" style="font-weight: bold; color: var(--blue);">मेरे ऑर्डर्स</a></li>
             
             <li id="authNavContainer">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
@@ -211,10 +210,6 @@
             <div style="font-size: 45px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-circle-user"></i></div>
             <h3 id="mobAccName" style="color: var(--dark); margin-bottom: 4px;">उपयोगकर्ता</h3>
             <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 14px;">फोन / ईमेल</p>
-            
-            <button type="button" onclick="goToMyOrders()" style="display: block; width: 100%; padding: 9px; background: var(--blue); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 13px;">
-                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें
-            </button>
 
             <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px;" onclick="handleLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
@@ -227,7 +222,6 @@
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
-        <a href="javascript:void(0)" onclick="goToMyOrders()"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
         <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
             <i class="fa-solid fa-user"></i><span id="mobAccountBtnText">खाता</span>
         </button>
@@ -287,15 +281,6 @@
                 if(loggedBox) loggedBox.style.display = 'none';
                 if(display) display.innerText = "";
                 if(mobBtnText) mobBtnText.innerText = "खाता";
-            }
-        }
-
-        function goToMyOrders() {
-            const currentUser = getStoredUser();
-            if (currentUser) {
-                window.location.href = "my-orders/index.html";
-            } else {
-                window.location.href = "login.html?redirect=my-orders/index.html";
             }
         }
 
