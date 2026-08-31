@@ -15,6 +15,7 @@
             --dark: #1e272e;
             --green: #27ae60;
             --blue: #2980b9;
+            --wa-green: #25D366;
             --warn-bg: #fff3cd;
             --warn-border: #ffeeba;
             --warn-text: #856404;
@@ -130,6 +131,27 @@
             font-size: 15px; font-weight: bold; color: #854d0e;
         }
 
+        .payment-box {
+            background: #f0fdf4; border: 1px solid #bbf7d0;
+            padding: 14px; border-radius: 8px; text-align: center;
+        }
+        .btn-cashfree {
+            background: #097939; color: white; border: none; padding: 10px 18px;
+            font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .qr-wrapper {
+            background: #fff; border: 1px solid #ddd; display: inline-block;
+            padding: 8px; border-radius: 8px; margin: 10px 0;
+        }
+        .qr-wrapper img { width: 130px; height: 130px; display: block; }
+
+        .upi-buttons { display: flex; justify-content: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+        .upi-btn {
+            background: #3b82f6; color: white; padding: 7px 12px; border-radius: 5px;
+            font-size: 12px; text-decoration: none; font-weight: 600;
+        }
+
         .bottom-upload-box {
             background: #f8fafc; border: 2px dashed #94a3b8; padding: 15px;
             border-radius: 8px; text-align: center; margin-top: 10px; cursor: pointer;
@@ -140,12 +162,39 @@
             border: 1px solid #cbd5e1; object-fit: cover;
         }
 
+        .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .btn-review-main {
+            width: 100%; padding: 12px; background: var(--blue); color: white;
+            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
         .btn-checkout-fast {
             width: 100%; padding: 13px; background: var(--green); color: white;
             font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 8px rgba(39, 174, 96, 0.2);
         }
-        .btn-checkout-fast:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-whatsapp-send {
+            width: 100%; padding: 12px; background: var(--wa-green); color: white;
+            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;
+            padding: 10px;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 620px;
+            max-height: 90vh; overflow-y: auto; position: relative;
+        }
+        .close-btn { position: absolute; right: 12px; top: 10px; font-size: 22px; cursor: pointer; }
+
+        .review-box {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+            padding: 12px; font-size: 13px; line-height: 1.6; margin: 12px 0;
+            max-height: 320px; overflow-y: auto; white-space: pre-line;
+        }
 
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
@@ -204,11 +253,10 @@
                 </a>
             </div>
 
-            <!-- 1. WEDDING CARD FORM -->
             <div class="form-wrapper service-form-section" id="weddingFormSection">
                 <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
                 
-                <form id="weddingForm" onsubmit="handleFormSubmit(event)">
+                <form id="weddingForm" onsubmit="event.preventDefault(); openReviewModal();">
                     <div class="form-block">
                         <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
                         <div class="row-3">
@@ -315,7 +363,7 @@
                     </div>
 
                     <div class="form-block">
-                        <h4>५. कार्ड का सैंपल फोटो (वैकल्पिक)</h4>
+                        <h4>५. कार्ड का सैंपल फोटो</h4>
                         <div class="bottom-upload-box" onclick="document.getElementById('bottomCardSample').click()">
                             <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
                             <p style="font-weight: 600; font-size: 13px;">यहाँ क्लिक करके कार्ड सैंपल चुनें</p>
@@ -326,22 +374,67 @@
                         </div>
                     </div>
 
+                    <!-- ६. ऑनलाइन भुगतान (Cashfree, QR Code & UPI) -->
                     <div class="form-block">
-                        <h4>६. पेमेंट संदर्भ संख्या (UTR / Transaction ID)</h4>
-                        <div class="form-group">
-                            <input type="text" id="paymentUtr" placeholder="भुगतान के बाद 12 अंकों का UTR नंबर डालें" required>
+                        <h4>६. ऑनलाइन भुगतान (Payment)</h4>
+                        <div class="payment-box">
+                            <p style="font-weight: 600; font-size: 13px; color: #166534; margin-bottom: 8px;">
+                                Cashfree गेटवे से सुरक्षित ऑनलाइन भुगतान करें:
+                            </p>
+                            <a href="https://payments.cashfree.com/forms/delhipress" target="_blank" class="btn-cashfree">
+                                <i class="fa-solid fa-shield-halved"></i> Cashfree से पेमेंट करें
+                            </a>
+
+                            <div style="margin: 12px 0 6px 0; font-weight: bold; color: #475569; font-size: 13px;">— अथवा UPI / QR स्कैन करके भुगतान करें —</div>
+
+                            <div class="qr-wrapper">
+                                <img id="dynamicUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=1200&cu=INR" alt="UPI QR">
+                            </div>
+                            <p style="font-size: 12px; color: #64748b;">UPI ID: <strong>9304509464@ybl</strong></p>
+
+                            <div class="upi-buttons">
+                                <a id="payGpayBtn" href="#" class="upi-btn" style="background:#0f9d58;"><i class="fa-brands fa-google-pay"></i> GPay / UPI</a>
+                                <a id="payPhonepeBtn" href="#" class="upi-btn" style="background:#5f259f;"><i class="fa-solid fa-mobile-screen-button"></i> PhonePe</a>
+                                <a id="payPaytmBtn" href="#" class="upi-btn" style="background:#00baf2; color:#042e6f;"><i class="fa-solid fa-wallet"></i> Paytm</a>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 14px; text-align: left;">
+                                <label style="color:#0f5132;">भुगतान के बाद 12 अंकों का UTR / Transaction No. दर्ज करें:</label>
+                                <input type="text" id="paymentUtr" placeholder="उदा: 4234XXXXXXXX" required>
+                            </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-checkout-fast" id="submitOrderBtn">
-                        <i class="fa-solid fa-paper-plane"></i> ऑर्डर सबमिट करें
-                    </button>
+                    <div class="btn-row">
+                        <button type="submit" class="btn-review-main">
+                            <i class="fa-solid fa-eye"></i> मैटर जाँचें एवं WhatsApp पर ऑर्डर भेजें
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
+    <!-- Review & Submit Modal -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeReviewModal()">&times;</span>
+            <h3 style="color: var(--primary); margin-bottom: 8px;">ऑर्डर एवं मैटर की समीक्षा (Review)</h3>
+            <p style="font-size: 12px; color: #666;">कृपया पूरा मैटर ध्यान से पढ़ लें, ताकि छपाई में कोई गलती न हो।</p>
+            
+            <div class="review-box" id="reviewContentBox"></div>
+
+            <div class="btn-row">
+                <button type="button" class="btn-whatsapp-send" id="waSubmitBtn" onclick="submitToSupabaseAndWhatsApp()">
+                    <i class="fa-brands fa-whatsapp fa-lg"></i> पुष्टि करें और WhatsApp पर भेजें
+                </button>
+                <button type="button" onclick="closeReviewModal()" style="padding: 9px; background: #e2e8f0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #334155;">
+                    सुधार करने के लिए वापस जाएं
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="index.html#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
@@ -353,7 +446,10 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        const ADMIN_WHATSAPP = "919304509464";
         let currentUser = null;
+        let constructedWaMessage = "";
+        let preparedOrderPayload = null;
 
         function getStoredUser() {
             const keys = ['dp_current_user', 'user'];
@@ -379,11 +475,28 @@
             }
         }
 
+        function updateUpiLinks(total) {
+            const upiString = `upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=${total}&cu=INR`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiString)}`;
+            
+            const qrImg = document.getElementById('dynamicUpiQr');
+            if (qrImg) qrImg.src = qrUrl;
+
+            const gpay = document.getElementById('payGpayBtn');
+            const phonepe = document.getElementById('payPhonepeBtn');
+            const paytm = document.getElementById('payPaytmBtn');
+
+            if (gpay) gpay.href = upiString;
+            if (phonepe) phonepe.href = upiString;
+            if (paytm) paytm.href = upiString;
+        }
+
         function calculateWeddingTotal() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const total = rate * qty;
             document.getElementById('weddingTotalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
+            updateUpiLinks(total);
             return total;
         }
 
@@ -435,74 +548,131 @@
             }
         }
 
-        async function handleFormSubmit(e) {
-            e.preventDefault();
+        function openReviewModal() {
             if (!currentUser) {
                 alert("कृपया पहले लॉगिन करें!");
                 window.location.href = "login.html?redirect=order.html";
                 return;
             }
 
-            const submitBtn = document.getElementById('submitOrderBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerText = "ऑर्डर सबमिट हो रहा है...";
+            const utr = document.getElementById('paymentUtr').value.trim();
+            if (!utr) {
+                alert("कृपया भुगतान UTR नंबर अवश्य भरें!");
+                return;
+            }
+
+            const category = document.getElementById('cardCategory').value;
+            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
+            const qty = parseInt(document.getElementById('cardQty').value) || 0;
+            const total = rate * qty;
 
             const couples = [];
-            document.querySelectorAll('.couple-item').forEach(el => {
-                couples.push({
-                    groom: el.querySelector('.groom-name')?.value || '',
-                    groom_father: el.querySelector('.groom-father')?.value || '',
-                    groom_address: el.querySelector('.groom-address')?.value || '',
-                    bride: el.querySelector('.bride-name')?.value || '',
-                    bride_father: el.querySelector('.bride-father')?.value || '',
-                    bride_address: el.querySelector('.bride-address')?.value || ''
-                });
+            let couplesText = "";
+            document.querySelectorAll('.couple-item').forEach((el, index) => {
+                const g = el.querySelector('.groom-name')?.value || '';
+                const gf = el.querySelector('.groom-father')?.value || '';
+                const ga = el.querySelector('.groom-address')?.value || '';
+                const b = el.querySelector('.bride-name')?.value || '';
+                const bf = el.querySelector('.bride-father')?.value || '';
+                const ba = el.querySelector('.bride-address')?.value || '';
+
+                couples.push({ groom: g, groom_father: gf, groom_address: ga, bride: b, bride_father: bf, bride_address: ba });
+                couplesText += `\n जोड़ी #${index + 1}:\n • दूल्हा: ${g} (पिता: ${gf}, पता: ${ga})\n • संग / Weds\n • दुल्हन: ${b} (पिता: ${bf}, पता: ${ba})\n`;
             });
 
             const events = [];
-            document.querySelectorAll('.event-item').forEach(el => {
-                events.push({
-                    title: el.querySelector('.event-title')?.value || '',
-                    date: el.querySelector('.event-date')?.value || '',
-                    time: el.querySelector('.event-time')?.value || ''
-                });
+            let eventsText = "";
+            document.querySelectorAll('.event-item').forEach((el, index) => {
+                const title = el.querySelector('.event-title')?.value || '';
+                const date = el.querySelector('.event-date')?.value || '';
+                const time = el.querySelector('.event-time')?.value || '';
+                events.push({ title, date, time });
+                eventsText += ` • ${title}: दिनांक ${date} ${time ? 'समय ' + time : ''}\n`;
             });
 
-            const orderData = {
+            const rsvp = document.getElementById('rsvpText').value.trim();
+            const fromFam = document.getElementById('fromText').value.trim();
+            const notes = document.getElementById('extraText').value.trim();
+
+            preparedOrderPayload = {
                 user_email: currentUser.email || currentUser.mobile,
                 user_name: currentUser.name || 'ग्राहक',
                 service_type: 'शादी कार्ड',
-                category: document.getElementById('cardCategory').value,
-                rate: parseFloat(document.getElementById('cardRate').value),
-                quantity: parseInt(document.getElementById('cardQty').value),
-                total_amount: calculateWeddingTotal(),
+                category: category,
+                rate: rate,
+                quantity: qty,
+                total_amount: total,
                 details: {
                     couples: couples,
                     events: events,
-                    rsvp: document.getElementById('rsvpText').value,
-                    from_family: document.getElementById('fromText').value,
-                    notes: document.getElementById('extraText').value
+                    rsvp: rsvp,
+                    from_family: fromFam,
+                    notes: notes
                 },
-                utr: document.getElementById('paymentUtr').value,
+                utr: utr,
                 status: 'pending',
                 created_at: new Date().toISOString()
             };
 
+            constructedWaMessage = `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर* 💌\n` +
+                `------------------------------------\n` +
+                `*ग्राहक का नाम:* ${currentUser.name || 'ग्राहक'}\n` +
+                `*संपर्क:* ${currentUser.mobile || currentUser.email || 'N/A'}\n\n` +
+                `*कार्ड विवरण:* ${category}\n` +
+                `*रेट:* ₹${rate} | *संख्या:* ${qty}\n` +
+                `*कुल बिल:* ₹${total}\n` +
+                `*UTR / Transaction No:* ${utr}\n\n` +
+                `*मैटर विवरण:*` +
+                `${couplesText}\n` +
+                `*कार्यक्रम:* \n${eventsText}\n` +
+                `${rsvp ? '*RSVP:* ' + rsvp + '\n' : ''}` +
+                `${fromFam ? '*दर्शनाभिलाषी:* ' + fromFam + '\n' : ''}` +
+                `${notes ? '*विशेष निर्देश:* ' + notes + '\n' : ''}` +
+                `------------------------------------\n` +
+                `कृपया इस ऑर्डर की पुष्टि करें।`;
+
+            document.getElementById('reviewContentBox').innerText = constructedWaMessage;
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        async function submitToSupabaseAndWhatsApp() {
+            if (!preparedOrderPayload) return;
+
+            const btn = document.getElementById('waSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> सबमिट हो रहा है...`;
+
             try {
-                const { data, error } = await supabaseClient
+                const { error } = await supabaseClient
                     .from('orders')
-                    .insert([orderData]);
+                    .insert([preparedOrderPayload]);
 
                 if (error) throw error;
 
-                alert("आपका ऑर्डर सफलतापूर्वक दर्ज कर लिया गया है!");
-                window.location.href = "orders.html";
+                const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(constructedWaMessage)}`;
+                window.open(waUrl, '_blank');
+                alert("ऑर्डर सफलतापूर्वक सुरक्षित हो गया है और WhatsApp पर भेजा जा रहा है!");
+                window.location.href = "index.html";
             } catch (err) {
-                alert("ऑर्डर दर्ज करने में समस्या आई: " + err.message);
-                submitBtn.disabled = false;
-                submitBtn.innerText = "ऑर्डर सबमिट करें";
+                alert("ऑर्डर डेटाबेस में सेव करने में त्रुटि: " + err.message + "\nआप सीधे WhatsApp पर भेज सकते हैं।");
+                const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(constructedWaMessage)}`;
+                window.open(waUrl, '_blank');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> पुष्टि करें और WhatsApp पर भेजें`;
+                closeReviewModal();
             }
         }
+
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserAuth();
