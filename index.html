@@ -152,6 +152,36 @@
             position: absolute; left: 0; top: 3px; color: var(--secondary); font-size: 14px;
         }
 
+        /* Admin Box Styling */
+        .admin-access-box {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .btn-admin-panel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #1e272e;
+            color: #f1c40f;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .btn-admin-panel:hover {
+            background: #000;
+            color: #fff;
+        }
+
         /* Map Card */
         .map-wrapper {
             position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
@@ -323,6 +353,14 @@
             </ul>
         </div>
 
+        <!-- एडमिन पैनल बॉक्स (नियम एवं शर्तें के तुरंत बाद) -->
+        <div class="admin-access-box">
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">केवल दुकान प्रबंधक व अधिकृत व्यवस्थापक के लिए</p>
+            <a href="admin.html" class="btn-admin-panel">
+                <i class="fa-solid fa-user-shield"></i> एडमिन पैनल खोलें (Admin Panel)
+            </a>
+        </div>
+
         <!-- दुकान का पता एवं गूगल मैप्स (Google Maps & Location) -->
         <div class="info-card" id="mapSection">
             <div class="info-card-header">
@@ -404,6 +442,7 @@
                 <h4 style="color: #fca5a5;">त्वरित लिंक</h4>
                 <p><a href="order.html" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> ऑनलाइन शादी कार्ड फॉर्म</a></p>
                 <p><a href="my_orders.html" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> ग्राहक ऑर्डर्स ट्रैक करें</a></p>
+                <p><a href="admin.html" style="color: #f1c40f; text-decoration: none; font-weight: bold;"><i class="fa-solid fa-user-shield"></i> एडमिन पैनल (दुकानदार लॉगिन)</a></p>
                 <p><a href="#termsSection" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> नियम एवं शर्तें</a></p>
             </div>
         </div>
@@ -429,16 +468,13 @@
                 try {
                     const user = JSON.parse(userJson);
                     if (user && (user.name || user.email)) {
-                        // डेस्कटॉप नेविगेशन अपडेट
                         authNav.style.display = 'none';
                         userLoggedBox.style.display = 'flex';
                         displayUserName.innerText = `${user.name || 'ग्राहक'}`;
 
-                        // मोबाइल बॉटम बार अपडेट
                         if (mobAccountBtnText) mobAccountBtnText.innerText = "प्रोफाइल";
                         if (mobAccountIcon) mobAccountIcon.className = "fa-solid fa-circle-user";
 
-                        // मोडल डेटा सेट
                         document.getElementById('mobAccName').innerText = user.name || 'ग्राहक';
                         document.getElementById('mobAccPhone').innerText = user.mobile || user.phone || user.email || '';
                         return;
@@ -446,7 +482,6 @@
                 } catch (e) {}
             }
 
-            // अगर लॉगिन नहीं है
             authNav.style.display = 'block';
             userLoggedBox.style.display = 'none';
             if (mobAccountBtnText) mobAccountBtnText.innerText = "खाता";
@@ -474,7 +509,6 @@
             }
         }
 
-        // कैटलॉग कार्ड्स लोड करना
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
             try {
