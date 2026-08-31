@@ -168,11 +168,6 @@
             font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn-checkout-fast {
-            width: 100%; padding: 13px; background: var(--green); color: white;
-            font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 8px rgba(39, 174, 96, 0.2);
-        }
         .btn-whatsapp-send {
             width: 100%; padding: 12px; background: var(--wa-green); color: white;
             font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
@@ -374,23 +369,23 @@
                         </div>
                     </div>
 
-                    <!-- ६. ऑनलाइन भुगतान (Cashfree, QR Code & UPI) -->
+                    <!-- ६. ऑनलाइन भुगतान (Updated Cashfree Form URL & UPI ID) -->
                     <div class="form-block">
                         <h4>६. ऑनलाइन भुगतान (Payment)</h4>
                         <div class="payment-box">
                             <p style="font-weight: 600; font-size: 13px; color: #166534; margin-bottom: 8px;">
                                 Cashfree गेटवे से सुरक्षित ऑनलाइन भुगतान करें:
                             </p>
-                            <a href="https://payments.cashfree.com/forms/delhipress" target="_blank" class="btn-cashfree">
+                            <a href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
                                 <i class="fa-solid fa-shield-halved"></i> Cashfree से पेमेंट करें
                             </a>
 
                             <div style="margin: 12px 0 6px 0; font-weight: bold; color: #475569; font-size: 13px;">— अथवा UPI / QR स्कैन करके भुगतान करें —</div>
 
                             <div class="qr-wrapper">
-                                <img id="dynamicUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=1200&cu=INR" alt="UPI QR">
+                                <img id="dynamicUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@okbizaxis&pn=Delhi%20Press&am=1200&cu=INR" alt="UPI QR">
                             </div>
-                            <p style="font-size: 12px; color: #64748b;">UPI ID: <strong>9304509464@ybl</strong></p>
+                            <p style="font-size: 12px; color: #64748b;">UPI ID: <strong>9304509464@okbizaxis</strong></p>
 
                             <div class="upi-buttons">
                                 <a id="payGpayBtn" href="#" class="upi-btn" style="background:#0f9d58;"><i class="fa-brands fa-google-pay"></i> GPay / UPI</a>
@@ -447,6 +442,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const ADMIN_WHATSAPP = "919304509464";
+        const UPI_ID = "9304509464@okbizaxis";
         let currentUser = null;
         let constructedWaMessage = "";
         let preparedOrderPayload = null;
@@ -476,7 +472,7 @@
         }
 
         function updateUpiLinks(total) {
-            const upiString = `upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=${total}&cu=INR`;
+            const upiString = `upi://pay?pa=${UPI_ID}&pn=Delhi%20Press&am=${total}&cu=INR`;
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiString)}`;
             
             const qrImg = document.getElementById('dynamicUpiQr');
@@ -655,10 +651,10 @@
 
                 const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(constructedWaMessage)}`;
                 window.open(waUrl, '_blank');
-                alert("ऑर्डर सफलतापूर्वक सुरक्षित हो गया है और WhatsApp पर भेजा जा रहा है!");
+                alert("ऑर्डर डेटाबेस में सेव हो गया है और WhatsApp पर भेजा जा रहा है!");
                 window.location.href = "index.html";
             } catch (err) {
-                alert("ऑर्डर डेटाबेस में सेव करने में त्रुटि: " + err.message + "\nआप सीधे WhatsApp पर भेज सकते हैं।");
+                alert("ऑर्डर डेटाबेस में सेव करने में त्रुटि: " + err.message + "\nWhatsApp पर विवरण भेजा जा रहा है।");
                 const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(constructedWaMessage)}`;
                 window.open(waUrl, '_blank');
             } finally {
