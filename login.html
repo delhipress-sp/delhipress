@@ -81,17 +81,19 @@
             <h3 id="currentCustName" style="color: var(--dark); font-size: 18px;">नमस्ते</h3>
             <p id="currentCustPhone" style="color: #64748b; font-size: 13px; margin-bottom: 15px;"></p>
 
-            <a href="my_orders.html" class="btn-action-primary">
-                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें (My Orders)
-            </a>
-
             <a href="order.html" class="btn-action-primary" style="background: var(--primary);">
                 <i class="fa-solid fa-pen-to-square"></i> नया कार्ड ऑर्डर करें
             </a>
 
+            <!-- लॉगआउट बटन -->
             <button onclick="handleLogout()" class="btn-logout-alt">
                 <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
             </button>
+
+            <!-- लॉगआउट के नीचे माय ऑर्डर्स बटन -->
+            <a href="my_orders.html" class="btn-action-primary" style="background: var(--blue); margin-top: 10px;">
+                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें (My Orders)
+            </a>
         </div>
 
         <!-- 2. लॉगिन सेक्शन -->
@@ -189,16 +191,18 @@
                 try {
                     const user = JSON.parse(userJson);
                     if (user && (user.name || user.email)) {
+                        // केवल तब रीडायरेक्ट करें जब URL में कोई विशेष redirect पैरामीटर दिया गया हो
                         if (redirectTarget) {
                             window.location.href = redirectTarget;
                             return true;
                         }
+                        // सीधे इसी पेज का लॉग-इन व्यू दिखाना
                         document.getElementById('loggedInView').style.display = 'block';
                         document.getElementById('loginSection').style.display = 'none';
                         document.getElementById('registerSection').style.display = 'none';
                         document.getElementById('forgotSection').style.display = 'none';
 
-                        document.getElementById('currentCustName').innerText = `स्वागत है, ${user.name || 'ग्राहक'}`;
+                        document.getElementById('currentCustName').innerText = `नमस्ते, ${user.name || 'ग्राहक'}`;
                         document.getElementById('currentCustPhone').innerText = user.mobile || user.phone || user.email || '';
                         return true;
                     }
@@ -278,7 +282,7 @@
                 }).catch(() => {});
 
                 alert("अकाउंट सफलतापूर्वक बन गया!");
-                window.location.href = redirectTarget ? redirectTarget : "my_orders.html";
+                checkExistingLogin();
 
             } catch (err) {
                 alert("त्रुटि: " + err.message);
@@ -308,7 +312,8 @@
                     if (String(user.pass).trim() === pass) {
                         saveUserData(user);
                         alert("स्वागत है, " + user.name + "!");
-                        window.location.href = redirectTarget ? redirectTarget : "my_orders.html";
+                        // अब यह सीधे my_orders.html पर नहीं जाएगा, बल्कि इसी पेज पर लॉग-इन प्रोफ़ाइल दिखाएगा
+                        checkExistingLogin();
                     } else {
                         alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
                     }
