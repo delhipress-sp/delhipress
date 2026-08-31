@@ -1702,46 +1702,7 @@
             if (file) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    visitingSampleUrl = e.target.result;
-                    document.getElementById('visitingPreviewImg').src = visitingSampleUrl;
-                    document.getElementById('visitingPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
 
-        function addCoupleField() {
-            var group = document.getElementById('couplesGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item couple-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दूल्हा पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दूल्हा:</label><input type="text" class="groom-name" placeholder="लड़का का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>' +
-                '<div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दुल्हन पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दुल्हन:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>';
-            group.appendChild(div);
-        }
-
-        function addEventField() {
-            var group = document.getElementById('eventsGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item event-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required></div>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>' +
-                    '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>' +
-                '</div>';
-            group.appendChild(div);
         }
 
         // =========================================================================
