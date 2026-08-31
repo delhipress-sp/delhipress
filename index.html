@@ -25,7 +25,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #f4f6f9; color: #333; line-height: 1.5; padding-bottom: 70px; }
+        body { background-color: #f4f6f9; color: #333; line-height: 1.5; padding-bottom: 75px; }
 
         .top-bar {
             background: var(--dark); color: #fff; padding: 6px 15px;
@@ -60,7 +60,7 @@
         .user-name-display { font-weight: 600; color: var(--primary); font-size: 13px; }
         .btn-logout {
             background: #e74c3c; color: white; border: none;
-            padding: 4px 8px; border-radius: 12px; font-size: 11px; cursor: pointer;
+            padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold;
         }
 
         .container { max-width: 900px; margin: 15px auto; padding: 0 12px; }
@@ -219,10 +219,15 @@
             border: 1px solid #cbd5e1; object-fit: cover;
         }
 
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .btn-checkout-fast {
+            width: 100%; padding: 13px; background: var(--green); color: white;
+            font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 8px rgba(39, 174, 96, 0.2);
+        }
         .btn-review-main {
-            flex: 1; padding: 12px; background: var(--blue); color: white;
-            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            width: 100%; padding: 11px; background: var(--blue); color: white;
+            font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
@@ -232,11 +237,12 @@
             padding: 6px 0; z-index: 1001; justify-content: space-around;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
-        .mobile-bottom-bar a {
-            color: var(--dark); text-decoration: none; text-align: center; font-size: 11px; font-weight: 600;
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
+        .mobile-bottom-bar a, .mobile-bottom-bar button {
+            background: none; border: none; color: var(--dark); text-decoration: none;
+            text-align: center; font-size: 11px; font-weight: 600;
+            display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;
         }
-        .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
+        .mobile-bottom-bar a i, .mobile-bottom-bar button i { font-size: 18px; color: var(--primary); }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -256,12 +262,12 @@
         }
 
         footer { background: var(--dark); color: #fff; text-align: center; padding: 15px; font-size: 13px; margin-top: 25px; }
+        footer a { color: #888; text-decoration: none; margin-left: 10px; font-size: 11px; }
 
         @media (max-width: 768px) {
             .navbar .nav-menu { display: none; }
             .mobile-bottom-bar { display: flex; }
             .row-2, .row-3 { flex-direction: column; gap: 0; }
-            .btn-row { flex-direction: column; }
             .total-bill-box { flex-direction: column; gap: 5px; text-align: center; }
             .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
             .card-sample img { height: 110px; }
@@ -279,7 +285,7 @@
 
     <nav class="navbar">
         <div class="nav-brand">
-            <h2 id="brandLogoTitle" onclick="window.location.href='admin.html'">दिल्ली प्रेस</h2>
+            <h2 id="brandLogoTitle" onclick="window.location.href='index.html'">दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
         <ul class="nav-menu">
@@ -469,8 +475,11 @@
                     </div>
 
                     <div class="btn-row">
+                        <button type="button" class="btn-checkout-fast" onclick="scrollToPaymentAndReview('wedding')">
+                            <i class="fa-solid fa-cart-shopping"></i> चेकआउट करें (Proceed to Checkout)
+                        </button>
                         <button type="button" class="btn-review-main" onclick="openServiceOrderReview('wedding')">
-                            <i class="fa-solid fa-eye"></i> ऑर्डर रिव्यू करें (मैटर चेक करें)
+                            <i class="fa-solid fa-eye"></i> सिर्फ मैटर रिव्यू करें
                         </button>
                     </div>
                 </form>
@@ -561,8 +570,11 @@
                     </div>
 
                     <div class="btn-row">
+                        <button type="button" class="btn-checkout-fast" onclick="scrollToPaymentAndReview('banner')">
+                            <i class="fa-solid fa-cart-shopping"></i> चेकआउट करें (Proceed to Checkout)
+                        </button>
                         <button type="button" class="btn-review-main" onclick="openServiceOrderReview('banner')">
-                            <i class="fa-solid fa-eye"></i> बैनर रिव्यू करें (मैटर चेक करें)
+                            <i class="fa-solid fa-eye"></i> सिर्फ मैटर रिव्यू करें
                         </button>
                     </div>
                 </form>
@@ -648,8 +660,11 @@
                     </div>
 
                     <div class="btn-row">
+                        <button type="button" class="btn-checkout-fast" onclick="scrollToPaymentAndReview('visiting')">
+                            <i class="fa-solid fa-cart-shopping"></i> चेकआउट करें (Proceed to Checkout)
+                        </button>
                         <button type="button" class="btn-review-main" onclick="openServiceOrderReview('visiting')">
-                            <i class="fa-solid fa-eye"></i> कार्ड मैटर रिव्यू करें
+                            <i class="fa-solid fa-eye"></i> सिर्फ मैटर रिव्यू करें
                         </button>
                     </div>
                 </form>
@@ -702,16 +717,34 @@
         </div>
     </div>
 
+    <!-- Mobile Account Info Modal -->
+    <div id="mobileAccountModal" class="modal">
+        <div class="modal-content" style="max-width: 360px; text-align: center;">
+            <span class="close-btn" onclick="closeModal('mobileAccountModal')">&times;</span>
+            <div style="font-size: 45px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-circle-user"></i></div>
+            <h3 id="mobAccName" style="color: var(--dark); margin-bottom: 4px;">उपयोगकर्ता</h3>
+            <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 20px;">फोन / ईमेल</p>
+            <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px;" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
+            </button>
+        </div>
+    </div>
+
     <!-- Mobile Bottom Navigation -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i>कॉल करें</a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i>कैटलॉग</a>
         <a href="#orderSectionContainer"><i class="fa-solid fa-file-pen"></i>ऑर्डर</a>
-        <a href="login.html"><i class="fa-solid fa-user"></i>खाता</a>
+        <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
+            <i class="fa-solid fa-user"></i><span id="mobAccountBtnText">खाता</span>
+        </button>
     </div>
 
     <footer>
         <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | 9304509464</p>
+        <div style="margin-top: 6px;">
+            <a href="admin.html"><i class="fa-solid fa-lock"></i> एडमिन पैनल</a>
+        </div>
     </footer>
 
     <script>
@@ -732,8 +765,10 @@
 
         function handleLogout() {
             localStorage.removeItem('dp_current_user');
+            closeModal('mobileAccountModal');
             checkUserSession();
             alert("लॉगआउट हो गया!");
+            window.location.reload();
         }
 
         function checkUserSession() {
@@ -742,17 +777,31 @@
             const loggedBox = document.getElementById('userLoggedBox');
             const display = document.getElementById('displayUserName');
             const lockOverlay = document.getElementById('formLockOverlay');
+            const mobBtnText = document.getElementById('mobAccountBtnText');
 
             if (currentUser) {
                 if(navAuth) navAuth.style.display = 'none';
                 if(loggedBox) loggedBox.style.display = 'flex';
                 if(display) display.innerText = "नमस्ते, " + currentUser.name;
                 if(lockOverlay) lockOverlay.style.display = 'none';
+                if(mobBtnText) mobBtnText.innerText = currentUser.name.split(' ')[0];
             } else {
                 if(navAuth) navAuth.style.display = 'block';
                 if(loggedBox) loggedBox.style.display = 'none';
                 if(display) display.innerText = "";
                 if(lockOverlay) lockOverlay.style.display = 'flex';
+                if(mobBtnText) mobBtnText.innerText = "खाता";
+            }
+        }
+
+        function handleMobileAccountClick() {
+            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
+            if (currentUser) {
+                document.getElementById('mobAccName').innerText = currentUser.name;
+                document.getElementById('mobAccPhone').innerText = currentUser.mobile || currentUser.email;
+                document.getElementById('mobileAccountModal').style.display = 'flex';
+            } else {
+                window.location.href = "login.html";
             }
         }
 
@@ -951,6 +1000,13 @@
                     '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>' +
                 '</div>';
             group.appendChild(div);
+        }
+
+        function scrollToPaymentAndReview(type) {
+            document.getElementById('paymentSection').scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => {
+                openServiceOrderReview(type);
+            }, 600);
         }
 
         function openServiceOrderReview(type) {
