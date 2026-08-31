@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -140,6 +139,19 @@
             document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
         }
 
+        function saveUserData(userData) {
+            const userObj = {
+                name: userData.name || '',
+                email: (userData.email || '').toLowerCase().trim(),
+                mobile: (userData.mobile || '').trim(),
+                village: userData.village || '',
+                address: userData.address || ''
+            };
+            const jsonStr = JSON.stringify(userObj);
+            localStorage.setItem('dp_current_user', jsonStr);
+            localStorage.setItem('user', jsonStr);
+        }
+
         async function handleRegisterSubmit(e) {
             if (e) e.preventDefault();
             const btn = document.getElementById('regBtn');
@@ -156,7 +168,7 @@
                 const { data: existingUser } = await supabaseClient
                     .from('users')
                     .select('email')
-                    .eq('email', email)
+                    .ilike('email', email)
                     .maybeSingle();
 
                 if (existingUser) {
@@ -171,8 +183,7 @@
 
                 if (error) throw error;
 
-                const newUser = { name, email, mobile, village, address };
-                localStorage.setItem('dp_current_user', JSON.stringify(newUser));
+                saveUserData({ name, email, mobile, village, address });
 
                 fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
                     method: "POST",
@@ -184,7 +195,9 @@
                 }).catch(() => {});
 
                 alert("अकाउंट बन गया!");
-                window.location.href = "index.html";
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 300);
             } catch (err) {
                 alert("त्रुटि: " + err.message);
             } finally {
@@ -204,16 +217,18 @@
                 const { data: user, error } = await supabaseClient
                     .from('users')
                     .select('*')
-                    .eq('email', email)
+                    .ilike('email', email)
                     .maybeSingle();
 
                 if (error) throw error;
 
                 if (user) {
                     if (String(user.pass).trim() === pass) {
-                        localStorage.setItem('dp_current_user', JSON.stringify(user));
+                        saveUserData(user);
                         alert("स्वागत है, " + user.name + "!");
-                        window.location.href = "index.html";
+                        setTimeout(() => {
+                            window.location.href = "index.html";
+                        }, 300);
                     } else {
                         alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
                     }
@@ -240,7 +255,7 @@
                 const { data, error } = await supabaseClient
                     .from('users')
                     .update({ pass: newPass })
-                    .eq('email', email)
+                    .ilike('email', email)
                     .select();
 
                 if (error) throw error;
