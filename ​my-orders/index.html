@@ -117,7 +117,7 @@
 
     <div class="container">
         
-        <!-- लॉगिन न होने पर यह कार्ड दिखेगा -->
+        <!-- जब यूजर लॉगिन नहीं होगा तब यह दिखेगा -->
         <div id="loginRequiredCard" class="auth-card" style="display: none;">
             <i class="fa-solid fa-user-lock"></i>
             <h3>ऑर्डर्स देखने के लिए पहले लॉगिन करें</h3>
@@ -127,7 +127,7 @@
             </a>
         </div>
 
-        <!-- लॉगिन होने पर ऑर्डर्स दिखेंगे -->
+        <!-- जब यूजर लॉगिन होगा तब यह सेक्शन दिखेगा -->
         <div id="ordersContainer" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <h3 style="font-size: 17px; color: var(--dark);">
@@ -163,6 +163,25 @@
             window.location.href = "../index.html";
         }
 
+        // यूजर सेशन निकालने का फ़ंक्शन
+        function getActiveUser() {
+            const keys = ['dp_current_user', 'user'];
+            for (let k of keys) {
+                try {
+                    const item = localStorage.getItem(k);
+                    if (item && item !== 'null' && item !== 'undefined') {
+                        const parsed = JSON.parse(item);
+                        if (parsed && (parsed.email || parsed.mobile)) {
+                            return parsed;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Session parse error:", e);
+                }
+            }
+            return null;
+        }
+
         async function initMyOrdersPage() {
             const loginCard = document.getElementById('loginRequiredCard');
             const ordersBox = document.getElementById('ordersContainer');
@@ -170,22 +189,9 @@
             const listArea = document.getElementById('ordersList');
             const logoutBtn = document.getElementById('navLogoutBtn');
 
-            let currentUser = null;
+            const currentUser = getActiveUser();
 
-            // 1. दोनों keys से चेक करें
-            try {
-                const stored = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
-                if (stored && stored !== "null" && stored !== "undefined") {
-                    const parsed = JSON.parse(stored);
-                    if (parsed && (parsed.email || parsed.mobile)) {
-                        currentUser = parsed;
-                    }
-                }
-            } catch(e) {
-                currentUser = null;
-            }
-
-            // अगर यूजर लॉग इन नहीं है
+            // यदि यूजर लॉगिन नहीं है
             if (!currentUser) {
                 loginCard.style.display = 'block';
                 ordersBox.style.display = 'none';
@@ -193,7 +199,7 @@
                 return;
             }
 
-            // यूजर लॉग इन है
+            // यदि यूजर लॉगिन है
             loginCard.style.display = 'none';
             ordersBox.style.display = 'block';
             if (logoutBtn) logoutBtn.style.display = 'block';
@@ -206,6 +212,7 @@
             try {
                 let query = supabaseClient.from('orders').select('*');
 
+                // ईमेल या मोबाइल दोनों में से किसी से भी मैच होने पर डेटा आएगा
                 if (cleanEmail && userPhone) {
                     query = query.or(`customer_email.ilike.${cleanEmail},customer_mobile.eq.${userPhone}`);
                 } else if (cleanEmail) {
