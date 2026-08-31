@@ -162,6 +162,30 @@
             border: 1px solid #cbd5e1; object-fit: cover;
         }
 
+        /* डिजिटल हस्ताक्षर एवं घोषणा स्टाइल */
+        .signature-box-wrapper {
+            background: #fff; border: 2px dashed #94a3b8; border-radius: 6px;
+            padding: 8px; text-align: center; margin-top: 6px; position: relative;
+        }
+        #sigCanvas {
+            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px;
+            width: 100%; max-width: 480px; height: 160px; touch-action: none; cursor: crosshair;
+        }
+        .sig-btn-clear {
+            background: #64748b; color: white; border: none; padding: 4px 10px;
+            border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 6px;
+        }
+        .declaration-box {
+            background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+            padding: 10px; margin-top: 12px; display: flex; align-items: flex-start; gap: 8px;
+        }
+        .declaration-box input[type="checkbox"] {
+            width: 20px; height: 20px; margin-top: 2px; cursor: pointer;
+        }
+        .declaration-box label {
+            font-size: 13px; color: #1e3a8a; font-weight: 600; line-height: 1.4; cursor: pointer;
+        }
+
         .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .btn-review-main {
             width: 100%; padding: 12px; background: var(--blue); color: white;
@@ -209,6 +233,16 @@
             .row-2, .row-3 { flex-direction: column; gap: 0; }
             .total-bill-box { flex-direction: column; gap: 5px; text-align: center; }
             .form-wrapper { padding: 12px; }
+        }
+
+        /* प्रिंट / रसीद डाउनलोड स्टाइल */
+        @media print {
+            body * { visibility: hidden; }
+            #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
+            #printableReceiptArea {
+                position: absolute; left: 0; top: 0; width: 100%; display: block !important;
+                background: #fff; padding: 15px; margin: 0;
+            }
         }
     </style>
 </head>
@@ -369,7 +403,7 @@
                         </div>
                     </div>
 
-                    <!-- ६. ऑनलाइन भुगतान (Updated Cashfree Form URL & UPI ID) -->
+                    <!-- ६. ऑनलाइन भुगतान -->
                     <div class="form-block">
                         <h4>६. ऑनलाइन भुगतान (Payment)</h4>
                         <div class="payment-box">
@@ -380,60 +414,94 @@
                                 <i class="fa-solid fa-shield-halved"></i> Cashfree से पेमेंट करें
                             </a>
 
-                            <div style="margin: 12px 0 6px 0; font-weight: bold; color: #475569; font-size: 13px;">— अथवा UPI / QR स्कैन करके भुगतान करें —</div>
+                            <div style="margin: 12px 0 6px 0; font-weight: 600; font-size: 13px; color: #475569;">
+                                — अथवा UPI / QR स्कैन करके भुगतान करें —
+                            </div>
 
                             <div class="qr-wrapper">
-                                <img id="dynamicUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@okbizaxis&pn=Delhi%20Press&am=1200&cu=INR" alt="UPI QR">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@okbizaxis%26pn=DelhiPress%26cu=INR" alt="QR Code">
                             </div>
-                            <p style="font-size: 12px; color: #64748b;">UPI ID: <strong>9304509464@okbizaxis</strong></p>
+
+                            <div style="font-size: 12px; font-weight: bold; color: #1e293b; margin-bottom: 8px;">
+                                UPI ID: 9304509464@okbizaxis
+                            </div>
 
                             <div class="upi-buttons">
-                                <a id="payGpayBtn" href="#" class="upi-btn" style="background:#0f9d58;"><i class="fa-brands fa-google-pay"></i> GPay / UPI</a>
-                                <a id="payPhonepeBtn" href="#" class="upi-btn" style="background:#5f259f;"><i class="fa-solid fa-mobile-screen-button"></i> PhonePe</a>
-                                <a id="payPaytmBtn" href="#" class="upi-btn" style="background:#00baf2; color:#042e6f;"><i class="fa-solid fa-wallet"></i> Paytm</a>
+                                <a href="upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&cu=INR" class="upi-btn" style="background:#0f9d58;"><i class="fa-brands fa-google-pay"></i> GPay / UPI</a>
+                                <a href="upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&cu=INR" class="upi-btn" style="background:#5f259f;"><i class="fa-solid fa-mobile-screen"></i> PhonePe</a>
+                                <a href="upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&cu=INR" class="upi-btn" style="background:#00b9f5;"><i class="fa-solid fa-wallet"></i> Paytm</a>
                             </div>
 
                             <div class="form-group" style="margin-top: 14px; text-align: left;">
-                                <label style="color:#0f5132;">भुगतान के बाद 12 अंकों का UTR / Transaction No. दर्ज करें:</label>
-                                <input type="text" id="paymentUtr" placeholder="उदा: 4234XXXXXXXX" required>
+                                <label style="color: #065f46; font-weight: bold;">भुगतान के बाद 12 अंकों का UTR / Transaction No. दर्ज करें:</label>
+                                <input type="text" id="payUtr" placeholder="उदा: 4234XXXXXXXX" required>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- ७. डिजिटल हस्ताक्षर एवं ग्राहक घोषणा -->
+                    <div class="form-block">
+                        <h4>७. ग्राहक डिजिटल हस्ताक्षर एवं सत्यापन</h4>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 6px;">नीचे दिए गए बॉक्स में अपनी उंगली से अपना हस्ताक्षर (Signature) करें:</p>
+                        <div class="signature-box-wrapper">
+                            <canvas id="sigCanvas"></canvas>
+                            <div>
+                                <button type="button" class="sig-btn-clear" onclick="clearSignature()"><i class="fa-solid fa-eraser"></i> दोबारा साइन करें (Clear)</button>
+                            </div>
+                        </div>
+
+                        <div class="declaration-box">
+                            <input type="checkbox" id="userDeclaration" required>
+                            <label for="userDeclaration">
+                                मैंने मैटर को अच्छी तरह से देखा, पढ़ा और पहचाना है। यदि छपाई के बाद कोई त्रुटि या गलती पाई जाती है तो उसके पूर्ण जिम्मेवार हम स्वयं होंगे।
+                            </label>
                         </div>
                     </div>
 
                     <div class="btn-row">
                         <button type="submit" class="btn-review-main">
-                            <i class="fa-solid fa-eye"></i> मैटर जाँचें एवं WhatsApp पर ऑर्डर भेजें
+                            <i class="fa-solid fa-file-lines"></i> मैटर जाँचें एवं रसीद डाउनलोड करें
                         </button>
                     </div>
                 </form>
             </div>
         </div>
+
     </div>
 
-    <!-- Review & Submit Modal -->
-    <div id="reviewModal" class="modal">
+    <!-- Review & Confirmation Modal -->
+    <div class="modal" id="reviewModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReviewModal()">&times;</span>
-            <h3 style="color: var(--primary); margin-bottom: 8px;">ऑर्डर एवं मैटर की समीक्षा (Review)</h3>
-            <p style="font-size: 12px; color: #666;">कृपया पूरा मैटर ध्यान से पढ़ लें, ताकि छपाई में कोई गलती न हो।</p>
-            
-            <div class="review-box" id="reviewContentBox"></div>
+            <h3 style="color: var(--primary); text-align: center; margin-bottom: 10px;">
+                <i class="fa-solid fa-receipt"></i> ऑर्डर सारांश एवं रसीद
+            </h3>
+            <p style="font-size: 12px; color: #666; text-align: center;">
+                कृपया दर्ज विवरण की जाँच करें। आप इसे PDF रसीद में प्रिंट/डाउनलोड कर सकते हैं।
+            </p>
 
-            <div class="btn-row">
-                <button type="button" class="btn-whatsapp-send" id="waSubmitBtn" onclick="submitToSupabaseAndWhatsApp()">
-                    <i class="fa-brands fa-whatsapp fa-lg"></i> पुष्टि करें और WhatsApp पर भेजें
+            <div class="review-box" id="reviewContent"></div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+                <button type="button" class="btn-review-main" style="background:#0284c7;" onclick="downloadAndPrintReceipt()">
+                    <i class="fa-solid fa-download"></i> रसीद (Receipt) डाउनलोड / प्रिंट करें
                 </button>
-                <button type="button" onclick="closeReviewModal()" style="padding: 9px; background: #e2e8f0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #334155;">
-                    सुधार करने के लिए वापस जाएं
+                <button type="button" id="btnSubmitOrder" class="btn-whatsapp-send" onclick="submitOrderToDatabase()">
+                    <i class="fa-brands fa-whatsapp"></i> ऑर्डर सुरक्षित करें एवं WhatsApp भेजें
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Printable Receipt Element -->
+    <div id="printableReceiptArea" style="display: none;"></div>
+
+    <!-- Mobile Bottom Navigation -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
-        <a href="index.html#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
+        <a href="index.html#catalogSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
+        <a href="order.html" style="color: var(--primary);"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
+        <a href="admin.html"><i class="fa-solid fa-user-gear"></i><span>एडमिन</span></a>
     </div>
 
     <script>
@@ -441,123 +509,132 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const ADMIN_WHATSAPP = "919304509464";
-        const UPI_ID = "9304509464@okbizaxis";
-        let currentUser = null;
-        let constructedWaMessage = "";
         let preparedOrderPayload = null;
+        let constructedWaMessage = "";
+        let signatureDataUrl = "";
 
-        // URL या LocalStorage से कैटलॉग डेटा स्वतः भरने का फ़ंक्शन
-        function loadCatalogItemFromParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const modelParam = urlParams.get('card') || urlParams.get('model') || urlParams.get('name') || localStorage.getItem('selected_card_title');
-            const rateParam = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selected_card_rate');
+        // Canvas Signature Logic
+        const canvas = document.getElementById('sigCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let hasSignature = false;
 
-            if (modelParam) {
-                const categoryInput = document.getElementById('cardCategory');
-                if (categoryInput) {
-                    categoryInput.value = decodeURIComponent(modelParam);
-                }
-            }
-
-            if (rateParam) {
-                const rateInput = document.getElementById('cardRate');
-                if (rateInput) {
-                    const cleanRate = parseFloat(rateParam.toString().replace(/[^0-9.]/g, ''));
-                    if (!isNaN(cleanRate) && cleanRate > 0) {
-                        rateInput.value = cleanRate;
-                    }
-                }
-            }
-
-            // एक बार इस्तेमाल करने के बाद LocalStorage साफ़ करें
-            localStorage.removeItem('selected_card_title');
-            localStorage.removeItem('selected_card_rate');
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#1e293b';
         }
 
-        function getStoredUser() {
-            const keys = ['dp_current_user', 'user'];
-            for (let k of keys) {
-                try {
-                    const val = localStorage.getItem(k);
-                    if (val && val !== 'null' && val !== 'undefined') {
-                        const parsed = JSON.parse(val);
-                        if (parsed && (parsed.email || parsed.mobile || parsed.name)) return parsed;
-                    }
-                } catch (e) {}
-            }
-            return null;
+        function getTouchPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
         }
 
-        function checkUserAuth() {
-            currentUser = getStoredUser();
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const pos = getTouchPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const pos = getTouchPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            hasSignature = true;
+        });
+
+        window.addEventListener('mouseup', () => { isDrawing = false; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getTouchPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getTouchPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            hasSignature = true;
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => { isDrawing = false; });
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasSignature = false;
+            signatureDataUrl = "";
+        }
+
+        // Check Login Session
+        function checkAuthStatus() {
+            const userJson = localStorage.getItem('dp_current_user');
             const overlay = document.getElementById('formLockOverlay');
-            if (!currentUser) {
+            if (!userJson) {
                 overlay.style.display = 'flex';
-            } else {
-                overlay.style.display = 'none';
+                return null;
             }
-        }
-
-        function updateUpiLinks(total) {
-            const upiString = `upi://pay?pa=${UPI_ID}&pn=Delhi%20Press&am=${total}&cu=INR`;
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiString)}`;
-            
-            const qrImg = document.getElementById('dynamicUpiQr');
-            if (qrImg) qrImg.src = qrUrl;
-
-            const gpay = document.getElementById('payGpayBtn');
-            const phonepe = document.getElementById('payPhonepeBtn');
-            const paytm = document.getElementById('payPaytmBtn');
-
-            if (gpay) gpay.href = upiString;
-            if (phonepe) phonepe.href = upiString;
-            if (paytm) paytm.href = upiString;
+            overlay.style.display = 'none';
+            try { return JSON.parse(userJson); } catch (e) { return null; }
         }
 
         function calculateWeddingTotal() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const total = rate * qty;
-            document.getElementById('weddingTotalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
-            updateUpiLinks(total);
+            document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
             return total;
         }
 
         function addCoupleField() {
-            const container = document.getElementById('couplesGroup');
+            const group = document.getElementById('couplesGroup');
             const div = document.createElement('div');
             div.className = 'dynamic-item couple-item';
             div.innerHTML = `
-                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>
-                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दूल्हा-दुल्हन]</p>
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
                 <div class="row-2">
-                    <div class="form-group"><label>दूल्हा:</label><input type="text" class="groom-name" required></div>
-                    <div class="form-group"><label>पिता:</label><input type="text" class="groom-father" required></div>
+                    <div class="form-group"><label>दूल्हा का नाम:</label><input type="text" class="groom-name" placeholder="लड़का का नाम" required></div>
+                    <div class="form-group"><label>पिता का नाम:</label><input type="text" class="groom-father" placeholder="लड़के के पिता का नाम" required></div>
                 </div>
-                <div class="form-group"><label>पता:</label><input type="text" class="groom-address" required></div>
+                <div class="form-group"><label>लड़के का पूरा पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required></div>
+                <div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>
+                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
                 <div class="row-2">
-                    <div class="form-group"><label>दुल्हन:</label><input type="text" class="bride-name" required></div>
-                    <div class="form-group"><label>पिता:</label><input type="text" class="bride-father" required></div>
+                    <div class="form-group"><label>दुल्हन का नाम:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>
+                    <div class="form-group"><label>पिता का नाम:</label><input type="text" class="bride-father" placeholder="लड़की के पिता का नाम" required></div>
                 </div>
-                <div class="form-group"><label>पता:</label><input type="text" class="bride-address" required></div>
+                <div class="form-group"><label>लड़की का पूरा पता:</label><input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required></div>
             `;
-            container.appendChild(div);
+            group.appendChild(div);
         }
 
         function addEventField() {
-            const container = document.getElementById('eventsGroup');
+            const group = document.getElementById('eventsGroup');
             const div = document.createElement('div');
             div.className = 'dynamic-item event-item';
             div.innerHTML = `
-                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>
-                <div class="form-group"><label>कार्यक्रम:</label><input type="text" class="event-title" required></div>
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required></div>
                 <div class="row-2">
                     <div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>
                     <div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>
                 </div>
             `;
-            container.appendChild(div);
+            group.appendChild(div);
         }
 
         function previewBottomSample(event) {
@@ -573,89 +650,108 @@
         }
 
         function openReviewModal() {
-            if (!currentUser) {
+            const user = checkAuthStatus();
+            if (!user) {
                 alert("कृपया पहले लॉगिन करें!");
                 window.location.href = "login.html?redirect=order.html";
                 return;
             }
 
-            const utr = document.getElementById('paymentUtr').value.trim();
-            if (!utr) {
-                alert("कृपया भुगतान UTR नंबर अवश्य भरें!");
+            const isDeclared = document.getElementById('userDeclaration').checked;
+            if (!isDeclared) {
+                alert("कृपया घोषणा चेकबॉक्स पर टिक करके सहमति दें!");
                 return;
             }
 
-            const category = document.getElementById('cardCategory').value;
+            if (!hasSignature) {
+                alert("कृपया नीचे दिए गए बॉक्स में अपना डिजिटल हस्ताक्षर (साइन) करें!");
+                return;
+            }
+
+            signatureDataUrl = canvas.toDataURL('image/png');
+
+            const category = document.getElementById('cardCategory').value.trim();
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
-            const total = rate * qty;
+            const total = calculateWeddingTotal();
+            const utr = document.getElementById('payUtr').value.trim();
 
             const couples = [];
-            let couplesText = "";
-            document.querySelectorAll('.couple-item').forEach((el, index) => {
-                const g = el.querySelector('.groom-name')?.value || '';
-                const gf = el.querySelector('.groom-father')?.value || '';
-                const ga = el.querySelector('.groom-address')?.value || '';
-                const b = el.querySelector('.bride-name')?.value || '';
-                const bf = el.querySelector('.bride-father')?.value || '';
-                const ba = el.querySelector('.bride-address')?.value || '';
-
-                couples.push({ groom: g, groom_father: gf, groom_address: ga, bride: b, bride_father: bf, bride_address: ba });
-                couplesText += `\n जोड़ी #${index + 1}:\n • दूल्हा: ${g} (पिता: ${gf}, पता: ${ga})\n • संग / Weds\n • दुल्हन: ${b} (पिता: ${bf}, पता: ${ba})\n`;
+            document.querySelectorAll('.couple-item').forEach(item => {
+                couples.push({
+                    groom: item.querySelector('.groom-name')?.value.trim() || '',
+                    groom_father: item.querySelector('.groom-father')?.value.trim() || '',
+                    groom_address: item.querySelector('.groom-address')?.value.trim() || '',
+                    bride: item.querySelector('.bride-name')?.value.trim() || '',
+                    bride_father: item.querySelector('.bride-father')?.value.trim() || '',
+                    bride_address: item.querySelector('.bride-address')?.value.trim() || ''
+                });
             });
 
             const events = [];
-            let eventsText = "";
-            document.querySelectorAll('.event-item').forEach((el, index) => {
-                const title = el.querySelector('.event-title')?.value || '';
-                const date = el.querySelector('.event-date')?.value || '';
-                const time = el.querySelector('.event-time')?.value || '';
-                events.push({ title, date, time });
-                eventsText += ` • ${title}: दिनांक ${date} ${time ? 'समय ' + time : ''}\n`;
+            document.querySelectorAll('.event-item').forEach(item => {
+                events.push({
+                    title: item.querySelector('.event-title')?.value.trim() || '',
+                    date: item.querySelector('.event-date')?.value || '',
+                    time: item.querySelector('.event-time')?.value || ''
+                });
             });
 
             const rsvp = document.getElementById('rsvpText').value.trim();
-            const fromFam = document.getElementById('fromText').value.trim();
-            const notes = document.getElementById('extraText').value.trim();
+            const fromFamily = document.getElementById('fromText').value.trim();
+            const instructions = document.getElementById('extraText').value.trim();
 
             preparedOrderPayload = {
-                user_email: currentUser.email || currentUser.mobile,
-                user_name: currentUser.name || 'ग्राहक',
+                user_name: user.name || user.full_name || 'ग्राहक',
+                user_phone: user.mobile || user.phone || user.email || '',
                 service_type: 'शादी कार्ड',
                 category: category,
                 rate: rate,
                 quantity: qty,
                 total_amount: total,
-                details: {
-                    couples: couples,
-                    events: events,
-                    rsvp: rsvp,
-                    from_family: fromFam,
-                    notes: notes
-                },
+                couples: couples,
+                events: events,
+                rsvp: rsvp,
+                from_family: fromFamily,
+                instructions: instructions,
                 utr: utr,
+                signature: signatureDataUrl,
                 status: 'pending',
                 created_at: new Date().toISOString()
             };
 
-            constructedWaMessage = `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर* 💌\n` +
-                `------------------------------------\n` +
-                `*ग्राहक का नाम:* ${currentUser.name || 'ग्राहक'}\n` +
-                `*संपर्क:* ${currentUser.mobile || currentUser.email || 'N/A'}\n\n` +
-                `*कार्ड विवरण:* ${category}\n` +
-                `*रेट:* ₹${rate} | *संख्या:* ${qty}\n` +
-                `*कुल बिल:* ₹${total}\n` +
-                `*UTR / Transaction No:* ${utr}\n\n` +
-                `*मैटर विवरण:*` +
-                `${couplesText}\n` +
-                `*कार्यक्रम:* \n${eventsText}\n` +
-                `${rsvp ? '*RSVP:* ' + rsvp + '\n' : ''}` +
-                `${fromFam ? '*दर्शनाभिलाषी:* ' + fromFam + '\n' : ''}` +
-                `${notes ? '*विशेष निर्देश:* ' + notes + '\n' : ''}` +
-                `------------------------------------\n` +
-                `कृपया इस ऑर्डर की पुष्टि करें।`;
+            // Review Modal Content
+            let summaryText = `📋 **ऑर्डर विवरण**: ${category}\n`;
+            summaryText += `💰 दर: ₹${rate} | संख्या: ${qty} | कुल राशि: ₹${total}\n`;
+            summaryText += `🏦 भुगतान UTR / Trans No: ${utr}\n\n`;
+            summaryText += `💑 **दूल्हा-दुल्हन विवरण**:\n`;
+            couples.forEach((c, idx) => {
+                summaryText += `जोड़ी #${idx+1}: वर: ${c.groom} (पिता: ${c.groom_father}, पता: ${c.groom_address})\n`;
+                summaryText += `       संग वधू: ${c.bride} (पिता: ${c.bride_father}, पता: ${c.bride_address})\n`;
+            });
+            summaryText += `\n📅 **कार्यक्रम**:\n`;
+            events.forEach(ev => {
+                summaryText += `• ${ev.title}: ${ev.date} ${ev.time ? '('+ev.time+')' : ''}\n`;
+            });
+            if (rsvp) summaryText += `\n📞 RSVP: ${rsvp}\n`;
+            if (fromFamily) summaryText += `👥 दर्शनाभिलाषी: ${fromFamily}\n`;
+            if (instructions) summaryText += `📝 निर्देश/शायरी: ${instructions}\n`;
+            summaryText += `\n✍️ डिजिटल हस्ताक्षर: संलग्न है\n`;
+            summaryText += `✅ घोषणा: ग्राहक ने पूरे मैटर की जांच कर ली है।`;
 
-            document.getElementById('reviewContentBox').innerText = constructedWaMessage;
+            document.getElementById('reviewContent').innerText = summaryText;
+
+            // WhatsApp Message Text
+            constructedWaMessage = `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर*\n\n` +
+                `*कार्ड प्रकार:* ${category}\n` +
+                `*कुल राशि:* ₹${total} (संख्या: ${qty})\n` +
+                `*UTR / Transaction No:* ${utr}\n` +
+                `*ग्राहक नाम:* ${user.name || user.full_name}\n` +
+                `*मोबाइल:* ${user.mobile || user.phone || ''}\n\n` +
+                `*वर पक्ष:* ${couples[0]?.groom || ''} (पिता: ${couples[0]?.groom_father || ''})\n` +
+                `*वधू पक्ष:* ${couples[0]?.bride || ''} (पिता: ${couples[0]?.bride_father || ''})\n\n` +
+                `मैटर व डिजिटल हस्ताक्षर रसीद सफलतापूर्वक सबमिट हो गई है।`;
+
             document.getElementById('reviewModal').style.display = 'flex';
         }
 
@@ -663,12 +759,133 @@
             document.getElementById('reviewModal').style.display = 'none';
         }
 
-        async function submitToSupabaseAndWhatsApp() {
+        // रसीद जनरेट एवं प्रिंट / PDF डाउनलोड
+        function downloadAndPrintReceipt() {
             if (!preparedOrderPayload) return;
+            const ord = preparedOrderPayload;
+            const printArea = document.getElementById('printableReceiptArea');
+            const d = new Date();
+            const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
 
-            const btn = document.getElementById('waSubmitBtn');
+            let couplesHtml = '';
+            ord.couples.forEach((c, i) => {
+                couplesHtml += `
+                    <div style="background: #fff8f0; border: 1px dashed #d35400; padding: 8px; border-radius: 6px; margin-bottom: 6px;">
+                        <div style="font-weight: bold; color: #b45309; font-size: 13px; margin-bottom: 4px;">जोड़ी #${i+1}:</div>
+                        <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;">
+                            <div style="flex: 1;">
+                                <b>वर (दूल्हा):</b> ${c.groom || '-'}<br>
+                                <b>पिता:</b> ${c.groom_father || '-'}<br>
+                                <b>पता:</b> ${c.groom_address || '-'}
+                            </div>
+                            <div style="text-align: center; font-weight: bold; color: #c0392b; align-self: center;">संग / Weds</div>
+                            <div style="flex: 1;">
+                                <b>वधू (दुल्हन):</b> ${c.bride || '-'}<br>
+                                <b>पिता:</b> ${c.bride_father || '-'}<br>
+                                <b>पता:</b> ${c.bride_address || '-'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            let eventsHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 12px;">';
+            ord.events.forEach(ev => {
+                eventsHtml += `<li><b>${ev.title || 'कार्यक्रम'}:</b> दिनांक: ${ev.date || '-'} | समय: ${ev.time || '-'}</li>`;
+            });
+            eventsHtml += '</ul>';
+
+            printArea.innerHTML = `
+                <div style="max-width: 780px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
+                        <div>
+                            <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                            <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
+                                ग्राहक ऑर्डर रसीद / पावती
+                            </span>
+                            <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
+                        <div>
+                            <div><b>ग्राहक का नाम:</b> ${ord.user_name}</div>
+                            <div><b>संपर्क / फोन:</b> ${ord.user_phone}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div><b>सर्विस:</b> ${ord.service_type}</div>
+                            <div><b>UTR / Trans. No:</b> <span style="color: #2563eb; font-weight: bold;">${ord.utr}</span></div>
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;" border="1">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th style="padding: 6px; text-align: left;">कार्ड मॉडल</th>
+                                <th style="padding: 6px; text-align: center; width: 90px;">मात्रा</th>
+                                <th style="padding: 6px; text-align: right; width: 100px;">दर</th>
+                                <th style="padding: 6px; text-align: right; width: 110px;">कुल राशि</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 6px;"><b>${ord.category}</b></td>
+                                <td style="padding: 6px; text-align: center;">${ord.quantity}</td>
+                                <td style="padding: 6px; text-align: right;">₹${ord.rate}</td>
+                                <td style="padding: 6px; text-align: right; font-weight: bold;">₹${ord.total_amount}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+                        <h4 style="color: #c0392b; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
+                            कार्ड का स्वीकृत मैटर विवरण:
+                        </h4>
+                        <div style="margin-bottom: 8px;">${couplesHtml}</div>
+                        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                            <div style="font-weight: bold; font-size: 12px; color: #334155; margin-bottom: 4px;">कार्यक्रम एवं तिथियां:</div>
+                            ${eventsHtml}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;"><b>आर.एस.वी.पी.:</b> ${ord.rsvp || '-'}</div>
+                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;"><b>दर्शनाभिलाषी:</b> ${ord.from_family || '-'}</div>
+                        </div>
+                        ${ord.instructions ? `<div style="background:#f8fafc; padding:6px 8px; border-radius:4px; margin-top:8px; font-size:12px;"><b>शायरी / विशेष निर्देश:</b> ${ord.instructions}</div>` : ''}
+                    </div>
+
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px; border-radius: 6px; font-size: 12px; color: #1e3a8a; margin-bottom: 12px;">
+                        <b>ग्राहक घोषणा:</b> मैंने मैटर को अच्छी तरह से देखा, पढ़ा और पहचाना है। यदि छपाई के बाद कोई त्रुटि या गलती पाई जाती है तो उसके पूर्ण जिम्मेवार हम स्वयं होंगे।
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px;">
+                        <div style="text-align: center;">
+                            <img src="${ord.signature}" style="max-width: 140px; height: 50px; object-fit: contain; display: block; margin: 0 auto 4px auto;">
+                            <div style="border-top: 1px dashed #94a3b8; width: 140px; font-size: 12px; font-weight: bold;">ग्राहक का डिजिटल हस्ताक्षर</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
+                                कुल भुगतान: ₹${ord.total_amount}
+                            </div>
+                            <div style="font-size: 12px; font-weight: bold;">अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)</div>
+                        </div>
+                    </div>
+
+                </div>
+            `;
+
+            window.print();
+        }
+
+        // डेटाबेस में सबमिट एवं WhatsApp पर भेजना
+        async function submitOrderToDatabase() {
+            if (!preparedOrderPayload) return;
+            const btn = document.getElementById('btnSubmitOrder');
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> सबमिट हो रहा है...`;
+            btn.innerText = "सुरक्षित हो रहा है...";
 
             try {
                 const { error } = await supabaseClient
@@ -677,32 +894,39 @@
 
                 if (error) throw error;
 
-                const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(constructedWaMessage)}`;
+                alert("ऑर्डर डेटाबेस में सुरक्षित हो गया! अब WhatsApp पर भेजें।");
+                const waUrl = `https://wa.me/919304509464?text=${encodeURIComponent(constructedWaMessage)}`;
                 window.open(waUrl, '_blank');
-                alert("ऑर्डर डेटाबेस में सेव हो गया है और WhatsApp पर भेजा जा रहा है!");
-                window.location.href = "index.html";
+                location.reload();
+
             } catch (err) {
-                alert("ऑर्डर डेटाबेस में सेव करने में त्रुटि: " + err.message + "\nWhatsApp पर विवरण भेजा जा रहा है।");
-                const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(constructedWaMessage)}`;
+                alert("ऑर्डर सुरक्षित करने में समस्या: " + err.message);
+                const waUrl = `https://wa.me/919304509464?text=${encodeURIComponent(constructedWaMessage)}`;
                 window.open(waUrl, '_blank');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> पुष्टि करें और WhatsApp पर भेजें`;
-                closeReviewModal();
+                btn.innerText = "ऑर्डर सुरक्षित करें एवं WhatsApp भेजें";
             }
         }
 
-        window.onclick = function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkUserAuth();
-            loadCatalogItemFromParams(); // कैटलॉग से आया हुआ कार्ड और रेट सेट करेगा
+        // Initialize Page
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
             calculateWeddingTotal();
+            resizeCanvas();
+
+            // कैटलॉग से सीधे ऑर्डर करने पर कार्ड का नाम ऑटो-भरना
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardParam = urlParams.get('card');
+            const rateParam = urlParams.get('rate');
+            if (cardParam) document.getElementById('cardCategory').value = decodeURIComponent(cardParam);
+            if (rateParam) {
+                document.getElementById('cardRate').value = decodeURIComponent(rateParam);
+                calculateWeddingTotal();
+            }
         });
+
+        window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>
