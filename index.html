@@ -412,18 +412,18 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-add" onclick="addCoupleField()">+ और दूल्हा-दुल्हन जोड़ें</button>
+                        <button type="button" class="btn-add" onclick="addCoupleItem()">+ और दूल्हा-दुल्हन जोड़ें</button>
                     </div>
 
                     <div class="form-block">
                         <h4>३. वैवाहिक कार्यक्रम एवं तारीखें</h4>
                         <div id="eventsGroup">
                             <div class="dynamic-item event-item">
-                                <div class="form-group">
-                                    <label>कार्यक्रम का नाम:</label>
-                                    <input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required>
-                                </div>
-                                <div class="row-2">
+                                <div class="row-3">
+                                    <div class="form-group">
+                                        <label>कार्यक्रम का नाम:</label>
+                                        <input type="text" class="event-name" placeholder="उदा: निकाह / बारात" required>
+                                    </div>
                                     <div class="form-group">
                                         <label>तारीख:</label>
                                         <input type="date" class="event-date" required>
@@ -435,146 +435,103 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-add" onclick="addEventField()">+ और कार्यक्रम / तारीख जोड़ें</button>
+                        <button type="button" class="btn-add" onclick="addEventItem()">+ और कार्यक्रम / तारीख जोड़ें</button>
                     </div>
 
                     <div class="form-block">
                         <h4>४. निवेदक, दर्शनाभिलाषी एवं RSVP</h4>
                         <div class="form-group">
                             <label>आर.एस.वी.पी (RSVP) नाम व फोन:</label>
-                            <textarea id="rsvpText" rows="2" placeholder="नाम और संपर्क नंबर..."></textarea>
+                            <input type="text" id="weddingRsvp" placeholder="नाम और संपर्क नंबर...">
                         </div>
                         <div class="form-group">
-                            <label>दर्शनाभिलाषी / विनीत (From):</label>
-                            <textarea id="fromText" rows="2" placeholder="परिवारजनों के नाम..."></textarea>
+                            <label>निवेदक / दर्शनाभिलाषी:</label>
+                            <textarea id="weddingNivedak" rows="2" placeholder="समस्त परिवार / रिश्तेदारों के नाम..."></textarea>
                         </div>
                         <div class="form-group">
                             <label>शायरी / विशेष संदेश:</label>
-                            <textarea id="extraText" rows="2" placeholder="कोई खास शायरी या निर्देश..."></textarea>
+                            <textarea id="weddingShayari" rows="2" placeholder="कोई खास शायरी या निर्देश..."></textarea>
                         </div>
                     </div>
 
                     <div class="form-block">
                         <h4>५. कार्ड का सैंपल फोटो अपलोड</h4>
-                        <div class="bottom-upload-box" onclick="document.getElementById('bottomCardSample').click()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
-                            <p style="font-weight: 600; font-size: 13px;">यहाँ क्लिक करके कार्ड सैंपल अपलोड करें</p>
-                            <input type="file" id="bottomCardSample" accept="image/*" style="display: none;" onchange="previewBottomSample(event)">
+                        <div class="bottom-upload-box" onclick="document.getElementById('weddingSamplePhoto').click()">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px; color:var(--blue); margin-bottom:5px;"></i>
+                            <p style="font-size:13px; font-weight:600; color:#475569;">यहाँ क्लिक करके कार्ड सैंपल अपलोड करें</p>
+                            <input type="file" id="weddingSamplePhoto" accept="image/*" style="display:none;" onchange="previewUploadImage(this, 'weddingSamplePreview')">
                         </div>
-                        <div class="sample-preview-box" id="bottomPreviewContainer">
-                            <img id="bottomPreviewImg" src="" alt="कार्ड सैंपल">
+                        <div class="sample-preview-box" id="weddingSamplePreview">
+                            <img src="" alt="Sample Preview">
                         </div>
                     </div>
 
-                    <div class="form-block">
+                    <div class="form-block" id="paymentSection">
                         <h4>६. भुगतान संदर्भ संख्या (Payment UTR)</h4>
                         <div class="form-group">
                             <label>Transaction ID / UTR No.:</label>
-                            <input type="text" id="weddingTransId" placeholder="पेमेंट के बाद UTR दर्ज करें">
+                            <input type="text" id="weddingUtr" placeholder="पेमेंट के बाद UTR दर्ज करें">
                         </div>
                     </div>
 
                     <div class="btn-row">
-                        <button type="button" class="btn-checkout-fast" onclick="scrollToPaymentAndReview('wedding')">
+                        <button type="button" class="btn-checkout-fast" onclick="handleCheckout('wedding')">
                             <i class="fa-solid fa-cart-shopping"></i> चेकआउट करें (Proceed to Checkout)
                         </button>
-                        <button type="button" class="btn-review-main" onclick="openServiceOrderReview('wedding')">
+                        <button type="button" class="btn-review-main" onclick="openReviewModal('wedding')">
                             <i class="fa-solid fa-eye"></i> सिर्फ मैटर रिव्यू करें
                         </button>
                     </div>
+
                 </form>
+
+                <div class="payment-box" style="margin-top:20px;">
+                    <p style="font-size:13px; font-weight:bold; color:#1e272e; margin-bottom:8px;">ऑनलाइन भुगतान विकल्प:</p>
+                    <a href="https://rzp.io/rzp/delhipress" target="_blank" class="btn-cashfree">
+                        <i class="fa-solid fa-bolt"></i> Cashfree Pay
+                    </a>
+                    <div style="font-size:12px; color:#666; margin:8px 0;">— अथवा UPI से भुगतान करें —</div>
+                    <div class="qr-wrapper">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@okbizaxis%26pn=Delhi%20Press" alt="UPI QR">
+                    </div>
+                    <p style="font-size:12px; font-weight:bold; color:#333;">UPI: 9304509464@okbizaxis</p>
+                    <div class="upi-buttons">
+                        <a href="upi://pay?pa=9304509464@okbizaxis&pn=Delhi%20Press" class="upi-btn" style="background:#ea4335;">GPay</a>
+                        <a href="upi://pay?pa=9304509464@okbizaxis&pn=Delhi%20Press" class="upi-btn" style="background:#5f259f;">PhonePe</a>
+                        <a href="upi://pay?pa=9304509464@okbizaxis&pn=Delhi%20Press" class="upi-btn" style="background:#00b9f5;">Paytm</a>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- 2. BANNER & POSTER FORM -->
+            <!-- 2. FLEX BANNER FORM -->
             <div class="form-wrapper service-form-section" id="bannerFormSection" style="display: none;">
-                <div class="section-header">फ्लेक्स बैनर एवं पोस्टर ऑर्डर फॉर्म</div>
-                
+                <div class="section-header">फ्लेक्स बैनर ऑर्डर फॉर्म</div>
                 <form id="bannerForm">
                     <div class="form-block">
-                        <h4>१. साइज़ (Feet) एवं कैलकुलेशन</h4>
-                        <div class="row-3">
-                            <div class="form-group">
-                                <label>चौड़ाई (Width Feet):</label>
-                                <input type="number" id="bannerWidth" value="6" min="1" step="any" oninput="calculateBannerTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>ऊंचाई (Height Feet):</label>
-                                <input type="number" id="bannerHeight" value="3" min="1" step="any" oninput="calculateBannerTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>रेट / Sq.Ft (₹):</label>
-                                <input type="number" id="bannerRate" value="10" min="1" step="any" oninput="calculateBannerTotal()" required>
-                            </div>
-                        </div>
+                        <h4>१. साइज एवं मैटर</h4>
                         <div class="row-2">
                             <div class="form-group">
-                                <label>संख्या (Qty):</label>
-                                <input type="number" id="bannerQty" value="1" min="1" oninput="calculateBannerTotal()" required>
+                                <label>बैनर साइज (उदा: 6x3 फीट):</label>
+                                <input type="text" id="bannerSize" placeholder="चौड़ाई x ऊँचाई" required>
                             </div>
                             <div class="form-group">
-                                <label>क्वालिटी:</label>
-                                <select id="bannerQuality">
-                                    <option value="नॉर्मल एचडी फ्लेक्स">नॉर्मल एचडी फ्लेक्स</option>
-                                    <option value="स्टार फ्लेक्स (मजबूत)">स्टार फ्लेक्स (Heavy)</option>
-                                    <option value="बैकलाइट बोर्ड प्रिंट">बैकलाइट बोर्ड</option>
-                                    <option value="विनाइल पोस्टर">विनाइल पोस्टर</option>
-                                </select>
+                                <label>दुकान / संस्था का नाम:</label>
+                                <input type="text" id="bannerTitle" placeholder="बैनर का मुख्य नाम" required>
                             </div>
                         </div>
-                        <div class="total-bill-box">
-                            <span id="bannerSizeDisplay">18 Sq.Ft (1 पीस)</span>
-                            <span id="bannerTotalDisplay">कुल राशि: ₹180</span>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>२. बैनर पर छपने वाला मैटर</h4>
                         <div class="form-group">
-                            <label>दुकान / संस्था / शीर्षक:</label>
-                            <input type="text" id="bannerTitle" placeholder="उदा: सज्जाद डिजिटल प्रिंट्स" required>
+                            <label>विवरण / सेवाएँ (Services):</label>
+                            <textarea id="bannerDetails" rows="3" placeholder="दुकान पर मिलने वाली सुविधाएँ..." required></textarea>
                         </div>
                         <div class="form-group">
-                            <label>बैनर का पूरा मैटर:</label>
-                            <textarea id="bannerContent" rows="3" placeholder="सुविधाएं, प्रचार सामग्री, नाम आदि..." required></textarea>
-                        </div>
-                        <div class="row-2">
-                            <div class="form-group">
-                                <label>बैनर पर मोबाइल नंबर:</label>
-                                <input type="text" id="bannerPhone" placeholder="संपर्क नंबर" required>
-                            </div>
-                            <div class="form-group">
-                                <label>बैनर पर पता:</label>
-                                <input type="text" id="bannerAddress" placeholder="स्थान / पता" required>
-                            </div>
+                            <label>मोबाइल नंबर व पता:</label>
+                            <input type="text" id="bannerContact" placeholder="मोबाइल नंबर और पूरा पता" required>
                         </div>
                     </div>
-
-                    <div class="form-block">
-                        <h4>३. लोगो या पुराना डिज़ाइन फोटो</h4>
-                        <div class="bottom-upload-box" onclick="document.getElementById('bannerSampleFile').click()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
-                            <p style="font-weight: 600; font-size: 13px;">लोगो या बैनर फोटो अपलोड करें</p>
-                            <input type="file" id="bannerSampleFile" accept="image/*" style="display: none;" onchange="previewBannerSample(event)">
-                        </div>
-                        <div class="sample-preview-box" id="bannerPreviewContainer">
-                            <img id="bannerPreviewImg" src="" alt="बैनर सैंपल">
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>४. पेमेंट UTR नंबर</h4>
-                        <div class="form-group">
-                            <label>Transaction ID / UTR:</label>
-                            <input type="text" id="bannerTransId" placeholder="UTR दर्ज करें">
-                        </div>
-                    </div>
-
                     <div class="btn-row">
-                        <button type="button" class="btn-checkout-fast" onclick="scrollToPaymentAndReview('banner')">
+                        <button type="button" class="btn-checkout-fast" onclick="handleCheckout('banner')">
                             <i class="fa-solid fa-cart-shopping"></i> चेकआउट करें (Proceed to Checkout)
-                        </button>
-                        <button type="button" class="btn-review-main" onclick="openServiceOrderReview('banner')">
-                            <i class="fa-solid fa-eye"></i> सिर्फ मैटर रिव्यू करें
                         </button>
                     </div>
                 </form>
@@ -583,248 +540,223 @@
             <!-- 3. VISITING CARD FORM -->
             <div class="form-wrapper service-form-section" id="visitingFormSection" style="display: none;">
                 <div class="section-header">विजिटिंग कार्ड ऑर्डर फॉर्म</div>
-                
                 <form id="visitingForm">
                     <div class="form-block">
-                        <h4>१. कार्ड का प्रकार व मात्रा</h4>
-                        <div class="row-3">
-                            <div class="form-group">
-                                <label>कार्ड क्वालिटी / फिनिशिंग:</label>
-                                <input type="text" id="visitingType" value="सिंगल साइड मैट" placeholder="उदा: मैट / ग्लॉसी" required>
-                            </div>
-                            <div class="form-group">
-                                <label>रेट प्रति बॉक्स (₹):</label>
-                                <input type="number" id="visitingRate" value="600" min="1" step="any" oninput="calculateVisitingTotal()" required>
-                            </div>
-                            <div class="form-group">
-                                <label>बॉक्स संख्या (हज़ार पीस):</label>
-                                <input type="number" id="visitingBoxes" value="1" min="1" oninput="calculateVisitingTotal()" required>
-                            </div>
-                        </div>
-                        <div class="total-bill-box">
-                            <span id="visitingPiecesDisplay">1000 कार्ड्स (1 बॉक्स)</span>
-                            <span id="visitingTotalDisplay">कुल राशि: ₹600</span>
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>२. कार्ड पर छपने वाली जानकारी</h4>
+                        <h4>१. कार्ड विवरण</h4>
                         <div class="row-2">
                             <div class="form-group">
-                                <label>दुकान / कंपनी का नाम:</label>
-                                <input type="text" id="visitingShopName" placeholder="उदा: सज्जाद प्रिंटर्स" required>
+                                <label>व्यक्ति / प्रोपराइटर का नाम:</label>
+                                <input type="text" id="visitingName" placeholder="नाम दर्ज करें" required>
                             </div>
                             <div class="form-group">
-                                <label>मालिक / प्रोपराइटर का नाम:</label>
-                                <input type="text" id="visitingPersonName" placeholder="आपका नाम" required>
-                            </div>
-                        </div>
-                        <div class="row-2">
-                            <div class="form-group">
-                                <label>मोबाइल नंबर:</label>
-                                <input type="text" id="visitingPhone" placeholder="फ़ोन नंबर" required>
-                            </div>
-                            <div class="form-group">
-                                <label>ईमेल / वेबसाइट:</label>
-                                <input type="text" id="visitingEmail" placeholder="ईमेल (वैकल्पिक)">
+                                <label>फर्म / दुकान का नाम:</label>
+                                <input type="text" id="visitingFirm" placeholder="दुकान का नाम" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>मुख्य सेवाएं / प्रोडक्ट्स:</label>
-                            <textarea id="visitingServices" rows="2" placeholder="कार्ड पर क्या-क्या काम लिखना है..." required></textarea>
+                            <label>सेवाएँ व कार्य:</label>
+                            <textarea id="visitingWork" rows="3" placeholder="दुकान के कार्य व विवरण..." required></textarea>
                         </div>
                         <div class="form-group">
-                            <label>पूरा पता:</label>
-                            <input type="text" id="visitingAddress" placeholder="दुकान/ऑफिस का पता" required>
+                            <label>मोबाइल नंबर व पता:</label>
+                            <input type="text" id="visitingContact" placeholder="मोबाइल नंबर, ईमेल, पता" required>
                         </div>
                     </div>
-
-                    <div class="form-block">
-                        <h4>३. लोगो या पुराना कार्ड फोटो</h4>
-                        <div class="bottom-upload-box" onclick="document.getElementById('visitingSampleFile').click()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
-                            <p style="font-weight: 600; font-size: 13px;">लोगो या कार्ड फोटो अपलोड करें</p>
-                            <input type="file" id="visitingSampleFile" accept="image/*" style="display: none;" onchange="previewVisitingSample(event)">
-                        </div>
-                        <div class="sample-preview-box" id="visitingPreviewContainer">
-                            <img id="visitingPreviewImg" src="" alt="विजिटिंग कार्ड सैंपल">
-                        </div>
-                    </div>
-
-                    <div class="form-block">
-                        <h4>४. पेमेंट UTR नंबर</h4>
-                        <div class="form-group">
-                            <label>Transaction ID / UTR:</label>
-                            <input type="text" id="visitingTransId" placeholder="UTR दर्ज करें">
-                        </div>
-                    </div>
-
                     <div class="btn-row">
-                        <button type="button" class="btn-checkout-fast" onclick="scrollToPaymentAndReview('visiting')">
+                        <button type="button" class="btn-checkout-fast" onclick="handleCheckout('visiting')">
                             <i class="fa-solid fa-cart-shopping"></i> चेकआउट करें (Proceed to Checkout)
-                        </button>
-                        <button type="button" class="btn-review-main" onclick="openServiceOrderReview('visiting')">
-                            <i class="fa-solid fa-eye"></i> सिर्फ मैटर रिव्यू करें
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Payment Section -->
-            <div class="form-wrapper" id="paymentSection" style="margin-top: 15px;">
-                <div class="payment-box">
-                    <p style="font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">ऑनलाइन भुगतान विकल्प:</p>
-
-                    <a id="cashfreeBtn" href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
-                        <i class="fa-solid fa-bolt"></i> Cashfree Pay
-                    </a>
-
-                    <div style="margin: 10px 0; font-size: 12px; color: #64748b;">— अथवा UPI से भुगतान करें —</div>
-
-                    <div class="qr-wrapper">
-                        <img id="upiQrCode" src="" alt="UPI पेमेंट QR">
-                    </div>
-                    <p style="font-size: 13px; color: #475569;">UPI: <strong>9304509464@okbizaxis</strong></p>
-
-                    <div class="upi-buttons">
-                        <a id="gpayBtn" href="#" class="upi-btn" style="background:#ea4335;">GPay</a>
-                        <a id="phonepeBtn" href="#" class="upi-btn" style="background:#5f259f;">PhonePe</a>
-                        <a id="paytmBtn" href="#" class="upi-btn" style="background:#00b9f5;">Paytm</a>
-                    </div>
-                </div>
-            </div>
-
         </div>
 
     </div>
 
-    <!-- ऑर्डर रिव्यू मॉडल -->
-    <div id="orderReviewModal" class="modal">
+    <!-- Review Modal -->
+    <div class="modal" id="reviewModal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('orderReviewModal')">&times;</span>
-            <h3 style="color: var(--primary); text-align: center; margin-bottom: 6px;">ऑर्डर मैटर रिव्यू</h3>
-            
-            <div class="notice-banner" style="font-size: 12px; margin-bottom: 8px;">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
-            </div>
-
-            <div class="review-box" id="reviewContentDisplay"></div>
-
-            <button type="button" id="confirmAndSendWaBtn" class="btn-review-main" style="width: 100%; background: var(--wa-green);" onclick="submitFinalOrderToWhatsApp()">
-                <i class="fa-brands fa-whatsapp fa-lg"></i> मैटर सही है, 9304509464 पर WhatsApp भेजें
-            </button>
-        </div>
-    </div>
-
-    <!-- Mobile Account Info Modal -->
-    <div id="mobileAccountModal" class="modal">
-        <div class="modal-content" style="max-width: 360px; text-align: center;">
-            <span class="close-btn" onclick="closeModal('mobileAccountModal')">&times;</span>
-            <div style="font-size: 45px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-circle-user"></i></div>
-            <h3 id="mobAccName" style="color: var(--dark); margin-bottom: 4px;">उपयोगकर्ता</h3>
-            <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 20px;">फोन / ईमेल</p>
-            <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px;" onclick="handleLogout()">
-                <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
-            </button>
+            <span class="close-btn" onclick="closeReviewModal()">&times;</span>
+            <h3 style="color:var(--primary); text-align:center; margin-bottom:10px;">ऑर्डर मैटर प्रीव्यू</h3>
+            <div class="review-box" id="reviewModalContent"></div>
+            <button type="button" class="btn-checkout-fast" onclick="closeReviewModal()">ठीक है, वापस जाएँ</button>
         </div>
     </div>
 
     <!-- Mobile Bottom Navigation -->
     <div class="mobile-bottom-bar">
-        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i>कॉल करें</a>
-        <a href="#showcaseSection"><i class="fa-solid fa-images"></i>कैटलॉग</a>
-        <a href="#orderSectionContainer"><i class="fa-solid fa-file-pen"></i>ऑर्डर</a>
-        <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
-            <i class="fa-solid fa-user"></i><span id="mobAccountBtnText">खाता</span>
-        </button>
+        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
+        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
+        <a href="#orderSectionContainer"><i class="fa-solid fa-cart-plus"></i><span>ऑर्डर</span></a>
+        <a href="admin.html"><i class="fa-solid fa-user-shield"></i><span>एडमिन</span></a>
     </div>
 
     <footer>
         <p>© 2026 दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स | 9304509464</p>
-        <div style="margin-top: 6px;">
-            <a href="admin.html"><i class="fa-solid fa-lock"></i> एडमिन पैनल</a>
-        </div>
+        <p style="margin-top: 5px;"><a href="admin.html"><i class="fa-solid fa-lock"></i> एडमिन पैनल</a></p>
     </footer>
 
     <script>
-        const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Supabase Configuration
+        const SUPABASE_URL = "https://wepukdvdewqffyqcdksc.supabase.co";
+        const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcHVrZHZkZXdxZmZ5cWNka3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMjI4MjIsImV4cCI6MjA1NTg5ODgyMn0.55mH07zXkY-4M46Z56_u-O_5bB7qP26gBw-xOQ2q27Y";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-        const UPI_ID = "9304509464@okbizaxis";
-        const PAYEE_NAME = "Delhi Press Sajjad Prints";
-        const OWNER_PHONE = "919304509464";
+        let currentUser = null;
 
-        let weddingSampleUrl = "";
-        let bannerSampleUrl = "";
-        let visitingSampleUrl = "";
+        // User Authentication Check
+        function checkAuthStatus() {
+            const stored = localStorage.getItem('delhi_press_user');
+            const overlay = document.getElementById('formLockOverlay');
+            const authNav = document.getElementById('authNavContainer');
+            const userBox = document.getElementById('userLoggedBox');
+            const userNameDisp = document.getElementById('displayUserName');
 
-        let pendingOrderData = null;
-        let pendingWhatsAppText = "";
+            if (stored) {
+                try {
+                    currentUser = JSON.parse(stored);
+                    if (overlay) overlay.style.display = 'none';
+                    if (authNav) authNav.style.display = 'none';
+                    if (userBox) userBox.style.display = 'flex';
+                    if (userNameDisp) userNameDisp.innerText = currentUser.name || currentUser.mobile || 'यूज़र';
+                } catch (e) {
+                    currentUser = null;
+                }
+            } else {
+                currentUser = null;
+                if (overlay) overlay.style.display = 'flex';
+                if (authNav) authNav.style.display = 'block';
+                if (userBox) userBox.style.display = 'none';
+            }
+        }
 
         function handleLogout() {
-            localStorage.removeItem('dp_current_user');
-            closeModal('mobileAccountModal');
-            checkUserSession();
-            alert("लॉगआउट हो गया!");
+            localStorage.removeItem('delhi_press_user');
             window.location.reload();
         }
 
-        function checkUserSession() {
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            const navAuth = document.getElementById('authNavContainer');
-            const loggedBox = document.getElementById('userLoggedBox');
-            const display = document.getElementById('displayUserName');
-            const lockOverlay = document.getElementById('formLockOverlay');
-            const mobBtnText = document.getElementById('mobAccountBtnText');
+        // Tab Switching
+        function switchServiceTab(service) {
+            document.querySelectorAll('.service-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.service-form-section').forEach(s => s.style.display = 'none');
 
-            if (currentUser) {
-                if(navAuth) navAuth.style.display = 'none';
-                if(loggedBox) loggedBox.style.display = 'flex';
-                if(display) display.innerText = "नमस्ते, " + currentUser.name;
-                if(lockOverlay) lockOverlay.style.display = 'none';
-                if(mobBtnText) mobBtnText.innerText = currentUser.name.split(' ')[0];
-            } else {
-                if(navAuth) navAuth.style.display = 'block';
-                if(loggedBox) loggedBox.style.display = 'none';
-                if(display) display.innerText = "";
-                if(lockOverlay) lockOverlay.style.display = 'flex';
-                if(mobBtnText) mobBtnText.innerText = "खाता";
-            }
-        }
-
-        function handleMobileAccountClick() {
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (currentUser) {
-                document.getElementById('mobAccName').innerText = currentUser.name;
-                document.getElementById('mobAccPhone').innerText = currentUser.mobile || currentUser.email;
-                document.getElementById('mobileAccountModal').style.display = 'flex';
-            } else {
-                window.location.href = "login.html";
-            }
-        }
-
-        function switchServiceTab(tabName) {
-            document.querySelectorAll('.service-tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.service-form-section').forEach(sec => sec.style.display = 'none');
-
-            if (tabName === 'wedding') {
+            if (service === 'wedding') {
                 document.getElementById('tabBtnWedding').classList.add('active');
                 document.getElementById('weddingFormSection').style.display = 'block';
-            } else if (tabName === 'banner') {
+            } else if (service === 'banner') {
                 document.getElementById('tabBtnBanner').classList.add('active');
                 document.getElementById('bannerFormSection').style.display = 'block';
-            } else if (tabName === 'visiting') {
+            } else if (service === 'visiting') {
                 document.getElementById('tabBtnVisiting').classList.add('active');
                 document.getElementById('visitingFormSection').style.display = 'block';
             }
         }
 
-        async function renderCatalog() {
-            const container = document.getElementById('catalogContainer');
-            if (!container) return;
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड हो रहे हैं...</p>";
+        // Calculation
+        function calculateWeddingTotal() {
+            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
+            const qty = parseFloat(document.getElementById('cardQty').value) || 0;
+            const total = Math.round(rate * qty);
+            document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
+            return total;
+        }
+
+        // Add Dynamic Fields
+        function addCoupleItem() {
+            const container = document.getElementById('couplesGroup');
+            const div = document.createElement('div');
+            div.className = 'dynamic-item couple-item';
+            div.innerHTML = `
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">✕ हटाएँ</button>
+                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दूल्हा-दुल्हन पक्ष]</p>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>दूल्हा का नाम:</label>
+                        <input type="text" class="groom-name" placeholder="लड़का का नाम" required>
+                    </div>
+                    <div class="form-group">
+                        <label>पिता का नाम:</label>
+                        <input type="text" class="groom-father" placeholder="लड़के के पिता का नाम" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>लड़के का पूरा पता:</label>
+                    <input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
+                </div>
+                <div class="weds-divider">
+                    <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>दुल्हन का नाम:</label>
+                        <input type="text" class="bride-name" placeholder="लड़की का नाम" required>
+                    </div>
+                    <div class="form-group">
+                        <label>पिता का नाम:</label>
+                        <input type="text" class="bride-father" placeholder="लड़की के पिता का नाम" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>लड़की का पूरा पता:</label>
+                    <input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function addEventItem() {
+            const container = document.getElementById('eventsGroup');
+            const div = document.createElement('div');
+            div.className = 'dynamic-item event-item';
+            div.innerHTML = `
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">✕ हटाएँ</button>
+                <div class="row-3">
+                    <div class="form-group">
+                        <label>कार्यक्रम का नाम:</label>
+                        <input type="text" class="event-name" placeholder="उदा: निकाह / बारात" required>
+                    </div>
+                    <div class="form-group">
+                        <label>तारीख:</label>
+                        <input type="date" class="event-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>समय:</label>
+                        <input type="time" class="event-time">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        // Preview File
+        function previewUploadImage(input, previewId) {
+            const previewBox = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewBox.style.display = 'block';
+                    previewBox.querySelector('img').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Select Card from Catalog
+        function selectCardItem(name, rate) {
+            document.getElementById('cardCategory').value = name;
+            document.getElementById('cardRate').value = rate;
+            calculateWeddingTotal();
+            switchServiceTab('wedding');
+            document.getElementById('orderSectionContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Load Catalog from Supabase with Stock Status Check
+        async function loadCatalog() {
+            const catalogContainer = document.getElementById('catalogContainer');
+            if (!catalogContainer) return;
+            
+            catalogContainer.innerHTML = '<p style="text-align:center; grid-column:1/-1;">कार्ड लोड हो रहे हैं...</p>';
 
             try {
                 const { data: cards, error } = await supabaseClient
@@ -833,379 +765,131 @@
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-                container.innerHTML = "";
+
                 if (!cards || cards.length === 0) {
-                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कोई कार्ड उपलब्ध नहीं है।</p>";
+                    catalogContainer.innerHTML = '<p style="text-align:center; grid-column:1/-1;">कोई कार्ड उपलब्ध नहीं है।</p>';
                     return;
                 }
 
-                cards.forEach(item => {
-                    const isOut = item.stock === 'out';
-                    const div = document.createElement('div');
-                    div.className = "card-sample";
-                    div.innerHTML = `
-                        <img src="${item.img_url}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
+                catalogContainer.innerHTML = '';
+                cards.forEach(card => {
+                    // चेक करें कि स्टॉक उपलब्ध है या नहीं
+                    const isAvailable = card.stock === 'in' || card.stock === true || card.stock === 'उपलब्ध';
+
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'card-sample';
+
+                    cardDiv.innerHTML = `
+                        <img src="${card.img_url || 'https://via.placeholder.com/180'}" alt="${card.name}">
                         <div class="card-info">
-                            <h4>${item.name}</h4>
-                            <div class="card-price-tag">₹${item.rate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
-                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध'}</span>
-                            <button type="button" class="btn-select-card" ${isOut ? 'disabled' : ''} onclick="selectCardToForm('${item.name}', ${item.rate}, '${item.img_url}')">
-                                ${isOut ? 'उपलब्ध नहीं' : 'यह चुनें'}
+                            <h4>${card.name}</h4>
+                            <div class="card-price-tag">₹${card.rate} / कार्ड</div>
+                            <div>
+                                <span class="stock-badge ${isAvailable ? 'in-stock' : 'out-stock'}">
+                                    ${isAvailable ? 'उपलब्ध' : 'आउट ऑफ स्टॉक'}
+                                </span>
+                            </div>
+                            <button type="button" 
+                                    class="btn-select-card" 
+                                    ${!isAvailable ? 'disabled style="background:#94a3b8; cursor:not-allowed; opacity:0.6;"' : ''} 
+                                    onclick="${isAvailable ? `selectCardItem('${card.name.replace(/'/g, "\\'")}', ${card.rate})` : ''}">
+                                ${isAvailable ? 'यह चुनें' : 'उपलब्ध नहीं'}
                             </button>
                         </div>
                     `;
-                    container.appendChild(div);
+                    catalogContainer.appendChild(cardDiv);
                 });
             } catch (err) {
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड नहीं हो सके।</p>";
+                console.error('Catalog load error:', err);
+                catalogContainer.innerHTML = '<p style="text-align:center; color:red; grid-column:1/-1;">कैटलॉग लोड करने में समस्या हुई।</p>';
             }
         }
 
-        function selectCardToForm(name, rate, img) {
-            if (name.includes("बैनर") || name.includes("फ्लेक्स") || name.includes("पोस्टर")) {
-                switchServiceTab('banner');
-                document.getElementById('bannerRate').value = rate;
-                bannerSampleUrl = img;
-                document.getElementById('bannerPreviewImg').src = img;
-                document.getElementById('bannerPreviewContainer').style.display = 'block';
-                calculateBannerTotal();
-            } else if (name.includes("विजिटिंग") || name.includes("1000")) {
-                switchServiceTab('visiting');
-                document.getElementById('visitingRate').value = rate;
-                visitingSampleUrl = img;
-                document.getElementById('visitingPreviewImg').src = img;
-                document.getElementById('visitingPreviewContainer').style.display = 'block';
-                calculateVisitingTotal();
-            } else {
-                switchServiceTab('wedding');
-                document.getElementById('cardCategory').value = name;
-                document.getElementById('cardRate').value = rate;
-                weddingSampleUrl = img;
-                document.getElementById('bottomPreviewImg').src = img;
-                document.getElementById('bottomPreviewContainer').style.display = 'block';
-                calculateWeddingTotal();
+        // Matter Preview
+        function openReviewModal(service) {
+            const modal = document.getElementById('reviewModal');
+            const content = document.getElementById('reviewModalContent');
+
+            if (service === 'wedding') {
+                const cat = document.getElementById('cardCategory').value;
+                const rate = document.getElementById('cardRate').value;
+                const qty = document.getElementById('cardQty').value;
+                const total = document.getElementById('weddingTotalDisplay').innerText;
+
+                let groomNames = [];
+                document.querySelectorAll('.groom-name').forEach(i => groomNames.push(i.value));
+                let brideNames = [];
+                document.querySelectorAll('.bride-name').forEach(i => brideNames.push(i.value));
+
+                content.innerHTML = `
+                    <b>कैटगरी:</b> ${cat}
+                    <b>रेट:</b> ₹${rate} | <b>संख्या:</b> ${qty} | <b>कुल राशि:</b> ${total}
+                    ---------------------------------------
+                    <b>दूल्हा:</b> ${groomNames.join(', ')}
+                    <b>दुल्हन:</b> ${brideNames.join(', ')}
+                    <b>आर.एस.वी.पी:</b> ${document.getElementById('weddingRsvp').value || 'लागू नहीं'}
+                    <b>निवेदक:</b> ${document.getElementById('weddingNivedak').value || 'लागू नहीं'}
+                `;
             }
-
-            const user = JSON.parse(localStorage.getItem('dp_current_user') || "null");
-            if (!user) {
-                window.location.href = "login.html?mode=register";
-            } else {
-                document.getElementById('orderSectionContainer').scrollIntoView({ behavior: 'smooth' });
-            }
+            modal.style.display = 'flex';
         }
 
-        function calculateWeddingTotal() {
-            var rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            var qty = parseInt(document.getElementById('cardQty').value) || 0;
-            var total = rate * qty;
-            document.getElementById('weddingTotalDisplay').innerText = "₹" + total.toLocaleString('en-IN');
-            updateUpiQr(total);
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
         }
 
-        function calculateBannerTotal() {
-            var w = parseFloat(document.getElementById('bannerWidth').value) || 0;
-            var h = parseFloat(document.getElementById('bannerHeight').value) || 0;
-            var rate = parseFloat(document.getElementById('bannerRate').value) || 0;
-            var qty = parseInt(document.getElementById('bannerQty').value) || 1;
-            var sqft = w * h;
-            var total = sqft * rate * qty;
-            document.getElementById('bannerSizeDisplay').innerText = `${sqft} Sq.Ft (${qty} पीस)`;
-            document.getElementById('bannerTotalDisplay').innerText = `कुल राशि: ₹${total.toLocaleString('en-IN')}`;
-            updateUpiQr(total);
-        }
-
-        function calculateVisitingTotal() {
-            var rate = parseFloat(document.getElementById('visitingRate').value) || 0;
-            var boxes = parseInt(document.getElementById('visitingBoxes').value) || 1;
-            var total = rate * boxes;
-            document.getElementById('visitingPiecesDisplay').innerText = `${boxes * 1000} कार्ड्स (${boxes} बॉक्स)`;
-            document.getElementById('visitingTotalDisplay').innerText = `कुल राशि: ₹${total.toLocaleString('en-IN')}`;
-            updateUpiQr(total);
-        }
-
-        function updateUpiQr(amount) {
-            var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(PAYEE_NAME) + "&am=" + amount + "&cu=INR";
-            document.getElementById('gpayBtn').href = upiUrl;
-            document.getElementById('phonepeBtn').href = upiUrl;
-            document.getElementById('paytmBtn').href = upiUrl;
-            document.getElementById('upiQrCode').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(upiUrl);
-        }
-
-        function previewBottomSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    weddingSampleUrl = e.target.result;
-                    document.getElementById('bottomPreviewImg').src = weddingSampleUrl;
-                    document.getElementById('bottomPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        function previewBannerSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    bannerSampleUrl = e.target.result;
-                    document.getElementById('bannerPreviewImg').src = bannerSampleUrl;
-                    document.getElementById('bannerPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        function previewVisitingSample(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    visitingSampleUrl = e.target.result;
-                    document.getElementById('visitingPreviewImg').src = visitingSampleUrl;
-                    document.getElementById('visitingPreviewContainer').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function addCoupleField() {
-            var group = document.getElementById('couplesGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item couple-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दूल्हा पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दूल्हा:</label><input type="text" class="groom-name" placeholder="लड़का का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>' +
-                '<div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>' +
-                '<p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[अतिरिक्त दुल्हन पक्ष]</p>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>दुल्हन:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>' +
-                    '<div class="form-group"><label>पिता:</label><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>' +
-                '</div>' +
-                '<div class="form-group"><label>पता:</label><input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, जिला..." required></div>';
-            group.appendChild(div);
-        }
-
-        function addEventField() {
-            var group = document.getElementById('eventsGroup');
-            var div = document.createElement('div');
-            div.className = 'dynamic-item event-item';
-            div.innerHTML = '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">हटाएं</button>' +
-                '<div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required></div>' +
-                '<div class="row-2">' +
-                    '<div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>' +
-                    '<div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>' +
-                '</div>';
-            group.appendChild(div);
-        }
-
-        function scrollToPaymentAndReview(type) {
-            document.getElementById('paymentSection').scrollIntoView({ behavior: 'smooth' });
-            setTimeout(() => {
-                openServiceOrderReview(type);
-            }, 600);
-        }
-
-        function openServiceOrderReview(type) {
-            const currentUser = JSON.parse(localStorage.getItem('dp_current_user') || "null");
+        // Checkout & Submit Logic
+        async function handleCheckout(service) {
             if (!currentUser) {
-                alert("ऑर्डर दर्ज करने के लिए पहले लॉगिन करें!");
-                window.location.href = "login.html?mode=login";
+                alert('कृपया पहले लॉगिन करें!');
+                window.location.href = 'login.html';
                 return;
             }
 
-            let displayDetails = "";
-
-            if (type === 'wedding') {
-                var category = document.getElementById('cardCategory').value;
-                var rate = document.getElementById('cardRate').value;
-                var qty = document.getElementById('cardQty').value;
-                var totalAmt = document.getElementById('weddingTotalDisplay').innerText;
-                var txn = document.getElementById('weddingTransId').value || "भुगतान शेष";
-
-                var coupleData = "";
-                var grooms = document.querySelectorAll('.groom-name');
-                var gFathers = document.querySelectorAll('.groom-father');
-                var gAddresses = document.querySelectorAll('.groom-address');
-                var brides = document.querySelectorAll('.bride-name');
-                var bFathers = document.querySelectorAll('.bride-father');
-                var bAddresses = document.querySelectorAll('.bride-address');
-
-                if (grooms.length === 0 || !grooms[0].value) {
-                    alert("कृपया दूल्हा-दुल्हन का नाम भरें!");
+            if (service === 'wedding') {
+                const groom = document.querySelector('.groom-name')?.value;
+                const bride = document.querySelector('.bride-name')?.value;
+                if (!groom || !bride) {
+                    alert('कृपया दूल्हा-दुल्हन का नाम भरें!');
                     return;
                 }
 
-                for (var i = 0; i < grooms.length; i++) {
-                    coupleData += `\n[जोड़ी #${i+1}]\nदूल्हा: ${grooms[i].value} (पिता: ${gFathers[i].value})\nपता: ${gAddresses[i].value}\n-- संग --\nदुल्हन: ${brides[i].value} (पिता: ${bFathers[i].value})\nपता: ${bAddresses[i].value}\n`;
-                }
+                const total = calculateWeddingTotal();
+                const utr = document.getElementById('weddingUtr').value.trim();
 
-                var eventData = "";
-                var titles = document.querySelectorAll('.event-title');
-                var dates = document.querySelectorAll('.event-date');
-                var times = document.querySelectorAll('.event-time');
-                for (var j = 0; j < titles.length; j++) {
-                    eventData += `\n- ${titles[j].value}: ${dates[j].value} (${times[j].value || 'समय तय नहीं'})`;
-                }
-
-                var rsvp = document.getElementById('rsvpText').value;
-                var from = document.getElementById('fromText').value;
-                var extra = document.getElementById('extraText').value;
-
-                pendingOrderData = {
-                    service_type: "शादी कार्ड",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: { category, rate, qty, txn, couples: coupleData, events: eventData, rsvp, from, extra }
+                const orderData = {
+                    user_name: currentUser.name || 'ग्राहक',
+                    user_phone: currentUser.mobile || '',
+                    service_type: 'शादी कार्ड',
+                    card_category: document.getElementById('cardCategory').value,
+                    rate: parseFloat(document.getElementById('cardRate').value),
+                    quantity: parseInt(document.getElementById('cardQty').value),
+                    total_amount: total,
+                    utr_number: utr,
+                    status: 'pending'
                 };
 
-                displayDetails = `📋 *शादी कार्ड ऑर्डर रिव्यू*
-──────────────────────
-• ग्राहक: ${currentUser.name} (${currentUser.mobile || currentUser.email})
-• मॉडल: ${category}
-• रेट: ₹${rate} | मात्रा: ${qty}
-• कुल राशि: ${totalAmt}
-• पेमेंट UTR: ${txn}
-──────────────────────
-*दूल्हा-दुल्हन विवरण:*
-${coupleData}
-*कार्यक्रम:*
-${eventData}
-──────────────────────
-• RSVP: ${rsvp || '-'}
-• विनीत: ${from || '-'}
-• विशेष संदेश: ${extra || '-'}`;
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .insert([orderData]);
 
-            } else if (type === 'banner') {
-                var w = document.getElementById('bannerWidth').value;
-                var h = document.getElementById('bannerHeight').value;
-                var qty = document.getElementById('bannerQty').value;
-                var quality = document.getElementById('bannerQuality').value;
-                var totalAmt = document.getElementById('bannerTotalDisplay').innerText;
-                var title = document.getElementById('bannerTitle').value;
-                var content = document.getElementById('bannerContent').value;
-                var phone = document.getElementById('bannerPhone').value;
-                var address = document.getElementById('bannerAddress').value;
-                var txn = document.getElementById('bannerTransId').value || "भुगतान शेष";
+                    if (error) throw error;
 
-                if (!title || !content) {
-                    alert("कृपया बैनर का शीर्षक और मैटर भरें!");
-                    return;
+                    alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है!');
+                    window.location.reload();
+                } catch (err) {
+                    console.error('Order submit error:', err);
+                    alert('ऑर्डर दर्ज करने में समस्या हुई, कृपया पुन: प्रयास करें।');
                 }
-
-                pendingOrderData = {
-                    service_type: "फ्लेक्स बैनर",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: { size: `${w} x ${h} Feet`, qty, quality, title, content, phone, address, txn }
-                };
-
-                displayDetails = `📋 *फ्लेक्स बैनर ऑर्डर रिव्यू*
-──────────────────────
-• ग्राहक: ${currentUser.name} (${currentUser.mobile || currentUser.email})
-• शीर्षक: ${title}
-• साइज़: ${w} x ${h} Feet (${qty} पीस)
-• क्वालिटी: ${quality}
-• कुल राशि: ${totalAmt}
-• पेमेंट UTR: ${txn}
-──────────────────────
-*बैनर का मैटर:*
-${content}
-──────────────────────
-• फोन: ${phone} | पता: ${address}`;
-
-            } else if (type === 'visiting') {
-                var typeVal = document.getElementById('visitingType').value;
-                var rate = document.getElementById('visitingRate').value;
-                var boxes = document.getElementById('visitingBoxes').value;
-                var pieces = document.getElementById('visitingPiecesDisplay').innerText;
-                var totalAmt = document.getElementById('visitingTotalDisplay').innerText;
-                var shopName = document.getElementById('visitingShopName').value;
-                var personName = document.getElementById('visitingPersonName').value;
-                var phone = document.getElementById('visitingPhone').value;
-                var email = document.getElementById('visitingEmail').value;
-                var services = document.getElementById('visitingServices').value;
-                var address = document.getElementById('visitingAddress').value;
-                var txn = document.getElementById('visitingTransId').value || "भुगतान शेष";
-
-                if (!shopName || !phone) {
-                    alert("कृपया दुकान का नाम और फ़ोन भरें!");
-                    return;
-                }
-
-                pendingOrderData = {
-                    service_type: "विजिटिंग कार्ड",
-                    customer_name: currentUser.name,
-                    customer_phone: currentUser.mobile || currentUser.email,
-                    total_bill: totalAmt,
-                    order_data: { type: typeVal, rate, boxes, pieces, shopName, personName, phone, email, services, address, txn }
-                };
-
-                displayDetails = `📋 *विजिटिंग कार्ड ऑर्डर रिव्यू*
-──────────────────────
-• ग्राहक: ${currentUser.name} (${currentUser.mobile || currentUser.email})
-• दुकान/फर्म: ${shopName}
-• प्रोपराइटर: ${personName}
-• प्रकार: ${typeVal} | मात्रा: ${pieces}
-• कुल राशि: ${totalAmt}
-• पेमेंट UTR: ${txn}
-──────────────────────
-*कार्ड सेवाएं / विवरण:*
-${services}
-──────────────────────
-• फोन: ${phone} | पता: ${address}`;
             }
-
-            pendingWhatsAppText = displayDetails;
-            document.getElementById('reviewContentDisplay').innerText = displayDetails;
-            document.getElementById('orderReviewModal').style.display = 'flex';
         }
 
-        async function submitFinalOrderToWhatsApp() {
-            const btn = document.getElementById('confirmAndSendWaBtn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> भेजा जा रहा है...`;
-            btn.disabled = true;
-
-            try {
-                if (pendingOrderData) {
-                    await supabaseClient.from('orders').insert([pendingOrderData]);
-                }
-            } catch (err) {
-                console.error("Supabase Save Error:", err);
-            }
-
-            const warningNotice = "\n\n⚠️ *महत्वपूर्ण नोट:* मैंने पूरा मैटर जांच लिया है, कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।";
-            const fullWaMessage = pendingWhatsAppText + warningNotice;
-            const waUrl = `https://wa.me/${OWNER_PHONE}?text=` + encodeURIComponent(fullWaMessage);
-
-            window.open(waUrl, '_blank');
-
-            btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> मैटर सही है, 9304509464 पर WhatsApp भेजें`;
-            btn.disabled = false;
-            closeModal('orderReviewModal');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        window.onclick = function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderCatalog();
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+            loadCatalog();
             calculateWeddingTotal();
-            calculateBannerTotal();
-            calculateVisitingTotal();
-            checkUserSession();
         });
     </script>
 </body>
