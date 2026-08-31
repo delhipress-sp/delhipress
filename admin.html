@@ -602,16 +602,186 @@
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
-                                कुल भुगतान राशि: ₹${ord.total_amount || 0}
+function printReceiptDetails(index) {
+    try {
+        const ord = cachedOrders[index];
+        if (!ord) {
+            alert("ऑर्डर डेटा नहीं मिला!");
+            return;
+        }
+
+        const printArea = document.getElementById('printableReceiptArea');
+        if (!printArea) {
+            alert("प्रिंट एरिया एलिमेंट नहीं मिला!");
+            return;
+        }
+
+        const d = ord.created_at ? new Date(ord.created_at) : new Date();
+        const dt = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+
+        // 1. सुरक्षित रूप से Couples डेटा निकालना
+        let couplesHtml = '';
+        let couplesList = [];
+        if (Array.isArray(ord.couples)) {
+            couplesList = ord.couples;
+        } else if (typeof ord.couples === 'string' && ord.couples.trim() !== '') {
+            try { 
+                couplesList = JSON.parse(ord.couples); 
+            } catch(e) { 
+                couplesList = []; 
+            }
+        }
+
+        if (couplesList && couplesList.length > 0) {
+            couplesList.forEach((c, i) => {
+                couplesHtml += `
+                    <div style="background: #fdfaf6; border: 1px dashed #d97706; padding: 8px; border-radius: 6px; margin-bottom: 6px;">
+                        <div style="font-weight: bold; color: #b45309; font-size: 13px; margin-bottom: 4px;">जोड़ी #${i + 1}:</div>
+                        <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;">
+                            <div style="flex: 1;">
+                                <b>वर (दूल्हा):</b> ${c.groom || '-'}<br>
+                                <b>पिता:</b> ${c.groom_father || '-'}<br>
+                                <b>पता:</b> ${c.groom_address || '-'}
                             </div>
-                            <div style="font-size: 12px; font-weight: bold;">
-                                अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)
+                            <div style="text-align: center; font-weight: bold; color: #c0392b; align-self: center;">
+                                संग / Weds
+                            </div>
+                            <div style="flex: 1;">
+                                <b>वधू (दुल्हन):</b> ${c.bride || '-'}<br>
+                                <b>पिता:</b> ${c.bride_father || '-'}<br>
+                                <b>पता:</b> ${c.bride_address || '-'}
                             </div>
                         </div>
                     </div>
+                `;
+            });
+        } else {
+            couplesHtml = `<p style="font-size: 12px; color: #64748b;">विवरण उपलब्ध नहीं है</p>`;
+        }
 
+        // 2. सुरक्षित रूप से Events डेटा निकालना
+        let eventsHtml = '';
+        let eventsList = [];
+        if (Array.isArray(ord.events)) {
+            eventsList = ord.events;
+        } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
+            try { 
+                eventsList = JSON.parse(ord.events); 
+            } catch(e) { 
+                eventsList = []; 
+            }
+        }
+
+        if (eventsList && eventsList.length > 0) {
+            eventsHtml = '<ul style="margin: 0; padding-left: 18px; font-size: 12px;">';
+            eventsList.forEach(ev => {
+                eventsHtml += `<li><b>${ev.title || 'कार्यक्रम'}:</b> दिनांक: ${ev.date || '-'} | समय: ${ev.time || '-'}</li>`;
+            });
+            eventsHtml += '</ul>';
+        } else {
+            eventsHtml = `<p style="font-size: 12px; color: #64748b;">कोई कार्यक्रम दर्ज नहीं</p>`;
+        }
+
+        // 3. रसीद HTML तैयार करना
+        printArea.innerHTML = `
+            <div style="max-width: 750px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
+                    <div>
+                        <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                        <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
+                            ऑर्डर रसीद / पावती
+                        </span>
+                        <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
+                    </div>
                 </div>
-            `;
+
+                <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
+                    <div>
+                        <div><b>ग्राहक का नाम:</b> ${ord.user_name || ord.customer_name || 'उपलब्ध नहीं'}</div>
+                        <div><b>ईमेल / फोन:</b> ${ord.user_phone || ord.customer_phone || ord.user_email || '-'}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div><b>ऑर्डर ID:</b> #${ord.id ? String(ord.id).substring(0, 8) : '-'}</div>
+                        <div><b>UTR / Trans. No:</b> <span style="color: #2563eb; font-weight: bold;">${ord.utr || '-'}</span></div>
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; border: 1px solid #cbd5e1;">
+                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">विवरण / कार्ड मॉडल</th>
+                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 90px;">मात्रा</th>
+                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; width: 100px;">दर</th>
+                            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; width: 110px;">कुल राशि</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px;">
+                                <b>${ord.category || ord.card_model || 'शादी कार्ड'}</b>
+                                <div style="font-size: 11px; color: #64748b;">सर्विस: ${ord.service_type || 'शादी कार्ड प्रिंटिंग'}</div>
+                            </td>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${ord.quantity || 1}</td>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: right;">₹${ord.rate || (ord.total_amount ? (ord.total_amount / (ord.quantity || 1)).toFixed(2) : 0)}</td>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; font-weight: bold;">₹${ord.total_amount || 0}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+                    <h4 style="color: #c0392b; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
+                        कार्ड मैटर एवं पारिवारिक विवरण:
+                    </h4>
+                    <div style="margin-bottom: 8px;">
+                        ${couplesHtml}
+                    </div>
+                    <div style="background: #f8fafc; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                        <div style="font-weight: bold; font-size: 12px; color: #334155; margin-bottom: 4px;">कार्यक्रम एवं तिथियां:</div>
+                        ${eventsHtml}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                        <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
+                            <b>आर.एस.वी.पी. (RSVP):</b> ${ord.rsvp || '-'}
+                        </div>
+                        <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
+                            <b>दर्शनाभिलाषी / विनीत:</b> ${ord.from_family || '-'}
+                        </div>
+                    </div>
+                    ${ord.instructions ? `
+                    <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
+                        <b>शायरी / विशेष निर्देश:</b> ${ord.instructions}
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                    <div style="font-size: 12px; color: #475569;">
+                        <div>* कृपया कार्ड छपाई से पहले पूरे मैटर का मिलान कर लें।</div>
+                        <div style="margin-top: 30px; border-top: 1px dashed #94a3b8; width: 140px; text-align: center;">ग्राहक का हस्ताक्षर</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
+                            कुल भुगतान राशि: ₹${ord.total_amount || 0}
+                        </div>
+                        <div style="font-size: 12px; font-weight: bold;">
+                            अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 4. प्रिंट विंडो शुरू करना
+        window.print();
+
+    } catch (err) {
+        alert("प्रिंट रसीद में समस्या आई: " + err.message);
+    }
+}
+
 
             window.print();
         }
