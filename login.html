@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>दिल्ली प्रेस - सज्जाद डिजिटल प्रिंट्स</title>
+    <title>ग्राहक लॉगिन - दिल्ली प्रेस</title>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,7 +16,7 @@
             --blue: #0284c7;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; }
-        body { background: #f8fafc; color: var(--dark); min-height: 100vh; }
+        body { background: #f4f6f9; color: var(--dark); min-height: 100vh; }
 
         /* हेडर और नेविगेशन */
         .navbar {
@@ -55,7 +55,7 @@
             border-color: var(--primary);
         }
 
-        /* लॉगिन होने के बाद आइकन दबाने पर दिखने वाला ड्रॉपडाउन */
+        /* लॉगिन होने के बाद आइकन दबाने पर ड्रॉपडाउन */
         .user-dropdown {
             display: none;
             position: absolute;
@@ -98,22 +98,6 @@
         .dropdown-btn-logout:hover {
             background: #fee2e2;
         }
-
-        /* होम पेज बॉडी */
-        .page-content {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 0 15px;
-            text-align: center;
-        }
-        .hero-box {
-            background: #fff;
-            padding: 40px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .hero-box h1 { color: var(--primary); font-size: 28px; margin-bottom: 10px; }
-        .hero-box p { color: #475569; font-size: 15px; }
 
         /* लॉगिन / रजिस्ट्रेशन मोडल */
         .modal-overlay {
@@ -160,20 +144,19 @@
 </head>
 <body>
 
-    <!-- नेविगेशन बार -->
+    <!-- हेडर -->
     <header class="navbar">
         <div class="brand">
             <h2>दिल्ली प्रेस</h2>
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
 
-        <!-- यूज़र आइकॉन एरिया -->
         <div class="user-nav-wrapper">
             <button type="button" class="user-nav-btn" id="userIconBtn" onclick="checkAndOpenAuth()" title="ग्राहक खाता">
                 <i class="fa-solid fa-user" id="userIconState"></i>
             </button>
 
-            <!-- केवल ग्राहक का नाम और लॉगआउट विकल्प -->
+            <!-- केवल लॉगिन होने पर दिखने वाला लॉगआउट मेन्यू -->
             <div class="user-dropdown" id="userDropdown">
                 <div class="dropdown-user-info">
                     <h4 id="dropCustName">ग्राहक नाम</h4>
@@ -185,14 +168,6 @@
             </div>
         </div>
     </header>
-
-    <!-- होम पेज बॉडी -->
-    <main class="page-content">
-        <section class="hero-box">
-            <h1>शादी एवं आमंत्रण कार्ड सेवा</h1>
-            <p>लॉगिन करने या खाता प्रबंधित करने के लिए ऊपर कोने में दिए गए प्रोफाइल आइकन को दबाएं।</p>
-        </section>
-    </main>
 
     <!-- लॉगिन / रजिस्ट्रेशन पॉपअप -->
     <div class="modal-overlay" id="authModal">
@@ -225,7 +200,7 @@
                 </div>
             </div>
 
-            <!-- 2. पासवर्ड भूलने पर रीसेट फॉर्म -->
+            <!-- 2. पासवर्ड रीसेट फॉर्म -->
             <div id="forgotSection" style="display: none;">
                 <h4 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h4>
                 <form onsubmit="handleForgotSubmit(event)">
@@ -316,10 +291,8 @@
         function checkAndOpenAuth() {
             const user = getLoggedInUser();
             if (user) {
-                // लॉगिन होने पर ड्रॉपडाउन मेन्यू (नाम + लॉगआउट) दिखाएगा
                 document.getElementById('userDropdown').classList.toggle('show');
             } else {
-                // लॉगिन न होने पर लॉगिन फॉर्म खोलेगा
                 openAuthModal('login');
             }
         }
