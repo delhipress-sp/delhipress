@@ -183,7 +183,7 @@
             <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
         </div>
 
-        <!-- पीले नोट के ठीक नीचे ऑर्डर बटन -->
+        <!-- ऑर्डर बटन -->
         <div class="order-btn-card">
             <h3>शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
             <p>यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।</p>
@@ -317,17 +317,31 @@
                     const isOut = item.stock === 'out';
                     const div = document.createElement('div');
                     div.className = "card-sample";
+                    
+                    const safeName = (item.name || '').replace(/"/g, '&quot;');
+                    const safeRate = parseFloat(item.rate) || 0;
+                    const safeImg = item.img_url || '';
+
                     div.innerHTML = `
-                        <img src="${item.img_url}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
+                        <img src="${safeImg}" alt="${safeName}" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="card-info">
                             <h4>${item.name}</h4>
-                            <div class="card-price-tag">₹${item.rate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
+                            <div class="card-price-tag">₹${safeRate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
                             <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध'}</span>
-                            <button type="button" class="btn-select-card" ${isOut ? 'disabled' : ''} onclick="selectCardToOrder('${item.name}', ${item.rate}, '${item.img_url}')">
+                            <button type="button" class="btn-select-card" ${isOut ? 'disabled' : ''} data-name="${encodeURIComponent(item.name)}" data-rate="${safeRate}">
                                 ${isOut ? 'उपलब्ध नहीं' : 'यह चुनें'}
                             </button>
                         </div>
                     `;
+
+                    // क्लिक इवेंट लिसनर (क्लिक करने पर डेटा आर्डर फॉर्म पर जाएगा)
+                    const btn = div.querySelector('.btn-select-card');
+                    if (btn && !isOut) {
+                        btn.addEventListener('click', () => {
+                            selectCardToOrder(item.name, safeRate);
+                        });
+                    }
+
                     container.appendChild(div);
                 });
             } catch (err) {
@@ -335,9 +349,17 @@
             }
         }
 
-        function selectCardToOrder(name, rate, img) {
-            sessionStorage.setItem('selectedCard', JSON.stringify({ name, rate, img }));
-            window.location.href = "order.html";
+        // किसी भी कार्ड को चुनकर ऑर्डर फॉर्म में भेजने का डायनामिक फंक्शन
+        function selectCardToOrder(name, rate) {
+            const cleanRate = parseFloat(rate.toString().replace(/[^0-9.]/g, '')) || 0;
+            
+            // 1. LocalStorage में भी सुरक्षित रखें
+            localStorage.setItem('selected_card_title', name);
+            localStorage.setItem('selected_card_rate', cleanRate);
+
+            // 2. URL में पैरामीटर जोड़कर order.html पर भेजें
+            const targetUrl = `order.html?card=${encodeURIComponent(name)}&rate=${cleanRate}`;
+            window.location.href = targetUrl;
         }
 
         function closeModal(id) {
