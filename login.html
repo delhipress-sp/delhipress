@@ -18,7 +18,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; }
         body { background: #f8fafc; color: var(--dark); min-height: 100vh; }
 
-        /* हेडर और नेविगेशन बार */
+        /* हेडर और नेविगेशन */
         .navbar {
             background: #fff;
             padding: 12px 20px;
@@ -33,7 +33,7 @@
         .brand h2 { color: var(--primary); font-size: 20px; line-height: 1.1; }
         .brand p { font-size: 11px; color: #64748b; }
 
-        /* प्रोफ़ाइल व लॉगिन आइकन एरिया */
+        /* प्रोफ़ाइल / लॉगिन आइकन बटन */
         .user-nav-wrapper {
             position: relative;
         }
@@ -55,7 +55,7 @@
             border-color: var(--primary);
         }
 
-        /* ड्रॉपडाउन मेन्यू (आइकन छूने पर दिखने वाला) */
+        /* लॉगिन होने के बाद आइकन दबाने पर दिखने वाला ड्रॉपडाउन */
         .user-dropdown {
             display: none;
             position: absolute;
@@ -77,7 +77,7 @@
             margin-bottom: 8px;
             border-bottom: 1px solid #f1f5f9;
         }
-        .dropdown-user-info h4 { font-size: 15px; color: var(--dark); }
+        .dropdown-user-info h4 { font-size: 15px; color: var(--dark); margin-bottom: 2px; }
         .dropdown-user-info p { font-size: 12px; color: #64748b; word-break: break-all; }
 
         .dropdown-btn-logout {
@@ -113,7 +113,7 @@
             cursor: pointer;
         }
 
-        /* मुख्य होम पेज कंटेंट */
+        /* होम पेज बॉडी */
         .page-content {
             max-width: 900px;
             margin: 40px auto;
@@ -127,25 +127,14 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         .hero-box h1 { color: var(--primary); font-size: 28px; margin-bottom: 10px; }
-        .hero-box p { color: #475569; font-size: 15px; margin-bottom: 25px; }
-        .btn-order-now {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 25px;
-            background: var(--primary);
-            color: #fff;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 700;
-        }
+        .hero-box p { color: #475569; font-size: 15px; }
 
-        /* लॉगिन/रजिस्टर मोडल (पॉपअप विंडो) */
+        /* लॉगिन / रजिस्ट्रेशन मोडल */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.55);
+            background: rgba(0,0,0,0.6);
             align-items: center;
             justify-content: center;
             padding: 15px;
@@ -160,7 +149,7 @@
             max-width: 400px;
             padding: 25px;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
             position: relative;
         }
         .btn-close-modal {
@@ -192,23 +181,24 @@
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
 
-        <!-- यूज़र आइकॉन और मेन्यू -->
+        <!-- यूज़र आइकॉन एरिया -->
         <div class="user-nav-wrapper">
-            <div class="user-nav-btn" id="userIconBtn" onclick="handleUserIconClick()" title="अकाउंट">
+            <!-- क्लिक करने पर सीधे checkAndOpenAuth() चलेगा -->
+            <button type="button" class="user-nav-btn" id="userIconBtn" onclick="checkAndOpenAuth()" title="ग्राहक खाता">
                 <i class="fa-solid fa-user" id="userIconState"></i>
-            </div>
+            </button>
 
-            <!-- यह मेन्यू सिर्फ तब दिखेगा जब लॉगिन यूजर आइकॉन पर क्लिक करेगा -->
+            <!-- लॉगिन होने के बाद यह मेन्यू खुलेगा -->
             <div class="user-dropdown" id="userDropdown">
                 <div class="dropdown-user-info">
                     <h4 id="dropCustName">ग्राहक नाम</h4>
-                    <p id="dropCustEmail">email@example.com</p>
+                    <p id="dropCustEmail">ईमेल या फ़ोन</p>
                 </div>
-                <!-- 1. लॉगआउट ऑप्शन -->
-                <button onclick="handleLogout()" class="dropdown-btn-logout">
+                <!-- लॉगआउट बटन -->
+                <button type="button" onclick="handleLogout()" class="dropdown-btn-logout">
                     <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
                 </button>
-                <!-- 2. लॉगआउट के ठीक नीचे माय ऑर्डर्स ऑप्शन -->
+                <!-- लॉगआउट के ठीक नीचे माय ऑर्डर्स -->
                 <a href="my_orders.html" class="dropdown-btn-orders">
                     <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स (My Orders)
                 </a>
@@ -216,27 +206,24 @@
         </div>
     </header>
 
-    <!-- होम पेज कंटेंट -->
+    <!-- होम पेज बॉडी -->
     <main class="page-content">
         <section class="hero-box">
-            <h1>शादी एवं आमंत्रण कार्ड प्रिंटिंग</h1>
-            <p>दिल्ली प्रेस में आपका स्वागत है। बेहतरीन डिज़ाइन और उच्च गुणवत्ता वाली छपाई।</p>
-            <a href="order.html" class="btn-order-now">
-                <i class="fa-solid fa-pen-to-square"></i> नया कार्ड ऑर्डर करें
-            </a>
+            <h1>शादी एवं आमंत्रण कार्ड सेवा</h1>
+            <p>लॉगिन करने या अपने ऑर्डर्स देखने के लिए ऊपर कोने में दिए गए प्रोफाइल आइकन को दबाएं।</p>
         </section>
     </main>
 
-    <!-- लॉगिन / रजिस्ट्रेशन पॉपअप मोडल -->
+    <!-- लॉगिन / रजिस्ट्रेशन पॉपअप -->
     <div class="modal-overlay" id="authModal">
         <div class="auth-card">
-            <button class="btn-close-modal" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="btn-close-modal" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
             <div style="text-align: center; margin-bottom: 18px;">
                 <h3 style="color: var(--primary); font-size: 20px;">दिल्ली प्रेस</h3>
                 <p style="font-size: 12px; color: #64748b;">सज्जाद डिजिटल प्रिंट्स</p>
             </div>
 
-            <!-- 1. लॉगिन फ़ॉर्म -->
+            <!-- 1. केवल लॉगिन फॉर्म -->
             <div id="loginSection">
                 <h4 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h4>
                 <form onsubmit="handleLoginSubmit(event)">
@@ -254,11 +241,11 @@
                     <button type="submit" id="loginBtn" class="btn-submit" style="background: var(--primary);">लॉगिन करें</button>
                 </form>
                 <div style="font-size: 13px; text-align: center; margin-top: 14px;">
-                    नया खाता? <a onclick="toggleAuthView('register')" style="color: var(--primary); font-weight: bold; cursor: pointer;">अकाउंट बनाएं</a>
+                    नया खाता? <a onclick="toggleAuthView('register')" style="color: var(--primary); font-weight: bold; cursor: pointer;">नया अकाउंट बनाएं</a>
                 </div>
             </div>
 
-            <!-- 2. पासवर्ड भूलने का फ़ॉर्म -->
+            <!-- 2. पासवर्ड भूलने पर रीसेट फॉर्म -->
             <div id="forgotSection" style="display: none;">
                 <h4 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h4>
                 <form onsubmit="handleForgotSubmit(event)">
@@ -277,7 +264,7 @@
                 </div>
             </div>
 
-            <!-- 3. नया रजिस्ट्रेशन फ़ॉर्म -->
+            <!-- 3. रजिस्ट्रेशन फॉर्म -->
             <div id="registerSection" style="display: none;">
                 <h4 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h4>
                 <form id="regForm" onsubmit="handleRegisterSubmit(event)">
@@ -308,7 +295,7 @@
                     <button type="submit" id="regBtn" class="btn-submit" style="background: var(--green);">रजिस्टर करें</button>
                 </form>
                 <div style="font-size: 13px; text-align: center; margin-top: 14px;">
-                    पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
+                    पहले से खाता है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
                 </div>
             </div>
         </div>
@@ -320,11 +307,13 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const OWNER_EMAIL = "mdsajadans@gmail.com";
 
+        // यूज़र सेशन चेक
         function getLoggedInUser() {
             const userJson = localStorage.getItem('dp_current_user');
             if (userJson) {
                 try {
-                    return JSON.parse(userJson);
+                    const parsed = JSON.parse(userJson);
+                    if (parsed && (parsed.email || parsed.mobile)) return parsed;
                 } catch (e) {
                     return null;
                 }
@@ -332,10 +321,10 @@
             return null;
         }
 
-        function updateNavbarUI() {
+        function updateUIState() {
             const user = getLoggedInUser();
             const iconState = document.getElementById('userIconState');
-            if (user && (user.name || user.email)) {
+            if (user) {
                 iconState.className = "fa-solid fa-user-check";
                 document.getElementById('dropCustName').innerText = user.name || 'ग्राहक';
                 document.getElementById('dropCustEmail').innerText = user.mobile || user.email || '';
@@ -345,27 +334,19 @@
             }
         }
 
-        // लॉगिन आइकन छूने पर यह तय होगा कि क्या खुलेगा
-        function handleUserIconClick() {
+        // मुख्य आइकन क्लिक हैंडलर
+        function checkAndOpenAuth() {
             const user = getLoggedInUser();
-            if (user && (user.name || user.email)) {
-                // अगर लॉगिन है, तो सिर्फ मेन्यू टॉगल होगा
+            if (user) {
+                // अगर ग्राहक लॉगिन है, तो सिर्फ मेन्यू खुलेगा जिसमें लॉगआउट और माय ऑर्डर्स रहेगा
                 document.getElementById('userDropdown').classList.toggle('show');
             } else {
-                // अगर लॉगिन नहीं है, तो लॉगिन मोडल खुलेगा
+                // अगर ग्राहक लॉगिन नहीं है, तो अनिवार्य रूप से लॉगिन फॉर्म खुलेगा
                 openAuthModal('login');
             }
         }
 
-        // बाहर क्लिक करने पर ड्रॉपडाउन बंद करना
-        document.addEventListener('click', (e) => {
-            const wrapper = document.querySelector('.user-nav-wrapper');
-            if (!wrapper.contains(e.target)) {
-                document.getElementById('userDropdown').classList.remove('show');
-            }
-        });
-
-        function openAuthModal(view = 'login') {
+        function openAuthModal(view) {
             toggleAuthView(view);
             document.getElementById('authModal').classList.add('active');
         }
@@ -388,9 +369,7 @@
                 village: userData.village || '',
                 address: userData.address || ''
             };
-            const jsonStr = JSON.stringify(userObj);
-            localStorage.setItem('dp_current_user', jsonStr);
-            localStorage.setItem('user', jsonStr);
+            localStorage.setItem('dp_current_user', JSON.stringify(userObj));
         }
 
         function handleLogout() {
@@ -398,7 +377,7 @@
                 localStorage.removeItem('dp_current_user');
                 localStorage.removeItem('user');
                 document.getElementById('userDropdown').classList.remove('show');
-                updateNavbarUI();
+                updateUIState();
                 alert("सफलतापूर्वक लॉगआउट हो गया।");
             }
         }
@@ -425,7 +404,7 @@
                         saveUserData(user);
                         alert("स्वागत है, " + user.name + "!");
                         closeAuthModal();
-                        updateNavbarUI();
+                        updateUIState();
                     } else {
                         alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
                     }
@@ -434,7 +413,7 @@
                     toggleAuthView('register');
                 }
             } catch (err) {
-                alert("लॉगिन एरर: " + err.message);
+                alert("लॉगिन त्रुटि: " + err.message);
             } finally {
                 btn.innerText = "लॉगिन करें"; btn.disabled = false;
             }
@@ -460,7 +439,7 @@
                     .maybeSingle();
 
                 if (existingUser) {
-                    alert("यह ईमेल आईडी पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
+                    alert("यह ईमेल पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
                     toggleAuthView('login');
                     return;
                 }
@@ -484,7 +463,7 @@
 
                 alert("अकाउंट सफलतापूर्वक बन गया!");
                 closeAuthModal();
-                updateNavbarUI();
+                updateUIState();
 
             } catch (err) {
                 alert("त्रुटि: " + err.message);
@@ -517,14 +496,22 @@
                     alert("यह ईमेल सिस्टम में नहीं मिला!");
                 }
             } catch (err) {
-                alert("पासवर्ड अपडेट करने में त्रुटि: " + err.message);
+                alert("त्रुटि: " + err.message);
             } finally {
                 btn.innerText = "पासवर्ड अपडेट करें"; btn.disabled = false;
             }
         }
 
+        // बाहर क्लिक करने पर ड्रॉपडाउन बंद करना
+        document.addEventListener('click', (e) => {
+            const wrapper = document.querySelector('.user-nav-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+        });
+
         window.addEventListener('DOMContentLoaded', () => {
-            updateNavbarUI();
+            updateUIState();
         });
     </script>
 </body>
