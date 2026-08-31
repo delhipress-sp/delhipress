@@ -1,1 +1,270 @@
 
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ग्राहक लॉगिन - दिल्ली प्रेस</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #c0392b;
+            --secondary: #d35400;
+            --dark: #1e272e;
+            --green: #27ae60;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; }
+        body { background: #f4f6f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; }
+        .auth-card {
+            background: #fff; width: 100%; max-width: 420px; padding: 25px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .brand-header { text-align: center; margin-bottom: 20px; }
+        .brand-header h2 { color: var(--primary); font-size: 22px; }
+        .brand-header p { font-size: 12px; color: #666; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #475569; }
+        input, textarea {
+            width: 100%; padding: 10px; border: 1px solid #cbd5e1;
+            border-radius: 4px; font-size: 14px; outline: none; background: #fff;
+        }
+        input:focus, textarea:focus { border-color: var(--primary); }
+        .btn-submit {
+            width: 100%; padding: 11px; color: white; border: none;
+            border-radius: 4px; font-weight: bold; font-size: 15px; cursor: pointer;
+        }
+        .btn-home {
+            display: block; text-align: center; margin-top: 15px;
+            color: #64748b; font-size: 13px; text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="brand-header">
+            <h2>दिल्ली प्रेस</h2>
+            <p>सज्जाद डिजिटल प्रिंट्स</p>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection">
+            <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h3>
+            <form onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label>ईमेल एड्रेस:</label>
+                    <input type="email" id="loginEmail" required placeholder="ईमेल आईडी दर्ज करें">
+                </div>
+                <div class="form-group">
+                    <label>पासवर्ड:</label>
+                    <input type="password" id="loginPass" required placeholder="पासवर्ड">
+                </div>
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <a onclick="toggleAuthView('forgot')" style="font-size: 12px; color: var(--secondary); text-decoration: none; cursor: pointer; font-weight: bold;">पासवर्ड भूल गए?</a>
+                </div>
+                <button type="submit" id="loginBtn" class="btn-submit" style="background: var(--primary);">लॉगिन करें</button>
+            </form>
+            <div style="font-size: 13px; text-align: center; margin-top: 15px;">
+                नया खाता? <a onclick="toggleAuthView('register')" style="color: var(--primary); font-weight: bold; cursor: pointer;">नया अकाउंट बनाएं</a>
+            </div>
+        </div>
+
+        <!-- Forgot Password Section -->
+        <div id="forgotSection" style="display: none;">
+            <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h3>
+            <form onsubmit="handleForgotSubmit(event)">
+                <div class="form-group">
+                    <label>ईमेल एड्रेस:</label>
+                    <input type="email" id="forgotEmail" required placeholder="रजिस्टर्ड ईमेल दर्ज करें">
+                </div>
+                <div class="form-group">
+                    <label>नया पासवर्ड:</label>
+                    <input type="password" id="forgotNewPass" required placeholder="नया पासवर्ड (कम से कम 4 अंक)" minlength="4">
+                </div>
+                <button type="submit" id="forgotBtn" class="btn-submit" style="background: var(--secondary);">पासवर्ड अपडेट करें</button>
+            </form>
+            <div style="font-size: 13px; text-align: center; margin-top: 10px;">
+                <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन पर वापस जाएं</a>
+            </div>
+        </div>
+
+        <!-- Register Section -->
+        <div id="registerSection" style="display: none;">
+            <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
+            <form id="regForm" onsubmit="handleRegisterSubmit(event)">
+                <div class="form-group">
+                    <label>पूरा नाम:</label>
+                    <input type="text" id="regName" required placeholder="आपका नाम">
+                </div>
+                <div class="form-group">
+                    <label>ईमेल एड्रेस:</label>
+                    <input type="email" id="regEmail" required placeholder="ईमेल आईडी दर्ज करें">
+                </div>
+                <div class="form-group">
+                    <label>मोबाइल नंबर:</label>
+                    <input type="tel" id="regMobile" required placeholder="मोबाइल नंबर">
+                </div>
+                <div class="form-group">
+                    <label>गाँव / शहर:</label>
+                    <input type="text" id="regVillage" placeholder="गाँव या शहर का नाम">
+                </div>
+                <div class="form-group">
+                    <label>पूरा पता:</label>
+                    <textarea id="regAddress" rows="2" placeholder="थाना, पोस्ट, जिला..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>पासवर्ड बनाएं:</label>
+                    <input type="password" id="regPass" required placeholder="कम से कम ४ अंक" minlength="4">
+                </div>
+                <button type="submit" id="regBtn" class="btn-submit" style="background: var(--green);">रजिस्टर करें</button>
+            </form>
+            <div style="font-size: 13px; text-align: center; margin-top: 15px;">
+                पहले से अकाउंट है? <a onclick="toggleAuthView('login')" style="color: var(--primary); font-weight: bold; cursor: pointer;">लॉगिन करें</a>
+            </div>
+        </div>
+
+        <a href="index.html" class="btn-home"><i class="fa-solid fa-arrow-left"></i> मुख्य वेबसाइट पर वापस जाएँ</a>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const OWNER_EMAIL = "mdsajadans@gmail.com";
+
+        function toggleAuthView(view) {
+            document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
+            document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
+            document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
+        }
+
+        async function handleRegisterSubmit(e) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            btn.innerText = "जांच हो रही है..."; btn.disabled = true;
+
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const mobile = document.getElementById('regMobile').value.trim();
+            const village = document.getElementById('regVillage').value.trim();
+            const address = document.getElementById('regAddress').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+
+            try {
+                const { data: existingUser } = await supabaseClient
+                    .from('users')
+                    .select('email')
+                    .eq('email', email)
+                    .maybeSingle();
+
+                if (existingUser) {
+                    alert("यह ईमेल आईडी पहले से रजिस्टर्ड है! सीधे लॉगिन करें।");
+                    toggleAuthView('login');
+                    return;
+                }
+
+                const { error } = await supabaseClient
+                    .from('users')
+                    .insert([{ email, mobile, name, village, address, pass }]);
+
+                if (error) throw error;
+
+                const newUser = { name, email, mobile, village, address };
+                localStorage.setItem('dp_current_user', JSON.stringify(newUser));
+
+                fetch(`https://formsubmit.co/ajax/${OWNER_EMAIL}`, {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: `🔔 नया ग्राहक रजिस्ट्रेशन: ${name}`,
+                        नाम: name, ईमेल: email, फोन: mobile, गाँव: village, पता: address
+                    })
+                }).catch(() => {});
+
+                alert("अकाउंट बन गया!");
+                window.location.href = "index.html";
+            } catch (err) {
+                alert("त्रुटि: " + err.message);
+            } finally {
+                btn.innerText = "रजिस्टर करें"; btn.disabled = false;
+            }
+        }
+
+        async function handleLoginSubmit(e) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "जांच हो रही है..."; btn.disabled = true;
+
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            try {
+                const { data: user, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (user) {
+                    if (String(user.pass).trim() === pass) {
+                        localStorage.setItem('dp_current_user', JSON.stringify(user));
+                        alert("स्वागत है, " + user.name + "!");
+                        window.location.href = "index.html";
+                    } else {
+                        alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
+                    }
+                } else {
+                    alert("यह ईमेल नहीं मिला! कृपया पहले नया अकाउंट बनाएं।");
+                    toggleAuthView('register');
+                }
+            } catch (err) {
+                alert("लॉगिन एरर: " + err.message);
+            } finally {
+                btn.innerText = "लॉगिन करें"; btn.disabled = false;
+            }
+        }
+
+        async function handleForgotSubmit(e) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('forgotBtn');
+            btn.innerText = "अपडेट हो रहा है..."; btn.disabled = true;
+
+            const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+            const newPass = document.getElementById('forgotNewPass').value.trim();
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .update({ pass: newPass })
+                    .eq('email', email)
+                    .select();
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    alert("पासवर्ड बदल दिया गया है! अब लॉगिन करें।");
+                    toggleAuthView('login');
+                } else {
+                    alert("यह ईमेल सिस्टम में नहीं मिला!");
+                }
+            } catch (err) {
+                alert("पासवर्ड अपडेट करने में त्रुटि: " + err.message);
+            } finally {
+                btn.innerText = "पासवर्ड अपडेट करें"; btn.disabled = false;
+            }
+        }
+
+        // URL parameter checking (?mode=register / ?mode=login)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('mode') === 'register') {
+            toggleAuthView('register');
+        } else {
+            toggleAuthView('login');
+        }
+    </script>
+</body>
+</html>
