@@ -124,12 +124,18 @@
             position: relative; z-index: 2; box-shadow: 0 2px 5px rgba(192, 57, 43, 0.2);
         }
 
+        /* कुल बिल एवं एडवांस पेमेंट बॉक्स */
         .total-bill-box {
             background: #fef9c3; border: 1px solid #facc15;
             padding: 10px; border-radius: 6px; margin: 10px 0;
             display: flex; justify-content: space-between; align-items: center;
             font-size: 15px; font-weight: bold; color: #854d0e;
         }
+        .advance-calc-box {
+            background: #f0fdf4; border: 1px dashed #22c55e;
+            padding: 10px 12px; border-radius: 6px; margin-top: 8px;
+        }
+        .advance-calc-box .row-2 { align-items: center; margin-bottom: 0; }
 
         .payment-box {
             background: #f0fdf4; border: 1px solid #bbf7d0;
@@ -302,9 +308,27 @@
                                 <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal()" required>
                             </div>
                         </div>
+
+                        <!-- बिल और एडवांस पेमेंट कैलकुलेटर -->
                         <div class="total-bill-box">
-                            <span>कुल राशि:</span>
+                            <span>कुल बिल राशि:</span>
                             <span id="weddingTotalDisplay">₹1,200</span>
+                        </div>
+
+                        <div class="advance-calc-box">
+                            <div class="row-2">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="color: #166534; font-weight: bold;">
+                                        <i class="fa-solid fa-hand-holding-dollar"></i> एडवांस जमा राशि (₹):
+                                    </label>
+                                    <input type="number" id="advancePaidInput" value="600" min="0" step="any" oninput="updateAdvanceCalculations()" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0; text-align: right;">
+                                    <label style="color: #991b1b; font-weight: bold;">बाकी बकाया (Balance):</label>
+                                    <div id="balanceAmountDisplay" style="font-size: 16px; font-weight: bold; color: #dc2626; padding-top: 8px;">₹600</div>
+                                </div>
+                            </div>
+                            <small style="font-size: 11px; color: #15803d;">* न्यूनतम 50% एडवांस भुगतान अनिवार्य है। बाकी राशि कार्ड डिलीवरी के समय देय होगी।</small>
                         </div>
                     </div>
 
@@ -403,11 +427,14 @@
                         </div>
                     </div>
 
-                    <!-- ६. ऑनलाइन भुगतान -->
+                    <!-- ६. ऑनलाइन भुगतान (Payment) -->
                     <div class="form-block">
-                        <h4>६. ऑनलाइन भुगतान (Payment)</h4>
+                        <h4>६. ऑनलाइन एडवांस भुगतान (Payment)</h4>
                         <div class="payment-box">
-                            <p style="font-weight: 600; font-size: 13px; color: #166534; margin-bottom: 8px;">
+                            <p style="font-weight: 600; font-size: 14px; color: #166534; margin-bottom: 6px;">
+                                अभी देय एडवांस राशि: <span id="payDueAdvanceDisplay" style="font-size: 18px; font-weight: bold; color: #b91c1c;">₹600</span>
+                            </p>
+                            <p style="font-size: 12px; color: #475569; margin-bottom: 10px;">
                                 Cashfree गेटवे से सुरक्षित ऑनलाइन भुगतान करें:
                             </p>
                             <a href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
@@ -591,13 +618,43 @@
             try { return JSON.parse(userJson); } catch (e) { return null; }
         }
 
+        // कैलकुलेशन लॉजिक (कुल राशि, एडवांस एवं बैलेंस)
         function calculateWeddingTotal() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const total = rate * qty;
             document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
+
+            // डिफ़ॉल्ट 50% एडवांस सेट करें
+            const currentAdvanceInput = document.getElementById('advancePaidInput');
+            if (!currentAdvanceInput.dataset.userModified) {
+                const defAdvance = Math.round(total * 0.5);
+                currentAdvanceInput.value = defAdvance;
+            }
+            updateAdvanceCalculations();
             return total;
         }
+
+        function updateAdvanceCalculations() {
+            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
+            const qty = parseInt(document.getElementById('cardQty').value) || 0;
+            const total = rate * qty;
+
+            const advInput = document.getElementById('advancePaidInput');
+            let advance = parseFloat(advInput.value);
+            if (isNaN(advance) || advance < 0) advance = 0;
+
+            const balance = Math.max(0, total - advance);
+
+            document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
+            document.getElementById('payDueAdvanceDisplay').innerText = `₹${advance.toLocaleString('en-IN')}`;
+        }
+
+        // यदि ग्राहक खुद एडवांस राशि टाइप करे तो फ्लैग सेट करें
+        document.getElementById('advancePaidInput').addEventListener('input', () => {
+            document.getElementById('advancePaidInput').dataset.userModified = "true";
+            updateAdvanceCalculations();
+        });
 
         function addCoupleField() {
             const group = document.getElementById('couplesGroup');
@@ -673,7 +730,9 @@
             const category = document.getElementById('cardCategory').value.trim();
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
-            const total = calculateWeddingTotal();
+            const total = rate * qty;
+            const advancePaid = parseFloat(document.getElementById('advancePaidInput').value) || 0;
+            const balanceAmount = Math.max(0, total - advancePaid);
             const utr = document.getElementById('payUtr').value.trim();
 
             const couples = [];
@@ -709,6 +768,8 @@
                 rate: rate,
                 quantity: qty,
                 total_amount: total,
+                advance_amount: advancePaid,
+                balance_amount: balanceAmount,
                 couples: couples,
                 events: events,
                 rsvp: rsvp,
@@ -722,7 +783,10 @@
 
             // Review Modal Content
             let summaryText = `📋 **ऑर्डर विवरण**: ${category}\n`;
-            summaryText += `💰 दर: ₹${rate} | संख्या: ${qty} | कुल राशि: ₹${total}\n`;
+            summaryText += `💰 दर: ₹${rate} | संख्या: ${qty}\n`;
+            summaryText += `💵 कुल बिल: ₹${total}\n`;
+            summaryText += `🟢 जमा एडवांस: ₹${advancePaid}\n`;
+            summaryText += `🔴 बाकी बकाया: ₹${balanceAmount}\n`;
             summaryText += `🏦 भुगतान UTR / Trans No: ${utr}\n\n`;
             summaryText += `💑 **दूल्हा-दुल्हन विवरण**:\n`;
             couples.forEach((c, idx) => {
@@ -744,7 +808,10 @@
             // WhatsApp Message Text
             constructedWaMessage = `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर*\n\n` +
                 `*कार्ड प्रकार:* ${category}\n` +
-                `*कुल राशि:* ₹${total} (संख्या: ${qty})\n` +
+                `*संख्या:* ${qty} पीस | *दर:* ₹${rate}\n` +
+                `*कुल बिल:* ₹${total}\n` +
+                `*एडवांस भुगतान:* ₹${advancePaid}\n` +
+                `*बाकी बकाया:* ₹${balanceAmount}\n` +
                 `*UTR / Transaction No:* ${utr}\n` +
                 `*ग्राहक नाम:* ${user.name || user.full_name}\n` +
                 `*मोबाइल:* ${user.mobile || user.phone || ''}\n\n` +
@@ -759,7 +826,7 @@
             document.getElementById('reviewModal').style.display = 'none';
         }
 
-        // रसीद जनरेट एवं प्रिंट / PDF डाउनलोड
+        // रसीद जनरेट एवं प्रिंट / PDF डाउनलोड (एडवांस व बैलेंस सहित)
         function downloadAndPrintReceipt() {
             if (!preparedOrderPayload) return;
             const ord = preparedOrderPayload;
@@ -857,6 +924,22 @@
                         ${ord.instructions ? `<div style="background:#f8fafc; padding:6px 8px; border-radius:4px; margin-top:8px; font-size:12px;"><b>शायरी / विशेष निर्देश:</b> ${ord.instructions}</div>` : ''}
                     </div>
 
+                    <!-- भुगतान विवरण ब्रेकअप -->
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px; font-size: 13px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>कुल बिल राशि (Total Amount):</span>
+                            <b>₹${ord.total_amount}</b>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #166534;">
+                            <span>जमा एडवांस राशि (Advance Paid):</span>
+                            <b>₹${ord.advance_amount}</b>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e1; padding-top: 4px; color: #b91c1c; font-weight: bold;">
+                            <span>बाकी बकाया राशि (Remaining Balance):</span>
+                            <span>₹${ord.balance_amount}</span>
+                        </div>
+                    </div>
+
                     <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px; border-radius: 6px; font-size: 12px; color: #1e3a8a; margin-bottom: 12px;">
                         <b>ग्राहक घोषणा:</b> मैंने मैटर को अच्छी तरह से देखा, पढ़ा और पहचाना है। यदि छपाई के बाद कोई त्रुटि या गलती पाई जाती है तो उसके पूर्ण जिम्मेवार हम स्वयं होंगे।
                     </div>
@@ -867,8 +950,8 @@
                             <div style="border-top: 1px dashed #94a3b8; width: 140px; font-size: 12px; font-weight: bold;">ग्राहक का डिजिटल हस्ताक्षर</div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
-                                कुल भुगतान: ₹${ord.total_amount}
+                            <div style="font-size: 15px; font-weight: bold; color: #166534; margin-bottom: 25px;">
+                                प्राप्त एडवांस: ₹${ord.advance_amount}
                             </div>
                             <div style="font-size: 12px; font-weight: bold;">अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)</div>
                         </div>
