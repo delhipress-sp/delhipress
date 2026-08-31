@@ -66,7 +66,6 @@
             padding: 5px 12px !important; border-radius: 14px; font-size: 13px;
             display: inline-flex; align-items: center; gap: 5px; font-weight: bold;
         }
-        .btn-my-orders:hover { opacity: 0.9; }
 
         .btn-logout {
             background: #e74c3c; color: white; border: none;
@@ -95,7 +94,6 @@
             font-size: 15px; font-weight: bold; text-decoration: none; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: 0.2s;
         }
-        .btn-main-order:hover { opacity: 0.92; }
 
         .showcase-box {
             background: #fff; padding: 15px; border-radius: 8px;
@@ -110,7 +108,25 @@
             background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
             display: flex; flex-direction: column; justify-content: space-between;
         }
-        .card-sample img { width: 100%; height: 130px; object-fit: cover; }
+
+        /* फोटो पर क्लिक करने का इंडिकेटर */
+        .card-sample .img-box {
+            position: relative; overflow: hidden; cursor: pointer; background: #f8fafc;
+        }
+        .card-sample .img-box img {
+            width: 100%; height: 135px; object-fit: cover; display: block;
+            transition: transform 0.3s ease;
+        }
+        .card-sample .img-box:hover img {
+            transform: scale(1.05);
+        }
+        .card-sample .zoom-hint {
+            position: absolute; bottom: 6px; right: 6px;
+            background: rgba(0, 0, 0, 0.65); color: #fff;
+            padding: 3px 7px; border-radius: 4px; font-size: 11px;
+            pointer-events: none; display: flex; align-items: center; gap: 4px;
+        }
+
         .card-info { padding: 10px; text-align: center; }
         .card-info h4 { font-size: 14px; color: #2d3748; margin-bottom: 4px; }
         .card-price-tag { color: var(--primary); font-weight: bold; font-size: 14px; margin-bottom: 4px; }
@@ -123,9 +139,6 @@
             display: block; width: 100%; padding: 7px; background: var(--blue);
             color: white; border: none; font-size: 13px; font-weight: 600;
             border-radius: 4px; cursor: pointer; margin-top: 8px; text-decoration: none;
-        }
-        .btn-select-card:disabled {
-            background: #94a3b8; cursor: not-allowed; opacity: 0.6;
         }
 
         .info-card {
@@ -149,32 +162,13 @@
         }
 
         .admin-access-box {
-            background: #fff;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            background: #fff; border: 1px solid #cbd5e1; border-radius: 8px;
+            padding: 15px; margin-bottom: 20px; text-align: center;
         }
         .btn-admin-panel {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: #1e272e;
-            color: #f1c40f;
-            padding: 10px 24px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 14px;
-            text-decoration: none;
-            transition: 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .btn-admin-panel:hover {
-            background: #000;
-            color: #fff;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background: #1e272e; color: #f1c40f; padding: 10px 24px;
+            border-radius: 6px; font-weight: 700; font-size: 14px; text-decoration: none;
         }
 
         .map-wrapper {
@@ -193,7 +187,7 @@
             max-width: 900px; margin: 0 auto; display: grid;
             grid-template-columns: 1.2fr 1fr; gap: 20px;
         }
-        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 10px; }
         .footer-col p { margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
         .footer-col p i { color: #f1c40f; width: 18px; }
         .footer-bottom {
@@ -205,7 +199,6 @@
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
             padding: 6px 0; z-index: 1001; justify-content: space-around;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
         .mobile-bottom-bar a, .mobile-bottom-bar button {
             background: none; border: none; color: var(--dark); text-decoration: none;
@@ -214,22 +207,62 @@
         }
         .mobile-bottom-bar a i, .mobile-bottom-bar button i { font-size: 18px; color: var(--primary); }
 
-        .modal {
+        /* ==================== Image Zoom Popup Modal CSS ==================== */
+        .zoom-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;
-            padding: 10px;
+            background: rgba(0, 0, 0, 0.92); z-index: 9999;
+            flex-direction: column; justify-content: space-between; align-items: center;
+            user-select: none;
         }
-        .modal-content {
-            background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 360px;
-            text-align: center; position: relative;
+        .zoom-modal.active { display: flex; }
+
+        .zoom-header {
+            width: 100%; padding: 12px 20px; display: flex;
+            justify-content: space-between; align-items: center;
+            color: #fff; z-index: 10;
         }
-        .close-btn { position: absolute; right: 12px; top: 10px; font-size: 22px; cursor: pointer; }
+        .zoom-title { font-size: 16px; font-weight: 700; }
+        .btn-zoom-close {
+            background: #e74c3c; color: white; border: none;
+            width: 38px; height: 38px; border-radius: 50%;
+            font-size: 18px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+        }
+
+        .zoom-body {
+            width: 100%; flex: 1; display: flex;
+            align-items: center; justify-content: center;
+            overflow: hidden; touch-action: none; position: relative;
+        }
+        .zoom-img {
+            max-width: 90%; max-height: 80vh; object-fit: contain;
+            transition: transform 0.15s ease-out; cursor: grab;
+            border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .zoom-img:active { cursor: grabbing; }
+
+        .zoom-controls {
+            padding: 14px 20px; display: flex; gap: 12px;
+            align-items: center; justify-content: center; z-index: 10;
+        }
+        .zoom-btn {
+            background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3);
+            width: 44px; height: 44px; border-radius: 50%; font-size: 16px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: 0.2s;
+        }
+        .zoom-btn:hover { background: var(--primary); }
+        .zoom-select-btn {
+            background: var(--green); color: white; border: none;
+            padding: 10px 20px; border-radius: 25px; font-weight: bold;
+            font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px;
+        }
 
         @media (max-width: 768px) {
             .navbar .nav-menu { display: none; }
             .mobile-bottom-bar { display: flex; }
             .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .card-sample img { height: 110px; }
+            .card-sample .img-box img { height: 110px; }
             .showcase-box { padding: 10px; }
             .footer-grid { grid-template-columns: 1fr; gap: 15px; }
         }
@@ -285,11 +318,12 @@
             </a>
         </div>
 
+        <!-- कैटलॉग सेक्शन -->
         <div class="showcase-box" id="showcaseSection">
             <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 4px; font-size: 16px;">
                 शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग
             </h3>
-            <p style="font-size:12px; color:#666; margin-top:2px;">(पसंद करें और 'यह चुनें' दबाकर ऑर्डर करें)</p>
+            <p style="font-size:12px; color:#666; margin-top:2px;">(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)</p>
             <div class="gallery-grid" id="catalogContainer"></div>
         </div>
 
@@ -300,20 +334,6 @@
             <p style="font-size: 14px; color: #475569; line-height: 1.7; margin-bottom: 10px;">
                 <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।
             </p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px;">
-                <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary);">
-                    <b style="color: var(--primary); font-size: 13px;">शादी कार्ड प्रिंटिंग:</b>
-                    <p style="font-size: 12px; color: #64748b; margin: 0;">मुस्लिम निकाह कार्ड, हिंदू विवाह पत्रिका, फैंसी एवं शाही कार्ड उपलब्ध।</p>
-                </div>
-                <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid var(--secondary);">
-                    <b style="color: var(--secondary); font-size: 13px;">फ्लेक्स व प्रचार सामग्री:</b>
-                    <p style="font-size: 12px; color: #64748b; margin: 0;">हाई-क्वालिटी फ्लेक्स बैनर, पोस्टर, स्टिकर व विनाइल बोर्ड प्रिंटिंग।</p>
-                </div>
-                <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid var(--green);">
-                    <b style="color: var(--green); font-size: 13px;">कमर्शियल व डिजिटल प्रिंट्स:</b>
-                    <p style="font-size: 12px; color: #64748b; margin: 0;">विजिटिंग कार्ड, बिल बुक, रसीद, लिफाफा, टी-शर्ट एवं मग प्रिंटिंग।</p>
-                </div>
-            </div>
         </div>
 
         <div class="info-card" id="termsSection">
@@ -321,22 +341,8 @@
                 <i class="fa-solid fa-file-contract"></i> नियम एवं शर्तें (Terms & Conditions)
             </div>
             <ul class="terms-list">
-                <li>
-                    <i class="fa-solid fa-circle-check"></i>
-                    <strong>मैटर प्रूफ-रीडिंग:</strong> कार्ड की छपाई से पहले ग्राहक द्वारा डिजिटल प्रूफ की जांच अनिवार्य है। फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।
-                </li>
-                <li>
-                    <i class="fa-solid fa-circle-check"></i>
-                    <strong>एडवांस भुगतान:</strong> काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है। शेष राशि कार्य पूर्ण होने व डिलीवरी के समय देय होगी।
-                </li>
-                <li>
-                    <i class="fa-solid fa-circle-check"></i>
-                    <strong>डिलीवरी समय:</strong> सामान्यतः शादी कार्ड 2 से 4 कार्य दिवसों में तैयार कर दिए जाते हैं। आपातकालीन (Urgent) काम के लिए पहले संपर्क करें।
-                </li>
-                <li>
-                    <i class="fa-solid fa-circle-check"></i>
-                    <strong>कैंसिलेशन पॉलिसी:</strong> मैटर स्वीकृत होने या प्रिंटिंग प्रक्रिया शुरू होने के बाद ऑर्डर रद्द नहीं किया जा सकेगा।
-                </li>
+                <li><i class="fa-solid fa-circle-check"></i> <strong>मैटर प्रूफ-रीडिंग:</strong> फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।</li>
+                <li><i class="fa-solid fa-circle-check"></i> <strong>एडवांस भुगतान:</strong> काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।</li>
             </ul>
         </div>
 
@@ -351,81 +357,59 @@
             <div class="info-card-header">
                 <i class="fa-solid fa-location-dot"></i> शॉप लोकेशन एवं संपर्क (Visit Our Press)
             </div>
-            <div style="margin-bottom: 12px;">
-                <p style="font-size: 15px; font-weight: bold; color: var(--dark); margin-bottom: 3px;">
-                    दिल्ली प्रेस (सज्जाद प्रिंटर्स)
-                </p>
-                <p style="font-size: 13px; color: #475569;">
+            <div>
+                <p style="font-size: 14px; color: #475569;">
                     <i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> 
-                    <strong>पता:</strong> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352
-                </p>
-                <p style="font-size: 13px; color: #475569;">
-                    <i class="fa-solid fa-phone" style="color: var(--green);"></i> 
-                    <strong>मोबाइल:</strong> 9304509464 | 
-                    <i class="fa-solid fa-envelope" style="color: var(--blue);"></i> 
-                    <strong>ईमेल:</strong> mdsajadans@gmail.com
+                    <strong>पता:</strong> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464
                 </p>
             </div>
-
             <div class="map-wrapper">
-                <iframe 
-                    src="https://maps.google.com/maps?q=Eidgah+More+Karmatar+Jamtara+815352&t=&z=16&ie=UTF8&iwloc=&output=embed" 
-                    allowfullscreen="" 
-                    loading="lazy">
-                </iframe>
-            </div>
-
-            <div style="text-align: center; margin-top: 14px;">
-                <a href="https://share.google/dmV4uXNQ8KWnP1EHQ" target="_blank" style="background: #c0392b; color: white; padding: 10px 22px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 8px rgba(192, 57, 43, 0.3);">
-                    <i class="fa-solid fa-diamond-turn-right"></i> Google Maps पर रास्ता देखें (Open Map)
-                </a>
+                <iframe src="https://maps.google.com/maps?q=Eidgah+More+Karmatar+Jamtara+815352&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
 
     </div>
 
-    <div id="mobileAccountModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('mobileAccountModal')">&times;</span>
-            <div style="font-size: 45px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-circle-user"></i></div>
-            <h3 id="mobAccName" style="color: var(--dark); margin-bottom: 4px;">उपयोगकर्ता</h3>
-            <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 14px;">फोन / ईमेल</p>
+    <!-- ==================== Image Zoom Popup Modal ==================== -->
+    <div id="imageZoomModal" class="zoom-modal">
+        <div class="zoom-header">
+            <div class="zoom-title" id="zoomModalTitle">कार्ड विवरण</div>
+            <button type="button" class="btn-zoom-close" onclick="closeZoomModal()">&times;</button>
+        </div>
+        
+        <div class="zoom-body" id="zoomBody">
+            <img id="zoomModalImg" class="zoom-img" src="" alt="Zoom Image">
+        </div>
 
-            <a href="my_orders.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px; background: var(--blue); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; margin-bottom: 10px;">
-                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें (My Orders)
+        <div class="zoom-controls">
+            <button type="button" class="zoom-btn" onclick="applyZoom(0.25)" title="ज़ूम इन"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button type="button" class="zoom-btn" onclick="applyZoom(-0.25)" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button type="button" class="zoom-btn" onclick="resetZoom()" title="सामान्य आकार"><i class="fa-solid fa-rotate-left"></i></button>
+            <a id="zoomOrderBtn" href="#" class="zoom-select-btn">
+                <i class="fa-solid fa-pen-to-square"></i> यह कार्ड ऑर्डर करें
             </a>
-
-            <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px;" onclick="handleLogout()">
-                <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
-            </button>
         </div>
     </div>
 
+    <!-- Mobile Bottom Navigation Bar -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
         <a href="#mapSection"><i class="fa-solid fa-map-location-dot"></i><span>लोकेशन</span></a>
-        <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
-            <i class="fa-solid fa-user" id="mobAccountIcon"></i><span id="mobAccountBtnText">खाता</span>
-        </button>
     </div>
 
     <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
-                <h4 style="color: #fca5a5;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
-                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा - 815352</p>
+                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा</p>
                 <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
-                <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
-                <p><i class="fa-solid fa-clock"></i> समय: प्रतिदिन सुबह 8:00 से रात्रि 9:00 बजे तक</p>
             </div>
             <div class="footer-col">
-                <h4 style="color: #fca5a5;">त्वरित लिंक</h4>
-                <p><a href="order.html" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> ऑनलाइन शादी कार्ड फॉर्म</a></p>
-                <p><a href="my_orders.html" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> ग्राहक ऑर्डर्स ट्रैक करें</a></p>
-                <p><a href="admin.html" style="color: #f1c40f; text-decoration: none; font-weight: bold;"><i class="fa-solid fa-user-shield"></i> एडमिन पैनल (दुकानदार लॉगिन)</a></p>
-                <p><a href="#termsSection" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> नियम एवं शर्तें</a></p>
+                <h4>त्वरित लिंक</h4>
+                <p><a href="order.html" style="color:#cbd5e1; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> शादी कार्ड फॉर्म</a></p>
+                <p><a href="admin.html" style="color:#f1c40f; text-decoration:none; font-weight:bold;"><i class="fa-solid fa-user-shield"></i> एडमिन पैनल</a></p>
             </div>
         </div>
         <div class="footer-bottom">
@@ -443,8 +427,6 @@
             const authNav = document.getElementById('authNavContainer');
             const userLoggedBox = document.getElementById('userLoggedBox');
             const displayUserName = document.getElementById('displayUserName');
-            const mobAccountBtnText = document.getElementById('mobAccountBtnText');
-            const mobAccountIcon = document.getElementById('mobAccountIcon');
 
             if (userJson) {
                 try {
@@ -453,34 +435,12 @@
                         authNav.style.display = 'none';
                         userLoggedBox.style.display = 'flex';
                         displayUserName.innerText = `${user.name || 'ग्राहक'}`;
-
-                        if (mobAccountBtnText) mobAccountBtnText.innerText = "प्रोफाइल";
-                        if (mobAccountIcon) mobAccountIcon.className = "fa-solid fa-circle-user";
-
-                        document.getElementById('mobAccName').innerText = user.name || 'ग्राहक';
-                        document.getElementById('mobAccPhone').innerText = user.mobile || user.phone || user.email || '';
                         return;
                     }
                 } catch (e) {}
             }
-
             authNav.style.display = 'block';
             userLoggedBox.style.display = 'none';
-            if (mobAccountBtnText) mobAccountBtnText.innerText = "खाता";
-            if (mobAccountIcon) mobAccountIcon.className = "fa-solid fa-user";
-        }
-
-        function handleMobileAccountClick() {
-            const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
-            if (userJson) {
-                document.getElementById('mobileAccountModal').style.display = 'flex';
-            } else {
-                window.location.href = 'login.html';
-            }
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
         }
 
         function handleLogout() {
@@ -490,6 +450,9 @@
                 location.reload();
             }
         }
+
+        /* ------------------ कैटलॉग कार्ड्स लोड करना ------------------ */
+        let globalCardsList = [];
 
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
@@ -504,15 +467,20 @@
                     return;
                 }
 
-                container.innerHTML = cards.map(card => {
-                    const cardPrice = card.price ?? card.card_price ?? card.rate ?? card.amount ?? '0';
+                globalCardsList = cards;
+
+                container.innerHTML = cards.map((card, idx) => {
+                    const cardPrice = card.price ?? card.card_price ?? card.rate ?? '0';
                     const cardTitle = card.card_name || card.name || card.title || 'शादी कार्ड';
-                    const cardImg = card.image_url || card.image || card.photo_url || card.img || 'https://via.placeholder.com/200x130?text=Card';
-                    const inStock = (card.in_stock !== false && card.in_stock !== 0 && card.stock !== false);
+                    const cardImg = card.image_url || card.image || card.photo_url || 'https://via.placeholder.com/200x130?text=Card';
+                    const inStock = (card.in_stock !== false && card.in_stock !== 0);
 
                     return `
                         <div class="card-sample">
-                            <img src="${cardImg}" alt="${cardTitle}" loading="lazy" onerror="this.src='https://via.placeholder.com/200x130?text=Delhi+Press'">
+                            <div class="img-box" onclick="openZoomModal(${idx})">
+                                <img src="${cardImg}" alt="${cardTitle}" loading="lazy" onerror="this.src='https://via.placeholder.com/200x130?text=Delhi+Press'">
+                                <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</div>
+                            </div>
                             <div class="card-info">
                                 <h4>${cardTitle}</h4>
                                 <div class="card-price-tag">₹${cardPrice} / पीस</div>
@@ -530,6 +498,106 @@
                 container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#e74c3c; font-size:13px;">कैटलॉग लोड करने में समस्या हुई।</p>';
             }
         }
+
+        /* ------------------ Image Zoom & Pan Logic ------------------ */
+        let currentZoom = 1;
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let translateX = 0, translateY = 0;
+
+        const zoomModal = document.getElementById('imageZoomModal');
+        const zoomImg = document.getElementById('zoomModalImg');
+        const zoomBody = document.getElementById('zoomBody');
+
+        function openZoomModal(cardIndex) {
+            const card = globalCardsList[cardIndex];
+            if (!card) return;
+
+            const cardTitle = card.card_name || card.name || 'शादी कार्ड';
+            const cardPrice = card.price ?? card.card_price ?? card.rate ?? '0';
+            const cardImg = card.image_url || card.image || card.photo_url || '';
+
+            document.getElementById('zoomModalTitle').innerText = `${cardTitle} (₹${cardPrice}/पीस)`;
+            zoomImg.src = cardImg;
+            document.getElementById('zoomOrderBtn').href = `order.html?card_id=${card.id}`;
+
+            resetZoom();
+            zoomModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeZoomModal() {
+            zoomModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            resetZoom();
+        }
+
+        function applyZoom(delta) {
+            currentZoom = Math.min(Math.max(1, currentZoom + delta), 4);
+            if (currentZoom === 1) { translateX = 0; translateY = 0; }
+            updateTransform();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+        }
+
+        function updateTransform() {
+            zoomImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+        }
+
+        // माउस व टच ड्रैग / पैनिंग सपोर्ट
+        zoomBody.addEventListener('mousedown', (e) => {
+            if (currentZoom <= 1) return;
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // टच सपोर्ट (Mobile Pan & Double Tap Zoom)
+        let lastTap = 0;
+        zoomBody.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                const now = Date.now();
+                if (now - lastTap < 300) {
+                    // डबल टैप पर ज़ूम टॉगल
+                    currentZoom = (currentZoom > 1) ? 1 : 2.5;
+                    translateX = 0; translateY = 0;
+                    updateTransform();
+                } else {
+                    isDragging = true;
+                    startX = e.touches[0].clientX - translateX;
+                    startY = e.touches[0].clientY - translateY;
+                }
+                lastTap = now;
+            }
+        }, { passive: true });
+
+        zoomBody.addEventListener('touchmove', (e) => {
+            if (!isDragging || currentZoom <= 1 || e.touches.length !== 1) return;
+            translateX = e.touches[0].clientX - startX;
+            translateY = e.touches[0].clientY - startY;
+            updateTransform();
+        }, { passive: true });
+
+        zoomBody.addEventListener('touchend', () => { isDragging = false; });
+
+        // ESC की दबाने पर पॉपअप बंद हो
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeZoomModal();
+        });
 
         window.addEventListener('DOMContentLoaded', () => {
             checkUserAuth();
