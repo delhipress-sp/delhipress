@@ -61,7 +61,7 @@
             position: absolute;
             right: 0;
             top: 50px;
-            width: 240px;
+            width: 220px;
             background: #fff;
             border-radius: 8px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
@@ -73,8 +73,8 @@
             display: block;
         }
         .dropdown-user-info {
-            padding-bottom: 10px;
-            margin-bottom: 8px;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
             border-bottom: 1px solid #f1f5f9;
         }
         .dropdown-user-info h4 { font-size: 15px; color: var(--dark); margin-bottom: 2px; }
@@ -87,7 +87,6 @@
             gap: 8px;
             width: 100%;
             padding: 9px;
-            margin-bottom: 8px;
             background: #fff;
             color: #dc2626;
             border: 1px solid #fca5a5;
@@ -96,21 +95,8 @@
             font-size: 13px;
             cursor: pointer;
         }
-        .dropdown-btn-orders {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 9px;
-            background: var(--blue);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
-            text-decoration: none;
-            cursor: pointer;
+        .dropdown-btn-logout:hover {
+            background: #fee2e2;
         }
 
         /* होम पेज बॉडी */
@@ -183,25 +169,19 @@
 
         <!-- यूज़र आइकॉन एरिया -->
         <div class="user-nav-wrapper">
-            <!-- क्लिक करने पर सीधे checkAndOpenAuth() चलेगा -->
             <button type="button" class="user-nav-btn" id="userIconBtn" onclick="checkAndOpenAuth()" title="ग्राहक खाता">
                 <i class="fa-solid fa-user" id="userIconState"></i>
             </button>
 
-            <!-- लॉगिन होने के बाद यह मेन्यू खुलेगा -->
+            <!-- केवल ग्राहक का नाम और लॉगआउट विकल्प -->
             <div class="user-dropdown" id="userDropdown">
                 <div class="dropdown-user-info">
                     <h4 id="dropCustName">ग्राहक नाम</h4>
                     <p id="dropCustEmail">ईमेल या फ़ोन</p>
                 </div>
-                <!-- लॉगआउट बटन -->
                 <button type="button" onclick="handleLogout()" class="dropdown-btn-logout">
                     <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
                 </button>
-                <!-- लॉगआउट के ठीक नीचे माय ऑर्डर्स -->
-                <a href="my_orders.html" class="dropdown-btn-orders">
-                    <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स (My Orders)
-                </a>
             </div>
         </div>
     </header>
@@ -210,7 +190,7 @@
     <main class="page-content">
         <section class="hero-box">
             <h1>शादी एवं आमंत्रण कार्ड सेवा</h1>
-            <p>लॉगिन करने या अपने ऑर्डर्स देखने के लिए ऊपर कोने में दिए गए प्रोफाइल आइकन को दबाएं।</p>
+            <p>लॉगिन करने या खाता प्रबंधित करने के लिए ऊपर कोने में दिए गए प्रोफाइल आइकन को दबाएं।</p>
         </section>
     </main>
 
@@ -307,7 +287,6 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const OWNER_EMAIL = "mdsajadans@gmail.com";
 
-        // यूज़र सेशन चेक
         function getLoggedInUser() {
             const userJson = localStorage.getItem('dp_current_user');
             if (userJson) {
@@ -334,14 +313,13 @@
             }
         }
 
-        // मुख्य आइकन क्लिक हैंडलर
         function checkAndOpenAuth() {
             const user = getLoggedInUser();
             if (user) {
-                // अगर ग्राहक लॉगिन है, तो सिर्फ मेन्यू खुलेगा जिसमें लॉगआउट और माय ऑर्डर्स रहेगा
+                // लॉगिन होने पर ड्रॉपडाउन मेन्यू (नाम + लॉगआउट) दिखाएगा
                 document.getElementById('userDropdown').classList.toggle('show');
             } else {
-                // अगर ग्राहक लॉगिन नहीं है, तो अनिवार्य रूप से लॉगिन फॉर्म खुलेगा
+                // लॉगिन न होने पर लॉगिन फॉर्म खोलेगा
                 openAuthModal('login');
             }
         }
@@ -502,7 +480,6 @@
             }
         }
 
-        // बाहर क्लिक करने पर ड्रॉपडाउन बंद करना
         document.addEventListener('click', (e) => {
             const wrapper = document.querySelector('.user-nav-wrapper');
             if (wrapper && !wrapper.contains(e.target)) {
