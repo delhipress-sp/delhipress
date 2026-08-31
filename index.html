@@ -45,23 +45,33 @@
         .nav-brand-text h2 { color: var(--primary); font-size: 19px; line-height: 1.1; font-weight: 700; }
         .nav-brand-text p { font-size: 11px; color: #64748b; margin: 0; }
 
-        .nav-menu { display: flex; list-style: none; align-items: center; gap: 12px; }
+        .nav-menu { display: flex; list-style: none; align-items: center; gap: 10px; }
         .nav-menu a {
             text-decoration: none; color: #333; font-weight: 600; font-size: 14px;
             padding: 6px 10px; border-radius: 4px; transition: 0.2s;
         }
         .nav-menu a:hover { color: var(--primary); }
+        
         .btn-login {
             background: var(--primary); color: white !important;
             padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
         }
 
+        /* लॉगिन होने पर मुख्य मेनू में दिखने वाला बॉक्स */
         .user-logged-box { display: none; align-items: center; gap: 8px; }
-        .user-name-display { font-weight: 600; color: var(--primary); font-size: 13px; }
+        .user-name-display { font-weight: 700; color: var(--dark); font-size: 13px; }
+        
+        .btn-my-orders {
+            background: var(--blue); color: white !important;
+            padding: 5px 12px !important; border-radius: 14px; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 5px; font-weight: bold;
+        }
+        .btn-my-orders:hover { opacity: 0.9; }
+
         .btn-logout {
             background: #e74c3c; color: white; border: none;
-            padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold;
+            padding: 5px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold;
         }
 
         .container { max-width: 900px; margin: 15px auto; padding: 0 12px; }
@@ -167,7 +177,6 @@
             max-width: 900px; margin: 20px auto 0; padding-top: 15px;
             border-top: 1px solid #334155; text-align: center; font-size: 12px; color: #64748b;
         }
-        .footer-bottom a { color: #94a3b8; text-decoration: none; margin: 0 6px; }
 
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
@@ -224,12 +233,18 @@
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
             
+            <!-- लॉगिन न होने पर यह दिखेगा -->
             <li id="authNavContainer">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
+
+            <!-- लॉगिन होने पर यह दिखेगा (My Orders + Logout) -->
             <li class="user-logged-box" id="userLoggedBox">
                 <span class="user-name-display" id="displayUserName"></span>
-                <button class="btn-logout" onclick="handleLogout()">लॉगआउट</button>
+                <a href="my_orders.html" class="btn-my-orders">
+                    <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स
+                </a>
+                <button type="button" class="btn-logout" onclick="handleLogout()">लॉगआउट</button>
             </li>
         </ul>
     </nav>
@@ -329,7 +344,6 @@
                 </p>
             </div>
 
-            <!-- लाइव इंटरएक्टिव गूगल मैप -->
             <div class="map-wrapper">
                 <iframe 
                     src="https://maps.google.com/maps?q=Eidgah+More+Karmatar+Jamtara+815352&t=&z=16&ie=UTF8&iwloc=&output=embed" 
@@ -347,13 +361,17 @@
 
     </div>
 
-    <!-- Mobile Account Info Modal -->
+    <!-- मोबाइल प्रोफाइल मोडल (लॉगिन होने पर ऑर्डर्स और लॉगआउट विकल्प) -->
     <div id="mobileAccountModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('mobileAccountModal')">&times;</span>
             <div style="font-size: 45px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-circle-user"></i></div>
             <h3 id="mobAccName" style="color: var(--dark); margin-bottom: 4px;">उपयोगकर्ता</h3>
             <p id="mobAccPhone" style="font-size: 13px; color: #64748b; margin-bottom: 14px;">फोन / ईमेल</p>
+
+            <a href="my_orders.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px; background: var(--blue); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; margin-bottom: 10px;">
+                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें (My Orders)
+            </a>
 
             <button type="button" class="btn-logout" style="width: 100%; padding: 10px; font-size: 14px;" onclick="handleLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
@@ -368,7 +386,7 @@
         <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
         <a href="#mapSection"><i class="fa-solid fa-map-location-dot"></i><span>लोकेशन</span></a>
         <button type="button" id="mobAccountBtn" onclick="handleMobileAccountClick()">
-            <i class="fa-solid fa-user"></i><span id="mobAccountBtnText">खाता</span>
+            <i class="fa-solid fa-user" id="mobAccountIcon"></i><span id="mobAccountBtnText">खाता</span>
         </button>
     </div>
 
@@ -383,21 +401,14 @@
                 <p><i class="fa-solid fa-clock"></i> समय: प्रतिदिन सुबह 8:00 से रात्रि 9:00 बजे तक</p>
             </div>
             <div class="footer-col">
-                <h4>त्वरित लिंक्स</h4>
-                <p><a href="order.html" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> शादी कार्ड ऑर्डर फॉर्म</a></p>
-                <p><a href="#showcaseSection" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> कार्ड व फ्लेक्स कैटलॉग</a></p>
-                <p><a href="#termsSection" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> नियम एवं शर्तें</a></p>
-                <p><a href="https://share.google/dmV4uXNQ8KWnP1EHQ" target="_blank" style="color:#94a3b8; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> गूगल मैप्स लोकेशन</a></p>
+                <h4 style="color: #fca5a5;">त्वरित लिंक</h4>
+                <p><a href="order.html" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> ऑनलाइन शादी कार्ड फॉर्म</a></p>
+                <p><a href="my_orders.html" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> ग्राहक ऑर्डर्स ट्रैक करें</a></p>
+                <p><a href="#termsSection" style="color: #cbd5e1; text-decoration: none;"><i class="fa-solid fa-angle-right"></i> नियम एवं शर्तें</a></p>
             </div>
         </div>
-
         <div class="footer-bottom">
-            <p>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स) | All Rights Reserved.</p>
-            <div style="margin-top: 5px;">
-                <a href="admin.html"><i class="fa-solid fa-lock"></i> एडमिन लॉगिन</a> |
-                <a href="#aboutSection">About Us</a> |
-                <a href="#termsSection">Terms</a>
-            </div>
+            <p>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</p>
         </div>
     </footer>
 
@@ -406,137 +417,100 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function getStoredUser() {
-            const keys = ['dp_current_user', 'user'];
-            for (let k of keys) {
+        function checkUserAuth() {
+            const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
+            const authNav = document.getElementById('authNavContainer');
+            const userLoggedBox = document.getElementById('userLoggedBox');
+            const displayUserName = document.getElementById('displayUserName');
+            const mobAccountBtnText = document.getElementById('mobAccountBtnText');
+            const mobAccountIcon = document.getElementById('mobAccountIcon');
+
+            if (userJson) {
                 try {
-                    const val = localStorage.getItem(k);
-                    if (val && val !== 'null' && val !== 'undefined') {
-                        const parsed = JSON.parse(val);
-                        if (parsed && (parsed.email || parsed.mobile || parsed.name)) {
-                            return parsed;
-                        }
+                    const user = JSON.parse(userJson);
+                    if (user && (user.name || user.email)) {
+                        // डेस्कटॉप नेविगेशन अपडेट
+                        authNav.style.display = 'none';
+                        userLoggedBox.style.display = 'flex';
+                        displayUserName.innerText = `${user.name || 'ग्राहक'}`;
+
+                        // मोबाइल बॉटम बार अपडेट
+                        if (mobAccountBtnText) mobAccountBtnText.innerText = "प्रोफाइल";
+                        if (mobAccountIcon) mobAccountIcon.className = "fa-solid fa-circle-user";
+
+                        // मोडल डेटा सेट
+                        document.getElementById('mobAccName').innerText = user.name || 'ग्राहक';
+                        document.getElementById('mobAccPhone').innerText = user.mobile || user.phone || user.email || '';
+                        return;
                     }
                 } catch (e) {}
             }
-            return null;
-        }
 
-        function handleLogout() {
-            localStorage.removeItem('dp_current_user');
-            localStorage.removeItem('user');
-            closeModal('mobileAccountModal');
-            checkUserSession();
-            alert("लॉगआउट हो गया!");
-            window.location.reload();
-        }
-
-        function checkUserSession() {
-            const currentUser = getStoredUser();
-            const navAuth = document.getElementById('authNavContainer');
-            const loggedBox = document.getElementById('userLoggedBox');
-            const display = document.getElementById('displayUserName');
-            const mobBtnText = document.getElementById('mobAccountBtnText');
-
-            if (currentUser) {
-                if(navAuth) navAuth.style.display = 'none';
-                if(loggedBox) loggedBox.style.display = 'flex';
-                if(display) display.innerText = "नमस्ते, " + (currentUser.name || 'ग्राहक');
-                if(mobBtnText) mobBtnText.innerText = (currentUser.name || 'खाता').split(' ')[0];
-            } else {
-                if(navAuth) navAuth.style.display = 'block';
-                if(loggedBox) loggedBox.style.display = 'none';
-                if(display) display.innerText = "";
-                if(mobBtnText) mobBtnText.innerText = "खाता";
-            }
+            // अगर लॉगिन नहीं है
+            authNav.style.display = 'block';
+            userLoggedBox.style.display = 'none';
+            if (mobAccountBtnText) mobAccountBtnText.innerText = "खाता";
+            if (mobAccountIcon) mobAccountIcon.className = "fa-solid fa-user";
         }
 
         function handleMobileAccountClick() {
-            const currentUser = getStoredUser();
-            if (currentUser) {
-                document.getElementById('mobAccName').innerText = currentUser.name || "उपयोगकर्ता";
-                document.getElementById('mobAccPhone').innerText = currentUser.mobile || currentUser.email || "";
+            const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('user');
+            if (userJson) {
                 document.getElementById('mobileAccountModal').style.display = 'flex';
             } else {
-                window.location.href = "login.html";
+                window.location.href = 'login.html';
             }
         }
 
-        async function renderCatalog() {
-            const container = document.getElementById('catalogContainer');
-            if (!container) return;
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड हो रहे हैं...</p>";
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
 
+        function handleLogout() {
+            if (confirm("क्या आप लॉगआउट करना चाहते हैं?")) {
+                localStorage.removeItem('dp_current_user');
+                localStorage.removeItem('user');
+                location.reload();
+            }
+        }
+
+        // कैटलॉग कार्ड्स लोड करना
+        async function loadCatalog() {
+            const container = document.getElementById('catalogContainer');
             try {
                 const { data: cards, error } = await supabaseClient
                     .from('cards')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('id', { ascending: false });
 
-                if (error) throw error;
-                container.innerHTML = "";
-                if (!cards || cards.length === 0) {
-                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कोई कार्ड उपलब्ध नहीं है।</p>";
+                if (error || !cards || cards.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#888; font-size:13px;">कोई कार्ड उपलब्ध नहीं है।</p>';
                     return;
                 }
 
-                cards.forEach(item => {
-                    const isOut = item.stock === 'out';
-                    const div = document.createElement('div');
-                    div.className = "card-sample";
-                    
-                    const safeName = (item.name || '').replace(/"/g, '&quot;');
-                    const safeRate = parseFloat(item.rate) || 0;
-                    const safeImg = item.img_url || '';
-
-                    div.innerHTML = `
-                        <img src="${safeImg}" alt="${safeName}" onerror="this.src='https://via.placeholder.com/150'">
+                container.innerHTML = cards.map(card => `
+                    <div class="card-sample">
+                        <img src="${card.image_url || 'https://via.placeholder.com/200x130?text=Card'}" alt="${card.card_name}" loading="lazy">
                         <div class="card-info">
-                            <h4>${item.name}</h4>
-                            <div class="card-price-tag">₹${safeRate} ${item.name.includes("बैनर") ? "/ Sq.Ft" : (item.name.includes("विजिटिंग") ? "/ बॉक्स" : "/ कार्ड")}</div>
-                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'स्टॉक समाप्त' : 'उपलब्ध'}</span>
-                            <button type="button" class="btn-select-card" ${isOut ? 'disabled' : ''} data-name="${encodeURIComponent(item.name)}" data-rate="${safeRate}">
-                                ${isOut ? 'उपलब्ध नहीं' : 'यह चुनें'}
-                            </button>
+                            <h4>${card.card_name}</h4>
+                            <div class="card-price-tag">₹${card.price || '0'} / पीस</div>
+                            <span class="stock-badge ${card.in_stock ? 'in-stock' : 'out-stock'}">
+                                ${card.in_stock ? 'उपलब्ध है' : 'स्टॉक समाप्त'}
+                            </span>
+                            <a href="order.html?card_id=${card.id}" class="btn-select-card" ${!card.in_stock ? 'style="pointer-events:none; background:#94a3b8;"' : ''}>
+                                ${card.in_stock ? 'यह चुनें' : 'उपलब्ध नहीं'}
+                            </a>
                         </div>
-                    `;
-
-                    const btn = div.querySelector('.btn-select-card');
-                    if (btn && !isOut) {
-                        btn.addEventListener('click', () => {
-                            selectCardToOrder(item.name, safeRate);
-                        });
-                    }
-
-                    container.appendChild(div);
-                });
+                    </div>
+                `).join('');
             } catch (err) {
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>कार्ड लोड नहीं हो सके।</p>";
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#e74c3c; font-size:13px;">कैटलॉग लोड करने में समस्या हुई।</p>';
             }
         }
 
-        function selectCardToOrder(name, rate) {
-            const cleanRate = parseFloat(rate.toString().replace(/[^0-9.]/g, '')) || 0;
-            localStorage.setItem('selected_card_title', name);
-            localStorage.setItem('selected_card_rate', cleanRate);
-
-            const targetUrl = `order.html?card=${encodeURIComponent(name)}&rate=${cleanRate}`;
-            window.location.href = targetUrl;
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        window.onclick = function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderCatalog();
-            checkUserSession();
+        window.addEventListener('DOMContentLoaded', () => {
+            checkUserAuth();
+            loadCatalog();
         });
     </script>
 </body>
