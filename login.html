@@ -35,19 +35,33 @@
             width: 100%; padding: 11px; color: white; border: none;
             border-radius: 4px; font-weight: bold; font-size: 15px; cursor: pointer;
         }
-        .btn-myorders {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%; padding: 10px; margin-top: 12px;
-            background: #f0f9ff; color: var(--blue); border: 1px solid #bae6fd;
-            border-radius: 4px; font-weight: 700; font-size: 14px;
-            text-decoration: none; transition: all 0.2s ease;
-        }
-        .btn-myorders:hover {
-            background: #e0f2fe; color: #0369a1;
-        }
         .btn-home {
             display: block; text-align: center; margin-top: 15px;
             color: #64748b; font-size: 13px; text-decoration: none;
+        }
+
+        /* पहले से लॉगिन ग्राहकों के लिए प्रोफाइल बॉक्स */
+        .logged-in-box {
+            text-align: center; padding: 10px 0;
+        }
+        .user-avatar {
+            width: 60px; height: 60px; border-radius: 50%; background: #fee2e2;
+            color: var(--primary); display: inline-flex; align-items: center; justify-content: center;
+            font-size: 26px; margin-bottom: 10px;
+        }
+        .btn-action-primary {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 11px; margin-top: 12px;
+            background: var(--blue); color: white; border: none;
+            border-radius: 4px; font-weight: 700; font-size: 15px;
+            text-decoration: none; cursor: pointer;
+        }
+        .btn-logout-alt {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 9px; margin-top: 10px;
+            background: #fff; color: #dc2626; border: 1px solid #fca5a5;
+            border-radius: 4px; font-weight: 600; font-size: 13px;
+            text-decoration: none; cursor: pointer;
         }
     </style>
 </head>
@@ -59,7 +73,28 @@
             <p>सज्जाद डिजिटल प्रिंट्स</p>
         </div>
 
-        <!-- Login Section -->
+        <!-- 1. पहले से लॉगिन ग्राहकों के लिए डैशबोर्ड व्यू -->
+        <div id="loggedInView" style="display: none;" class="logged-in-box">
+            <div class="user-avatar">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <h3 id="currentCustName" style="color: var(--dark); font-size: 18px;">नमस्ते</h3>
+            <p id="currentCustPhone" style="color: #64748b; font-size: 13px; margin-bottom: 15px;"></p>
+
+            <a href="my_orders.html" class="btn-action-primary">
+                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें (My Orders)
+            </a>
+
+            <a href="order.html" class="btn-action-primary" style="background: var(--primary);">
+                <i class="fa-solid fa-pen-to-square"></i> नया कार्ड ऑर्डर करें
+            </a>
+
+            <button onclick="handleLogout()" class="btn-logout-alt">
+                <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट करें
+            </button>
+        </div>
+
+        <!-- 2. लॉगिन सेक्शन -->
         <div id="loginSection">
             <h3 style="margin-bottom: 12px; color: var(--primary); text-align: center;">ग्राहक लॉगिन</h3>
             <form onsubmit="handleLoginSubmit(event)">
@@ -77,17 +112,12 @@
                 <button type="submit" id="loginBtn" class="btn-submit" style="background: var(--primary);">लॉगिन करें</button>
             </form>
 
-            <!-- My Orders Link Button -->
-            <a href="my_orders.html" class="btn-myorders">
-                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स देखें (My Orders)
-            </a>
-
             <div style="font-size: 13px; text-align: center; margin-top: 15px;">
                 नया खाता? <a onclick="toggleAuthView('register')" style="color: var(--primary); font-weight: bold; cursor: pointer;">नया अकाउंट बनाएं</a>
             </div>
         </div>
 
-        <!-- Forgot Password Section -->
+        <!-- 3. पासवर्ड भूलने का सेक्शन -->
         <div id="forgotSection" style="display: none;">
             <h3 style="margin-bottom: 12px; color: var(--secondary); text-align: center;">पासवर्ड रीसेट करें</h3>
             <form onsubmit="handleForgotSubmit(event)">
@@ -106,7 +136,7 @@
             </div>
         </div>
 
-        <!-- Register Section -->
+        <!-- 4. नया रजिस्ट्रेशन सेक्शन -->
         <div id="registerSection" style="display: none;">
             <h3 style="margin-bottom: 12px; color: var(--green); text-align: center;">नया अकाउंट बनाएं</h3>
             <form id="regForm" onsubmit="handleRegisterSubmit(event)">
@@ -151,9 +181,34 @@
         const OWNER_EMAIL = "mdsajadans@gmail.com";
 
         const urlParams = new URLSearchParams(window.location.search);
-        const redirectTarget = urlParams.get('redirect') || 'index.html';
+        const redirectTarget = urlParams.get('redirect');
+
+        function checkExistingLogin() {
+            const userJson = localStorage.getItem('dp_current_user');
+            if (userJson) {
+                try {
+                    const user = JSON.parse(userJson);
+                    if (user && (user.name || user.email)) {
+                        if (redirectTarget) {
+                            window.location.href = redirectTarget;
+                            return true;
+                        }
+                        document.getElementById('loggedInView').style.display = 'block';
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('registerSection').style.display = 'none';
+                        document.getElementById('forgotSection').style.display = 'none';
+
+                        document.getElementById('currentCustName').innerText = `स्वागत है, ${user.name || 'ग्राहक'}`;
+                        document.getElementById('currentCustPhone').innerText = user.mobile || user.phone || user.email || '';
+                        return true;
+                    }
+                } catch (e) {}
+            }
+            return false;
+        }
 
         function toggleAuthView(view) {
+            document.getElementById('loggedInView').style.display = 'none';
             document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
             document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
             document.getElementById('forgotSection').style.display = (view === 'forgot') ? 'block' : 'none';
@@ -170,6 +225,14 @@
             const jsonStr = JSON.stringify(userObj);
             localStorage.setItem('dp_current_user', jsonStr);
             localStorage.setItem('user', jsonStr);
+        }
+
+        function handleLogout() {
+            if (confirm("क्या आप लॉगआउट करना चाहते हैं?")) {
+                localStorage.removeItem('dp_current_user');
+                localStorage.removeItem('user');
+                toggleAuthView('login');
+            }
         }
 
         async function handleRegisterSubmit(e) {
@@ -214,10 +277,9 @@
                     })
                 }).catch(() => {});
 
-                alert("अकाउंट बन गया!");
-                setTimeout(() => {
-                    window.location.href = redirectTarget;
-                }, 300);
+                alert("अकाउंट सफलतापूर्वक बन गया!");
+                window.location.href = redirectTarget ? redirectTarget : "my_orders.html";
+
             } catch (err) {
                 alert("त्रुटि: " + err.message);
             } finally {
@@ -246,9 +308,7 @@
                     if (String(user.pass).trim() === pass) {
                         saveUserData(user);
                         alert("स्वागत है, " + user.name + "!");
-                        setTimeout(() => {
-                            window.location.href = redirectTarget;
-                        }, 300);
+                        window.location.href = redirectTarget ? redirectTarget : "my_orders.html";
                     } else {
                         alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
                     }
@@ -293,11 +353,16 @@
             }
         }
 
-        if (urlParams.get('mode') === 'register') {
-            toggleAuthView('register');
-        } else {
-            toggleAuthView('login');
-        }
+        window.addEventListener('DOMContentLoaded', () => {
+            const isLogged = checkExistingLogin();
+            if (!isLogged) {
+                if (urlParams.get('mode') === 'register') {
+                    toggleAuthView('register');
+                } else {
+                    toggleAuthView('login');
+                }
+            }
+        });
     </script>
 </body>
 </html>
