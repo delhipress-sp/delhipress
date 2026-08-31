@@ -133,6 +133,9 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const OWNER_EMAIL = "mdsajadans@gmail.com";
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTarget = urlParams.get('redirect') || 'index.html';
+
         function toggleAuthView(view) {
             document.getElementById('loginSection').style.display = (view === 'login') ? 'block' : 'none';
             document.getElementById('registerSection').style.display = (view === 'register') ? 'block' : 'none';
@@ -196,7 +199,7 @@
 
                 alert("अकाउंट बन गया!");
                 setTimeout(() => {
-                    window.location.href = "index.html";
+                    window.location.href = redirectTarget;
                 }, 300);
             } catch (err) {
                 alert("त्रुटि: " + err.message);
@@ -227,7 +230,7 @@
                         saveUserData(user);
                         alert("स्वागत है, " + user.name + "!");
                         setTimeout(() => {
-                            window.location.href = "index.html";
+                            window.location.href = redirectTarget;
                         }, 300);
                     } else {
                         alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
@@ -273,9 +276,7 @@
             }
         }
 
-        // URL parameter checking (?mode=register / ?mode=login)
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('mode') === 'register') {
+        if (urlParams.get('mode') === 'register') {
             toggleAuthView('register');
         } else {
             toggleAuthView('login');
