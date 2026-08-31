@@ -32,8 +32,6 @@
             padding: 6px 12px; border-radius: 4px; border: 1px solid #cbd5e1;
             background: #f8fafc; display: inline-flex; align-items: center; gap: 5px;
         }
-        .btn-nav:hover { background: #e2e8f0; }
-
         .btn-logout {
             background: #e74c3c; color: white; border: none;
             padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold;
@@ -41,7 +39,9 @@
 
         .container { max-width: 800px; margin: 20px auto; padding: 0 12px; }
 
+        /* डिफ़ॉल्ट रूप से पॉपअप पूरी तरह गायब रहेगा */
         .auth-card {
+            display: none;
             background: #fff; border-radius: 8px; padding: 35px 20px;
             text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
@@ -82,7 +82,6 @@
         }
         .matter-box h5 { color: var(--secondary); margin-bottom: 4px; }
 
-        /* Mobile Bottom Bar */
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
@@ -115,8 +114,8 @@
 
     <div class="container">
         
-        <!-- लॉगिन न होने पर दिखने वाला कार्ड -->
-        <div id="loginRequiredCard" class="auth-card" style="display: none;">
+        <!-- लॉगिन न होने पर केवल यह पॉपअप/कार्ड आएगा -->
+        <div id="loginRequiredCard" class="auth-card">
             <i class="fa-solid fa-user-lock"></i>
             <h3>ऑर्डर्स देखने के लिए पहले लॉगिन करें</h3>
             <p>आप अभी लॉग इन नहीं हैं अथवा आपका सत्र समाप्त हो चुका है।</p>
@@ -125,7 +124,7 @@
             </a>
         </div>
 
-        <!-- लॉगिन होने पर ऑर्डर्स दिखने वाला कंटेनर -->
+        <!-- लॉगिन होने पर ऑर्डर्स वाला बॉक्स लोड होगा -->
         <div id="ordersContainer" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <h3 style="font-size: 17px; color: var(--dark);">
@@ -141,7 +140,7 @@
 
     </div>
 
-    <!-- Mobile Bottom Navigation -->
+    <!-- Mobile Navigation -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="../index.html#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
@@ -161,18 +160,22 @@
             window.location.href = "../index.html";
         }
 
-        function getActiveUser() {
+        // लोकल स्टोरेज से यूजर डेटा सही ढंग से निकालना
+        function getLoggedInUser() {
             const keys = ['dp_current_user', 'user'];
             for (let k of keys) {
-                try {
-                    const item = localStorage.getItem(k);
-                    if (item && item !== 'null' && item !== 'undefined') {
+                const item = localStorage.getItem(k);
+                if (item && item !== 'null' && item !== 'undefined') {
+                    try {
                         const parsed = JSON.parse(item);
-                        if (parsed && (parsed.email || parsed.mobile || parsed.name)) {
-                            return parsed;
+                        // यदि ऑब्जेक्ट में नाम, ईमेल या मोबाइल कुछ भी मौजूद हो
+                        if (parsed && typeof parsed === 'object') {
+                            if (parsed.email || parsed.mobile || parsed.name) {
+                                return parsed;
+                            }
                         }
-                    }
-                } catch (e) {}
+                    } catch (e) {}
+                }
             }
             return null;
         }
@@ -184,9 +187,9 @@
             const listArea = document.getElementById('ordersList');
             const logoutBtn = document.getElementById('navLogoutBtn');
 
-            const currentUser = getActiveUser();
+            const currentUser = getLoggedInUser();
 
-            // अगर यूजर लॉगिन नहीं है
+            // 1. यदि यूजर लॉग इन नहीं है - केवल तभी लॉगिन कार्ड दिखाएँ
             if (!currentUser) {
                 loginCard.style.display = 'block';
                 ordersBox.style.display = 'none';
@@ -194,7 +197,7 @@
                 return;
             }
 
-            // अगर यूजर लॉगिन है
+            // 2. यदि यूजर लॉग इन है - कार्ड पूरी तरह हटा दें और ऑर्डर्स दिखाएँ
             loginCard.style.display = 'none';
             ordersBox.style.display = 'block';
             if (logoutBtn) logoutBtn.style.display = 'block';
@@ -221,10 +224,10 @@
 
                 if (!orders || orders.length === 0) {
                     listArea.innerHTML = `
-                        <div class="auth-card" style="padding: 25px;">
-                            <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #94a3b8;"></i>
-                            <h4 style="margin-top: 8px;">कोई ऑर्डर नहीं मिला</h4>
-                            <p style="margin-bottom: 0;">(${cleanEmail || userPhone}) के नाम से अभी कोई ऑर्डर दर्ज नहीं है।</p>
+                        <div style="background:#fff; border-radius:8px; padding:30px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                            <i class="fa-regular fa-folder-open" style="font-size: 38px; color: #94a3b8; margin-bottom: 8px;"></i>
+                            <h4>कोई ऑर्डर नहीं मिला</h4>
+                            <p style="color:#64748b; font-size:13px; margin:0;">(${cleanEmail || userPhone}) के नाम से अभी कोई ऑर्डर दर्ज नहीं है।</p>
                         </div>
                     `;
                     return;
@@ -277,7 +280,7 @@
                 listArea.innerHTML = html;
 
             } catch (err) {
-                listArea.innerHTML = `<p style="color:red; text-align:center;">डेटा लोड नहीं हो सका: ${err.message}</p>`;
+                listArea.innerHTML = `<p style="color:red; text-align:center; padding:20px;">डेटा लोड नहीं हो सका: ${err.message}</p>`;
             }
         }
 
