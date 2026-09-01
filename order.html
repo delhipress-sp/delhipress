@@ -119,6 +119,21 @@
             margin-bottom: 12px; border: 1px solid #e2e8f0; position: relative;
         }
 
+        .event-box-item {
+            background: #fff; border: 1px solid #cbd5e1; border-radius: 6px;
+            padding: 12px; margin-bottom: 10px; position: relative;
+        }
+        .btn-remove-event {
+            background: #ef4444; color: white; border: none; padding: 3px 8px;
+            border-radius: 4px; font-size: 11px; cursor: pointer; position: absolute;
+            right: 8px; top: 8px; font-weight: bold;
+        }
+        .btn-add-event {
+            background: #4f46e5; color: white; border: none; padding: 7px 14px;
+            border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;
+        }
+
         .couple-header-bar {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px dashed #e2e8f0;
@@ -268,12 +283,13 @@
         <div class="form-wrapper" id="weddingFormSection">
             <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
             
+            <!-- SELECTED CARD PREVIEW BANNER -->
             <div class="selected-card-banner" id="selectedCardBanner">
                 <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
                 <div class="card-preview-body">
                     <img id="previewCardImage" class="card-preview-thumb" src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="चुना गया कार्ड">
                     <div class="card-preview-info">
-                        <h3 id="previewCardName">मुस्लिम / हिंदू वेडिंग कार्ड</h3>
+                        <h3 id="previewCardName">शादी कार्ड</h3>
                         <p id="previewCardModel">मॉडल / कोड: DP-101</p>
                         <p class="rate-tag" id="previewCardRate">मूल्य: ₹10 / पीस</p>
                     </div>
@@ -392,28 +408,48 @@
                     </div>
                 </div>
 
-                <!-- कार्यक्रम व अन्य विवरण -->
+                <!-- मल्टीपल वैवाहिक कार्यक्रम (दिन व समय के साथ) -->
                 <div class="form-block">
-                    <h4>३. कार्यक्रम व अन्य विवरण</h4>
-                    <div class="row-2">
-                        <div class="form-group">
-                            <label>विवाह / निकाह तिथि:</label>
-                            <input type="date" id="eventDate" required>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px;">
+                        <h4 style="margin-bottom:0; border:none; padding:0;">३. वैवाहिक कार्यक्रम विवरण (दिन व समय)</h4>
+                        <button type="button" class="btn-add-event" onclick="addNewEventField()">
+                            <i class="fa-solid fa-plus"></i> + नया कार्यक्रम जोड़ें
+                        </button>
+                    </div>
+
+                    <div id="eventsContainer">
+                        <!-- Default Event 1 -->
+                        <div class="event-box-item">
+                            <div class="row-3">
+                                <div class="form-group">
+                                    <label>कार्यक्रम का नाम:</label>
+                                    <input type="text" class="event-title" value="शुभ विवाह / निकाह" placeholder="उदा: हल्दी, मटकोर, बारात" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>तिथि (Date):</label>
+                                    <input type="date" class="event-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>समय (Time):</label>
+                                    <input type="time" class="event-time" value="19:00">
+                                </div>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="row-2" style="margin-top: 10px;">
                         <div class="form-group">
                             <label>आर.एस.वी.पी (RSVP / निवेदक):</label>
                             <input type="text" id="rsvpInput" placeholder="उदा: समस्त अंसारी परिवार">
                         </div>
-                    </div>
-                    <div class="row-2">
                         <div class="form-group">
                             <label>दर्शनाभिलाषी / विनीत (From Family):</label>
                             <input type="text" id="fromFamilyInput" placeholder="उदा: चाचा, दादा, भाई...">
                         </div>
-                        <div class="form-group">
-                            <label>विशेष शायरी / संदेश (यदि हो):</label>
-                            <input type="text" id="specialNoteInput" placeholder="उदा: बाल मनुहार, शायरी...">
-                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>विशेष शायरी / संदेश (यदि हो):</label>
+                        <input type="text" id="specialNoteInput" placeholder="उदा: बाल मनुहार, शायरी...">
                     </div>
                 </div>
 
@@ -452,7 +488,7 @@
                 <div class="declaration-box">
                     <input type="checkbox" id="orderConfirmCheck" required>
                     <label for="orderConfirmCheck">
-                        मैंने फॉर्म में दर्ज सभी विवरण (दूल्हा-दुल्हन, पिता का नाम, पता, दिनांक) की जांच कर ली है और सब सही है।
+                        मैंने फॉर्म में दर्ज सभी विवरण (दूल्हा-दुल्हन, पिता का नाम, पता, दिनांक, कार्यक्रम) की जांच कर ली है और सब सही है।
                     </label>
                 </div>
 
@@ -516,7 +552,7 @@
             loadSelectedCard();
         });
 
-        // 1. URL & LOCALSTORAGE CARD LOADER WITH AUTOMATIC PRICE & 50% ADVANCE
+        // 1. AUTO-FILL CARD DETAILS FROM LOCALSTORAGE & URL
         function loadSelectedCard() {
             const urlParams = new URLSearchParams(window.location.search);
             const paramModel = urlParams.get('model') || urlParams.get('card');
@@ -547,7 +583,7 @@
                 document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${model}`;
                 document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
 
-                document.getElementById('cardCategory').value = `${model} (${name})`;
+                document.getElementById('cardCategory').value = `${model} - ${name}`;
                 document.getElementById('cardRate').value = rate;
                 document.getElementById('selectedCardImageStored').value = img;
                 document.getElementById('selectedCardModelStored').value = model;
@@ -592,6 +628,47 @@
             document.getElementById('upiQrCode').src = qrUrl;
         }
 
+        // 4. DYNAMIC MULTIPLE EVENTS ADD / REMOVE
+        function addNewEventField() {
+            const container = document.getElementById('eventsContainer');
+            const div = document.createElement('div');
+            div.className = 'event-box-item';
+            div.innerHTML = `
+                <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">
+                    <i class="fa-solid fa-trash"></i> हटाएं
+                </button>
+                <div class="row-3">
+                    <div class="form-group">
+                        <label>कार्यक्रम का नाम:</label>
+                        <input type="text" class="event-title" placeholder="उदा: मटकोर / संगीत / बारात" required>
+                    </div>
+                    <div class="form-group">
+                        <label>तिथि (Date):</label>
+                        <input type="date" class="event-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>समय (Time):</label>
+                        <input type="time" class="event-time" value="18:00">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function collectEventsData() {
+            const events = [];
+            const eventItems = document.querySelectorAll('.event-box-item');
+            eventItems.forEach(item => {
+                const title = item.querySelector('.event-title').value.trim();
+                const date = item.querySelector('.event-date').value;
+                const time = item.querySelector('.event-time').value;
+                if (title && date) {
+                    events.push({ title, date, time });
+                }
+            });
+            return events;
+        }
+
         function swapCoupleSides() {
             const groomBlock = document.getElementById('groomBlock');
             const brideBlock = document.getElementById('brideBlock');
@@ -629,24 +706,29 @@
             const brideF = document.getElementById('brideFather').value.trim();
             const brideA = document.getElementById('brideAddress').value.trim();
 
-            const evDate = document.getElementById('eventDate').value;
             const rsvp = document.getElementById('rsvpInput').value.trim();
             const fromFam = document.getElementById('fromFamilyInput').value.trim();
             const utr = document.getElementById('utrNumber').value.trim();
+
+            const events = collectEventsData();
+            let eventsText = "";
+            events.forEach((ev, i) => {
+                eventsText += `\n📌 *${ev.title}:* ${ev.date} (${ev.time || 'सायं'})`;
+            });
 
             return `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर मैटर*
 ----------------------------------------
 👤 *ग्राहक:* ${custName} (${custMobile})
 📍 *पता:* ${custAddress}
 🎴 *कार्ड:* ${cardName} | *संख्या:* ${qty} पीस
-💰 *कुल बिल:* ₹${total} | *एडवांस:* ₹${adv} | *बाकी:* ₹${bal}
+💰 *कुल बिल:* ₹${total} | *एडवांस (50%):* ₹${adv} | *बाकी:* ₹${bal}
 💳 *UTR / Trans ID:* ${utr}
 ----------------------------------------
 🤵 *दूल्हा:* ${groom} (पिता: ${groomF}) - ${groomA}
 *संग / Weds*
 👰 *दुल्हन:* ${bride} (पिता: ${brideF}) - ${brideA}
 ----------------------------------------
-📅 *विवाह तिथि:* ${evDate}
+📅 *कार्यक्रम विवरण:*${eventsText || '\nविवरण संलग्न नहीं है'}
 💌 *RSVP:* ${rsvp || '-'}
 👨‍👩‍👧‍👦 *विनीत / दर्शनाभिलाषी:* ${fromFam || '-'}`;
         }
@@ -680,6 +762,8 @@
             const bal = Math.max(0, total - adv);
 
             const newOrderId = Date.now();
+            const events = collectEventsData();
+            const primaryDate = events.length > 0 ? events[0].date : new Date().toISOString().split('T')[0];
 
             const orderData = {
                 id: newOrderId,
@@ -702,7 +786,8 @@
                 bride_name: document.getElementById('brideName').value.trim(),
                 bride_father: document.getElementById('brideFather').value.trim(),
                 bride_address: document.getElementById('brideAddress').value.trim(),
-                event_date: document.getElementById('eventDate').value,
+                event_date: primaryDate,
+                events: events,
                 rsvp: document.getElementById('rsvpInput').value.trim(),
                 from_family: document.getElementById('fromFamilyInput').value.trim(),
                 special_note: document.getElementById('specialNoteInput').value.trim(),
