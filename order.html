@@ -314,11 +314,11 @@
                         </div>
                         <div class="form-group">
                             <label>प्रति पीस रेट (₹):</label>
-                            <input type="number" id="cardRate" value="10" min="1" step="any" oninput="calculateWeddingTotal()" required>
+                            <input type="number" id="cardRate" value="10" min="1" step="any" oninput="calculateWeddingTotal(true)" required>
                         </div>
                         <div class="form-group">
                             <label>संख्या (Quantity):</label>
-                            <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal()" required>
+                            <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal(true)" required>
                         </div>
                     </div>
 
@@ -340,7 +340,7 @@
                                 <div id="balanceAmountDisplay" style="font-size: 17px; font-weight: bold; color: #b91c1c;">₹500</div>
                             </div>
                         </div>
-                        <p style="font-size: 11px; color: #15803d; margin-top: 5px;">* न्यूनतम 50% एडवांस भुगतान अनिवार्य है।</p>
+                        <p style="font-size: 11px; color: #15803d; margin-top: 5px;">* कुल राशि का 50% एडवांस स्वतः निर्धारित हो गया है।</p>
                     </div>
                 </div>
 
@@ -422,28 +422,28 @@
                     <h4>४. ऑनलाइन एडवांस भुगतान</h4>
                     <div class="payment-box">
                         <p style="font-size: 13px; font-weight: bold; color: #166534; margin-bottom: 5px;">
-                            एडवांस राशि: <b>₹<span id="qrAdvanceDisplay">500</span></b>
+                            एडवांस राशि (50%): <b>₹<span id="qrAdvanceDisplay">500</span></b>
                         </p>
 
                         <!-- डायनामिक QR कोड -->
                         <div class="qr-wrapper">
                             <img id="upiQrCode" src="" alt="UPI Dynamic QR">
                         </div>
-                        <p style="font-size: 12px; color: #475569; margin-bottom: 8px;">UPI ID: <b>9304509464@ybl</b></p>
+                        <p style="font-size: 12px; color: #475569; margin-bottom: 8px;">UPI ID: <b>9304509464@okbizaxis</b></p>
                         
                         <!-- UPI App Buttons & Cashfree Gateway -->
                         <div class="payment-options-grid">
                             <a id="directUpiPayLink" href="#" class="btn-pay-app" style="background:#0284c7;">
                                 <i class="fa-solid fa-mobile-screen-button"></i> सीधे UPI ऐप से पे करें
                             </a>
-                            <button type="button" onclick="openCashfreeCheckout()" class="btn-pay-cashfree">
-                                <i class="fa-solid fa-credit-card"></i> कैशफ्री (Card / NetBanking / Wallet)
-                            </button>
+                            <a href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-pay-cashfree">
+                                <i class="fa-solid fa-credit-card"></i> कैशफ्री से पे करें
+                            </a>
                         </div>
 
                         <div class="form-group" style="max-width: 330px; margin: 12px auto 0 auto; text-align: left;">
                             <label style="color: #b91c1c; font-weight: bold;">भुगतान के बाद UTR / Transaction ID डालें:</label>
-                            <input type="text" id="utrNumber" placeholder="उदा: 4264XXXXXXXX या Cashfree ID" required>
+                            <input type="text" id="utrNumber" placeholder="उदा: 4264XXXXXXXX या Cashfree Reference" required>
                         </div>
                     </div>
                 </div>
@@ -507,17 +507,16 @@
             }
         }
 
-        const UPI_ID = "9304509464@ybl";
+        const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "DelhiPress";
 
         let isBrideTop = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadSelectedCard();
-            calculateWeddingTotal();
         });
 
-        // 1. URL & LOCALSTORAGE CARD LOADER
+        // 1. URL & LOCALSTORAGE CARD LOADER WITH AUTOMATIC PRICE & 50% ADVANCE
         function loadSelectedCard() {
             const urlParams = new URLSearchParams(window.location.search);
             const paramModel = urlParams.get('model') || urlParams.get('card');
@@ -527,12 +526,12 @@
 
             let selectedCard = JSON.parse(localStorage.getItem('dp_selected_card') || 'null');
 
-            if (paramModel || paramName) {
+            if (paramModel || paramName || paramRate) {
                 selectedCard = {
-                    model: paramModel || 'DP-101',
-                    title: paramName || 'शादी कार्ड',
-                    price: paramRate || 10,
-                    image_url: paramImg || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png'
+                    model: paramModel || (selectedCard ? selectedCard.model : 'DP-101'),
+                    title: paramName || (selectedCard ? selectedCard.title : 'शादी कार्ड'),
+                    price: parseFloat(paramRate) || (selectedCard ? parseFloat(selectedCard.price) : 10),
+                    image_url: paramImg || (selectedCard ? (selectedCard.image_url || selectedCard.image) : 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png')
                 };
             }
 
@@ -540,7 +539,7 @@
                 const img = selectedCard.image_url || selectedCard.image || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
                 const name = selectedCard.title || selectedCard.name || 'शादी कार्ड';
                 const model = selectedCard.model || 'DP-101';
-                const rate = selectedCard.price || selectedCard.rate || 10;
+                const rate = parseFloat(selectedCard.price || selectedCard.rate) || 10;
 
                 document.getElementById('selectedCardBanner').style.display = 'block';
                 document.getElementById('previewCardImage').src = img;
@@ -553,9 +552,12 @@
                 document.getElementById('selectedCardImageStored').value = img;
                 document.getElementById('selectedCardModelStored').value = model;
             }
+
+            calculateWeddingTotal(true);
         }
 
-        function calculateWeddingTotal() {
+        // 2. AUTOMATIC 50% ADVANCE CALCULATION
+        function calculateWeddingTotal(forceHalfAdvance = false) {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const total = rate * qty;
@@ -564,13 +566,14 @@
             
             const advanceInput = document.getElementById('advancePaidInput');
             const halfAdv = Math.ceil(total / 2);
-            if (!advanceInput.value || parseFloat(advanceInput.value) > total) {
+            
+            if (forceHalfAdvance || !advanceInput.value || parseFloat(advanceInput.value) > total) {
                 advanceInput.value = halfAdv;
             }
             updateAdvanceCalculations();
         }
 
-        // 2. DYNAMIC UPI QR & DIRECT APP LINK GENERATION
+        // 3. DYNAMIC UPI QR & LINK (9304509464@okbizaxis)
         function updateAdvanceCalculations() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -582,30 +585,11 @@
             document.getElementById('balanceAmountDisplay').innerText = `₹${bal.toLocaleString('hi-IN')}`;
             document.getElementById('qrAdvanceDisplay').innerText = adv;
 
-            // Dynamic UPI Deep Link & QR URL
             const upiDeepLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${adv}&cu=INR&tn=${encodeURIComponent('Wedding Card Advance')}`;
             document.getElementById('directUpiPayLink').href = upiDeepLink;
 
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiDeepLink)}`;
             document.getElementById('upiQrCode').src = qrUrl;
-        }
-
-        // 3. CASHFREE PAYMENT INTEGRATION
-        function openCashfreeCheckout() {
-            const adv = parseFloat(document.getElementById('advancePaidInput').value) || 0;
-            const custName = document.getElementById('custFullName').value.trim() || 'Customer';
-            const custPhone = document.getElementById('custMobile').value.trim() || '9304509464';
-
-            if (adv <= 0) {
-                alert("कृपया वैध एडवांस राशि दर्ज करें।");
-                return;
-            }
-
-            // Cashfree Hosted Payment / Payment Link Redirection
-            const cashfreePaymentLink = `https://payments.cashfree.com/links/delhipress_advance?amount=${adv}&name=${encodeURIComponent(custName)}&phone=${encodeURIComponent(custPhone)}`;
-            
-            window.open(cashfreePaymentLink, '_blank');
-            alert(`कैशफ्री पेमेंट पेज खुल रहा है। पेमेंट पूरा करने के बाद मिलने वाला Payment/UTR ID नीचे दर्ज करें।`);
         }
 
         function swapCoupleSides() {
