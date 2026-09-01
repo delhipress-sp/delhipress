@@ -168,7 +168,7 @@
                     <h2 style="color: var(--primary); font-size: 20px; cursor: pointer;" onclick="window.location.href='index.html'">
                         दिल्ली प्रेस - एडमिन डैशबोर्ड
                     </h2>
-                    <p style="font-size: 12px; color: #64748b;">सज्जाद डिजिटल प्रिंट्स, जामताड़ा</p>
+                    <p style="font-size: 12px; color: #64748b;">सज्जाद डिजिटल प्रिंट्स | ईदगाह मोड़ (छायटांड़), करमाटांड़</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <a href="index.html" class="btn-home-action">
@@ -200,20 +200,23 @@
                         <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश
                     </button>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>दिनांक</th>
-                            <th>सर्विस प्रकार</th>
-                            <th>मॉडल / नाम</th>
-                            <th>ग्राहक विवरण</th>
-                            <th>कुल बिल</th>
-                            <th>डिज़ाइन रसीद</th>
-                            <th>एक्शन</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>दिनांक</th>
+                                <th>सर्विस प्रकार</th>
+                                <th>मॉडल / नाम</th>
+                                <th>ग्राहक विवरण</th>
+                                <th>कुल बिल</th>
+                                <th>एडवांस</th>
+                                <th>डिज़ाइन रसीद</th>
+                                <th>एक्शन</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- TAB 2: CATALOG & STOCK -->
@@ -228,7 +231,7 @@
                             </div>
                             <div class="form-group" style="flex: 1; min-width: 150px;">
                                 <label>कार्ड मॉडल / वैरायटी:</label>
-                                <input type="text" id="admCardModel" placeholder="उदा: 3D फोल्डिंग / लेज़र कट / सिंगल शीट" required>
+                                <input type="text" id="admCardModel" placeholder="उदा: 3D फोल्डिंग / लेज़र कट" required>
                             </div>
                             <div class="form-group" style="width: 110px;">
                                 <label>दर प्रति पीस (₹):</label>
@@ -258,43 +261,47 @@
                         <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश स्टॉक
                     </button>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>सैंपल फोटो</th>
-                            <th>कार्ड का नाम</th>
-                            <th>मॉडल / डिज़ाइन</th>
-                            <th>रेट</th>
-                            <th>स्टॉक स्थिति</th>
-                            <th>स्टॉक बदलें</th>
-                            <th>हटाएं</th>
-                        </tr>
-                    </thead>
-                    <tbody id="catalogTableBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>सैंपल फोटो</th>
+                                <th>कार्ड का नाम</th>
+                                <th>मॉडल / डिज़ाइन</th>
+                                <th>रेट</th>
+                                <th>स्टॉक स्थिति</th>
+                                <th>स्टॉक बदलें</th>
+                                <th>हटाएं</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catalogTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- TAB 3: REGISTERED USERS -->
             <div id="tabUsersSection" style="display: none;">
                 <h4 style="font-size: 14px; margin-bottom: 8px;">रजिस्टर्ड ग्राहक डेटाबेस:</h4>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>नाम</th>
-                            <th>मोबाइल नंबर / ईमेल</th>
-                            <th>गाँव / शहर</th>
-                            <th>पूरा पता</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>नाम</th>
+                                <th>मोबाइल नंबर</th>
+                                <th>गाँव / शहर</th>
+                                <th>पूरा पता</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
 
     </div>
 
-    <!-- PRINTABLE RECEIPT TEMPLATE WITH LOGO & DETAILS -->
+    <!-- PRINTABLE RECEIPT TEMPLATE -->
     <div id="printableReceiptArea" style="display: none;"></div>
 
     <script>
@@ -303,6 +310,13 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let cachedOrders = [];
+
+        // Check already logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('dp_admin_auth') === 'true') {
+                showDashboard();
+            }
+        });
 
         async function verifyAdminPin() {
             const entered = document.getElementById('adminPin').value.trim();
@@ -329,7 +343,7 @@
                         actualPin = String(data.pin).trim();
                     }
                 } catch (dbErr) {
-                    console.warn("डेटाबेस से पिन प्राप्त नहीं हुआ, डिफ़ॉल्ट उपयोग किया जा रहा है।", dbErr);
+                    console.warn("डिफ़ॉल्ट पिन का उपयोग हो रहा है।");
                 }
 
                 if (entered === actualPin || entered === "1234") {
@@ -406,419 +420,290 @@
             }
         }
 
-        // ==========================================
-        // 1. ORDERS LOGIC WITH ADVANCED PRINT RECEIPT
-        // ==========================================
+        // LOAD ORDERS
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = "<tr><td colspan='7'>ऑर्डर्स लोड हो रहे हैं...</td></tr>";
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:15px;">डेटा लोड हो रहा है...</td></tr>`;
 
             try {
-                const { data: orders, error } = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('orders')
                     .select('*')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-                cachedOrders = orders || [];
-                tbody.innerHTML = "";
+                cachedOrders = data || [];
 
                 if (cachedOrders.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='7'>अभी कोई ऑर्डर नहीं मिला।</td></tr>";
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:15px; color:#64748b;">कोई नया ऑर्डर मौजूद नहीं है।</td></tr>`;
                     return;
                 }
 
-                cachedOrders.forEach((ord, index) => {
-                    const d = ord.created_at ? new Date(ord.created_at) : new Date();
-                    const dt = `${d.getDate()}/${d.getMonth()+1} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
-                    const custName = ord.user_name || ord.customer_name || 'ग्राहक';
-                    const custContact = ord.user_phone || ord.user_email || ord.customer_phone || '-';
-                    const cardModel = ord.category || ord.card_model || ord.order_title || 'शादी कार्ड';
+                tbody.innerHTML = cachedOrders.map(order => {
+                    const total = Number(order.total_amount || order.total_price || 0);
+                    const advance = Number(order.advance_amount || order.advance_paid || 0);
+                    const dateStr = new Date(order.created_at).toLocaleDateString('hi-IN');
 
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${dt}</td>
-                        <td><b>${ord.service_type || 'शादी कार्ड'}</b></td>
-                        <td>${cardModel}</td>
-                        <td style="text-align:left;"><b>${custName}</b><br><small style="color:#64748b;">${custContact}</small></td>
-                        <td><b>₹${ord.total_amount || 0}</b></td>
-                        <td>
-                            <button type="button" class="btn-view-pdf" onclick="printReceiptDetails(${index})">
-                                <i class="fa-solid fa-receipt"></i> रसीद प्रिंट
-                            </button>
-                        </td>
-                        <td>
-                            <button type="button" class="btn-del" onclick="deleteOrder('${ord.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </td>
+                    return `
+                        <tr>
+                            <td>${dateStr}</td>
+                            <td><b>${order.service_type || 'प्रिंटिंग'}</b></td>
+                            <td>${order.card_model || order.card_name || '-'}</td>
+                            <td style="text-align:left;">
+                                <b>${order.customer_name || 'अज्ञात'}</b><br>
+                                <small>📞 ${order.customer_phone || '-'}</small>
+                            </td>
+                            <td style="font-weight:bold; color:var(--dark);">₹${total.toFixed(2)}</td>
+                            <td style="font-weight:bold; color:var(--green);">₹${advance.toFixed(2)}</td>
+                            <td>
+                                <button class="btn-view-pdf" onclick="printReceipt('${order.id}')">
+                                    <i class="fa-solid fa-print"></i> रसीद
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn-del" onclick="deleteOrder('${order.id}')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
                     `;
-                    tbody.appendChild(tr);
-                });
-            } catch (e) {
-                tbody.innerHTML = `<tr><td colspan='7' style="color:red;">त्रुटि: ${e.message}</td></tr>`;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" style="color:red; padding:15px;">त्रुटि: ${err.message}</td></tr>`;
             }
         }
 
+        // PRINT RECEIPT WITH UPDATED SHOP ADDRESS, CUSTOMER ADDRESS & ADVANCE PAYMENT
+        function printReceipt(orderId) {
+            const order = cachedOrders.find(o => String(o.id) === String(orderId));
+            if (!order) {
+                alert("ऑर्डर विवरण नहीं मिला!");
+                return;
+            }
+
+            const totalAmount = Number(order.total_amount || order.total_price || 0);
+            const advanceAmount = Number(order.advance_amount || order.advance_paid || 0);
+            const dueAmount = totalAmount - advanceAmount;
+
+            const receiptHtml = `
+                <div style="max-width: 460px; margin: 0 auto; border: 2px dashed #222; padding: 18px; font-family: 'Mukta', sans-serif; background: #fff;">
+                    
+                    <!-- दुकान का नाम और नया गूगल मैप्स पता -->
+                    <div style="text-align: center; border-bottom: 2px solid #222; padding-bottom: 8px; margin-bottom: 12px;">
+                        <h2 style="margin: 0; color: #c0392b; font-size: 24px; font-weight: 700;">दिल्ली प्रेस</h2>
+                        <p style="margin: 2px 0; font-size: 14px; font-weight: 600;">सज्जाद डिजिटल प्रिंट्स</p>
+                        <p style="margin: 2px 0; font-size: 12px; color: #333; font-weight: 500;">
+                            <b>पता:</b> ईदगाह मोड़ (छातार), करमाटांड़, जामताड़ा, झारखंड - 815352
+                        </p>
+                        <p style="margin: 1px 0; font-size: 12px; color: #444;"><b>मो:</b> +91 9304509464</p>
+                        <div style="margin-top: 6px; font-size: 12px; font-weight: bold; background: #eee; padding: 3px; border-radius: 3px;">
+                            ऑर्डर रसीद / पक्की पर्ची
+                        </div>
+                    </div>
+
+                    <!-- ऑर्डर एवं ग्राहक विवरण व पता -->
+                    <table style="width: 100%; font-size: 12px; margin-bottom: 12px; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 3px 0;"><strong>ऑर्डर नं:</strong> #${order.id || 'N/A'}</td>
+                            <td style="padding: 3px 0; text-align: right;"><strong>दिनांक:</strong> ${new Date(order.created_at || Date.now()).toLocaleDateString('hi-IN')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 0;"><strong>ग्राहक का नाम:</strong> ${order.customer_name || 'अज्ञात'}</td>
+                            <td style="padding: 3px 0; text-align: right;"><strong>फोन:</strong> ${order.customer_phone || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding: 3px 0;"><strong>ग्राहक का पता:</strong> ${order.customer_address || order.address || order.city || order.village || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding: 3px 0;"><strong>सर्विस/मॉडल:</strong> ${order.service_type || 'प्रिंटिंग'} (${order.card_model || order.card_name || 'कस्टम'})</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding: 3px 0;"><strong>मात्रा (Quantity):</strong> ${order.quantity || 1} पीस</td>
+                        </tr>
+                    </table>
+
+                    <!-- बिल, एडवांस पेमेंट और बकाया विवरण -->
+                    <table style="width: 100%; font-size: 13px; border-collapse: collapse; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; margin-bottom: 14px;">
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 6px 0;">कुल राशि (Total Bill):</td>
+                            <td style="padding: 6px 0; text-align: right; font-weight: bold;">₹${totalAmount.toFixed(2)}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #eee; color: #27ae60;">
+                            <td style="padding: 6px 0;">एडवांस जमा (Advance Paid):</td>
+                            <td style="padding: 6px 0; text-align: right; font-weight: bold;">- ₹${advanceAmount.toFixed(2)}</td>
+                        </tr>
+                        <tr style="font-size: 15px; color: #c0392b; background: #fff5f5;">
+                            <td style="padding: 7px 4px; font-weight: bold;">बाकी राशि (Balance Due):</td>
+                            <td style="padding: 7px 4px; text-align: right; font-weight: bold;">₹${dueAmount.toFixed(2)}</td>
+                        </tr>
+                    </table>
+
+                    <!-- फुटर -->
+                    <div style="text-align: center; font-size: 11px; color: #666; margin-top: 8px;">
+                        <p style="margin: 0;">धन्यवाद! फिर सेवा का अवसर दें।</p>
+                        <div style="margin-top: 20px; display: flex; justify-content: space-between; font-size: 11px; color: #333;">
+                            <span>ग्राहक हस्ताक्षर</span>
+                            <span>अधिकृत हस्ताक्षर (दिल्ली प्रेस)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const printArea = document.getElementById('printableReceiptArea');
+            printArea.innerHTML = receiptHtml;
+            printArea.style.display = 'block';
+
+            window.print();
+
+            setTimeout(() => {
+                printArea.style.display = 'none';
+            }, 500);
+        }
+
+        // DELETE ORDER
         async function deleteOrder(id) {
             if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
             try {
                 const { error } = await supabaseClient.from('orders').delete().eq('id', id);
                 if (error) throw error;
                 loadAdminOrders();
-            } catch (e) {
-                alert("त्रुटि: " + e.message);
-            }
-        }
-
-        // ==========================================
-        // शादी कार्ड का पूरा मैटर रसीद में प्रिंट करने का फंक्शन
-        // ==========================================
-        function printReceiptDetails(idx) {
-            try {
-                const ord = cachedOrders[idx];
-                if (!ord) {
-                    alert("ऑर्डर विवरण नहीं मिला!");
-                    return;
-                }
-
-                const printArea = document.getElementById('printableReceiptArea');
-                const d = ord.created_at ? new Date(ord.created_at) : new Date();
-                const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
-
-                // जोड़ों (Couples) का सुरक्षित निष्कर्षण
-                let couplesHtml = '';
-                let couplesList = [];
-                if (Array.isArray(ord.couples)) {
-                    couplesList = ord.couples;
-                } else if (typeof ord.couples === 'string' && ord.couples.trim() !== '') {
-                    try { couplesList = JSON.parse(ord.couples); } catch(e) { couplesList = []; }
-                }
-
-                if (couplesList && couplesList.length > 0) {
-                    couplesList.forEach((c, i) => {
-                        couplesHtml += `
-                            <div style="background: #fff8f0; border: 1px dashed #d35400; padding: 8px; border-radius: 6px; margin-bottom: 6px;">
-                                <div style="font-weight: bold; color: #b45309; font-size: 13px; margin-bottom: 4px;">जोड़ी #${i+1}:</div>
-                                <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;">
-                                    <div style="flex: 1;">
-                                        <b>वर (दूल्हा):</b> ${c.groom || '-'}<br>
-                                        <b>पिता:</b> ${c.groom_father || '-'}<br>
-                                        <b>पता:</b> ${c.groom_address || '-'}
-                                    </div>
-                                    <div style="text-align: center; font-weight: bold; color: #c0392b; align-self: center;">
-                                        संग / Weds
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <b>वधू (दुल्हन):</b> ${c.bride || '-'}<br>
-                                        <b>पिता:</b> ${c.bride_father || '-'}<br>
-                                        <b>पता:</b> ${c.bride_address || '-'}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    couplesHtml = `<div style="font-size: 12px; color: #64748b;">कोई वैवाहिक जोड़ी विवरण दर्ज नहीं है।</div>`;
-                }
-
-                // वैवाहिक कार्यक्रम (Events) का सुरक्षित निष्कर्षण
-                let eventsHtml = '';
-                let eventsList = [];
-                if (Array.isArray(ord.events)) {
-                    eventsList = ord.events;
-                } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
-                    try { eventsList = JSON.parse(ord.events); } catch(e) { eventsList = []; }
-                }
-
-                if (eventsList && eventsList.length > 0) {
-                    eventsHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 12px;">';
-                    eventsList.forEach(ev => {
-                        eventsHtml += `<li><b>${ev.title || 'कार्यक्रम'}:</b> दिनांक: ${ev.date || '-'} | समय: ${ev.time || '-'}</li>`;
-                    });
-                    eventsHtml += '</ul>';
-                } else {
-                    eventsHtml = `<div style="font-size: 12px; color: #64748b;">कोई कार्यक्रम विवरण उपलब्ध नहीं।</div>`;
-                }
-
-                const cardName = ord.category || ord.card_model || ord.order_title || 'शादी कार्ड';
-                const qty = ord.quantity || ord.order_data?.quantity || 1;
-                const totalAmt = ord.total_amount || 0;
-                const rate = ord.rate || (totalAmt > 0 && qty > 0 ? (totalAmt / qty).toFixed(2) : totalAmt);
-
-                printArea.innerHTML = `
-                    <div style="max-width: 780px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
-                        
-                        <!-- Header -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
-                            <div>
-                                <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
-                                <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
-                            </div>
-                            <div style="text-align: right;">
-                                <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-                                    ऑर्डर रसीद / पावती
-                                </span>
-                                <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
-                            </div>
-                        </div>
-
-                        <!-- Customer & Order ID -->
-                        <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
-                            <div>
-                                <div><b>ग्राहक का नाम:</b> ${ord.user_name || ord.customer_name || 'अज्ञात'}</div>
-                                <div><b>मोबाइल / ईमेल:</b> ${ord.user_phone || ord.user_email || ord.customer_phone || '-'}</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div><b>ऑर्डर ID:</b> #${ord.id ? String(ord.id).substring(0, 8) : '-'}</div>
-                                <div><b>UTR / Trans. No:</b> <span style="color: #2563eb; font-weight: bold;">${ord.utr || '-'}</span></div>
-                            </div>
-                        </div>
-
-                        <!-- Billing Table -->
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;" border="1">
-                            <thead>
-                                <tr style="background: #f1f5f9;">
-                                    <th style="padding: 6px; text-align: left;">विवरण / कार्ड मॉडल</th>
-                                    <th style="padding: 6px; text-align: center; width: 90px;">मात्रा (Qty)</th>
-                                    <th style="padding: 6px; text-align: right; width: 100px;">दर</th>
-                                    <th style="padding: 6px; text-align: right; width: 110px;">कुल राशि</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style="padding: 6px;">
-                                        <b>${cardName}</b>
-                                        <div style="font-size: 11px; color: #64748b;">सर्विस: ${ord.service_type || 'शादी कार्ड'}</div>
-                                    </td>
-                                    <td style="padding: 6px; text-align: center;">${qty}</td>
-                                    <td style="padding: 6px; text-align: right;">₹${rate}</td>
-                                    <td style="padding: 6px; text-align: right; font-weight: bold;">₹${totalAmt}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Wedding Card Full Matter Box -->
-                        <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-                            <h4 style="color: #c0392b; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
-                                <i class="fa-solid fa-heart"></i> कार्ड मैटर एवं पारिवारिक विवरण:
-                            </h4>
-
-                            <!-- Couples Details -->
-                            <div style="margin-bottom: 8px;">
-                                ${couplesHtml}
-                            </div>
-
-                            <!-- Events Details -->
-                            <div style="background: #f8fafc; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                                <div style="font-weight: bold; font-size: 12px; color: #334155; margin-bottom: 4px;">कार्यक्रम एवं तिथियां:</div>
-                                ${eventsHtml}
-                            </div>
-
-                            <!-- RSVP & Family Details -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
-                                <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
-                                    <b>आर.एस.वी.पी. (RSVP):</b> ${ord.rsvp || '-'}
-                                </div>
-                                <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;">
-                                    <b>दर्शनाभिलाषी / विनीत:</b> ${ord.from_family || '-'}
-                                </div>
-                            </div>
-
-                            ${ord.instructions ? `
-                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px; margin-top: 8px; font-size: 12px;">
-                                <b>शायरी / विशेष निर्देश:</b> ${ord.instructions}
-                            </div>
-                            ` : ''}
-                        </div>
-
-                        <!-- Signatures & Total -->
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
-                            <div style="font-size: 12px; color: #475569;">
-                                <div>* छपाई से पहले पूरे मैटर का मिलान कर लें। बाद में कोई सुधार नहीं होगा।</div>
-                                <div style="margin-top: 30px; border-top: 1px dashed #94a3b8; width: 140px; text-align: center;">ग्राहक का हस्ताक्षर</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 16px; font-weight: bold; color: #c0392b; margin-bottom: 25px;">
-                                    कुल भुगतान राशि: ₹${totalAmt}
-                                </div>
-                                <div style="font-size: 12px; font-weight: bold;">
-                                    अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                `;
-
-                window.print();
             } catch (err) {
-                alert("रसीद प्रिंट करने में समस्या आई: " + err.message);
+                alert("हटाने में त्रुटि: " + err.message);
             }
         }
 
-        // ==========================================
-        // 2. CATALOG STOCK & MODEL LOGIC
-        // ==========================================
+        // LOAD CATALOG
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
-            tbody.innerHTML = "<tr><td colspan='7'>कैटलॉग लोड हो रहा है...</td></tr>";
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px;">कैटलॉग लोड हो रहा है...</td></tr>`;
 
             try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
+                const { data, error } = await supabaseClient.from('cards_catalog').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
-                tbody.innerHTML = "";
 
-                if (!cards || cards.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='7'>कोई कार्ड मॉडल उपलब्ध नहीं है।</td></tr>";
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px; color:#64748b;">कैटलॉग में कोई कार्ड मौजूद नहीं है।</td></tr>`;
                     return;
                 }
 
-                cards.forEach(item => {
-                    const currentStock = (item.stock || (item.in_stock === false ? 'out' : 'in')).toLowerCase();
-                    const isOut = currentStock === 'out';
-                    const modelName = item.model || item.category || 'स्टैंडर्ड मॉडल';
-                    const imgUrl = item.img_url || item.image_url || '';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><img src="${imgUrl}" style="width: 45px; height: 35px; object-fit: cover; border-radius: 4px;" alt="card"></td>
-                        <td style="font-weight: bold;">${item.name || '-'}</td>
-                        <td style="color: var(--secondary); font-weight: 600;">${modelName}</td>
-                        <td>₹${item.rate || 0}</td>
+                tbody.innerHTML = data.map(card => `
+                    <tr>
+                        <td><img src="${card.image_url}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;"></td>
+                        <td><b>${card.title}</b></td>
+                        <td>${card.model_type || '-'}</td>
+                        <td>₹${card.rate_per_piece}</td>
                         <td>
-                            <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">
-                                ${isOut ? 'आउट ऑफ स्टॉक' : 'उपलब्ध'}
+                            <span class="stock-badge ${card.stock_status === 'in' ? 'in-stock' : 'out-stock'}">
+                                ${card.stock_status === 'in' ? 'उपलब्ध' : 'समाप्त'}
                             </span>
                         </td>
                         <td>
-                            <button type="button" class="btn-stock-toggle ${isOut ? 'btn-stock-in' : 'btn-stock-out'}" onclick="toggleStock('${item.id}', '${currentStock}')">
-                                ${isOut ? 'Stock In करें' : 'Out of Stock करें'}
+                            <button class="btn-stock-toggle ${card.stock_status === 'in' ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleStock('${card.id}', '${card.stock_status}')">
+                                ${card.stock_status === 'in' ? 'Out करें' : 'In करें'}
                             </button>
                         </td>
                         <td>
-                            <button type="button" class="btn-del" onclick="deleteCatalogItem('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-del" onclick="deleteCatalogItem('${card.id}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (e) {
-                tbody.innerHTML = `<tr><td colspan='7'>डेटा लोड नहीं हुआ: ${e.message}</td></tr>`;
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:red; padding:15px;">त्रुटि: ${err.message}</td></tr>`;
             }
         }
 
+        // ADD NEW CATALOG CARD
         async function handleAddNewCatalogCard(e) {
             e.preventDefault();
             const btn = document.getElementById('addCardSubmitBtn');
-            btn.innerText = "अपलोडिंग..."; btn.disabled = true;
-
             const name = document.getElementById('admCardName').value.trim();
             const model = document.getElementById('admCardModel').value.trim();
             const rate = parseFloat(document.getElementById('admCardRate').value);
             const stock = document.getElementById('admCardStock').value;
             const file = document.getElementById('admCardFile').files[0];
 
+            if (!file) return;
+
+            btn.disabled = true;
+            btn.innerText = "अपलोड हो रहा है...";
+
             try {
                 const fileExt = file.name.split('.').pop();
-                const filePath = `card_${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await supabaseClient.storage.from('cards_images').upload(filePath, file);
-                if (uploadError) throw uploadError;
+                const fileName = `${Date.now()}.${fileExt}`;
+                const { error: upErr } = await supabaseClient.storage.from('card_samples').upload(fileName, file);
+                if (upErr) throw upErr;
 
-                const { data: publicUrl } = supabaseClient.storage.from('cards_images').getPublicUrl(filePath);
+                const { data: pubUrl } = supabaseClient.storage.from('card_samples').getPublicUrl(fileName);
 
-                const { error: insertError } = await supabaseClient.from('cards').insert([{
-                    name: name,
-                    model: model,
-                    rate: rate,
-                    stock: stock,
-                    in_stock: stock === 'in',
-                    img_url: publicUrl.publicUrl,
-                    image_url: publicUrl.publicUrl,
-                    img_path: filePath
+                const { error: insErr } = await supabaseClient.from('cards_catalog').insert([{
+                    title: name,
+                    model_type: model,
+                    rate_per_piece: rate,
+                    stock_status: stock,
+                    image_url: pubUrl.publicUrl
                 }]);
 
-                if (insertError) throw insertError;
+                if (insErr) throw insErr;
 
-                alert("नया कार्ड मॉडल सफलतापूर्वक स्टॉक में जुड़ गया!");
+                alert("नया कार्ड सफलतापूर्वक कैटलॉग में जोड़ा गया!");
                 document.getElementById('newCardForm').reset();
                 loadCatalogStock();
             } catch (err) {
-                alert("त्रुटि: " + err.message);
+                alert("कार्ड जोड़ने में विफल: " + err.message);
             } finally {
-                btn.innerText = "+ स्टॉक में सुरक्षित करें"; btn.disabled = false;
+                btn.disabled = false;
+                btn.innerText = "+ स्टॉक में सुरक्षित करें";
             }
         }
 
-        async function toggleStock(cardId, currentStock) {
-            const newStockVal = (currentStock === 'out') ? 'in' : 'out';
-
+        // TOGGLE STOCK
+        async function toggleStock(id, currentStatus) {
+            const nextStatus = currentStatus === 'in' ? 'out' : 'in';
             try {
-                const { error } = await supabaseClient
-                    .from('cards')
-                    .update({ stock: newStockVal, in_stock: newStockVal === 'in' })
-                    .eq('id', cardId);
-
-                if (error) {
-                    alert("स्टॉक अपडेट नहीं हो सका: " + error.message);
-                    return;
-                }
-
+                await supabaseClient.from('cards_catalog').update({ stock_status: nextStatus }).eq('id', id);
                 loadCatalogStock();
             } catch (err) {
-                alert("त्रुटि: " + err.message);
+                alert("अपडेट नहीं हो पाया: " + err.message);
             }
         }
 
+        // DELETE CATALOG ITEM
         async function deleteCatalogItem(id) {
-            if (!confirm("क्या आप इस मॉडल को कैटलॉग से हटाना चाहते हैं?")) return;
+            if (!confirm("क्या आप इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) return;
             try {
-                const { error } = await supabaseClient.from('cards').delete().eq('id', id);
-                if (error) throw error;
+                await supabaseClient.from('cards_catalog').delete().eq('id', id);
                 loadCatalogStock();
             } catch (err) {
-                alert("त्रुटि: " + err.message);
+                alert("हटाने में त्रुटि: " + err.message);
             }
         }
 
-        // ==========================================
-        // 3. USERS LIST LOGIC
-        // ==========================================
+        // LOAD USERS
         async function loadUsersList() {
             const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = "<tr><td colspan='4'>डेटा लोड हो रहा है...</td></tr>";
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px;">ग्राहक लिस्ट लोड हो रही है...</td></tr>`;
 
             try {
-                const { data: users, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
+                const { data, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
-                tbody.innerHTML = "";
 
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4'>कोई ग्राहक डेटा उपलब्ध नहीं है।</td></tr>";
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:#64748b;">कोई रजिस्टर्ड ग्राहक नहीं मिला।</td></tr>`;
                     return;
                 }
 
-                users.forEach(u => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><b>${u.name || '-'}</b></td>
-                        <td>${u.mobile || u.phone || u.email || '-'}</td>
-                        <td>${u.village || u.city || '-'}</td>
+                tbody.innerHTML = data.map(u => `
+                    <tr>
+                        <td><b>${u.full_name || u.name || '-'}</b></td>
+                        <td>📞 ${u.phone || u.mobile || '-'}</td>
+                        <td>${u.city || u.village || '-'}</td>
                         <td style="text-align:left;">${u.address || '-'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (e) {
-                tbody.innerHTML = `<tr><td colspan='4'>त्रुटि: ${e.message}</td></tr>`;
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color:red; padding:15px;">त्रुटि: ${err.message}</td></tr>`;
             }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('dp_admin_auth') === 'true') {
-                showDashboard();
-            }
-        });
     </script>
 </body>
 </html>
