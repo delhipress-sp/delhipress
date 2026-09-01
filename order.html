@@ -27,9 +27,14 @@
         .navbar {
             background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 20px; position: sticky; top: 0; z-index: 1000;
+            padding: 10px 16px; position: sticky; top: 0; z-index: 1000;
         }
-        .nav-brand h2 { color: var(--primary); font-size: 20px; cursor: pointer; }
+        .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; }
+        .nav-logo-img {
+            width: 40px; height: 40px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--primary);
+        }
+        .nav-brand h2 { color: var(--primary); font-size: 19px; }
         .nav-actions { display: flex; align-items: center; gap: 10px; }
         .btn-nav {
             text-decoration: none; color: #1e293b; font-weight: 700; font-size: 13px;
@@ -286,9 +291,10 @@
 <body>
 
     <nav class="navbar">
-        <div class="nav-brand">
-            <h2 onclick="window.location.href='index.html'">दिल्ली प्रेस</h2>
-        </div>
+        <a class="nav-brand" href="index.html">
+            <img src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="Logo" class="nav-logo-img" onerror="this.src='logo.png'">
+            <h2>दिल्ली प्रेस</h2>
+        </a>
         <div class="nav-actions">
             <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम पेज</a>
         </div>
@@ -722,25 +728,25 @@
             const directRate = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selectedCardRate') || localStorage.getItem('selectedCardPrice');
             const directImg = urlParams.get('img') || urlParams.get('image') || localStorage.getItem('selectedCardImage');
 
-            // यदि डायरेक्ट पैरामीटर या स्टोरेज में वैल्यू है तो पहले ही भर दें
-            if (directName || directRate) {
+            // यदि डायरेक्ट पैरामीटर या स्टोरेज में वैल्यू है तो तुरंत भर दें
+            if (directName || directRate || directModel || directImg) {
                 applyCardData(cardId || '', directName || 'Muslim wedding card', directModel || '-', directRate || '10', directImg || '');
             }
 
-            // डेटाबेस से पुष्टि करके अपडेट करना
+            // Database (public.catalog) se fresh verify karein
             if (cardId) {
                 try {
                     const { data: card, error } = await supabaseClient
-                        .from('cards')
+                        .from('catalog')
                         .select('*')
                         .eq('id', cardId)
                         .maybeSingle();
 
                     if (!error && card) {
-                        const finalName = card.title || card.card_name || card.name || directName || 'Muslim wedding card';
-                        const finalModel = card.model || card.card_model || card.code || directModel || `Model #${card.id}`;
-                        const finalPrice = card.price ?? card.card_price ?? card.rate ?? directRate ?? '10';
-                        const finalImage = card.image_url || card.image || card.photo_url || directImg || '';
+                        const finalName = card.name || card.title || card.card_name || directName || 'Muslim wedding card';
+                        const finalModel = card.code || card.model_no || card.model || card.card_model || directModel || `Model #${card.id}`;
+                        const finalPrice = card.rate ?? card.price ?? card.card_price ?? directRate ?? '10';
+                        const finalImage = card.sample_url || card.image_url || card.image || card.photo_url || directImg || '';
 
                         applyCardData(card.id, finalName, finalModel, finalPrice, finalImage);
                     }
