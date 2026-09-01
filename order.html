@@ -82,7 +82,7 @@
             margin-bottom: 15px; font-weight: bold;
         }
 
-        /* होम पेज से चुना हुआ कार्ड प्रीव्यू बॉक्स */
+        /* चुना हुआ कार्ड प्रीव्यू बॉक्स */
         .selected-card-banner {
             display: none; background: #fffaf0; border: 2px solid var(--secondary);
             border-radius: 8px; padding: 12px 15px; margin-bottom: 18px;
@@ -106,8 +106,22 @@
             background: #fdfaf6; padding: 14px; border-radius: 6px;
             margin-bottom: 15px; border-left: 4px solid var(--secondary);
         }
-        .form-block h4 { margin-bottom: 10px; color: var(--dark); font-size: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
+        .form-block-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .form-block-header h4 { margin-bottom: 0; color: var(--dark); font-size: 15px; border: none; padding: 0; }
         
+        .btn-switch-order {
+            background: #fff; border: 1px solid var(--primary); color: var(--primary);
+            padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .btn-switch-order:hover {
+            background: var(--primary); color: #fff;
+        }
+
         .form-group { margin-bottom: 12px; }
         .row-2, .row-3 { display: flex; gap: 10px; }
         .row-2 .form-group, .row-3 .form-group { flex: 1; }
@@ -156,37 +170,6 @@
             padding: 10px 12px; border-radius: 6px; margin-top: 8px;
         }
         .advance-calc-box .row-2 { align-items: center; margin-bottom: 0; }
-
-        .payment-box {
-            background: #f0fdf4; border: 1px solid #bbf7d0;
-            padding: 14px; border-radius: 8px; text-align: center;
-        }
-        .btn-cashfree {
-            background: #097939; color: white; border: none; padding: 10px 18px;
-            font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer;
-            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
-        }
-        .qr-wrapper {
-            background: #fff; border: 1px solid #ddd; display: inline-block;
-            padding: 8px; border-radius: 8px; margin: 10px 0;
-        }
-        .qr-wrapper img { width: 140px; height: 140px; display: block; }
-
-        .upi-buttons { display: flex; justify-content: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
-        .upi-btn {
-            background: #3b82f6; color: white; padding: 8px 14px; border-radius: 5px;
-            font-size: 12px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
-        }
-
-        .bottom-upload-box {
-            background: #f8fafc; border: 2px dashed #94a3b8; padding: 15px;
-            border-radius: 8px; text-align: center; margin-top: 10px; cursor: pointer;
-        }
-        .sample-preview-box { display: none; margin-top: 10px; text-align: center; }
-        .sample-preview-box img {
-            max-width: 180px; max-height: 180px; border-radius: 6px;
-            border: 1px solid #cbd5e1; object-fit: cover;
-        }
 
         .signature-box-wrapper {
             background: #fff; border: 2px dashed #94a3b8; border-radius: 6px;
@@ -259,15 +242,6 @@
             .total-bill-box { flex-direction: column; gap: 5px; text-align: center; }
             .form-wrapper { padding: 12px; }
         }
-
-        @media print {
-            body * { visibility: hidden; }
-            #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
-            #printableReceiptArea {
-                position: absolute; left: 0; top: 0; width: 100%; display: block !important;
-                background: #fff; padding: 15px; margin: 0;
-            }
-        }
     </style>
 </head>
 <body>
@@ -309,7 +283,7 @@
             <div class="form-wrapper service-form-section" id="weddingFormSection">
                 <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
                 
-                <!-- चुना हुआ कार्ड दिखाने का बैनर (शादी कार्ड ऑर्डर फॉर्म के ठीक नीचे) -->
+                <!-- कैटलॉग से चुना गया कार्ड प्रीव्यू बैनर -->
                 <div class="selected-card-banner" id="selectedCardBanner">
                     <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
                     <div class="card-preview-body">
@@ -330,7 +304,9 @@
 
                     <!-- ०. ग्राहक का व्यक्तिगत विवरण -->
                     <div class="form-block" style="border-left-color: var(--blue);">
-                        <h4><i class="fa-solid fa-user-tag"></i> ग्राहक का विवरण (Customer Details)</h4>
+                        <div class="form-block-header">
+                            <h4><i class="fa-solid fa-user-tag"></i> ग्राहक का विवरण (Customer Details)</h4>
+                        </div>
                         <div class="row-2">
                             <div class="form-group">
                                 <label>ग्राहक का पूरा नाम:</label>
@@ -349,7 +325,9 @@
 
                     <!-- १. कार्ड कैटगरी, रेट एवं संख्या -->
                     <div class="form-block">
-                        <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
+                        <div class="form-block-header">
+                            <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
+                        </div>
                         <div class="row-3">
                             <div class="form-group">
                                 <label>कार्ड मॉडल / कैटगरी:</label>
@@ -357,17 +335,17 @@
                             </div>
                             <div class="form-group">
                                 <label>प्रति पीस रेट (₹):</label>
-                                <input type="number" id="cardRate" value="12" min="1" step="any" oninput="calculateWeddingTotal()" required>
+                                <input type="number" id="cardRate" value="10" min="1" step="any" oninput="calculateWeddingTotal()" required>
                             </div>
                             <div class="form-group">
                                 <label>संख्या (Quantity):</label>
-                                <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal()" required>
+                                <input type="number" id="cardQty" value="100" min="100" oninput="calculateWeddingTotal()" required>
                             </div>
                         </div>
 
                         <div class="total-bill-box">
                             <span>कुल बिल राशि:</span>
-                            <span id="weddingTotalDisplay">₹1,200</span>
+                            <span id="weddingTotalDisplay">₹1,000</span>
                         </div>
 
                         <div class="advance-calc-box">
@@ -376,608 +354,407 @@
                                     <label style="color: #166534; font-weight: bold;">
                                         <i class="fa-solid fa-hand-holding-dollar"></i> एडवांस जमा राशि (₹):
                                     </label>
-                                    <input type="number" id="advancePaidInput" value="600" min="0" step="any" oninput="updateAdvanceCalculations()" required>
+                                    <input type="number" id="advancePaidInput" value="500" min="0" step="any" oninput="updateAdvanceCalculations()" required>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 0; text-align: right;">
                                     <label style="color: #991b1b; font-weight: bold;">बाकी बकाया (Balance):</label>
-                                    <div id="balanceAmountDisplay" style="font-size: 16px; font-weight: bold; color: #dc2626; padding-top: 8px;">₹600</div>
+                                    <div id="balanceAmountDisplay" style="font-size: 16px; font-weight: bold; color: #dc2626; padding-top: 8px;">₹500</div>
                                 </div>
                             </div>
                             <small style="font-size: 11px; color: #15803d;">* न्यूनतम 50% एडवांस भुगतान अनिवार्य है। बाकी राशि कार्ड डिलीवरी के समय देय होगी।</small>
                         </div>
                     </div>
 
-                    <!-- २. दूल्हा-दुल्हन का नाम, पिता का नाम और पता -->
+                    <!-- २. दूल्हा-दुल्हन का नाम, पिता का नाम और पता (स्विच बटन सहित) -->
                     <div class="form-block">
-                        <h4>२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता</h4>
+                        <div class="form-block-header">
+                            <h4 id="coupleSectionTitle">२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता</h4>
+                            <button type="button" class="btn-switch-order" id="btnToggleSide" onclick="toggleCoupleSideOrder()">
+                                <i class="fa-solid fa-right-left"></i> <span id="toggleSideText">दुल्हन पक्ष पहले करें</span>
+                            </button>
+                        </div>
+
                         <div id="couplesGroup">
-                            <div class="dynamic-item couple-item">
-                                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label>दूल्हा का नाम:</label>
-                                        <input type="text" class="groom-name" placeholder="लड़का का नाम" required>
+                            <div class="dynamic-item couple-item" data-order="groom-first">
+                                <button type="button" class="btn-remove" onclick="removeDynamicItem(this)" style="display:none;">हटाएं</button>
+                                
+                                <div class="side-container-1">
+                                    <div style="background:#f8fafc; padding:10px; border-radius:4px; margin-bottom:8px;">
+                                        <strong class="side-label-1" style="color:var(--primary); font-size:13px;">[दूल्हा पक्ष]</strong>
+                                        <div class="row-2" style="margin-top:4px;">
+                                            <div class="form-group"><input type="text" class="groom-name" placeholder="लड़के का नाम" required></div>
+                                            <div class="form-group"><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:0;"><input type="text" class="groom-address" placeholder="लड़के का पूरा पता (ग्राम, पोस्ट, थाना, जिला)" required></div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>पिता का नाम:</label>
-                                        <input type="text" class="groom-father" placeholder="लड़के के पिता का नाम" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>लड़के का पूरा पता:</label>
-                                    <input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
                                 </div>
 
-                                <div class="weds-divider">
-                                    <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span>
-                                </div>
+                                <div class="weds-divider"><span class="weds-badge">संग (Weds)</span></div>
 
-                                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label>दुल्हन का नाम:</label>
-                                        <input type="text" class="bride-name" placeholder="लड़की का नाम" required>
+                                <div class="side-container-2">
+                                    <div style="background:#f8fafc; padding:10px; border-radius:4px;">
+                                        <strong class="side-label-2" style="color:var(--secondary); font-size:13px;">[दुल्हन पक्ष]</strong>
+                                        <div class="row-2" style="margin-top:4px;">
+                                            <div class="form-group"><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>
+                                            <div class="form-group"><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:0;"><input type="text" class="bride-address" placeholder="लड़की का पूरा पता (ग्राम, पोस्ट, थाना, जिला)" required></div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>पिता का नाम:</label>
-                                        <input type="text" class="bride-father" placeholder="लड़की के पिता का नाम" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>लड़की का पूरा पता:</label>
-                                    <input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-add" onclick="addCoupleField()">+ और दूल्हा-दुल्हन जोड़ें</button>
+                        <button type="button" class="btn-add" onclick="addCouple()"><i class="fa-solid fa-plus"></i> और दूल्हा-दुल्हन जोड़ें</button>
                     </div>
 
                     <!-- ३. वैवाहिक कार्यक्रम एवं तारीखें -->
                     <div class="form-block">
-                        <h4>३. वैवाहिक कार्यक्रम एवं तारीखें</h4>
+                        <div class="form-block-header">
+                            <h4>३. वैवाहिक कार्यक्रम एवं तारीखें</h4>
+                        </div>
                         <div id="eventsGroup">
                             <div class="dynamic-item event-item">
-                                <div class="form-group">
-                                    <label>कार्यक्रम का नाम:</label>
-                                    <input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required>
-                                </div>
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label>तारीख:</label>
-                                        <input type="date" class="event-date" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>समय:</label>
-                                        <input type="time" class="event-time">
-                                    </div>
+                                <button type="button" class="btn-remove" onclick="removeDynamicItem(this)" style="display:none;">हटाएं</button>
+                                <div class="row-3">
+                                    <div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-name" placeholder="उदा: निकाह / बारात" required></div>
+                                    <div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>
+                                    <div class="form-group"><label>समय:</label><input type="time" class="event-time" required></div>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-add" onclick="addEventField()">+ और कार्यक्रम / तारीख जोड़ें</button>
+                        <button type="button" class="btn-add" onclick="addEvent()"><i class="fa-solid fa-plus"></i> और कार्यक्रम / तारीख जोड़ें</button>
                     </div>
 
-                    <!-- ४. निवेदक, दर्शनाभिलाषी एवं RSVP -->
+                    <!-- ४. निवेदक, दर्शनाभिलाषी एवं स्वागतकर्ता -->
                     <div class="form-block">
-                        <h4>४. निवेदक, दर्शनाभिलाषी एवं RSVP</h4>
-                        <div class="form-group">
-                            <label>आर.एस.वी.पी (RSVP) नाम व फोन:</label>
-                            <textarea id="rsvpText" rows="2" placeholder="नाम और संपर्क नंबर..."></textarea>
+                        <div class="form-block-header">
+                            <h4>४. निवेदक, दर्शनाभिलाषी एवं स्वागतकर्ता</h4>
                         </div>
-                        <div class="form-group">
-                            <label>दर्शनाभिलाषी / विनीत (From):</label>
-                            <textarea id="fromText" rows="2" placeholder="परिवारजनों के नाम..."></textarea>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>निवेदक (Nivedak):</label>
+                                <textarea id="nivedakNames" rows="2" placeholder="नाम दर्ज करें..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>दर्शनाभिलाषी (Darshanabhilashi):</label>
+                                <textarea id="darshanaNames" rows="2" placeholder="नाम दर्ज करें..."></textarea>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>शायरी / विशेष संदेश:</label>
-                            <textarea id="extraText" rows="2" placeholder="कोई खास शायरी या निर्देश..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- ५. कार्ड का सैंपल फोटो अपलोड -->
-                    <div class="form-block">
-                        <h4>५. कार्ड का सैंपल फोटो (वैकल्पिक)</h4>
-                        <div class="bottom-upload-box" onclick="document.getElementById('bottomCardSample').click()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: var(--blue); margin-bottom: 4px;"></i>
-                            <p style="font-weight: 600; font-size: 13px;">यहाँ क्लिक करके अतिरिक्त कार्ड सैंपल या हाथ से लिखा मैटर अपलोड करें</p>
-                            <input type="file" id="bottomCardSample" accept="image/*,.pdf" style="display: none;" onchange="previewBottomSample(event)">
-                        </div>
-                        <div class="sample-preview-box" id="bottomPreviewContainer">
-                            <img id="bottomPreviewImg" src="" alt="कार्ड सैंपल">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>स्वाकांक्षी / विनीत / बाल मनुहार:</label>
+                            <textarea id="swakankshiNames" rows="2" placeholder="अन्य नाम..."></textarea>
                         </div>
                     </div>
 
-                    <!-- ६. ऑनलाइन भुगतान (Payment) -->
+                    <!-- ५. हस्ताक्षर एवं घोषणा -->
                     <div class="form-block">
-                        <h4>६. ऑनलाइन एडवांस भुगतान (Payment)</h4>
-                        <div class="payment-box">
-                            <p style="font-weight: 600; font-size: 14px; color: #166534; margin-bottom: 6px;">
-                                अभी देय एडवांस राशि: <span id="payDueAdvanceDisplay" style="font-size: 18px; font-weight: bold; color: #b91c1c;">₹600</span>
-                            </p>
-                            <p style="font-size: 12px; color: #475569; margin-bottom: 10px;">
-                                Cashfree गेटवे से सुरक्षित ऑनलाइन भुगतान करें:
-                            </p>
-                            <a href="https://payments.cashfree.com/forms/delhi-press-sajad-pr" target="_blank" class="btn-cashfree">
-                                <i class="fa-solid fa-shield-halved"></i> Cashfree से पेमेंट करें
-                            </a>
-
-                            <div style="margin: 12px 0 6px 0; font-weight: 600; font-size: 13px; color: #475569;">
-                                — अथवा UPI / QR स्कैन करके भुगतान करें —
-                            </div>
-
-                            <div class="qr-wrapper">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@okbizaxis%26pn=DelhiPress%26cu=INR" alt="QR Code">
-                            </div>
-
-                            <div style="font-size: 12px; font-weight: bold; color: #1e293b; margin-bottom: 8px;">
-                                UPI ID: 9304509464@okbizaxis
-                            </div>
-
-                            <div class="upi-buttons">
-                                <a href="upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&cu=INR" class="upi-btn" style="background:#0f9d58;"><i class="fa-brands fa-google-pay"></i> GPay</a>
-                                <a href="upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&cu=INR" class="upi-btn" style="background:#5f259f;"><i class="fa-solid fa-mobile-screen"></i> PhonePe</a>
-                                <a href="upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&cu=INR" class="upi-btn" style="background:#00b9f5;"><i class="fa-solid fa-wallet"></i> Paytm</a>
-                            </div>
-
-                            <div class="form-group" style="margin-top: 14px; text-align: left;">
-                                <label style="color: #065f46; font-weight: bold;">भुगतान के बाद 12 अंकों का UTR / Transaction No. दर्ज करें:</label>
-                                <input type="text" id="payUtr" placeholder="उदा: 4234XXXXXXXX" required>
-                            </div>
+                        <div class="form-block-header">
+                            <h4>५. डिजिटल हस्ताक्षर एवं ग्राहक सहमति</h4>
                         </div>
-                    </div>
-
-                    <!-- ७. डिजिटल हस्ताक्षर एवं ग्राहक घोषणा -->
-                    <div class="form-block">
-                        <h4>७. ग्राहक डिजिटल हस्ताक्षर एवं सत्यापन</h4>
-                        <p style="font-size: 12px; color: #64748b; margin-bottom: 6px;">नीचे दिए गए बॉक्स में अपनी उंगली से अपना हस्ताक्षर (Signature) करें:</p>
+                        <label>नीचे बॉक्स में अपनी उंगली या स्टाइलस से हस्ताक्षर करें:</label>
                         <div class="signature-box-wrapper">
-                            <canvas id="sigCanvas"></canvas>
-                            <div>
-                                <button type="button" class="sig-btn-clear" onclick="clearSignature()"><i class="fa-solid fa-eraser"></i> दोबारा साइन करें (Clear)</button>
-                            </div>
+                            <canvas id="sigCanvas"></canvas><br>
+                            <button type="button" class="sig-btn-clear" onclick="clearSignature()"><i class="fa-solid fa-eraser"></i> हस्ताक्षर साफ़ करें</button>
                         </div>
 
                         <div class="declaration-box">
-                            <input type="checkbox" id="userDeclaration" required>
-                            <label for="userDeclaration">
-                                मैंने मैटर को अच्छी तरह से देखा, पढ़ा और पहचाना है। यदि छपाई के बाद कोई त्रुटि या गलती पाई जाती है तो उसके पूर्ण जिम्मेवार हम स्वयं होंगे।
+                            <input type="checkbox" id="agreeTerms" required>
+                            <label for="agreeTerms">
+                                मैं यह प्रमाणित करता/करती हूँ कि मेरे द्वारा दी गई सभी जानकारी (नाम, पता, तारीख) सही हैं। कार्ड छपने के बाद किसी त्रुटि की जिम्मेदारी मेरी होगी।
                             </label>
                         </div>
                     </div>
 
                     <div class="btn-row">
                         <button type="submit" class="btn-review-main">
-                            <i class="fa-solid fa-file-lines"></i> मैटर जाँचें एवं रसीद डाउनलोड करें
+                            <i class="fa-solid fa-magnifying-glass-check"></i> मैटर की समीक्षा करें (Review Order)
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-
     </div>
 
-    <!-- Review & Confirmation Modal -->
+    <!-- Review Modal -->
     <div class="modal" id="reviewModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReviewModal()">&times;</span>
-            <h3 style="color: var(--primary); text-align: center; margin-bottom: 10px;">
-                <i class="fa-solid fa-receipt"></i> ऑर्डर सारांश एवं रसीद
-            </h3>
-            <p style="font-size: 12px; color: #666; text-align: center;">
-                कृपया दर्ज विवरण की जाँच करें। आप इसे PDF रसीद में प्रिंट/डाउनलोड कर सकते हैं।
-            </p>
-
-            <div class="review-box" id="reviewContent"></div>
-
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
-                <button type="button" class="btn-review-main" style="background:#0284c7;" onclick="downloadAndPrintReceipt()">
-                    <i class="fa-solid fa-download"></i> रसीद (Receipt) डाउनलोड / प्रिंट करें
-                </button>
-                <button type="button" id="btnSubmitOrder" class="btn-whatsapp-send" onclick="submitOrderToDatabase()">
-                    <i class="fa-brands fa-whatsapp"></i> ऑर्डर सुरक्षित करें एवं WhatsApp भेजें
-                </button>
-            </div>
+            <h3 style="color:var(--primary); margin-bottom:10px;"><i class="fa-solid fa-clipboard-check"></i> ऑर्डर मैटर समीक्षा</h3>
+            <div class="review-box" id="reviewContentText"></div>
+            <button type="button" class="btn-whatsapp-send" onclick="sendOrderViaWhatsApp()">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp पर ऑर्डर एवं मैटर भेजें
+            </button>
         </div>
     </div>
 
-    <!-- Printable Receipt Element -->
-    <div id="printableReceiptArea" style="display: none;"></div>
-
-    <!-- Mobile Bottom Navigation -->
+    <!-- Mobile Bottom Navigation Bar -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
-        <a href="index.html#catalogSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="order.html" style="color: var(--primary);"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
+        <a href="index.html#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
+        <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
+        <a href="my_orders.html"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://urzmdriydbofeoitvipj.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let preparedOrderPayload = null;
-        let constructedWaMessage = "";
-        let signatureDataUrl = "";
-        let selectedCardObject = null;
-
-        const canvas = document.getElementById('sigCanvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        let hasSignature = false;
-
-        function resizeCanvas() {
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            ctx.lineWidth = 2.5;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#1e293b';
+        const SUPABASE_URL = 'https://urzmdriydbofeoitvipj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzODU2MDUsImV4cCI6MjA1NTk2MTYwNX0.u2X_1a3H3cW8Gj8F2Y3_e_g7A_b9x0_d1';
+        
+        let supabaseClient = null;
+        if (window.supabase) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
 
-        function getTouchPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches ? e.touches[0] : e;
-            return {
-                x: touch.clientX - rect.left,
-                y: touch.clientY - rect.top
-            };
-        }
+        let isBrideFirst = false;
 
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            const pos = getTouchPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        });
+        function getCoupleTemplateHTML(isGroomFirst, canRemove = false) {
+            const groomHtml = `
+                <div style="background:#f8fafc; padding:10px; border-radius:4px; margin-bottom:8px;">
+                    <strong style="color:var(--primary); font-size:13px;">[दूल्हा पक्ष]</strong>
+                    <div class="row-2" style="margin-top:4px;">
+                        <div class="form-group"><input type="text" class="groom-name" placeholder="लड़के का नाम" required></div>
+                        <div class="form-group"><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;"><input type="text" class="groom-address" placeholder="लड़के का पूरा पता (ग्राम, पोस्ट, थाना, जिला)" required></div>
+                </div>
+            `;
 
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isDrawing) return;
-            const pos = getTouchPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            hasSignature = true;
-        });
+            const brideHtml = `
+                <div style="background:#f8fafc; padding:10px; border-radius:4px; margin-bottom:8px;">
+                    <strong style="color:var(--secondary); font-size:13px;">[दुल्हन पक्ष]</strong>
+                    <div class="row-2" style="margin-top:4px;">
+                        <div class="form-group"><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>
+                        <div class="form-group"><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;"><input type="text" class="bride-address" placeholder="लड़की का पूरा पता (ग्राम, पोस्ट, थाना, जिला)" required></div>
+                </div>
+            `;
 
-        window.addEventListener('mouseup', () => { isDrawing = false; });
+            const removeBtn = canRemove ? `<button type="button" class="btn-remove" onclick="removeDynamicItem(this)">हटाएं</button>` : `<button type="button" class="btn-remove" onclick="removeDynamicItem(this)" style="display:none;">हटाएं</button>`;
 
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            isDrawing = true;
-            const pos = getTouchPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
-            if (!isDrawing) return;
-            e.preventDefault();
-            const pos = getTouchPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            hasSignature = true;
-        }, { passive: false });
-
-        window.addEventListener('touchend', () => { isDrawing = false; });
-
-        function clearSignature() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            hasSignature = false;
-            signatureDataUrl = "";
-        }
-
-        function checkAuthStatus() {
-            const userJson = localStorage.getItem('dp_current_user');
-            const overlay = document.getElementById('formLockOverlay');
-            if (!userJson) {
-                overlay.style.display = 'flex';
-                return null;
-            }
-            overlay.style.display = 'none';
-            try { 
-                const user = JSON.parse(userJson);
-                if (user) {
-                    const nameField = document.getElementById('custFullName');
-                    const phoneField = document.getElementById('custMobile');
-                    const addrField = document.getElementById('custFullAddress');
-
-                    if (!nameField.value) nameField.value = user.name || user.full_name || '';
-                    if (!phoneField.value) phoneField.value = user.mobile || user.phone || user.email || '';
-                    if (!addrField.value) addrField.value = user.address || user.village || '';
-                }
-                return user; 
-            } catch (e) { 
-                return null; 
+            if (isGroomFirst) {
+                return `
+                    ${removeBtn}
+                    <div class="side-container-1">${groomHtml}</div>
+                    <div class="weds-divider"><span class="weds-badge">संग (Weds)</span></div>
+                    <div class="side-container-2">${brideHtml}</div>
+                `;
+            } else {
+                return `
+                    ${removeBtn}
+                    <div class="side-container-1">${brideHtml}</div>
+                    <div class="weds-divider"><span class="weds-badge">संग (Weds)</span></div>
+                    <div class="side-container-2">${groomHtml}</div>
+                `;
             }
         }
 
-        /* कैटलॉग से चुना गया कार्ड डेटा लोड करना */
-        async function loadSelectedCard() {
+        function toggleCoupleSideOrder() {
+            isBrideFirst = !isBrideFirst;
+            const toggleText = document.getElementById('toggleSideText');
+            const title = document.getElementById('coupleSectionTitle');
+
+            if (isBrideFirst) {
+                toggleText.innerText = "दूल्हा पक्ष पहले करें";
+                title.innerText = "२. दुल्हन-दूल्हा का नाम, पिता का नाम और पता";
+            } else {
+                toggleText.innerText = "दुल्हन पक्ष पहले करें";
+                title.innerText = "२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता";
+            }
+
+            document.querySelectorAll('.couple-item').forEach((item, index) => {
+                const gName = item.querySelector('.groom-name')?.value || '';
+                const gFather = item.querySelector('.groom-father')?.value || '';
+                const gAddr = item.querySelector('.groom-address')?.value || '';
+
+                const bName = item.querySelector('.bride-name')?.value || '';
+                const bFather = item.querySelector('.bride-father')?.value || '';
+                const bAddr = item.querySelector('.bride-address')?.value || '';
+
+                item.innerHTML = getCoupleTemplateHTML(!isBrideFirst, index > 0);
+
+                item.querySelector('.groom-name').value = gName;
+                item.querySelector('.groom-father').value = gFather;
+                item.querySelector('.groom-address').value = gAddr;
+
+                item.querySelector('.bride-name').value = bName;
+                item.querySelector('.bride-father').value = bFather;
+                item.querySelector('.bride-address').value = bAddr;
+            });
+        }
+
+        async function loadSelectedCardDetails() {
             const urlParams = new URLSearchParams(window.location.search);
-            const cardId = urlParams.get('card_id') || urlParams.get('id') || localStorage.getItem('selectedCardId');
+            const cardId = urlParams.get('card_id');
 
-            // 1. Agar ID mili to database se details fetch karein
-            if (cardId) {
-                try {
-                    const { data: card, error } = await supabaseClient
-                        .from('cards')
-                        .select('*')
-                        .eq('id', cardId)
-                        .maybeSingle();
+            if (!cardId || !supabaseClient) return;
 
-                    if (!error && card) {
-                        applyCardData(
-                            card.id,
-                            card.card_name || card.name || card.title || 'मुस्लिम वेडिंग कार्ड',
-                            card.model || card.card_model || card.code || `Model #${card.id}`,
-                            card.price ?? card.card_price ?? card.rate ?? '10',
-                            card.image_url || card.image || card.photo_url || ''
-                        );
-                        return;
-                    }
-                } catch (err) {
-                    console.error("Card load error:", err);
-                }
-            }
+            try {
+                const { data: card, error } = await supabaseClient
+                    .from('cards')
+                    .select('*')
+                    .eq('id', cardId)
+                    .single();
 
-            // 2. Agar direct parameters ya localStorage me details hain
-            const name = urlParams.get('name') || urlParams.get('title') || localStorage.getItem('selectedCardName') || localStorage.getItem('selectedCardTitle');
-            const model = urlParams.get('model') || urlParams.get('code') || localStorage.getItem('selectedCardModel');
-            const rate = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selectedCardRate') || localStorage.getItem('selectedCardPrice');
-            const img = urlParams.get('img') || urlParams.get('image') || localStorage.getItem('selectedCardImage');
+                if (error || !card) return;
 
-            if (name || model || rate || img) {
-                applyCardData(cardId || '', name || 'मुस्लिम वेडिंग कार्ड', model || '-', rate || '10', img || '');
-            }
-        }
+                document.getElementById('selectedCardId').value = card.id;
+                document.getElementById('selectedCardImageStored').value = card.image_url || '';
+                document.getElementById('selectedCardModelStored').value = card.title || '';
+                
+                document.getElementById('cardCategory').value = card.title || 'मुस्लिम निकाह कार्ड';
+                document.getElementById('cardRate').value = card.price || 10;
+                
+                document.getElementById('previewCardImage').src = card.image_url;
+                document.getElementById('previewCardName').innerText = card.title || 'शादी कार्ड';
+                document.getElementById('previewCardModel').innerText = `मॉडल / कोड: #${card.id}`;
+                document.getElementById('previewCardRate').innerText = `मूल्य: ₹${card.price || 0} / पीस`;
+                document.getElementById('selectedCardBanner').style.display = 'block';
 
-        function applyCardData(id, name, model, price, img) {
-            const banner = document.getElementById('selectedCardBanner');
-            if (banner) banner.style.display = 'block';
-
-            if (img && document.getElementById('previewCardImage')) {
-                document.getElementById('previewCardImage').src = img;
-                document.getElementById('selectedCardImageStored').value = img;
+                calculateWeddingTotal();
+            } catch (err) {
+                console.error('Error fetching card details:', err);
             }
-            if (document.getElementById('previewCardName')) {
-                document.getElementById('previewCardName').innerText = name;
-            }
-            if (document.getElementById('previewCardModel')) {
-                document.getElementById('previewCardModel').innerHTML = `मॉडल / कोड: <b>${model}</b>`;
-                document.getElementById('selectedCardModelStored').value = model;
-            }
-            if (document.getElementById('previewCardRate')) {
-                document.getElementById('previewCardRate').innerText = `मूल्य: ₹${price} / पीस`;
-            }
-
-            if (id && document.getElementById('selectedCardId')) {
-                document.getElementById('selectedCardId').value = id;
-            }
-
-            if (document.getElementById('cardCategory')) {
-                document.getElementById('cardCategory').value = `${name} (${model})`;
-            }
-            if (document.getElementById('cardRate')) {
-                document.getElementById('cardRate').value = parseFloat(price) || 0;
-            }
-
-            calculateWeddingTotal();
         }
 
         function calculateWeddingTotal() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const total = rate * qty;
+            
             document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
-
-            const currentAdvanceInput = document.getElementById('advancePaidInput');
-            if (!currentAdvanceInput.dataset.userModified) {
-                const defAdvance = Math.round(total * 0.5);
-                currentAdvanceInput.value = defAdvance;
-            }
+            
+            const minAdvance = Math.ceil(total * 0.5);
+            const advanceInput = document.getElementById('advancePaidInput');
+            advanceInput.value = minAdvance;
             updateAdvanceCalculations();
-            return total;
         }
 
         function updateAdvanceCalculations() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const total = rate * qty;
-
-            const advInput = document.getElementById('advancePaidInput');
-            let advance = parseFloat(advInput.value);
-            if (isNaN(advance) || advance < 0) advance = 0;
-
+            const advance = parseFloat(document.getElementById('advancePaidInput').value) || 0;
             const balance = Math.max(0, total - advance);
 
             document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
-            document.getElementById('payDueAdvanceDisplay').innerText = `₹${advance.toLocaleString('en-IN')}`;
         }
 
-        document.getElementById('advancePaidInput').addEventListener('input', () => {
-            document.getElementById('advancePaidInput').dataset.userModified = "true";
-            updateAdvanceCalculations();
-        });
-
-        function addCoupleField() {
+        function addCouple() {
             const group = document.getElementById('couplesGroup');
-            const div = document.createElement('div');
-            div.className = 'dynamic-item couple-item';
-            div.innerHTML = `
-                <button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
-                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दूल्हा पक्ष]</p>
-                <div class="row-2">
-                    <div class="form-group"><label>दूल्हा का नाम:</label><input type="text" class="groom-name" placeholder="लड़का का नाम" required></div>
-                    <div class="form-group"><label>पिता का नाम:</label><input type="text" class="groom-father" placeholder="लड़के के पिता का नाम" required></div>
-                </div>
-                <div class="form-group"><label>लड़के का पूरा पता:</label><input type="text" class="groom-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required></div>
-                <div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग / Weds <i class="fa-solid fa-heart"></i></span></div>
-                <p style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">[दुल्हन पक्ष]</p>
-                <div class="row-2">
-                    <div class="form-group"><label>दुल्हन का नाम:</label><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>
-                    <div class="form-group"><label>पिता का नाम:</label><input type="text" class="bride-father" placeholder="लड़की के पिता का नाम" required></div>
-                </div>
-                <div class="form-group"><label>लड़की का पूरा पता:</label><input type="text" class="bride-address" placeholder="ग्राम, पोस्ट, थाना, जिला..." required></div>
-            `;
-            group.appendChild(div);
+            const item = document.createElement('div');
+            item.className = 'dynamic-item couple-item';
+            item.innerHTML = getCoupleTemplateHTML(!isBrideFirst, true);
+            group.appendChild(item);
         }
 
-        function addEventField() {
+        function addEvent() {
             const group = document.getElementById('eventsGroup');
-            const div = document.createElement('div');
-            div.className = 'dynamic-item event-item';
-            div.innerHTML = `
-                <button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-title" placeholder="उदा: निकाह / बारात" required></div>
-                <div class="row-2">
+            const item = document.createElement('div');
+            item.className = 'dynamic-item event-item';
+            item.innerHTML = `
+                <button type="button" class="btn-remove" onclick="removeDynamicItem(this)">हटाएं</button>
+                <div class="row-3">
+                    <div class="form-group"><label>कार्यक्रम का नाम:</label><input type="text" class="event-name" placeholder="उदा: वलीमा / विदाई" required></div>
                     <div class="form-group"><label>तारीख:</label><input type="date" class="event-date" required></div>
-                    <div class="form-group"><label>समय:</label><input type="time" class="event-time"></div>
+                    <div class="form-group"><label>समय:</label><input type="time" class="event-time" required></div>
                 </div>
             `;
-            group.appendChild(div);
+            group.appendChild(item);
         }
 
-        function previewBottomSample(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('bottomPreviewImg').src = e.target.result;
-                    document.getElementById('bottomPreviewContainer').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
+        function removeDynamicItem(btn) {
+            btn.parentElement.remove();
         }
+
+        const canvas = document.getElementById('sigCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#1e293b';
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            ctx.beginPath();
+            const pos = getPos(e);
+            ctx.moveTo(pos.x, pos.y);
+        }
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+        function stopDrawing() { isDrawing = false; }
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+        window.addEventListener('touchend', stopDrawing);
+
+        let finalMessage = "";
 
         function openReviewModal() {
-            const user = checkAuthStatus();
-            if (!user) {
-                alert("कृपया पहले लॉगिन करें!");
-                window.location.href = "login.html?redirect=order.html";
-                return;
-            }
+            const name = document.getElementById('custFullName').value;
+            const mobile = document.getElementById('custMobile').value;
+            const address = document.getElementById('custFullAddress').value;
+            const cardModel = document.getElementById('cardCategory').value;
+            const rate = document.getElementById('cardRate').value;
+            const qty = document.getElementById('cardQty').value;
+            const total = parseFloat(rate) * parseInt(qty);
+            const adv = document.getElementById('advancePaidInput').value;
+            const bal = Math.max(0, total - parseFloat(adv));
 
-            const isDeclared = document.getElementById('userDeclaration').checked;
-            if (!isDeclared) {
-                alert("कृपया घोषणा चेकबॉक्स पर टिक करके सहमति दें!");
-                return;
-            }
+            let couplesText = "";
+            document.querySelectorAll('.couple-item').forEach((item, idx) => {
+                const gName = item.querySelector('.groom-name').value;
+                const gFather = item.querySelector('.groom-father').value;
+                const gAddr = item.querySelector('.groom-address').value;
+                const bName = item.querySelector('.bride-name').value;
+                const bFather = item.querySelector('.bride-father').value;
+                const bAddr = item.querySelector('.bride-address').value;
 
-            if (!hasSignature) {
-                alert("कृपया नीचे दिए गए बॉक्स में अपना डिजिटल हस्ताक्षर (साइन) करें!");
-                return;
-            }
-
-            signatureDataUrl = canvas.toDataURL('image/png');
-
-            const custName = document.getElementById('custFullName').value.trim();
-            const custMobile = document.getElementById('custMobile').value.trim();
-            const custAddress = document.getElementById('custFullAddress').value.trim();
-
-            if (!custName || !custMobile || !custAddress) {
-                alert("कृपया ग्राहक का नाम, मोबाइल नंबर और पूरा पता अवश्य भरें!");
-                return;
-            }
-
-            const category = document.getElementById('cardCategory').value.trim();
-            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            const qty = parseInt(document.getElementById('cardQty').value) || 0;
-            const total = rate * qty;
-            const advancePaid = parseFloat(document.getElementById('advancePaidInput').value) || 0;
-            const balanceAmount = Math.max(0, total - advancePaid);
-            const utr = document.getElementById('payUtr').value.trim();
-
-            const couples = [];
-            document.querySelectorAll('.couple-item').forEach(item => {
-                couples.push({
-                    groom: item.querySelector('.groom-name')?.value.trim() || '',
-                    groom_father: item.querySelector('.groom-father')?.value.trim() || '',
-                    groom_address: item.querySelector('.groom-address')?.value.trim() || '',
-                    bride: item.querySelector('.bride-name')?.value.trim() || '',
-                    bride_father: item.querySelector('.bride-father')?.value.trim() || '',
-                    bride_address: item.querySelector('.bride-address')?.value.trim() || ''
-                });
+                if (isBrideFirst) {
+                    couplesText += `\n💍 जोड़ी ${idx + 1}:\nदुल्हन: ${bName} (सुपुत्री: ${bFather}, पता: ${bAddr})\nदूल्हा: ${gName} (सुपुत्र: ${gFather}, पता: ${gAddr})\n`;
+                } else {
+                    couplesText += `\n💍 जोड़ी ${idx + 1}:\nदूल्हा: ${gName} (सुपुत्र: ${gFather}, पता: ${gAddr})\nदुल्हन: ${bName} (सुपुत्री: ${bFather}, पता: ${bAddr})\n`;
+                }
             });
 
-            const events = [];
+            let eventsText = "";
             document.querySelectorAll('.event-item').forEach(item => {
-                events.push({
-                    title: item.querySelector('.event-title')?.value.trim() || '',
-                    date: item.querySelector('.event-date')?.value || '',
-                    time: item.querySelector('.event-time')?.value || ''
-                });
+                const eName = item.querySelector('.event-name').value;
+                const eDate = item.querySelector('.event-date').value;
+                const eTime = item.querySelector('.event-time').value;
+                eventsText += `• ${eName}: दिनांक ${eDate}, समय ${eTime}\n`;
             });
 
-            const rsvp = document.getElementById('rsvpText').value.trim();
-            const fromFamily = document.getElementById('fromText').value.trim();
-            const instructions = document.getElementById('extraText').value.trim();
+            finalMessage = `*📋 नया शादी कार्ड ऑर्डर - दिल्ली प्रेस*\n------------------------------\n` +
+                           `👤 *ग्राहक:* ${name}\n📱 *मोबाइल:* ${mobile}\n📍 *पता:* ${address}\n\n` +
+                           `🎴 *कार्ड विवरण:*\nमॉडल: ${cardModel}\nरेट: ₹${rate}/पीस | संख्या: ${qty}\n*कुल बिल:* ₹${total} | *एडवांस:* ₹${adv} | *बाकी:* ₹${bal}\n` +
+                           `------------------------------\n` +
+                           `*${isBrideFirst ? 'दुल्हन-दूल्हा' : 'दूल्हा-दुल्हन'} का विवरण:*${couplesText}\n` +
+                           `*कार्यक्रम:* \n${eventsText}\n` +
+                           `*निवेदक:* ${document.getElementById('nivedakNames').value || '-'}\n` +
+                           `*दर्शनाभिलाषी:* ${document.getElementById('darshanaNames').value || '-'}\n` +
+                           `------------------------------\n_सहमति: ग्राहक द्वारा प्रमाणित एवं स्वीकृत_`;
 
-            preparedOrderPayload = {
-                user_name: custName,
-                user_phone: custMobile,
-                user_address: custAddress,
-                service_type: 'शादी कार्ड',
-                category: category,
-                card_id: document.getElementById('selectedCardId').value || null,
-                card_image: document.getElementById('selectedCardImageStored').value || '',
-                card_model: document.getElementById('selectedCardModelStored').value || '',
-                rate: rate,
-                quantity: qty,
-                total_amount: total,
-                advance_amount: advancePaid,
-                balance_amount: balanceAmount,
-                couples: couples,
-                events: events,
-                rsvp: rsvp,
-                from_family: fromFamily,
-                instructions: instructions,
-                utr: utr,
-                signature: signatureDataUrl,
-                status: 'pending',
-                created_at: new Date().toISOString()
-            };
-
-            let summaryText = `👤 **ग्राहक विवरण**:\n`;
-            summaryText += `नाम: ${custName}\n`;
-            summaryText += `मोबाइल: ${custMobile}\n`;
-            summaryText += `पता: ${custAddress}\n\n`;
-
-            summaryText += `📋 **कार्ड प्रकार / मॉडल**: ${category}\n`;
-            summaryText += `💰 दर: ₹${rate} | संख्या: ${qty} पीस\n`;
-            summaryText += `💵 कुल बिल: ₹${total}\n`;
-            summaryText += `🟢 जमा एडवांस: ₹${advancePaid}\n`;
-            summaryText += `🔴 बाकी बकाया: ₹${balanceAmount}\n`;
-            summaryText += `🏦 भुगतान UTR / Trans No: ${utr}\n\n`;
-            
-            summaryText += `💑 **दूल्हा-दुल्हन विवरण**:\n`;
-            couples.forEach((c, idx) => {
-                summaryText += `जोड़ी #${idx+1}: वर: ${c.groom} (पिता: ${c.groom_father}, पता: ${c.groom_address})\n`;
-                summaryText += `       संग वधू: ${c.bride} (पिता: ${c.bride_father}, पता: ${c.bride_address})\n`;
-            });
-            summaryText += `\n📅 **कार्यक्रम**:\n`;
-            events.forEach(ev => {
-                summaryText += `• ${ev.title}: ${ev.date} ${ev.time ? '('+ev.time+')' : ''}\n`;
-            });
-            if (rsvp) summaryText += `\n📞 RSVP: ${rsvp}\n`;
-            if (fromFamily) summaryText += `👥 दर्शनाभिलाषी: ${fromFamily}\n`;
-            if (instructions) summaryText += `📝 निर्देश/शायरी: ${instructions}\n`;
-            summaryText += `\n✍️ डिजिटल हस्ताक्षर: संलग्न है\n`;
-            summaryText += `✅ घोषणा: ग्राहक ने पूरे मैटर की जांच कर ली है।`;
-
-            document.getElementById('reviewContent').innerText = summaryText;
-
-            constructedWaMessage = `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर*\n\n` +
-                `*ग्राहक का नाम:* ${custName}\n` +
-                `*मोबाइल नंबर:* ${custMobile}\n` +
-                `*ग्राहक का पता:* ${custAddress}\n\n` +
-                `*कार्ड प्रकार / मॉडल:* ${category}\n` +
-                `*संख्या:* ${qty} पीस | *दर:* ₹${rate}\n` +
-                `*कुल बिल:* ₹${total}\n` +
-                `*एडवांस भुगतान:* ₹${advancePaid}\n` +
-                `*बाकी बकाया:* ₹${balanceAmount}\n` +
-                `*UTR / Trans No:* ${utr}\n\n` +
-                `*वर पक्ष:* ${couples[0]?.groom || ''} (पिता: ${couples[0]?.groom_father || ''})\n` +
-                `*वधू पक्ष:* ${couples[0]?.bride || ''} (पिता: ${couples[0]?.bride_father || ''})\n\n` +
-                `मैटर व डिजिटल हस्ताक्षर रसीद सफलतापूर्वक सबमिट हो गई है।`;
-
+            document.getElementById('reviewContentText').innerText = finalMessage;
             document.getElementById('reviewModal').style.display = 'flex';
         }
 
@@ -985,199 +762,16 @@
             document.getElementById('reviewModal').style.display = 'none';
         }
 
-        function downloadAndPrintReceipt() {
-            if (!preparedOrderPayload) return;
-            const ord = preparedOrderPayload;
-            const printArea = document.getElementById('printableReceiptArea');
-            const d = new Date();
-            const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
-            const mapShareUrl = "https://share.google/dmV4uXNQ8KWnP1EHQ";
-
-            let cardThumbnailHtml = ord.card_image ? `
-                <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 12px; background: #fffdfa; border: 1px solid #fbd38d; padding: 6px 10px; border-radius: 6px;">
-                    <img src="${ord.card_image}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">
-                    <div style="font-size: 12px;">
-                        <b>चुना गया कार्ड:</b> ${ord.category}<br>
-                        <span style="color: #64748b;">दर: ₹${ord.rate} / पीस</span>
-                    </div>
-                </div>
-            ` : '';
-
-            let couplesHtml = '';
-            ord.couples.forEach((c, i) => {
-                couplesHtml += `
-                    <div style="background: #fff8f0; border: 1px dashed #d35400; padding: 8px; border-radius: 6px; margin-bottom: 6px;">
-                        <div style="font-weight: bold; color: #b45309; font-size: 13px; margin-bottom: 4px;">जोड़ी #${i+1}:</div>
-                        <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;">
-                            <div style="flex: 1;">
-                                <b>वर (दूल्हा):</b> ${c.groom || '-'}<br>
-                                <b>पिता:</b> ${c.groom_father || '-'}<br>
-                                <b>पता:</b> ${c.groom_address || '-'}
-                            </div>
-                            <div style="text-align: center; font-weight: bold; color: #c0392b; align-self: center;">संग / Weds</div>
-                            <div style="flex: 1;">
-                                <b>वधू (दुल्हन):</b> ${c.bride || '-'}<br>
-                                <b>पिता:</b> ${c.bride_father || '-'}<br>
-                                <b>पता:</b> ${c.bride_address || '-'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            let eventsHtml = '<ul style="margin: 0; padding-left: 20px; font-size: 12px;">';
-            ord.events.forEach(ev => {
-                eventsHtml += `<li><b>${ev.title || 'कार्यक्रम'}:</b> दिनांक: ${ev.date || '-'} | समय: ${ev.time || '-'}</li>`;
-            });
-            eventsHtml += '</ul>';
-
-            printArea.innerHTML = `
-                <div style="max-width: 780px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
-                        <div>
-                            <h2 style="color: #c0392b; margin: 0; font-size: 22px; font-weight: 700;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
-                            <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
-                            <a href="${mapShareUrl}" target="_blank" style="display: inline-block; margin-top: 4px; color: #0284c7; text-decoration: none; font-size: 12px; font-weight: bold;">
-                                <i class="fa-solid fa-location-dot" style="color: #dc2626;"></i> 📍 शॉप लोकेशन देखें (Google Maps)
-                            </a>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px; text-align: right;">
-                            <div style="text-align: center;">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(mapShareUrl)}" style="width: 60px; height: 60px; border: 1px solid #cbd5e1; border-radius: 4px; display: block;" alt="Map QR">
-                                <span style="font-size: 9px; color: #64748b;">लोकेशन QR</span>
-                            </div>
-                            <div>
-                                <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-                                    ग्राहक ऑर्डर रसीद / पावती
-                                </span>
-                                <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <div><b>ग्राहक का नाम:</b> ${ord.user_name}</div>
-                            <div><b>मोबाइल:</b> ${ord.user_phone}</div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <div><b>ग्राहक का पूरा पता:</b> ${ord.user_address || '-'}</div>
-                            <div><b>UTR / Trans. No:</b> <span style="color: #2563eb; font-weight: bold;">${ord.utr}</span></div>
-                        </div>
-                    </div>
-
-                    ${cardThumbnailHtml}
-
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;" border="1">
-                        <thead>
-                            <tr style="background: #f1f5f9;">
-                                <th style="padding: 6px; text-align: left;">कार्ड मॉडल / कैटगरी</th>
-                                <th style="padding: 6px; text-align: center; width: 90px;">मात्रा</th>
-                                <th style="padding: 6px; text-align: right; width: 100px;">दर</th>
-                                <th style="padding: 6px; text-align: right; width: 110px;">कुल राशि</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 6px;"><b>${ord.category}</b></td>
-                                <td style="padding: 6px; text-align: center;">${ord.quantity}</td>
-                                <td style="padding: 6px; text-align: right;">₹${ord.rate}</td>
-                                <td style="padding: 6px; text-align: right; font-weight: bold;">₹${ord.total_amount}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-                        <h4 style="color: #c0392b; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
-                            कार्ड का स्वीकृत मैटर विवरण:
-                        </h4>
-                        <div style="margin-bottom: 8px;">${couplesHtml}</div>
-                        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                            <div style="font-weight: bold; font-size: 12px; color: #334155; margin-bottom: 4px;">कार्यक्रम एवं तिथियां:</div>
-                            ${eventsHtml}
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
-                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;"><b>आर.एस.वी.पी.:</b> ${ord.rsvp || '-'}</div>
-                            <div style="background: #f8fafc; padding: 6px 8px; border-radius: 4px;"><b>दर्शनाभिलाषी:</b> ${ord.from_family || '-'}</div>
-                        </div>
-                        ${ord.instructions ? `<div style="background:#f8fafc; padding:6px 8px; border-radius:4px; margin-top:8px; font-size:12px;"><b>शायरी / विशेष निर्देश:</b> ${ord.instructions}</div>` : ''}
-                    </div>
-
-                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 12px; font-size: 13px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span>कुल बिल राशि (Total Amount):</span>
-                            <b>₹${ord.total_amount}</b>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #166534;">
-                            <span>जमा एडवांस राशि (Advance Paid):</span>
-                            <b>₹${ord.advance_amount}</b>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e1; padding-top: 4px; color: #b91c1c; font-weight: bold;">
-                            <span>बाकी बकाया राशि (Remaining Balance):</span>
-                            <span>₹${ord.balance_amount}</span>
-                        </div>
-                    </div>
-
-                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px; border-radius: 6px; font-size: 12px; color: #1e3a8a; margin-bottom: 12px;">
-                        <b>ग्राहक घोषणा:</b> मैंने मैटर को अच्छी तरह से देखा, पढ़ा और पहचाना है। यदि छपाई के बाद कोई त्रुटि या गलती पाई जाती है तो उसके पूर्ण जिम्मेवार हम स्वयं होंगे।
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px;">
-                        <div style="text-align: center;">
-                            <img src="${ord.signature}" style="max-width: 140px; height: 50px; object-fit: contain; display: block; margin: 0 auto 4px auto;">
-                            <div style="border-top: 1px dashed #94a3b8; width: 140px; font-size: 12px; font-weight: bold;">ग्राहक का डिजिटल हस्ताक्षर</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 15px; font-weight: bold; color: #166534; margin-bottom: 25px;">
-                                प्राप्त एडवांस: ₹${ord.advance_amount}
-                            </div>
-                            <div style="font-size: 12px; font-weight: bold;">अधिकृत हस्ताक्षरकर्ता (दिल्ली प्रेस)</div>
-                        </div>
-                    </div>
-
-                </div>
-            `;
-
-            window.print();
+        function sendOrderViaWhatsApp() {
+            const url = `https://wa.me/919304509464?text=${encodeURIComponent(finalMessage)}`;
+            window.open(url, '_blank');
         }
 
-        async function submitOrderToDatabase() {
-            if (!preparedOrderPayload) return;
-            const btn = document.getElementById('btnSubmitOrder');
-            btn.disabled = true;
-            btn.innerText = "सुरक्षित हो रहा है...";
-
-            try {
-                const { error } = await supabaseClient
-                    .from('orders')
-                    .insert([preparedOrderPayload]);
-
-                if (error) throw error;
-
-                alert("ऑर्डर डेटाबेस में सुरक्षित हो गया! अब WhatsApp पर भेजें।");
-                const waUrl = `https://wa.me/919304509464?text=${encodeURIComponent(constructedWaMessage)}`;
-                window.open(waUrl, '_blank');
-                location.reload();
-
-            } catch (err) {
-                alert("ऑर्डर सुरक्षित करने में समस्या: " + err.message);
-                const waUrl = `https://wa.me/919304509464?text=${encodeURIComponent(constructedWaMessage)}`;
-                window.open(waUrl, '_blank');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "ऑर्डर सुरक्षित करें एवं WhatsApp भेजें";
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            checkAuthStatus();
-            calculateWeddingTotal();
+        document.addEventListener('DOMContentLoaded', () => {
             resizeCanvas();
-            loadSelectedCard();
+            loadSelectedCardDetails();
+            calculateWeddingTotal();
         });
-
-        window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>
