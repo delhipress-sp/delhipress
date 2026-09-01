@@ -76,7 +76,7 @@
         }
 
         .selected-card-banner {
-            display: none; background: #fffaf0; border: 2px solid var(--secondary);
+            display: block; background: #fffaf0; border: 2px solid var(--secondary);
             border-radius: 8px; padding: 12px 15px; margin-bottom: 18px;
             box-shadow: 0 2px 8px rgba(211, 84, 0, 0.08);
         }
@@ -195,6 +195,12 @@
             max-height: 320px; overflow-y: auto; white-space: pre-line;
         }
 
+        .btn-wa-action {
+            width: 100%; padding: 11px; background: var(--wa-green); color: white;
+            font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; text-decoration: none;
+        }
+
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
@@ -250,11 +256,11 @@
             <div class="selected-card-banner" id="selectedCardBanner">
                 <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
                 <div class="card-preview-body">
-                    <img id="previewCardImage" class="card-preview-thumb" src="" alt="चुना गया कार्ड">
+                    <img id="previewCardImage" class="card-preview-thumb" src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="चुना गया कार्ड">
                     <div class="card-preview-info">
-                        <h3 id="previewCardName">कार्ड का नाम</h3>
-                        <p id="previewCardModel">मॉडल / कोड: -</p>
-                        <p class="rate-tag" id="previewCardRate">मूल्य: ₹0 / पीस</p>
+                        <h3 id="previewCardName">मुस्लिम / हिंदू वेडिंग कार्ड</h3>
+                        <p id="previewCardModel">मॉडल / कोड: DP-101</p>
+                        <p class="rate-tag" id="previewCardRate">मूल्य: ₹10 / पीस</p>
                     </div>
                 </div>
             </div>
@@ -289,7 +295,7 @@
                     <div class="row-3">
                         <div class="form-group">
                             <label>कार्ड मॉडल / नाम:</label>
-                            <input type="text" id="cardCategory" value="" placeholder="उदा: DP-101" required>
+                            <input type="text" id="cardCategory" value="DP-101 शादी कार्ड" placeholder="उदा: DP-101" required>
                         </div>
                         <div class="form-group">
                             <label>प्रति पीस रेट (₹):</label>
@@ -438,12 +444,16 @@
     <div class="modal" id="reviewModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReviewModal()">&times;</span>
-            <h3 style="color:var(--primary); text-align:center; margin-bottom:10px;">ऑर्डर सारांश (Review Order)</h3>
-            <p style="font-size:12px; color:#64748b; text-align:center;">कृपया विवरण को अंतिम बार जांच लें:</p>
+            <h3 style="color:var(--primary); text-align:center; margin-bottom:6px;">ऑर्डर सारांश (Review Order)</h3>
+            <p style="font-size:12px; color:#64748b; text-align:center;">कृपया विवरण जांचें और WhatsApp पर भेजें:</p>
             
             <div class="review-box" id="reviewContent"></div>
 
-            <button type="button" id="finalSubmitBtn" onclick="submitFinalOrder()" style="width:100%; padding:12px; background:var(--green); color:white; font-size:16px; font-weight:bold; border:none; border-radius:6px; cursor:pointer;">
+            <button type="button" class="btn-wa-action" onclick="sendMatterToWhatsApp()">
+                <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर मैटर भेजें
+            </button>
+
+            <button type="button" id="finalSubmitBtn" onclick="submitFinalOrder()" style="width:100%; padding:12px; background:var(--green); color:white; font-size:15px; font-weight:bold; border:none; border-radius:6px; cursor:pointer;">
                 <i class="fa-solid fa-paper-plane"></i> हाँ, सब सही है - ऑर्डर फाइनल करें
             </button>
         </div>
@@ -473,23 +483,45 @@
         let isBrideTop = false;
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadSelectedCardFromStorage();
+            loadSelectedCard();
             calculateWeddingTotal();
         });
 
-        function loadSelectedCardFromStorage() {
-            const selectedCard = JSON.parse(localStorage.getItem('dp_selected_card') || 'null');
-            if (selectedCard) {
-                document.getElementById('selectedCardBanner').style.display = 'block';
-                document.getElementById('previewCardImage').src = selectedCard.image || selectedCard.image_url || '';
-                document.getElementById('previewCardName').innerText = selectedCard.title || selectedCard.name || 'शादी कार्ड';
-                document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${selectedCard.model || '-'}`;
-                document.getElementById('previewCardRate').innerText = `मूल्य: ₹${selectedCard.price || 10} / पीस`;
+        // 1. URL & LOCALSTORAGE CARD LOADER
+        function loadSelectedCard() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramModel = urlParams.get('model') || urlParams.get('card');
+            const paramName = urlParams.get('title') || urlParams.get('name');
+            const paramRate = urlParams.get('rate') || urlParams.get('price');
+            const paramImg = urlParams.get('img') || urlParams.get('image');
 
-                document.getElementById('cardCategory').value = selectedCard.title || selectedCard.model || 'शादी कार्ड';
-                document.getElementById('cardRate').value = selectedCard.price || 10;
-                document.getElementById('selectedCardImageStored').value = selectedCard.image || selectedCard.image_url || '';
-                document.getElementById('selectedCardModelStored').value = selectedCard.model || '';
+            let selectedCard = JSON.parse(localStorage.getItem('dp_selected_card') || 'null');
+
+            if (paramModel || paramName) {
+                selectedCard = {
+                    model: paramModel || 'DP-101',
+                    title: paramName || 'शादी कार्ड',
+                    price: paramRate || 10,
+                    image_url: paramImg || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png'
+                };
+            }
+
+            if (selectedCard) {
+                const img = selectedCard.image_url || selectedCard.image || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
+                const name = selectedCard.title || selectedCard.name || 'शादी कार्ड';
+                const model = selectedCard.model || 'DP-101';
+                const rate = selectedCard.price || selectedCard.rate || 10;
+
+                document.getElementById('selectedCardBanner').style.display = 'block';
+                document.getElementById('previewCardImage').src = img;
+                document.getElementById('previewCardName').innerText = name;
+                document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${model}`;
+                document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
+
+                document.getElementById('cardCategory').value = `${model} (${name})`;
+                document.getElementById('cardRate').value = rate;
+                document.getElementById('selectedCardImageStored').value = img;
+                document.getElementById('selectedCardModelStored').value = model;
             }
         }
 
@@ -541,7 +573,7 @@
             }
         }
 
-        function openReviewModal() {
+        function generateOrderSummaryText() {
             const custName = document.getElementById('custFullName').value.trim();
             const custMobile = document.getElementById('custMobile').value.trim();
             const custAddress = document.getElementById('custFullAddress').value.trim();
@@ -561,27 +593,43 @@
             const brideA = document.getElementById('brideAddress').value.trim();
 
             const evDate = document.getElementById('eventDate').value;
+            const rsvp = document.getElementById('rsvpInput').value.trim();
+            const fromFam = document.getElementById('fromFamilyInput').value.trim();
             const utr = document.getElementById('utrNumber').value.trim();
 
-            let summary = `<b>ग्राहक:</b> ${custName} (${custMobile})
-<b>पता:</b> ${custAddress}
+            return `*दिल्ली प्रेस - नया शादी कार्ड ऑर्डर मैटर*
 ----------------------------------------
-<b>कार्ड:</b> ${cardName} | <b>मात्रा:</b> ${qty} पीस
-<b>कुल बिल:</b> ₹${total} | <b>एडवांस:</b> ₹${adv} | <b>बाकी:</b> ₹${bal}
-<b>UTR / Trans ID:</b> ${utr}
+👤 *ग्राहक:* ${custName} (${custMobile})
+📍 *पता:* ${custAddress}
+🎴 *कार्ड:* ${cardName} | *संख्या:* ${qty} पीस
+💰 *कुल बिल:* ₹${total} | *एडवांस:* ₹${adv} | *बाकी:* ₹${bal}
+💳 *UTR / Trans ID:* ${utr}
 ----------------------------------------
-<b>दूल्हा:</b> ${groom} (पिता: ${groomF}) - ${groomA}
-<b>संग / Weds</b>
-<b>दुल्हन:</b> ${bride} (पिता: ${brideF}) - ${brideA}
+🤵 *दूल्हा:* ${groom} (पिता: ${groomF}) - ${groomA}
+*संग / Weds*
+👰 *दुल्हन:* ${bride} (पिता: ${brideF}) - ${brideA}
 ----------------------------------------
-<b>शादी दिनांक:</b> ${evDate}`;
+📅 *विवाह तिथि:* ${evDate}
+💌 *RSVP:* ${rsvp || '-'}
+👨‍👩‍👧‍👦 *विनीत / दर्शनाभिलाषी:* ${fromFam || '-'}`;
+        }
 
-            document.getElementById('reviewContent').innerHTML = summary;
+        function openReviewModal() {
+            const summary = generateOrderSummaryText();
+            document.getElementById('reviewContent').innerText = summary;
             document.getElementById('reviewModal').style.display = 'flex';
         }
 
         function closeReviewModal() {
             document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        // 2. SEND MATTER TO WHATSAPP
+        function sendMatterToWhatsApp() {
+            const text = generateOrderSummaryText();
+            const phone = "919304509464";
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
         }
 
         async function submitFinalOrder() {
@@ -595,7 +643,7 @@
             const adv = parseFloat(document.getElementById('advancePaidInput').value) || 0;
             const bal = Math.max(0, total - adv);
 
-            const newOrderId = Date.now(); // Unique ID for each order
+            const newOrderId = Date.now();
 
             const orderData = {
                 id: newOrderId,
@@ -605,7 +653,7 @@
                 customer_address: document.getElementById('custFullAddress').value.trim(),
                 card_title: document.getElementById('cardCategory').value.trim(),
                 card_model: document.getElementById('selectedCardModelStored').value || 'DP-101',
-                card_image: document.getElementById('selectedCardImageStored').value || '',
+                card_image: document.getElementById('selectedCardImageStored').value || document.getElementById('previewCardImage').src,
                 card_rate: rate,
                 quantity: qty,
                 total_amount: total,
@@ -626,7 +674,7 @@
                 order_status: 'Pending'
             };
 
-            // 1. LocalStorage Update (Add fresh order at top of the list)
+            // 1. LocalStorage update
             let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
             allOrders.unshift(orderData);
             localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
@@ -635,13 +683,11 @@
             userOrders.unshift(orderData);
             localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
 
-            // Set current user details for seamless "My Orders" access
-            const currentUser = {
+            localStorage.setItem('dp_current_user', JSON.stringify({
                 name: orderData.customer_name,
                 mobile: orderData.customer_mobile,
                 address: orderData.customer_address
-            };
-            localStorage.setItem('dp_current_user', JSON.stringify(currentUser));
+            }));
 
             // 2. Supabase Insert
             if (supabaseClient) {
