@@ -26,12 +26,18 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 20px; position: sticky; top: 0; z-index: 1000;
         }
-        .nav-brand h2 { color: var(--primary); font-size: 20px; cursor: pointer; }
+        .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; }
+        .nav-logo-img {
+            width: 38px; height: 38px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--primary);
+        }
+        .nav-brand h2 { color: var(--primary); font-size: 20px; }
         .nav-actions { display: flex; align-items: center; gap: 8px; }
         .btn-nav {
             text-decoration: none; color: #1e293b; font-weight: 700; font-size: 13px;
             padding: 6px 12px; border-radius: 4px; border: 1px solid #cbd5e1;
             background: #f8fafc; display: inline-flex; align-items: center; gap: 5px;
+            cursor: pointer;
         }
 
         .container { max-width: 850px; margin: 15px auto; padding: 0 12px; }
@@ -60,7 +66,6 @@
         .order-id-date h4 { font-size: 15px; color: var(--primary); margin: 0; }
         .order-id-date span { font-size: 12px; color: #64748b; }
 
-        /* Dynamic Status Badges */
         .badge-status {
             padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
             display: inline-flex; align-items: center; gap: 5px;
@@ -100,7 +105,6 @@
         }
         .empty-orders i { font-size: 40px; color: #94a3b8; margin-bottom: 10px; }
 
-        /* Modal Preview */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); display: none; justify-content: center;
@@ -133,12 +137,13 @@
 <body>
 
     <nav class="navbar">
-        <div class="nav-brand">
-            <h2 onclick="window.location.href='index.html'">दिल्ली प्रेस</h2>
-        </div>
+        <a class="nav-brand" href="index.html">
+            <img src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="Logo" class="nav-logo-img">
+            <h2>दिल्ली प्रेस</h2>
+        </a>
         <div class="nav-actions">
             <a href="order.html" class="btn-nav" style="color:var(--primary);"><i class="fa-solid fa-plus"></i> नया ऑर्डर</a>
-            <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम</a>
+            <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> मुख्य मेन्यू</a>
         </div>
     </nav>
 
@@ -208,6 +213,26 @@
         let currentUser = null;
         let fetchedOrdersList = [];
 
+        // 1. INACTIVITY AUTO-LOGOUT (2 MINUTES = 120,000 MS)
+        let inactivityTimer;
+        const TIMEOUT_DURATION = 2 * 60 * 1000; // 2 मिनट
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                alert("2 मिनट तक कोई गतिविधि न होने के कारण सुरक्षा कारणों से आप लॉगआउट हो गए हैं।");
+                logoutCustomerDirect();
+            }, TIMEOUT_DURATION);
+        }
+
+        window.onload = resetInactivityTimer;
+        document.onmousemove = resetInactivityTimer;
+        document.onkeydown = resetInactivityTimer;
+        document.ontouchstart = resetInactivityTimer;
+        document.onclick = resetInactivityTimer;
+        document.onscroll = resetInactivityTimer;
+
+        // 2. CHECK CUSTOMER AUTH
         function checkCustomerAuth() {
             const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
             if (userJson) {
@@ -231,6 +256,7 @@
             return currentUser;
         }
 
+        // 3. FETCH ORDERS
         async function fetchCustomerOrders() {
             const user = checkCustomerAuth();
             const container = document.getElementById('ordersContainer');
@@ -238,7 +264,6 @@
 
             let allOrders = [];
 
-            // 1. Fetch from Supabase
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -254,12 +279,10 @@
                 }
             }
 
-            // 2. Fallback to LocalStorage
             if (allOrders.length === 0) {
                 allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
             }
 
-            // 3. Filter orders relevant to the current user (by mobile, email, or show all if single user device)
             const uMobile = (user.mobile || user.phone || '').trim();
             const uEmail = (user.email || '').trim().toLowerCase();
             const uName = (user.name || user.full_name || '').trim().toLowerCase();
@@ -269,11 +292,11 @@
                 const oEmail = String(ord.customer_email || ord.email || '').trim().toLowerCase();
                 const oName = String(ord.customer_name || ord.client_name || ord.name || ord.user_name || '').trim().toLowerCase();
 
-                if (!uMobile && !uEmail) return true; // Show all if guest
+                if (!uMobile && !uEmail) return true;
                 return (uMobile && oMobile.includes(uMobile)) ||
                        (uEmail && oEmail === uEmail) ||
                        (uName && oName.includes(uName)) ||
-                       allOrders.length <= 3; // Direct match fallback
+                       allOrders.length <= 3;
             });
 
             if (fetchedOrdersList.length === 0) {
@@ -281,9 +304,9 @@
                     <div class="empty-orders">
                         <i class="fa-solid fa-clipboard-list"></i>
                         <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
-                        <p style="margin-top: 5px; font-size: 13px;">आपने अभी तक कोई कार्ड ऑर्डर दर्ज नहीं किया है या आपका मोबाइल नंबर मेल नहीं खा रहा है।</p>
+                        <p style="margin-top: 5px; font-size: 13px;">आपने अभी तक कोई कार्ड ऑर्डर दर्ज नहीं किया है।</p>
                         <a href="order.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
-                            अभी ऑर्डर करें
+                            अभी नया ऑर्डर करें
                         </a>
                     </div>
                 `;
@@ -304,13 +327,12 @@
                 const bride = ord.bride_name || ord.bride || (ord.couples && ord.couples[0] ? ord.couples[0].bride : '-');
                 const cardImg = ord.card_image || ord.card_img || ord.image_url || ord.image || '';
 
-                // Printing Status Badge
                 const status = ord.order_status || ord.status || 'Pending';
                 let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ऑर्डर प्राप्त हुआ (Pending)</span>`;
                 if (status === 'In Process' || status === 'Process') {
                     statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है (In Process)</span>`;
                 } else if (status === 'Ready' || status === 'Finished' || status === 'completed') {
-                    statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready for Delivery)</span>`;
+                    statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready)</span>`;
                 }
 
                 ordersHtml += `
@@ -366,6 +388,7 @@
             container.innerHTML = ordersHtml;
         }
 
+        // 4. RECEIPT VIEW
         function viewCustomerReceipt(index) {
             const ord = fetchedOrdersList[index];
             if (!ord) return;
@@ -379,6 +402,15 @@
             let statusText = 'ऑर्डर प्राप्त (Pending)';
             if (status === 'In Process' || status === 'Process') statusText = 'छपाई जारी है (In Process)';
             if (status === 'Ready' || status === 'Finished') statusText = 'प्रिंट तैयार है (Ready)';
+
+            let eventsHtml = '';
+            if (ord.events && Array.isArray(ord.events) && ord.events.length > 0) {
+                ord.events.forEach(ev => {
+                    eventsHtml += `<div class="receipt-row"><span>${ev.title}:</span> <b>${ev.date} (${ev.time || 'सायं'})</b></div>`;
+                });
+            } else {
+                eventsHtml = `<div class="receipt-row"><span>विवाह तिथि:</span> <b>${ord.event_date || '-'}</b></div>`;
+            }
 
             const printArea = document.getElementById('printableReceiptArea');
             const d = ord.created_at ? new Date(ord.created_at) : new Date();
@@ -396,35 +428,35 @@
                     ${cardImg ? `<img src="${cardImg}" alt="Card Sample">` : '<div style="width:70px; height:70px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>'}
                     <div>
                         <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || ord.card_name || 'शादी कार्ड'}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || ord.model || 'DP-Model'}</b></div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || 'DP-101'}</b></div>
                         <div style="font-size:12px; color:#64748b;">ऑर्डर स्थिति: <b style="color:var(--primary);">${statusText}</b></div>
                     </div>
                 </div>
 
                 <div class="receipt-section-title">२. ग्राहक विवरण</div>
-                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name || ord.client_name || ord.name || ord.user_name || '-'}</b></div>
-                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile || ord.mobile || ord.phone || ord.user_phone || '-'}</b></div>
+                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile || '-'}</b></div>
                 <div class="receipt-row"><span>तारीख:</span> <span>${dt}</span></div>
 
                 <div class="receipt-section-title">३. शादी मैटर विवरण</div>
-                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${ord.groom_name || ord.groom || '-'}</b></div>
+                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
                 <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${ord.groom_father || '-'}</span></div>
                 <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${ord.groom_address || '-'}</span></div>
-                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${ord.bride_name || ord.bride || '-'}</b></div>
+                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
                 <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${ord.bride_father || '-'}</span></div>
                 <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${ord.bride_address || '-'}</span></div>
 
                 <div class="receipt-section-title">४. वैवाहिक कार्यक्रम व अन्य</div>
-                <div class="receipt-row"><span>विवाह / निकाह तिथि:</span> <b>${ord.event_date || ord.wedding_date || '-'}</b></div>
+                ${eventsHtml}
                 <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${ord.rsvp || '-'}</span></div>
-                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family || ord.from_text || '-'}</span></div>
+                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family || '-'}</span></div>
 
                 <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
                 <div class="receipt-row"><span>कुल कार्ड संख्या:</span> <b>${ord.quantity || 100} पीस</b></div>
                 <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
-                <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${advance}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस (50%):</span> <b style="color:green;">₹${advance}</b></div>
                 <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
-                <div class="receipt-row"><span>UTR / Trans ID:</span> <b>${ord.utr_number || ord.utr || 'Cash/Offline'}</b></div>
+                <div class="receipt-row"><span>UTR / Trans ID:</span> <b>${ord.utr_number || 'Cash/Online'}</b></div>
             `;
 
             document.getElementById('userReceiptModal').style.display = 'flex';
@@ -455,12 +487,17 @@
             location.reload();
         }
 
+        // 5. LOGOUT HANDLERS (ALWAYS REDIRECTS TO MAIN MENU / HOME PAGE: index.html)
         function logoutCustomer() {
-            if (confirm("क्या आप लॉगआउट करना चाहते हैं?")) {
-                localStorage.removeItem('dp_current_user');
-                localStorage.removeItem('dp_logged_in_user');
-                window.location.href = "login.html";
+            if (confirm("क्या आप लॉगआउट करके मुख्य मेन्यू (होम पेज) पर जाना चाहते हैं?")) {
+                logoutCustomerDirect();
             }
+        }
+
+        function logoutCustomerDirect() {
+            localStorage.removeItem('dp_current_user');
+            localStorage.removeItem('dp_logged_in_user');
+            window.location.href = "index.html";
         }
 
         window.addEventListener('DOMContentLoaded', fetchCustomerOrders);
