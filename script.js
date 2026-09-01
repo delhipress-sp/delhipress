@@ -122,4 +122,23 @@ async function handleForgotSubmit(event) {
   } catch (err) {
     alert("त्रुटि! कृपया पुनः प्रयास करें।");
   }
-}
+}window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const cardName = urlParams.get('cardName');
+    const cardPrice = urlParams.get('cardPrice');
+    const cardImage = urlParams.get('cardImage');
+
+    if (cardName && cardPrice) {
+        const banner = document.getElementById('selectedCardBanner');
+        banner.style.display = 'block';
+
+        const imgElement = banner.querySelector('img');
+        const nameElement = banner.querySelector('h3');
+        const priceElement = banner.querySelector('.rate-tag');
+
+        if (imgElement && cardImage) imgElement.src = cardImage;
+        if (nameElement) nameElement.textContent = cardName;
+        if (priceElement) priceElement.textContent = `₹${cardPrice} / पीस`;
+    }
+});
+
