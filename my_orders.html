@@ -149,12 +149,12 @@
 
     <div class="container">
         
-        <div class="user-welcome-card">
+        <div class="user-welcome-card" id="userCardBlock">
             <div class="user-info">
-                <h3 id="userDisplayName">ग्राहक प्रोफाइल</h3>
-                <p id="userDisplayPhone">विवरण लोड हो रहा है...</p>
+                <h3 id="userDisplayName">लोड हो रहा है...</h3>
+                <p id="userDisplayPhone">विवरण जाँचा जा रहा है...</p>
             </div>
-            <button onclick="logoutCustomer()" class="btn-nav" style="color:#b91c1c; border-color:#fca5a5;">
+            <button id="logoutBtn" onclick="logoutCustomer()" class="btn-nav" style="color:#b91c1c; border-color:#fca5a5;">
                 <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट
             </button>
         </div>
@@ -215,12 +215,12 @@
 
         // 1. INACTIVITY AUTO-LOGOUT (2 MINUTES = 120,000 MS)
         let inactivityTimer;
-        const TIMEOUT_DURATION = 2 * 60 * 1000; // 2 मिनट
+        const TIMEOUT_DURATION = 2 * 60 * 1000;
 
         function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
-                alert("2 मिनट तक कोई गतिविधि न होने के कारण सुरक्षा कारणों से आप लॉगआउट हो गए हैं।");
+                alert("2 मिनट तक कोई गतिविधि न होने के कारण आप सुरक्षित रूप से लॉगआउट हो गए हैं।");
                 logoutCustomerDirect();
             }, TIMEOUT_DURATION);
         }
@@ -232,7 +232,7 @@
         document.onclick = resetInactivityTimer;
         document.onscroll = resetInactivityTimer;
 
-        // 2. CHECK CUSTOMER AUTH
+        // 2. CHECK CUSTOMER AUTH (LOGOUT VERIFICATION)
         function checkCustomerAuth() {
             const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
             if (userJson) {
@@ -241,25 +241,42 @@
                 } catch (e) {
                     currentUser = null;
                 }
-            }
-            
-            if (!currentUser) {
-                currentUser = {
-                    name: "सम्मानित ग्राहक",
-                    email: "mdsajadansario@gmail.com",
-                    mobile: "9304509464"
-                };
+            } else {
+                currentUser = null;
             }
 
-            document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.full_name || currentUser.email || "सम्मानित ग्राहक";
+            if (!currentUser) {
+                document.getElementById('userDisplayName').innerText = "लॉगिन नहीं हैं";
+                document.getElementById('userDisplayPhone').innerText = "कृपया नया ऑर्डर देने के लिए होम पेज पर जाएँ।";
+                document.getElementById('logoutBtn').style.display = "none";
+                return null;
+            }
+
+            document.getElementById('logoutBtn').style.display = "inline-flex";
+            document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.full_name || "सम्मानित ग्राहक";
             document.getElementById('userDisplayPhone').innerText = `${currentUser.mobile || currentUser.phone || ''} ${currentUser.email ? '| ' + currentUser.email : ''}`;
             return currentUser;
         }
 
-        // 3. FETCH ORDERS
+        // 3. FETCH ORDERS (DOES NOT SHOW ANY ORDERS AFTER LOGOUT)
         async function fetchCustomerOrders() {
             const user = checkCustomerAuth();
             const container = document.getElementById('ordersContainer');
+
+            if (!user) {
+                container.innerHTML = `
+                    <div class="empty-orders">
+                        <i class="fa-solid fa-lock"></i>
+                        <h4>आप लॉगआउट हो चुके हैं!</h4>
+                        <p style="margin-top: 5px; font-size: 13px;">ऑर्डर इतिहास देखने के लिए कृपया होम पेज से नया ऑर्डर दें या लॉगिन करें।</p>
+                        <a href="index.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
+                            <i class="fa-solid fa-house"></i> मुख्य मेन्यू पर जाएँ
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
             container.innerHTML = '<div style="text-align:center; padding:30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...</div>';
 
             let allOrders = [];
@@ -292,11 +309,9 @@
                 const oEmail = String(ord.customer_email || ord.email || '').trim().toLowerCase();
                 const oName = String(ord.customer_name || ord.client_name || ord.name || ord.user_name || '').trim().toLowerCase();
 
-                if (!uMobile && !uEmail) return true;
                 return (uMobile && oMobile.includes(uMobile)) ||
                        (uEmail && oEmail === uEmail) ||
-                       (uName && oName.includes(uName)) ||
-                       allOrders.length <= 3;
+                       (uName && oName === uName);
             });
 
             if (fetchedOrdersList.length === 0) {
@@ -304,7 +319,7 @@
                     <div class="empty-orders">
                         <i class="fa-solid fa-clipboard-list"></i>
                         <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
-                        <p style="margin-top: 5px; font-size: 13px;">आपने अभी तक कोई कार्ड ऑर्डर दर्ज नहीं किया है।</p>
+                        <p style="margin-top: 5px; font-size: 13px;">आपके इस मोबाइल नंबर पर कोई पुराना ऑर्डर दर्ज नहीं है।</p>
                         <a href="order.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
                             अभी नया ऑर्डर करें
                         </a>
@@ -388,7 +403,7 @@
             container.innerHTML = ordersHtml;
         }
 
-        // 4. RECEIPT VIEW
+        // 4. RECEIPT PREVIEW
         function viewCustomerReceipt(index) {
             const ord = fetchedOrdersList[index];
             if (!ord) return;
@@ -487,7 +502,7 @@
             location.reload();
         }
 
-        // 5. LOGOUT HANDLERS (ALWAYS REDIRECTS TO MAIN MENU / HOME PAGE: index.html)
+        // 5. COMPLETE STORAGE CLEAR & REDIRECT TO HOME (index.html)
         function logoutCustomer() {
             if (confirm("क्या आप लॉगआउट करके मुख्य मेन्यू (होम पेज) पर जाना चाहते हैं?")) {
                 logoutCustomerDirect();
@@ -497,7 +512,11 @@
         function logoutCustomerDirect() {
             localStorage.removeItem('dp_current_user');
             localStorage.removeItem('dp_logged_in_user');
-            window.location.href = "index.html";
+            localStorage.removeItem('dp_user_orders');
+            localStorage.removeItem('dp_all_orders');
+            localStorage.removeItem('dp_selected_card');
+            sessionStorage.clear();
+            window.location.replace("index.html");
         }
 
         window.addEventListener('DOMContentLoaded', fetchCustomerOrders);
