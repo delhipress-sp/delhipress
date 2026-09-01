@@ -82,7 +82,7 @@
             margin-bottom: 15px; font-weight: bold;
         }
 
-        /* होम पेज से चुना हुआ कार्ड प्रीव्यू बॉक्स */
+        /* चुना हुआ कार्ड प्रीव्यू बॉक्स */
         .selected-card-banner {
             display: none; background: #fffaf0; border: 2px solid var(--secondary);
             border-radius: 8px; padding: 12px 15px; margin-bottom: 18px;
@@ -374,7 +374,7 @@
                             </div>
                             <div class="form-group">
                                 <label>संख्या (Quantity):</label>
-                                <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal()" required>
+                                <input type="number" id="cardQty" value="100" min="100" oninput="calculateWeddingTotal()" required>
                             </div>
                         </div>
 
@@ -529,7 +529,7 @@
                             </div>
 
                             <div class="qr-wrapper">
-                                <img id="dynamicUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9304509464@okbizaxis%26pn=DelhiPress%26am=500%26cu=INR" alt="QR Code">
+                                <img id="dynamicUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9304509464%40okbizaxis%26pn%3DDelhiPress%26am%3D500%26cu%3DINR" alt="QR Code">
                             </div>
 
                             <div style="font-size: 12px; font-weight: bold; color: #1e293b; margin-bottom: 8px;">
@@ -712,11 +712,22 @@
             }
         }
 
-        /* कैटलॉग से चुना गया कार्ड डेटा लोड करना */
+        /* कैटलॉग से चुना गया कार्ड डेटा ऑटोमैटिक लोड करना */
         async function loadSelectedCard() {
             const urlParams = new URLSearchParams(window.location.search);
             const cardId = urlParams.get('card_id') || urlParams.get('id') || localStorage.getItem('selectedCardId');
 
+            // 1. URL या LocalStorage से डायरेक्ट डेटा की प्राथमिकता
+            const directName = urlParams.get('name') || urlParams.get('title') || localStorage.getItem('selectedCardName') || localStorage.getItem('selectedCardTitle');
+            const directModel = urlParams.get('model') || urlParams.get('code') || localStorage.getItem('selectedCardModel');
+            const directRate = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selectedCardRate') || localStorage.getItem('selectedCardPrice');
+            const directImg = urlParams.get('img') || urlParams.get('image') || localStorage.getItem('selectedCardImage');
+
+            if (directName || directRate) {
+                applyCardData(cardId || '', directName || 'शादी कार्ड', directModel || '-', directRate || '10', directImg || '');
+            }
+
+            // 2. Database से फेच करना
             if (cardId) {
                 try {
                     const { data: card, error } = await supabaseClient
@@ -726,27 +737,16 @@
                         .maybeSingle();
 
                     if (!error && card) {
-                        applyCardData(
-                            card.id,
-                            card.title || card.card_name || card.name || 'मुस्लिम वेडिंग कार्ड',
-                            card.model || card.card_model || card.code || `Model #${card.id}`,
-                            card.price ?? card.card_price ?? card.rate ?? '10',
-                            card.image_url || card.image || card.photo_url || ''
-                        );
-                        return;
+                        const finalName = card.title || card.name || card.card_name || directName || 'शादी कार्ड';
+                        const finalModel = card.model || card.card_model || card.code || directModel || `Model #${card.id}`;
+                        const finalPrice = card.price ?? card.card_price ?? card.rate ?? directRate ?? '10';
+                        const finalImage = card.image_url || card.image || card.photo_url || directImg || '';
+
+                        applyCardData(card.id, finalName, finalModel, finalPrice, finalImage);
                     }
                 } catch (err) {
                     console.error("Card load error:", err);
                 }
-            }
-
-            const name = urlParams.get('name') || urlParams.get('title') || localStorage.getItem('selectedCardName') || localStorage.getItem('selectedCardTitle');
-            const model = urlParams.get('model') || urlParams.get('code') || localStorage.getItem('selectedCardModel');
-            const rate = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selectedCardRate') || localStorage.getItem('selectedCardPrice');
-            const img = urlParams.get('img') || urlParams.get('image') || localStorage.getItem('selectedCardImage');
-
-            if (name || model || rate || img) {
-                applyCardData(cardId || '', name || 'मुस्लिम वेडिंग कार्ड', model || '-', rate || '10', img || '');
             }
         }
 
@@ -773,11 +773,15 @@
                 document.getElementById('selectedCardId').value = id;
             }
 
-            if (document.getElementById('cardCategory')) {
-                document.getElementById('cardCategory').value = name;
+            // फॉर्म फील्ड में नाम और रेट ऑटो-फिल
+            const cardCatInput = document.getElementById('cardCategory');
+            if (cardCatInput) {
+                cardCatInput.value = name;
             }
-            if (document.getElementById('cardRate')) {
-                document.getElementById('cardRate').value = parseFloat(price) || 0;
+
+            const cardRateInput = document.getElementById('cardRate');
+            if (cardRateInput) {
+                cardRateInput.value = parseFloat(price) || 10;
             }
 
             calculateWeddingTotal();
@@ -1351,7 +1355,6 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
-            calculateWeddingTotal();
             resizeCanvas();
             loadSelectedCard();
         });
