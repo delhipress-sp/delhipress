@@ -64,18 +64,12 @@
         }
 
         .user-logged-box { display: none; align-items: center; gap: 8px; }
-        .user-name-display { font-weight: 700; color: var(--dark); font-size: 13px; }
         
         .btn-my-orders {
             background: var(--blue); color: white !important;
-            padding: 5px 12px !important; border-radius: 14px; font-size: 13px;
-            display: inline-flex; align-items: center; gap: 5px; font-weight: bold;
+            padding: 6px 14px !important; border-radius: 20px; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 6px; font-weight: 700;
             text-decoration: none;
-        }
-
-        .btn-logout {
-            background: #e74c3c; color: white; border: none;
-            padding: 5px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold;
         }
 
         .container { max-width: 900px; margin: 15px auto; padding: 0 12px; }
@@ -283,7 +277,7 @@
         <div><a href="tel:9304509464"><i class="fa-solid fa-phone"></i> कॉल करें</a></div>
     </div>
 
-    <!-- मुख्य नेविगेशन बार -->
+    <!-- मेन्यू बार -->
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
             <div class="nav-logo-box">
@@ -301,16 +295,16 @@
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
             
+            <!-- लॉगिन नहीं रहने पर यह दिखेगा -->
             <li id="authNavContainer">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
 
+            <!-- लॉगिन होने पर केवल 'मेरे ऑर्डर्स' बटन दिखेगा -->
             <li class="user-logged-box" id="userLoggedBox">
-                <span class="user-name-display" id="displayUserName">👤 ग्राहक</span>
                 <a href="my_orders.html" class="btn-my-orders">
                     <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स
                 </a>
-                <button type="button" class="btn-logout" onclick="handleLogout()">लॉगआउट</button>
             </li>
         </ul>
     </nav>
@@ -403,7 +397,7 @@
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="order.html" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span>ऑर्डर करें</span></a>
-        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user"></i><span id="mobileAuthText">लॉगिन</span></a>
+        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user" id="mobileAuthIcon"></i><span id="mobileAuthText">लॉगिन</span></a>
     </div>
 
     <!-- फूटर -->
@@ -479,23 +473,22 @@
             selectCard(selectedZoomCard.title, selectedZoomCard.image, selectedZoomCard.price);
         }
 
-        function handleLogout() {
-            localStorage.removeItem('user_session');
-            localStorage.removeItem('user_data');
-            window.location.reload();
-        }
-
+        // Check Login State
         function checkUserAuth() {
-            const userData = JSON.parse(localStorage.getItem('user_data') || 'null');
-            if (userData && userData.name) {
+            const userData = JSON.parse(localStorage.getItem('user_data') || localStorage.getItem('user_session') || 'null');
+            if (userData) {
+                // Desktop menu
                 document.getElementById('authNavContainer').style.display = 'none';
-                document.getElementById('userLoggedBox').style.display = 'flex';
-                document.getElementById('displayUserName').innerText = `👤 ${userData.name}`;
+                document.getElementById('userLoggedBox').style.display = 'block';
                 
+                // Mobile bottom bar
                 const mobileAuthText = document.getElementById('mobileAuthText');
                 const mobileAuthLink = document.getElementById('mobileAuthLink');
-                if (mobileAuthText) mobileAuthText.innerText = 'ऑर्डर्स';
+                const mobileAuthIcon = document.getElementById('mobileAuthIcon');
+                
+                if (mobileAuthText) mobileAuthText.innerText = 'माय ऑर्डर';
                 if (mobileAuthLink) mobileAuthLink.href = 'my_orders.html';
+                if (mobileAuthIcon) mobileAuthIcon.className = 'fa-solid fa-box-archive';
             }
         }
 
