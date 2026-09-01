@@ -24,7 +24,7 @@
         body { background-color: #f4f6f9; color: #333; line-height: 1.5; padding: 15px; }
 
         .top-nav-bar {
-            max-width: 1050px; margin: 0 auto 12px auto;
+            max-width: 1100px; margin: 0 auto 12px auto;
             display: flex; justify-content: space-between; align-items: center;
             background: #fff; padding: 10px 16px; border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -36,7 +36,7 @@
         .top-nav-bar a:hover { color: var(--primary); }
 
         .admin-card {
-            background: #fff; max-width: 1050px; margin: 0 auto;
+            background: #fff; max-width: 1100px; margin: 0 auto;
             border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 20px;
         }
 
@@ -64,6 +64,21 @@
             background: var(--blue); color: white; border: none; padding: 6px 10px;
             border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;
         }
+        .btn-status-process {
+            background: #f59e0b; color: white; border: none; padding: 4px 8px;
+            border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; display: block; width: 100%; margin-bottom: 4px;
+        }
+        .btn-status-ready {
+            background: #10b981; color: white; border: none; padding: 4px 8px;
+            border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; display: block; width: 100%;
+        }
+
+        .status-badge {
+            display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-bottom: 4px;
+        }
+        .status-pending { background: #fee2e2; color: #b91c1c; }
+        .status-process { background: #fef3c7; color: #92400e; }
+        .status-ready { background: #dcfce7; color: #15803d; }
 
         .stock-badge {
             display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: bold;
@@ -264,7 +279,7 @@
                                 <th>ग्राहक विवरण</th>
                                 <th>दूल्हा-दुल्हन पक्ष</th>
                                 <th>बिलिंग स्टेटस</th>
-                                <th>UTR / Trans ID</th>
+                                <th>प्रिंटिंग स्टेटस व अपडेट</th>
                                 <th>मैटर व रिसिप्ट</th>
                                 <th>एक्शन</th>
                             </tr>
@@ -560,7 +575,7 @@
             loadCatalogStock();
         }
 
-        // 3. LOAD ORDERS
+        // 3. LOAD ORDERS (WITH COMPLETE STATUS BUTTONS)
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             tbody.innerHTML = '<tr><td colspan="8">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
@@ -606,6 +621,15 @@
                 const balance = parseFloat(o.balance_amount !== undefined ? o.balance_amount : (total - advance));
                 const cardImg = o.card_image || o.card_img || o.image_url || o.image || '';
 
+                // Status Logic
+                const currentStatus = o.order_status || o.status || 'Pending';
+                let statusBadge = '<span class="status-badge status-pending">ऑर्डर मिला</span>';
+                if (currentStatus === 'In Process' || currentStatus === 'Process') {
+                    statusBadge = '<span class="status-badge status-process">⚙️ प्रिंटिंग प्रोसेस</span>';
+                } else if (currentStatus === 'Ready' || currentStatus === 'Finished') {
+                    statusBadge = '<span class="status-badge status-ready">✅ प्रिंट तैयार</span>';
+                }
+
                 return `
                     <tr>
                         <td>${dateStr}</td>
@@ -629,21 +653,84 @@
                             <span style="color:green; font-weight:bold;">एडवांस: ₹${advance}</span><br>
                             <span style="color:red; font-size:11px; font-weight:bold;">बाकी: ₹${balance}</span>
                         </td>
-                        <td><b>${o.utr_number || o.utr || o.trans_id || 'Cash/None'}</b></td>
+                        <td style="min-width:130px;">
+                            ${statusBadge}<br>
+                            <button class="btn-status-process" onclick="updateOrderStatus('${o.id}', 'In Process')">
+                                <i class="fa-solid fa-gears"></i> प्रिंटिंग शुरू करें
+                            </button>
+                            <button class="btn-status-ready" onclick="updateOrderStatus('${o.id}', 'Ready')">
+                                <i class="fa-solid fa-circle-check"></i> प्रिंट तैयार हो गया
+                            </button>
+                        </td>
                         <td>
                             <button class="btn-view" onclick="openOrderModal(${index})">
                                 <i class="fa-solid fa-file-invoice"></i> मैटर / रिसिप्ट
                             </button>
                         </td>
                         <td>
-                            <button class="btn-del" onclick="deleteAdminOrder(${o.id})"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-del" onclick="deleteAdminOrder('${o.id}')" title="हटाएं">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // 4. MODAL PREVIEW AND PRINT (WITH SELECTED CARD SAMPLE)
+        // UPDATE ORDER STATUS (PROCESS / READY)
+        async function updateOrderStatus(orderId, newStatus) {
+            let statusText = (newStatus === 'In Process') ? 'प्रिंटिंग प्रोसेस में है' : 'प्रिंट तैयार हो गया है';
+            
+            // 1. Update in LocalStorage
+            let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
+            allOrders = allOrders.map(o => String(o.id) === String(orderId) ? { ...o, order_status: newStatus } : o);
+            localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
+
+            let userOrders = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
+            userOrders = userOrders.map(o => String(o.id) === String(orderId) ? { ...o, order_status: newStatus } : o);
+            localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
+
+            // 2. Update in Supabase
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').update({ order_status: newStatus }).eq('id', orderId);
+                } catch (e) {
+                    console.log("Supabase status update error:", e);
+                }
+            }
+
+            alert(`ऑर्डर स्थिति अपडेट हो गई: ${statusText}`);
+            loadAdminOrders();
+        }
+
+        // DELETE ORDER
+        async function deleteAdminOrder(orderId) {
+            if (!confirm('क्या आप वाकई इस ऑर्डर को हमेशा के लिए हटाना चाहते हैं?')) return;
+
+            // 1. LocalStorage Remove
+            let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
+            allOrders = allOrders.filter(o => String(o.id) !== String(orderId));
+            localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
+
+            let userOrders = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
+            userOrders = userOrders.filter(o => String(o.id) !== String(orderId));
+            localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
+
+            // 2. Supabase Remove
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
+                    if (error) console.log("Supabase delete err:", error);
+                } catch (e) {
+                    console.log("Supabase delete bypass:", e);
+                }
+            }
+
+            alert("ऑर्डर सफलतापूर्वक हटा दिया गया!");
+            loadAdminOrders();
+        }
+
+        // 4. MODAL PREVIEW AND PRINT
         function openOrderModal(index) {
             const o = globalOrdersCache[index];
             if (!o) return;
@@ -728,25 +815,6 @@
             window.print();
             document.body.innerHTML = originalContent;
             location.reload();
-        }
-
-        async function deleteAdminOrder(orderId) {
-            if (!confirm('क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?')) return;
-
-            let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-            allOrders = allOrders.filter(o => o.id != orderId);
-            localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
-
-            let userOrders = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
-            userOrders = userOrders.filter(o => o.id != orderId);
-            localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
-
-            if (supabaseClient) {
-                try {
-                    await supabaseClient.from('orders').delete().eq('id', orderId);
-                } catch (e) {}
-            }
-            loadAdminOrders();
         }
 
         // 5. LOAD USERS
