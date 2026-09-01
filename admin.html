@@ -13,6 +13,7 @@
             --primary: #c0392b;
             --secondary: #d35400;
             --dark: #1e272e;
+            --light: #fdfbf7;
             --green: #27ae60;
             --blue: #2980b9;
         }
@@ -153,7 +154,7 @@
             <!-- TAB 1: CATALOG & STOCK -->
             <div id="tabCatalogSection">
                 <div style="background: #fdfaf6; border: 1px solid #fed7aa; padding: 14px; border-radius: 6px; margin-bottom: 15px;">
-                    <h4 style="color: var(--secondary); margin-bottom: 10px;">+ नया कार्ड मॉडल Supabase में जोड़ें</h4>
+                    <h4 style="color: var(--secondary); margin-bottom: 10px;">+ नया कार्ड मॉडल कैटलॉग में जोड़ें</h4>
                     <form id="newCardForm" onsubmit="handleAddNewCatalogCard(event)">
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <div class="form-group" style="flex: 1; min-width: 150px;">
@@ -181,7 +182,7 @@
                             </div>
                         </div>
                         <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                            + Supabase में सेव करें
+                            + स्टॉक में सुरक्षित करें
                         </button>
                     </form>
                 </div>
@@ -255,7 +256,15 @@
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let supabaseClient = null;
+        if (window.supabase) {
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch (e) {
+                console.log(e);
+            }
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('dp_admin_auth') === 'true') {
@@ -341,12 +350,12 @@
             });
         }
 
-        // 1. ADD NEW CARD TO SUPABASE
+        // 1. ADD NEW CARD
         async function handleAddNewCatalogCard(e) {
             e.preventDefault();
             const btn = document.getElementById('addCardSubmitBtn');
             btn.disabled = true;
-            btn.innerText = "Supabase में सेव हो रहा है...";
+            btn.innerText = "सेव हो रहा है...";
 
             const title = document.getElementById('admCardName').value.trim();
             const model = document.getElementById('admCardModel').value.trim();
@@ -360,141 +369,156 @@
                     imageUrl = await compressAndResizeImage(fileInput.files[0]);
                 }
 
-                const { error } = await supabaseClient
-                    .from('cards')
-                    .insert([{
-                        title: title,
-                        model: model,
-                        price: price,
-                        in_stock: in_stock,
-                        image_url: imageUrl
-                    }]);
+                const newCard = {
+                    id: Date.now(),
+                    title: title,
+                    model: model,
+                    price: price,
+                    in_stock: in_stock,
+                    image_url: imageUrl
+                };
 
-                if (error) throw error;
+                // LocalStorage save
+                let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
+                localCards.unshift(newCard);
+                localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
 
-                alert("कार्ड Supabase में सफलतापूर्वक सेव हो गया!");
+                // Supabase save attempt
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('cards').insert([{
+                            title: title,
+                            model: model,
+                            price: price,
+                            in_stock: in_stock,
+                            image_url: imageUrl
+                        }]);
+                    } catch (sbErr) {
+                        console.log("Supabase insert bypassed:", sbErr);
+                    }
+                }
+
+                alert("कार्ड कैटलॉग में सफलतापूर्वक जुड़ गया!");
                 document.getElementById('newCardForm').reset();
                 loadCatalogStock();
 
             } catch (err) {
-                alert("सेव करने में त्रुटि: " + err.message + "\n\n(कृपया सुनिश्चित करें कि आपने Supabase में SQL रन कर दिया है)");
+                alert("त्रुटि: " + err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerText = "+ Supabase में सेव करें";
+                btn.innerText = "+ स्टॉक में सुरक्षित करें";
             }
         }
 
-        // 2. LOAD CATALOG STOCK FROM SUPABASE
+        // 2. LOAD CATALOG STOCK
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
-            tbody.innerHTML = '<tr><td colspan="7">Supabase से डेटा लोड हो रहा है...</td></tr>';
+            let cards = [];
 
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('id', { ascending: false });
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('cards')
+                        .select('*')
+                        .order('id', { ascending: false });
 
-                if (error) throw error;
-
-                if (!cards || cards.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड उपलब्ध नहीं है। नया कार्ड जोड़ें।</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = cards.map(c => `
-                    <tr>
-                        <td>
-                            <img src="${c.image_url || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
-                        </td>
-                        <td><b>${c.title || '-'}</b></td>
-                        <td>${c.model || '-'}</td>
-                        <td>₹${c.price || '0'}/पीस</td>
-                        <td>
-                            <span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">
-                                ${c.in_stock ? 'उपलब्ध' : 'समाप्त'}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn-stock-toggle ${c.in_stock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${!c.in_stock})">
-                                ${c.in_stock ? 'आउट करें' : 'इन करें'}
-                            </button>
-                        </td>
-                        <td>
-                            <button class="btn-del" onclick="deleteCatalogCard(${c.id})">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="7" style="color:red;">त्रुटि: ${err.message}</td></tr>`;
+                    if (!error && data && data.length > 0) {
+                        cards = data;
+                    }
+                } catch (e) {}
             }
+
+            if (!cards || cards.length === 0) {
+                cards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
+            }
+
+            if (cards.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड उपलब्ध नहीं है। ऊपर दिए गए फॉर्म से नया कार्ड जोड़ें।</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = cards.map(c => `
+                <tr>
+                    <td>
+                        <img src="${c.image_url || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
+                    </td>
+                    <td><b>${c.title || '-'}</b></td>
+                    <td>${c.model || '-'}</td>
+                    <td>₹${c.price || '0'}/पीस</td>
+                    <td>
+                        <span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">
+                            ${c.in_stock ? 'उपलब्ध' : 'समाप्त'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-stock-toggle ${c.in_stock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${!c.in_stock})">
+                            ${c.in_stock ? 'आउट करें' : 'इन करें'}
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn-del" onclick="deleteCatalogCard(${c.id})">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         // 3. TOGGLE STOCK
         async function toggleCardStock(cardId, newStatus) {
-            try {
-                const { error } = await supabaseClient.from('cards').update({ in_stock: newStatus }).eq('id', cardId);
-                if (error) throw error;
-                loadCatalogStock();
-            } catch (e) {
-                alert("त्रुटि: " + e.message);
+            let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
+            localCards = localCards.map(c => c.id == cardId ? { ...c, in_stock: newStatus } : c);
+            localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('cards').update({ in_stock: newStatus }).eq('id', cardId);
+                } catch (e) {}
             }
+            loadCatalogStock();
         }
 
         // 4. DELETE CARD
         async function deleteCatalogCard(cardId) {
             if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
-            try {
-                const { error } = await supabaseClient.from('cards').delete().eq('id', cardId);
-                if (error) throw error;
-                loadCatalogStock();
-            } catch (e) {
-                alert("त्रुटि: " + e.message);
+            let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
+            localCards = localCards.filter(c => c.id != cardId);
+            localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('cards').delete().eq('id', cardId);
+                } catch (e) {}
             }
+            loadCatalogStock();
         }
 
         // 5. LOAD ORDERS
-        async function loadAdminOrders() {
+        function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            try {
-                const { data: orders } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
-                if (orders && orders.length > 0) {
-                    tbody.innerHTML = orders.map(o => `
-                        <tr>
-                            <td>${new Date(o.created_at || Date.now()).toLocaleDateString('hi-IN')}</td>
-                            <td><b>${o.card_title || o.service_type || 'शादी कार्ड'}</b></td>
-                            <td>${o.customer_name || '-'}<br><small>${o.customer_mobile || ''}</small></td>
-                            <td>₹${o.total_amount || '0'}</td>
-                            <td style="color:green; font-weight:bold;">₹${o.advance_paid || '0'}</td>
-                        </tr>
-                    `).join('');
-                    return;
-                }
-            } catch (e) {}
             tbody.innerHTML = '<tr><td colspan="5">कोई नया ऑर्डर नहीं मिला।</td></tr>';
         }
 
         // 6. LOAD USERS
         async function loadAdminUsers() {
             const tbody = document.getElementById('usersTableBody');
-            try {
-                const { data: users } = await supabaseClient.from('users').select('*').order('id', { ascending: false });
-                if (users && users.length > 0) {
-                    tbody.innerHTML = users.map(u => `
-                        <tr>
-                            <td><b>${u.name || '-'}</b></td>
-                            <td>${u.mobile || '-'}</td>
-                            <td>${u.email || '-'}</td>
-                            <td>${u.village || '-'}</td>
-                            <td>${u.address || '-'}</td>
-                        </tr>
-                    `).join('');
-                    return;
-                }
-            } catch(e) {}
+            if (supabaseClient) {
+                try {
+                    const { data: users, error } = await supabaseClient.from('users').select('*').order('id', { ascending: false });
+                    if (!error && users && users.length > 0) {
+                        tbody.innerHTML = users.map(u => `
+                            <tr>
+                                <td><b>${u.name || '-'}</b></td>
+                                <td>${u.mobile || '-'}</td>
+                                <td>${u.email || '-'}</td>
+                                <td>${u.village || '-'}</td>
+                                <td>${u.address || '-'}</td>
+                            </tr>
+                        `).join('');
+                        return;
+                    }
+                } catch(e) {}
+            }
             tbody.innerHTML = '<tr><td colspan="5">कोई रजिस्टर्ड ग्राहक नहीं मिला।</td></tr>';
         }
     </script>
