@@ -179,27 +179,15 @@
             border: 1px solid #cbd5e1; object-fit: cover;
         }
 
-        .signature-box-wrapper {
-            background: #fff; border: 2px dashed #94a3b8; border-radius: 6px;
-            padding: 8px; text-align: center; margin-top: 6px; position: relative;
-        }
-        #sigCanvas {
-            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px;
-            width: 100%; max-width: 480px; height: 160px; touch-action: none; cursor: crosshair;
-        }
-        .sig-btn-clear {
-            background: #64748b; color: white; border: none; padding: 4px 10px;
-            border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 6px;
-        }
         .declaration-box {
             background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
-            padding: 10px; margin-top: 12px; display: flex; align-items: flex-start; gap: 8px;
+            padding: 12px; margin-top: 5px; display: flex; align-items: flex-start; gap: 10px;
         }
         .declaration-box input[type="checkbox"] {
-            width: 20px; height: 20px; margin-top: 2px; cursor: pointer;
+            width: 22px; height: 22px; margin-top: 2px; cursor: pointer; flex-shrink: 0;
         }
         .declaration-box label {
-            font-size: 13px; color: #1e3a8a; font-weight: 600; line-height: 1.4; cursor: pointer;
+            font-size: 13px; color: #1e3a8a; font-weight: 600; line-height: 1.5; cursor: pointer; margin-bottom: 0;
         }
 
         .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
@@ -353,7 +341,7 @@
                     </div>
                 </div>
 
-                <!-- २. दूल्हा-दुल्हन का नाम, पिता का नाम और पता -->
+                <!-- २. दूल्हा-दुल्हन का विवरण -->
                 <div class="form-block">
                     <div class="couple-header-bar">
                         <h4 style="margin-bottom:0; border:none; padding:0;">२. दूल्हा-दुल्हन का विवरण</h4>
@@ -469,14 +457,9 @@
                     </div>
                 </div>
 
-                <!-- ७. डिजिटल हस्ताक्षर एवं चेकबॉक्स -->
+                <!-- ७. मैटर सत्यापन चेकबॉक्स -->
                 <div class="form-block">
-                    <h4>७. ग्राहक डिजिटल हस्ताक्षर एवं सत्यापन</h4>
-                    <p style="font-size:12px; color:#64748b;">नीचे दिए गए बॉक्स में अपनी उंगली से अपना हस्ताक्षर (Signature) करें:</p>
-                    <div class="signature-box-wrapper">
-                        <canvas id="sigCanvas"></canvas>
-                        <button type="button" class="sig-btn-clear" onclick="clearSignature()"><i class="fa-solid fa-rotate-left"></i> दोबारा साइन करें (Clear)</button>
-                    </div>
+                    <h4>७. मैटर सत्यापन एवं स्वीकृति</h4>
                     <div class="declaration-box">
                         <input type="checkbox" id="userDeclaration" required>
                         <label for="userDeclaration">
@@ -519,7 +502,6 @@
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="index.html#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="order.html" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span>ऑर्डर करें</span></a>
-        <a href="login.html"><i class="fa-solid fa-user"></i><span>लॉगिन</span></a>
     </div>
 
     <script>
@@ -535,7 +517,6 @@
             }
         }
 
-        // दूल्हा-दुल्हन स्विच (Swap) फंक्शन
         let isBrideFirst = false;
         function swapCoupleSides() {
             const groomBlock = document.getElementById('groomBlock');
@@ -555,7 +536,6 @@
             }
         }
 
-        // 1. कार्ड प्रीव्यू लोड करने का सिस्टम
         function initSelectedCard() {
             const params = new URLSearchParams(window.location.search);
             const pCard = params.get('card');
@@ -609,7 +589,6 @@
             }
         }
 
-        // 2. बिल कैलकुलेशन और डायनेमिक QR कोड अपडेट
         function calculateWeddingTotal() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -645,55 +624,6 @@
             document.getElementById('paytmLink').href = upiUrl;
         }
 
-        // 3. कैनवास डिजिटल सिग्नेचर
-        let canvas, ctx, isDrawing = false;
-        function initSignature() {
-            canvas = document.getElementById('sigCanvas');
-            if (!canvas) return;
-            ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth || 350;
-            canvas.height = 160;
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-
-            function getPos(e) {
-                const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top };
-            }
-
-            function startDraw(e) {
-                isDrawing = true;
-                const p = getPos(e);
-                ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                if (e.cancelable && e.type.startsWith('touch')) e.preventDefault();
-            }
-
-            function draw(e) {
-                if (!isDrawing) return;
-                const p = getPos(e);
-                ctx.lineTo(p.x, p.y);
-                ctx.stroke();
-                if (e.cancelable && e.type.startsWith('touch')) e.preventDefault();
-            }
-
-            function stopDraw() { isDrawing = false; }
-
-            canvas.addEventListener('mousedown', startDraw);
-            canvas.addEventListener('mousemove', draw);
-            window.addEventListener('mouseup', stopDraw);
-
-            canvas.addEventListener('touchstart', startDraw, { passive: false });
-            canvas.addEventListener('touchmove', draw, { passive: false });
-            window.addEventListener('touchend', stopDraw);
-        }
-
-        function clearSignature() {
-            if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
         function previewUserSample(e) {
             if (e.target.files && e.target.files[0]) {
                 const reader = new FileReader();
@@ -717,7 +647,6 @@
             }
         }
 
-        // 4. रिव्यू मोडल लॉजिक
         function openReviewModal() {
             if (!document.getElementById('userDeclaration').checked) {
                 alert("कृपया घोषणा चेकबॉक्स पर टिक करें!");
@@ -754,7 +683,6 @@
             document.getElementById('reviewModal').style.display = 'none';
         }
 
-        // 5. फाइनल ऑर्डर सबमिशन
         async function confirmAndSubmitOrder() {
             closeReviewModal();
             const btn = document.getElementById('submitOrderBtn');
@@ -800,7 +728,6 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             initSelectedCard();
-            initSignature();
             checkAuthAndPrefill();
         });
     </script>
