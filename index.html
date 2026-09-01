@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>दिल्ली प्रेस (सजाद प्रिंटर्स मल्टी सर्विसेज (सीएससी सेंटर)झारखंड के ईदगाह मोड़ में छैतार रोड पर स्थित है (पिन नंबर 815352ा)</title>
+    <title>दिल्ली प्रेस (सजाद प्रिंटर्स मल्टी सर्विसेज (सीएससी सेंटर)झारखंड के फुकबंदी में छैतार रोड पर स्थित है (पिन नंबर 815352)</title>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -37,18 +37,10 @@
             padding: 8px 16px;
         }
         .nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; text-decoration: none; }
-        .nav-logo-box {
-            width: 46px; height: 46px; border-radius: 50%;
-            background: #fff; border: 2px solid var(--primary);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; flex-shrink: 0;
-        }
         .nav-logo-img {
-            width: 100%; height: 100%; object-fit: cover;
-        }
-        .nav-logo-fallback {
-            color: var(--primary); font-size: 20px;
+            width: 46px; height: 46px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .nav-brand-text h2 { color: var(--primary); font-size: 19px; line-height: 1.1; font-weight: 700; }
         .nav-brand-text p { font-size: 11px; color: #64748b; margin: 0; }
@@ -291,10 +283,7 @@
 
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
-            <div class="nav-logo-box">
-                <img src="logo.png" alt="Logo" class="nav-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <i class="fa-solid fa-print nav-logo-fallback" style="display: none;"></i>
-            </div>
+            <img src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="Delhi Press Logo" class="nav-logo-img" onerror="this.src='logo.png'">
             <div class="nav-brand-text">
                 <h2>दिल्ली प्रेस</h2>
                 <p>सज्जाद प्रिंटर्स (Design • Print • Quality)</p>
@@ -351,7 +340,7 @@
                 <i class="fa-solid fa-circle-info"></i> हमारे बारे में (About Delhi Press)
             </div>
             <p style="font-size: 14px; color: #475569; line-height: 1.7; margin-bottom: 10px;">
-                <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।
+                <strong>दिल्ली प्रेस (सजाद प्रिंटर्स)</strong> सजाद प्रिंटर्स ईदगाह मोड़ (छायटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।
             </p>
         </div>
 
@@ -432,7 +421,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            &copy; दिल्ली प्रेस जामताड़ा. सर्व अधिकार सुरक्षित.
+            &copy; दिल्ली प्रेस ईदगाह मोड़ (छायटांड़). सर्व अधिकार सुरक्षित.
         </div>
     </footer>
 
@@ -444,16 +433,16 @@
         let currentZoomCard = null;
         let zoomLevel = 1;
 
-        // सुरक्षित रीडायरेक्शन फ़ंक्शन
+        // 100% Guaranteed Redirection Helper
         function selectCardToOrder(cardId, cardTitle, cardPrice, cardImg, cardModel) {
             try {
                 const safeId = cardId ? String(cardId) : '';
-                const safeTitle = cardTitle ? String(cardTitle) : 'Wedding Card';
+                const safeTitle = cardTitle ? String(cardTitle) : 'Muslim wedding card';
                 const safePrice = cardPrice ? String(cardPrice) : '10';
                 const safeModel = cardModel ? String(cardModel) : `Model #${safeId}`;
                 const safeImg = cardImg ? String(cardImg) : '';
 
-                // LocalStorage में डेटा सुरक्षित रखें
+                // LocalStorage backup
                 localStorage.setItem('selectedCardId', safeId);
                 localStorage.setItem('selectedCardName', safeTitle);
                 localStorage.setItem('selectedCardPrice', safePrice);
@@ -461,7 +450,6 @@
                 localStorage.setItem('selectedCardImage', safeImg);
                 localStorage.setItem('selectedCardModel', safeModel);
 
-                // URL Parameters तैयार करें
                 const params = new URLSearchParams({
                     card_id: safeId,
                     name: safeTitle,
@@ -471,15 +459,14 @@
                     img: safeImg
                 });
 
-                // सीधा और 100% काम करने वाला रीडायरेक्शन
                 window.location.assign('order.html?' + params.toString());
             } catch (err) {
-                console.error("Redirection Error:", err);
+                console.error("Redirect Error:", err);
                 window.location.assign('order.html');
             }
         }
 
-        // Supabase public.catalog टेबल से कार्ड लोड करना
+        // Supabase public.catalog table fetch
         async function fetchCatalogCards() {
             const container = document.getElementById('catalogContainer');
             try {
@@ -488,34 +475,27 @@
                     .select('*')
                     .order('created_at', { ascending: false });
 
-                if (error) {
-                    console.error("Supabase Error:", error.message);
+                if (error || !cards || cards.length === 0) {
                     renderStaticCards(container);
-                    return;
-                }
-
-                if (!cards || cards.length === 0) {
-                    container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding: 20px; color:#64748b;">वर्तमान में कोई कार्ड उपलब्ध नहीं है। एडमिन पैनल से नया कार्ड जोड़ें।</p>`;
                     return;
                 }
 
                 container.innerHTML = '';
                 cards.forEach(card => {
                     const id = card.id || '';
-                    const title = card.name || card.title || card.card_name || 'Wedding Card';
+                    const title = card.name || card.title || card.card_name || 'Muslim wedding card';
                     const price = card.rate ?? card.price ?? card.card_price ?? '10';
                     const model = card.code || card.model_no || card.model || card.card_no || `Model #${id}`;
-                    const img = card.sample_url || card.image_url || card.image || card.photo_url || '';
+                    const img = card.sample_url || card.image_url || card.image || card.photo_url || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
                     
                     const inStock = (card.stock_status !== 'Out of Stock' && card.status !== 'out_of_stock' && card.is_available !== false);
-
                     const targetUrl = `order.html?card_id=${encodeURIComponent(id)}&name=${encodeURIComponent(title)}&rate=${encodeURIComponent(price)}&price=${encodeURIComponent(price)}&model=${encodeURIComponent(model)}&img=${encodeURIComponent(img)}`;
 
                     const div = document.createElement('div');
                     div.className = 'card-sample';
                     div.innerHTML = `
                         <div class="img-box zoom-action">
-                            <img src="${img || 'logo.png'}" alt="${title}" loading="lazy" onerror="this.onerror=null; this.src='logo.png';">
+                            <img src="${img}" alt="${title}" loading="lazy" onerror="this.src='https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png'">
                             <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
                         </div>
                         <div class="card-info">
@@ -531,13 +511,13 @@
                         </div>
                     `;
 
-                    // ज़ूम ओपन
+                    // Zoom Event
                     div.querySelector('.zoom-action').addEventListener('click', () => {
-                        openZoomModal(img || 'logo.png', `${title} (₹${price}/पीस)`, id, price, model);
+                        openZoomModal(img, `${title} (₹${price}/पीस)`, id, price, model);
                     });
 
-                    // LocalStorage बैकअप के साथ लिंक क्लिक
-                    div.querySelector('.select-action').addEventListener('click', (e) => {
+                    // LocalStorage sync on link click
+                    div.querySelector('.select-action').addEventListener('click', () => {
                         localStorage.setItem('selectedCardId', id);
                         localStorage.setItem('selectedCardName', title);
                         localStorage.setItem('selectedCardPrice', price);
@@ -557,16 +537,16 @@
         function renderStaticCards(container) {
             container.innerHTML = `
                 <div class="card-sample">
-                    <div class="img-box" onclick="openZoomModal('logo.png', 'Wedding Card Sample (₹10/पीस)', '1', '10', 'Model #DP-01')">
-                        <img src="logo.png" alt="Sample Card">
+                    <div class="img-box" onclick="openZoomModal('https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png', 'Muslim Wedding Card (₹10/पीस)', '1', '10', 'Model #68110089')">
+                        <img src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="Muslim Wedding card">
                         <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
                     </div>
                     <div class="card-info">
-                        <h4>Wedding Card Sample</h4>
-                        <div class="model-text">मॉडल: DP-01</div>
+                        <h4>Muslim Wedding card</h4>
+                        <div class="model-text">मॉडल: Model #68110089</div>
                         <div class="card-price-tag">₹10 / पीस</div>
                         <span class="stock-badge in-stock">उपलब्ध (In Stock)</span>
-                        <a href="order.html?card_id=1&name=Wedding+Card+Sample&rate=10&price=10&model=DP-01" class="btn-select-card">
+                        <a href="order.html?card_id=1&name=Muslim+Wedding+card&rate=10&price=10&model=Model+%2368110089&img=https%3A%2F%2Furzmdriydbofeoitvipj.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fcards_images%2Fcard_1788204223761.png" class="btn-select-card" onclick="localStorage.setItem('selectedCardId','1'); localStorage.setItem('selectedCardName','Muslim Wedding card'); localStorage.setItem('selectedCardPrice','10'); localStorage.setItem('selectedCardRate','10'); localStorage.setItem('selectedCardModel','Model #68110089'); localStorage.setItem('selectedCardImage','https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png');">
                             <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
                         </a>
                     </div>
