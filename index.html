@@ -256,7 +256,7 @@
         .zoom-select-btn {
             background: var(--green); color: white; border: none;
             padding: 10px 20px; border-radius: 25px; font-weight: bold;
-            font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px;
+            font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -290,12 +290,10 @@
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
             
-            <!-- लॉगिन बटन (लॉगिन न होने पर दिखेगा) -->
             <li id="authNavContainer">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
 
-            <!-- प्रोफाइल और माय ऑर्डर्स (लॉगिन होने पर दिखेगा) -->
             <li class="user-logged-box" id="userLoggedBox">
                 <span class="user-name-display" id="displayUserName">👤 ग्राहक</span>
                 <a href="my_orders.html" class="btn-my-orders">
@@ -327,7 +325,9 @@
                 शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग
             </h3>
             <p style="font-size:12px; color:#666; margin-top:2px;">(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)</p>
-            <div class="gallery-grid" id="catalogContainer"></div>
+            <div class="gallery-grid" id="catalogContainer">
+                <p style="grid-column: 1/-1; text-align:center; padding: 15px; color:#64748b;">कैटलॉग लोड हो रहा है...</p>
+            </div>
         </div>
 
         <div class="info-card" id="aboutSection">
@@ -388,9 +388,9 @@
             <button type="button" class="zoom-btn" onclick="applyZoom(0.25)" title="ज़ूम इन"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
             <button type="button" class="zoom-btn" onclick="applyZoom(-0.25)" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
             <button type="button" class="zoom-btn" onclick="resetZoom()" title="सामान्य आकार"><i class="fa-solid fa-rotate-left"></i></button>
-            <a id="zoomOrderBtn" href="#" class="zoom-select-btn">
+            <button type="button" id="zoomOrderBtn" class="zoom-select-btn" onclick="redirectToOrderFromZoom()">
                 <i class="fa-solid fa-pen-to-square"></i> यह कार्ड ऑर्डर करें
-            </a>
+            </button>
         </div>
     </div>
 
@@ -412,7 +412,7 @@
             <div class="footer-col">
                 <h4>त्वरित लिंक</h4>
                 <p><a href="order.html" style="color:#cbd5e1; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> शादी कार्ड फॉर्म</a></p>
-                <p><a href="admin.html" style="color:#f1c40f; text-decoration:none; font-weight:bold;"><i class="fa-solid fa-user-shield"></i> एडमिन पैनल</a></p>
+                <p><a href="admin.html" style="color:#f1c40f; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> एडमिन पैनल</a></p>
             </div>
         </div>
         <div class="footer-bottom">
@@ -425,172 +425,159 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentZoomLevel = 1;
+        let currentZoomCard = null;
+        let zoomLevel = 1;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            checkUserAuth();
-            loadCardsCatalog();
-        });
+        // कैटलॉग से कार्ड चुनकर सीधे order.html पर भेजना (Local Storage + URL Parameters)
+        function selectCardToOrder(cardId, cardTitle, cardPrice, cardImg, cardModel) {
+            localStorage.setItem('selectedCardId', cardId || '');
+            localStorage.setItem('selectedCardName', cardTitle || '');
+            localStorage.setItem('selectedCardPrice', cardPrice || '10');
+            localStorage.setItem('selectedCardRate', cardPrice || '10');
+            localStorage.setItem('selectedCardImage', cardImg || '');
+            localStorage.setItem('selectedCardModel', cardModel || `Model #${cardId}`);
 
-        // चेक करें यूजर लॉगिन है या नहीं (सभी Storage Keys के साथ)
-        async function checkUserAuth() {
-            let userData = null;
+            const params = new URLSearchParams({
+                card_id: cardId || '',
+                name: cardTitle || '',
+                rate: cardPrice || '10',
+                price: cardPrice || '10',
+                model: cardModel || `Model #${cardId}`,
+                img: cardImg || ''
+            });
 
-            // 1. लोकल / सेशन स्टोरेज से डेटा चेक करें
-            const rawUser = localStorage.getItem('dp_user_data') || 
-                            localStorage.getItem('dp_user') || 
-                            localStorage.getItem('user') ||
-                            sessionStorage.getItem('dp_user_data') ||
-                            sessionStorage.getItem('dp_user');
-
-            if (rawUser) {
-                try {
-                    userData = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
-                } catch (e) {
-                    userData = { full_name: rawUser };
-                }
-            }
-
-            // 2. यदि स्टोरेज में न हो, तो Supabase सेशन चेक करें
-            if (!userData) {
-                try {
-                    const { data: { session } } = await supabaseClient.auth.getSession();
-                    if (session && session.user) {
-                        userData = {
-                            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'ग्राहक',
-                            phone: session.user.phone || ''
-                        };
-                    }
-                } catch (err) {
-                    console.warn("Session check error", err);
-                }
-            }
-
-            // 3. UI अपडेट करें
-            const authNavContainer = document.getElementById('authNavContainer');
-            const userLoggedBox = document.getElementById('userLoggedBox');
-            const displayUserName = document.getElementById('displayUserName');
-            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
-            const mobileAuthLabel = document.getElementById('mobileAuthLabel');
-
-            if (userData) {
-                const name = userData.full_name || userData.name || userData.customer_name || 'ग्राहक';
-                if (authNavContainer) authNavContainer.style.display = 'none';
-                if (userLoggedBox) userLoggedBox.style.display = 'inline-flex';
-                if (displayUserName) displayUserName.innerText = `👤 ${name}`;
-                
-                if (mobileAuthBtn && mobileAuthLabel) {
-                    mobileAuthBtn.href = "my_orders.html";
-                    mobileAuthLabel.innerText = "ऑर्डर्स";
-                }
-            } else {
-                if (authNavContainer) authNavContainer.style.display = 'block';
-                if (userLoggedBox) userLoggedBox.style.display = 'none';
-                if (mobileAuthBtn && mobileAuthLabel) {
-                    mobileAuthBtn.href = "login.html";
-                    mobileAuthLabel.innerText = "लॉगिन";
-                }
-            }
+            window.location.href = `order.html?${params.toString()}`;
         }
 
-        async function handleLogout() {
-            localStorage.removeItem('dp_user_data');
-            localStorage.removeItem('dp_user');
-            localStorage.removeItem('user');
-            sessionStorage.removeItem('dp_user_data');
-            sessionStorage.removeItem('dp_user');
-            try {
-                await supabaseClient.auth.signOut();
-            } catch (e) {}
-            location.reload();
-        }
-
-        // कैटलॉग डेटाबेस से लोड करें
-        async function loadCardsCatalog() {
+        async function fetchCatalogCards() {
             const container = document.getElementById('catalogContainer');
-            if (!container) return;
-            container.innerHTML = '<p style="font-size:13px; color:#64748b; grid-column:1/-1; text-align:center;">कैटलॉग लोड हो रहा है...</p>';
-
             try {
-                const { data, error } = await supabaseClient
-                    .from('cards_catalog')
+                const { data: cards, error } = await supabaseClient
+                    .from('cards')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('id', { ascending: false });
 
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p style="font-size:13px; color:#64748b; grid-column:1/-1; text-align:center;">वर्तमान में कोई कार्ड सैंपल उपलब्ध नहीं है।</p>';
+                if (error || !cards || cards.length === 0) {
+                    // यदि डेटाबेस खाली हो तो डिफ़ॉल्ट कार्ड्स दिखाना
+                    renderStaticCards(container);
                     return;
                 }
 
-                container.innerHTML = data.map(card => {
-                    const title = card.title || 'शादी कार्ड';
-                    const rate = card.rate_per_piece || '0';
-                    const model = card.model_type || '';
-                    const isInStock = card.stock_status === 'in';
-                    const imgUrl = card.image_url || 'logo.png';
+                container.innerHTML = '';
+                cards.forEach(card => {
+                    const id = card.id;
+                    const title = card.title || card.card_name || card.name || 'Muslim wedding card';
+                    const price = card.price ?? card.card_price ?? card.rate ?? '10';
+                    const model = card.model || card.card_model || card.code || `Model #${id}`;
+                    const img = card.image_url || card.image || card.photo_url || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400';
+                    const inStock = (card.status !== 'out_of_stock' && card.is_available !== false);
 
-                    return `
-                        <div class="card-sample">
-                            <div class="img-box" onclick="openZoomModal('${imgUrl}', '${title}', '${model}', '${rate}')">
-                                <img src="${imgUrl}" alt="${title}" loading="lazy" onerror="this.src='logo.png'">
-                                <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                            </div>
-                            <div class="card-info">
-                                <h4>${title}</h4>
-                                <div class="card-price-tag">₹${rate} / पीस</div>
-                                <div style="margin-bottom:6px;">
-                                    <span class="stock-badge ${isInStock ? 'in-stock' : 'out-stock'}">
-                                        ${isInStock ? 'उपलब्ध (In Stock)' : 'स्टॉक समाप्त'}
-                                    </span>
-                                </div>
-                                <a href="order.html?card=${encodeURIComponent(title)}" class="btn-select-card">
-                                    <i class="fa-solid fa-cart-shopping"></i> यह कार्ड चुनें
-                                </a>
-                            </div>
+                    const div = document.createElement('div');
+                    div.className = 'card-sample';
+                    div.innerHTML = `
+                        <div class="img-box" onclick="openZoomModal('${img}', '${title} (₹${price}/पीस)', '${id}', '${price}', '${model}')">
+                            <img src="${img}" alt="${title}" loading="lazy">
+                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
+                        </div>
+                        <div class="card-info">
+                            <h4>${title}</h4>
+                            <div class="card-price-tag">₹${price} / पीस</div>
+                            <span class="stock-badge ${inStock ? 'in-stock' : 'out-stock'}">
+                                ${inStock ? 'उपलब्ध (In Stock)' : 'आउट ऑफ स्टॉक'}
+                            </span>
+                            <button type="button" class="btn-select-card" onclick="selectCardToOrder('${id}', '${title}', '${price}', '${img}', '${model}')">
+                                <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
+                            </button>
                         </div>
                     `;
-                }).join('');
+                    container.appendChild(div);
+                });
             } catch (err) {
-                container.innerHTML = `<p style="font-size:13px; color:red; grid-column:1/-1; text-align:center;">कैटलॉग लोड करने में त्रुटि: ${err.message}</p>`;
+                renderStaticCards(container);
             }
         }
 
-        // ================= Zoom Modal Functions =================
-        function openZoomModal(imgUrl, title, model, rate) {
-            const modal = document.getElementById('imageZoomModal');
-            const img = document.getElementById('zoomModalImg');
-            const titleEl = document.getElementById('zoomModalTitle');
-            const orderBtn = document.getElementById('zoomOrderBtn');
+        function renderStaticCards(container) {
+            container.innerHTML = `
+                <div class="card-sample">
+                    <div class="img-box" onclick="openZoomModal('https://images.unsplash.com/photo-1544717305-2782549b5136?w=600', 'Muslim Wedding Card (₹10/पीस)', '1', '10', 'Model #68110089')">
+                        <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=400" alt="Muslim Wedding card">
+                        <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
+                    </div>
+                    <div class="card-info">
+                        <h4>Muslim Wedding card</h4>
+                        <div class="card-price-tag">₹10 / पीस</div>
+                        <span class="stock-badge in-stock">उपलब्ध (In Stock)</span>
+                        <button type="button" class="btn-select-card" onclick="selectCardToOrder('1', 'Muslim Wedding card', '10', 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600', 'Model #68110089')">
+                            <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
 
-            img.src = imgUrl;
-            titleEl.innerText = `${title} (₹${rate}/पीस)`;
-            orderBtn.href = `order.html?card=${encodeURIComponent(title)}`;
-
-            currentZoomLevel = 1;
-            img.style.transform = `scale(1)`;
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+        // ज़ूम मोडल फंक्शन
+        function openZoomModal(imgSrc, title, id, price, model) {
+            currentZoomCard = { id, title: title.split(' (')[0], price, img: imgSrc, model };
+            document.getElementById('zoomModalImg').src = imgSrc;
+            document.getElementById('zoomModalTitle').innerText = title;
+            document.getElementById('imageZoomModal').classList.add('active');
+            resetZoom();
         }
 
         function closeZoomModal() {
-            const modal = document.getElementById('imageZoomModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
+            document.getElementById('imageZoomModal').classList.remove('active');
+            resetZoom();
         }
 
-        function applyZoom(delta) {
-            currentZoomLevel = Math.max(0.5, Math.min(3.5, currentZoomLevel + delta));
-            const img = document.getElementById('zoomModalImg');
-            img.style.transform = `scale(${currentZoomLevel})`;
+        function applyZoom(step) {
+            zoomLevel = Math.max(0.5, Math.min(3, zoomLevel + step));
+            document.getElementById('zoomModalImg').style.transform = `scale(${zoomLevel})`;
         }
 
         function resetZoom() {
-            currentZoomLevel = 1;
-            const img = document.getElementById('zoomModalImg');
-            img.style.transform = `scale(1)`;
+            zoomLevel = 1;
+            document.getElementById('zoomModalImg').style.transform = 'scale(1)';
         }
+
+        function redirectToOrderFromZoom() {
+            if (currentZoomCard) {
+                selectCardToOrder(currentZoomCard.id, currentZoomCard.title, currentZoomCard.price, currentZoomCard.img, currentZoomCard.model);
+            }
+        }
+
+        // यूज़र लॉगिन स्थिति जाँचना
+        function checkAuth() {
+            const userJson = localStorage.getItem('dp_current_user');
+            const authContainer = document.getElementById('authNavContainer');
+            const userLoggedBox = document.getElementById('userLoggedBox');
+            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+            const mobileAuthLabel = document.getElementById('mobileAuthLabel');
+
+            if (userJson) {
+                try {
+                    const user = JSON.parse(userJson);
+                    authContainer.style.display = 'none';
+                    userLoggedBox.style.display = 'flex';
+                    document.getElementById('displayUserName').innerText = `👤 ${user.name || user.full_name || 'ग्राहक'}`;
+                    
+                    if (mobileAuthBtn && mobileAuthLabel) {
+                        mobileAuthBtn.href = 'my_orders.html';
+                        mobileAuthLabel.innerText = 'माय ऑर्डर्स';
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('dp_current_user');
+            location.reload();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            fetchCatalogCards();
+        });
     </script>
 </body>
 </html>
