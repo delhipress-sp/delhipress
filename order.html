@@ -16,6 +16,7 @@
             --green: #27ae60;
             --blue: #2980b9;
             --wa-green: #25D366;
+            --cashfree-purple: #6c2bd9;
             --warn-bg: #fff3cd;
             --warn-border: #ffeeba;
             --warn-text: #856404;
@@ -153,13 +154,27 @@
 
         .payment-box {
             background: #f0fdf4; border: 1px solid #bbf7d0;
-            padding: 14px; border-radius: 8px; text-align: center;
+            padding: 16px; border-radius: 8px; text-align: center;
         }
         .qr-wrapper {
-            background: #fff; border: 1px solid #ddd; display: inline-block;
-            padding: 8px; border-radius: 8px; margin: 10px 0;
+            background: #fff; border: 1px solid #cbd5e1; display: inline-block;
+            padding: 8px; border-radius: 8px; margin: 10px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
-        .qr-wrapper img { width: 150px; height: 150px; display: block; }
+        .qr-wrapper img { width: 160px; height: 160px; display: block; }
+
+        .payment-options-grid {
+            display: flex; justify-content: center; gap: 8px; margin: 12px 0; flex-wrap: wrap;
+        }
+        .btn-pay-app {
+            background: #2563eb; color: white; padding: 8px 14px; border-radius: 5px;
+            font-size: 12px; text-decoration: none; font-weight: bold; display: inline-flex;
+            align-items: center; gap: 6px; border: none; cursor: pointer;
+        }
+        .btn-pay-cashfree {
+            background: var(--cashfree-purple); color: white; padding: 9px 16px; border-radius: 5px;
+            font-size: 13px; text-decoration: none; font-weight: bold; display: inline-flex;
+            align-items: center; gap: 6px; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(108, 43, 217, 0.2);
+        }
 
         .declaration-box {
             background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
@@ -402,21 +417,33 @@
                     </div>
                 </div>
 
-                <!-- भुगतान विवरण (UPI / UTR) -->
+                <!-- डायनामिक UPI एवं कैशफ्री भुगतान सेक्शन -->
                 <div class="form-block" style="border-left-color: var(--green);">
                     <h4>४. ऑनलाइन एडवांस भुगतान</h4>
                     <div class="payment-box">
-                        <p style="font-size: 13px; font-weight: bold; color: #166534;">
-                            नीचे दिए गए QR कोड को स्कैन करके एडवांस राशि (₹<span id="qrAdvanceDisplay">500</span>) का भुगतान करें:
+                        <p style="font-size: 13px; font-weight: bold; color: #166534; margin-bottom: 5px;">
+                            एडवांस राशि: <b>₹<span id="qrAdvanceDisplay">500</span></b>
                         </p>
+
+                        <!-- डायनामिक QR कोड -->
                         <div class="qr-wrapper">
-                            <img id="upiQrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=9304509464@ybl%26pn=DelhiPress%26am=500" alt="UPI QR">
+                            <img id="upiQrCode" src="" alt="UPI Dynamic QR">
                         </div>
                         <p style="font-size: 12px; color: #475569; margin-bottom: 8px;">UPI ID: <b>9304509464@ybl</b></p>
                         
-                        <div class="form-group" style="max-width: 320px; margin: 0 auto; text-align: left;">
+                        <!-- UPI App Buttons & Cashfree Gateway -->
+                        <div class="payment-options-grid">
+                            <a id="directUpiPayLink" href="#" class="btn-pay-app" style="background:#0284c7;">
+                                <i class="fa-solid fa-mobile-screen-button"></i> सीधे UPI ऐप से पे करें
+                            </a>
+                            <button type="button" onclick="openCashfreeCheckout()" class="btn-pay-cashfree">
+                                <i class="fa-solid fa-credit-card"></i> कैशफ्री (Card / NetBanking / Wallet)
+                            </button>
+                        </div>
+
+                        <div class="form-group" style="max-width: 330px; margin: 12px auto 0 auto; text-align: left;">
                             <label style="color: #b91c1c; font-weight: bold;">भुगतान के बाद UTR / Transaction ID डालें:</label>
-                            <input type="text" id="utrNumber" placeholder="उदा: 4264XXXXXXXX" required>
+                            <input type="text" id="utrNumber" placeholder="उदा: 4264XXXXXXXX या Cashfree ID" required>
                         </div>
                     </div>
                 </div>
@@ -480,6 +507,9 @@
             }
         }
 
+        const UPI_ID = "9304509464@ybl";
+        const PAYEE_NAME = "DelhiPress";
+
         let isBrideTop = false;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -540,6 +570,7 @@
             updateAdvanceCalculations();
         }
 
+        // 2. DYNAMIC UPI QR & DIRECT APP LINK GENERATION
         function updateAdvanceCalculations() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -551,8 +582,30 @@
             document.getElementById('balanceAmountDisplay').innerText = `₹${bal.toLocaleString('hi-IN')}`;
             document.getElementById('qrAdvanceDisplay').innerText = adv;
 
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=9304509464@ybl%26pn=DelhiPress%26am=${adv}`;
+            // Dynamic UPI Deep Link & QR URL
+            const upiDeepLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${adv}&cu=INR&tn=${encodeURIComponent('Wedding Card Advance')}`;
+            document.getElementById('directUpiPayLink').href = upiDeepLink;
+
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiDeepLink)}`;
             document.getElementById('upiQrCode').src = qrUrl;
+        }
+
+        // 3. CASHFREE PAYMENT INTEGRATION
+        function openCashfreeCheckout() {
+            const adv = parseFloat(document.getElementById('advancePaidInput').value) || 0;
+            const custName = document.getElementById('custFullName').value.trim() || 'Customer';
+            const custPhone = document.getElementById('custMobile').value.trim() || '9304509464';
+
+            if (adv <= 0) {
+                alert("कृपया वैध एडवांस राशि दर्ज करें।");
+                return;
+            }
+
+            // Cashfree Hosted Payment / Payment Link Redirection
+            const cashfreePaymentLink = `https://payments.cashfree.com/links/delhipress_advance?amount=${adv}&name=${encodeURIComponent(custName)}&phone=${encodeURIComponent(custPhone)}`;
+            
+            window.open(cashfreePaymentLink, '_blank');
+            alert(`कैशफ्री पेमेंट पेज खुल रहा है। पेमेंट पूरा करने के बाद मिलने वाला Payment/UTR ID नीचे दर्ज करें।`);
         }
 
         function swapCoupleSides() {
@@ -624,7 +677,6 @@
             document.getElementById('reviewModal').style.display = 'none';
         }
 
-        // 2. SEND MATTER TO WHATSAPP
         function sendMatterToWhatsApp() {
             const text = generateOrderSummaryText();
             const phone = "919304509464";
@@ -674,7 +726,7 @@
                 order_status: 'Pending'
             };
 
-            // 1. LocalStorage update
+            // 1. LocalStorage Update
             let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
             allOrders.unshift(orderData);
             localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
