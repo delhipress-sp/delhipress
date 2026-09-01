@@ -99,7 +99,7 @@
             align-items: center; z-index: 9999; padding: 15px;
         }
         .modal-content {
-            background: white; width: 100%; max-width: 600px; max-height: 90vh;
+            background: white; width: 100%; max-width: 650px; max-height: 90vh;
             border-radius: 8px; overflow-y: auto; padding: 20px; position: relative;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
@@ -114,6 +114,12 @@
         }
         .receipt-section-title {
             background: #f8fafc; padding: 4px 8px; font-weight: bold; color: var(--primary); margin: 10px 0 6px 0; border-left: 3px solid var(--primary); font-size: 13px;
+        }
+        .card-preview-box {
+            display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 6px;
+        }
+        .card-preview-box img {
+            width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
         }
     </style>
 </head>
@@ -554,7 +560,7 @@
             loadCatalogStock();
         }
 
-        // 3. LOAD ORDERS (WITH COMPLETE FALLBACK PARSING)
+        // 3. LOAD ORDERS
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             tbody.innerHTML = '<tr><td colspan="8">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
@@ -588,7 +594,6 @@
             tbody.innerHTML = orders.map((o, index) => {
                 const dateStr = new Date(o.created_at || Date.now()).toLocaleDateString('hi-IN');
                 
-                // Unified field handling
                 const customerName = o.customer_name || o.client_name || o.name || '-';
                 const customerMobile = o.customer_mobile || o.mobile || o.phone || '-';
                 const customerAddress = o.customer_address || o.address || o.village || '';
@@ -599,11 +604,13 @@
                 const total = parseFloat(o.total_amount || o.total || o.bill_amount || 0);
                 const advance = parseFloat(o.advance_paid || o.advance_amount || o.advance || 0);
                 const balance = parseFloat(o.balance_amount !== undefined ? o.balance_amount : (total - advance));
+                const cardImg = o.card_image || o.card_img || o.image_url || o.image || '';
 
                 return `
                     <tr>
                         <td>${dateStr}</td>
                         <td>
+                            ${cardImg ? `<img src="${cardImg}" style="width:35px; height:35px; object-fit:cover; border-radius:4px; vertical-align:middle; margin-right:4px;">` : ''}
                             <b>${o.card_title || o.card_name || 'शादी कार्ड'}</b><br>
                             <span style="font-size:11px; color:#64748b;">${o.quantity || 100} पीस</span>
                         </td>
@@ -636,7 +643,7 @@
             }).join('');
         }
 
-        // 4. MODAL PREVIEW AND PRINT
+        // 4. MODAL PREVIEW AND PRINT (WITH SELECTED CARD SAMPLE)
         function openOrderModal(index) {
             const o = globalOrdersCache[index];
             if (!o) return;
@@ -644,6 +651,7 @@
             const total = parseFloat(o.total_amount || o.total || o.bill_amount || 0);
             const advance = parseFloat(o.advance_paid || o.advance_amount || o.advance || 0);
             const balance = parseFloat(o.balance_amount !== undefined ? o.balance_amount : (total - advance));
+            const cardImg = o.card_image || o.card_img || o.image_url || o.image || '';
 
             const modalBody = document.getElementById('printableReceiptArea');
             modalBody.innerHTML = `
@@ -653,13 +661,22 @@
                     <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; border-radius:3px; font-size:12px;">शादी कार्ड ऑर्डर एवं मैटर रसीद</h4>
                 </div>
 
-                <div class="receipt-section-title">१. ग्राहक विवरण</div>
+                <div class="receipt-section-title">१. चुना गया कार्ड सैंपल (Card Model)</div>
+                <div class="card-preview-box">
+                    ${cardImg ? `<img src="${cardImg}" alt="Card Sample">` : '<div style="width:80px; height:80px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:11px; color:#64748b;">नो इमेज</div>'}
+                    <div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${o.card_title || o.card_name || 'शादी कार्ड'}</div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल कोड: <b>${o.card_model || o.model || 'DP-Model'}</b></div>
+                        <div style="font-size:12px; color:#64748b;">मात्रा: <b>${o.quantity || 100} पीस</b> | दर: <b>₹${o.card_rate || (total / (o.quantity || 1)) || 0}/पीस</b></div>
+                    </div>
+                </div>
+
+                <div class="receipt-section-title">२. ग्राहक विवरण</div>
                 <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${o.customer_name || o.client_name || '-'}</b></div>
                 <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${o.customer_mobile || o.mobile || '-'}</b></div>
                 <div class="receipt-row"><span>पता:</span> <span>${o.customer_address || o.address || '-'}</span></div>
 
-                <div class="receipt-section-title">२. शादी मैटर विवरण</div>
-                <div class="receipt-row"><span>कार्ड मॉडल / प्रकार:</span> <b>${o.card_title || o.card_name || 'शादी कार्ड'}</b></div>
+                <div class="receipt-section-title">३. शादी मैटर विवरण</div>
                 <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${o.groom_name || o.groom || '-'}</b></div>
                 <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${o.groom_father || '-'}</span></div>
                 <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${o.groom_address || '-'}</span></div>
@@ -667,13 +684,13 @@
                 <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${o.bride_father || '-'}</span></div>
                 <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${o.bride_address || '-'}</span></div>
 
-                <div class="receipt-section-title">३. वैवाहिक कार्यक्रम व अन्य</div>
+                <div class="receipt-section-title">४. वैवाहिक कार्यक्रम व अन्य</div>
                 <div class="receipt-row"><span>विवाह / निकाह तिथि:</span> <b>${o.event_date || o.wedding_date || '-'}</b></div>
                 <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${o.rsvp || '-'}</span></div>
                 <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${o.from_family || '-'}</span></div>
                 <div class="receipt-row"><span>विशेष निर्देश / शायरी:</span> <span>${o.special_note || o.note || '-'}</span></div>
 
-                <div class="receipt-section-title">४. बिल एवं भुगतान विवरण</div>
+                <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
                 <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${o.quantity || 100} पीस</b></div>
                 <div class="receipt-row"><span>कुल राशि:</span> <b>₹${total}</b></div>
                 <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${advance}</b></div>
@@ -698,7 +715,7 @@
                 margin:       8,
                 filename:     'Delhi_Press_Order_Receipt.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().set(opt).from(element).save();
