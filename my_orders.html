@@ -175,7 +175,6 @@
             const container = document.getElementById('ordersContainer');
 
             try {
-                // ग्राहक के फोन नंबर या नाम से मिलान करके ऑर्डर्स निकालना
                 const { data, error } = await supabaseClient
                     .from('orders')
                     .select('*')
@@ -212,7 +211,7 @@
                         <div class="order-card">
                             <div class="order-card-header">
                                 <div class="order-id-date">
-                                    <h4>${ord.category || 'शादी कार्ड ऑर्डर'}</h4>
+                                    <h4>${ord.card_name || ord.category || 'शादी कार्ड ऑर्डर'}</h4>
                                     <span>ऑर्डर तिथि: ${dt}</span>
                                 </div>
                                 <span class="badge-status ${ord.status === 'completed' ? 'completed' : ''}">
@@ -275,17 +274,24 @@
             const printArea = document.getElementById('printableReceiptArea');
             const d = ord.created_at ? new Date(ord.created_at) : new Date();
             const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-            const mapShareUrl = "https://share.google/dmV4uXNQ8KWnP1EHQ";
 
             let couplesHtml = '';
             if (ord.couples && Array.isArray(ord.couples)) {
                 ord.couples.forEach((c, i) => {
                     couplesHtml += `
-                        <div style="background: #fff8f0; border: 1px dashed #d35400; padding: 8px; border-radius: 6px; margin-bottom: 6px; font-size: 12px;">
+                        <div style="background: #fff8f0; border: 1px dashed #d35400; padding: 8px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.6;">
+                            <b>जोड़ी #${i+1} (${c.side === 'groom' ? 'दूल्हा पक्ष' : 'दुल्हन पक्ष'}):</b><br>
                             <b>वर:</b> ${c.groom || '-'} (पिता: ${c.groom_father || '-'}, पता: ${c.groom_address || '-'})<br>
-                            <b>वधू:</b> ${c.bride || '-'} (पिता: ${c.bride_father || '-'}, पता: ${c.bride_address || '-'})
+                            <b>संग वधू:</b> ${c.bride || '-'} (पिता: ${c.bride_father || '-'}, पता: ${c.bride_address || '-'})
                         </div>
                     `;
+                });
+            }
+
+            let eventsHtml = '';
+            if (ord.events && Array.isArray(ord.events)) {
+                ord.events.forEach((ev) => {
+                    eventsHtml += `<div>• <b>${ev.name || '-'}:</b> ${ev.date || '-'} (${ev.time || '-'})</div>`;
                 });
             }
 
@@ -294,34 +300,34 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
                         <div>
                             <h2 style="color: #c0392b; margin: 0; font-size: 22px;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
-                            <p style="margin: 0; font-size: 13px; color: #475569;">जामताड़ा, झारखंड - 815351 | मो: 9304509464</p>
+                            <p style="margin: 0; font-size: 13px; color: #475569;">ईदगाह मोड़ (छतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464</p>
                         </div>
                         <div style="text-align: right;">
                             <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-                                ग्राहक ऑर्डर रसीद
+                                ग्राहक ऑर्डर रसीद / पावती
                             </span>
-                            <div style="font-size: 11px; margin-top: 4px; color: #64748b;">तारीख: ${dt}</div>
+                            <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
                         </div>
                     </div>
 
-                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px;">
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; line-height: 1.6;">
                         <b>ग्राहक का नाम:</b> ${ord.user_name || '-'}<br>
-                        <b>मोबाइल:</b> ${ord.user_phone || '-'}<br>
-                        <b>पता:</b> ${ord.user_address || '-'}<br>
-                        <b>UTR / Trans No:</b> ${ord.utr || '-'}
+                        <b>मोबाइल नंबर:</b> ${ord.user_phone || '-'}<br>
+                        <b>ग्राहक का पता:</b> ${ord.user_address || '-'}<br>
+                        <b>भुगतान UTR / Trans No:</b> ${ord.utr || '-'}
                     </div>
 
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;" border="1">
                         <tr style="background: #f1f5f9;">
-                            <th style="padding: 6px; text-align: left;">कार्ड मॉडल</th>
+                            <th style="padding: 6px; text-align: left;">कार्ड प्रकार / मॉडल</th>
                             <th style="padding: 6px; text-align: center;">मात्रा</th>
                             <th style="padding: 6px; text-align: right;">कुल बिल</th>
                             <th style="padding: 6px; text-align: right;">जमा एडवांस</th>
                             <th style="padding: 6px; text-align: right;">बाकी बकाया</th>
                         </tr>
                         <tr>
-                            <td style="padding: 6px;">${ord.category || 'शादी कार्ड'}</td>
-                            <td style="padding: 6px; text-align: center;">${ord.quantity || 0}</td>
+                            <td style="padding: 6px;">${ord.card_name || ord.category || 'शादी कार्ड'}</td>
+                            <td style="padding: 6px; text-align: center;">${ord.quantity || 0} पीस</td>
                             <td style="padding: 6px; text-align: right; font-weight: bold;">₹${ord.total_amount || 0}</td>
                             <td style="padding: 6px; text-align: right; color: #166534;">₹${ord.advance_amount || 0}</td>
                             <td style="padding: 6px; text-align: right; color: #b91c1c; font-weight: bold;">₹${ord.balance_amount || 0}</td>
@@ -329,16 +335,49 @@
                     </table>
 
                     <div style="margin-bottom: 12px;">
-                        <h4 style="color: var(--primary); font-size: 13px; margin-bottom: 5px;">स्वीकृत मैटर विवरण:</h4>
-                        ${couplesHtml}
+                        <h4 style="color: var(--primary); font-size: 14px; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px;">
+                            कार्ड का स्वीकृत मैटर विवरण:
+                        </h4>
+                        ${couplesHtml || '<div style="font-size: 12px; color: #64748b;">विवाह विवरण उपलब्ध नहीं है।</div>'}
                     </div>
 
-                    ${ord.signature ? `
-                        <div style="text-align: right; margin-top: 15px;">
-                            <img src="${ord.signature}" style="max-width: 120px; height: 45px; object-fit: contain; display: inline-block;">
-                            <div style="font-size: 11px; font-weight: bold;">ग्राहक डिजिटल हस्ताक्षर</div>
+                    ${eventsHtml ? `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 12px;">
+                            <b style="color: var(--dark);">वैवाहिक कार्यक्रम:</b>
+                            ${eventsHtml}
                         </div>
                     ` : ''}
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 12px;">
+                        ${ord.rsvp ? `
+                            <div style="background: #f1f5f9; padding: 6px 10px; border-radius: 4px;">
+                                <b>RSVP (निवेदक):</b> ${ord.rsvp}
+                            </div>
+                        ` : ''}
+                        ${ord.from_text ? `
+                            <div style="background: #f1f5f9; padding: 6px 10px; border-radius: 4px;">
+                                <b>दर्शनाभिलाषी (From):</b> ${ord.from_text}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${ord.shayari ? `
+                        <div style="background: #fff8f0; border-left: 3px solid var(--secondary); padding: 6px 10px; font-size: 12px; margin-bottom: 12px;">
+                            <b>विशेष शायरी / संदेश:</b> ${ord.shayari}
+                        </div>
+                    ` : ''}
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+                        <div style="font-size: 11px; color: #64748b;">
+                            * यह कंप्यूटर जनरेटेड रसीद है। बाकी राशि डिलीवरी के समय देय होगी।
+                        </div>
+                        ${ord.signature ? `
+                            <div style="text-align: right;">
+                                <img src="${ord.signature}" style="max-width: 120px; height: 40px; object-fit: contain; display: inline-block;">
+                                <div style="font-size: 11px; font-weight: bold;">ग्राहक डिजिटल हस्ताक्षर</div>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             `;
 
@@ -356,4 +395,3 @@
     </script>
 </body>
 </html>
-
