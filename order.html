@@ -171,6 +171,28 @@
         }
         .advance-calc-box .row-2 { align-items: center; margin-bottom: 0; }
 
+        /* Payment Section Styles */
+        .payment-box {
+            background: #f0fdf4; border: 1px solid #bbf7d0;
+            padding: 14px; border-radius: 8px; text-align: center; margin-top: 10px;
+        }
+        .btn-cashfree {
+            background: #097939; color: white; border: none; padding: 10px 18px;
+            font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px;
+        }
+        .qr-wrapper {
+            background: #fff; border: 1px solid #ddd; display: inline-block;
+            padding: 8px; border-radius: 8px; margin: 8px 0;
+        }
+        .qr-wrapper img { width: 140px; height: 140px; display: block; }
+
+        .upi-buttons { display: flex; justify-content: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+        .upi-btn {
+            background: #3b82f6; color: white; padding: 8px 14px; border-radius: 5px;
+            font-size: 12px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+        }
+
         .signature-box-wrapper {
             background: #fff; border: 2px dashed #94a3b8; border-radius: 6px;
             padding: 8px; text-align: center; margin-top: 6px; position: relative;
@@ -363,9 +385,44 @@
                             </div>
                             <small style="font-size: 11px; color: #15803d;">* न्यूनतम 50% एडवांस भुगतान अनिवार्य है। बाकी राशि कार्ड डिलीवरी के समय देय होगी।</small>
                         </div>
+
+                        <!-- एडवांस पेमेंट गेटवे / UPI सेक्शन (Dynamic) -->
+                        <div class="payment-box">
+                            <h4 style="color: #15803d; margin-bottom: 6px; font-size: 14px;">
+                                <i class="fa-solid fa-shield-halved"></i> ऑनलाइन एडवांस भुगतान करें (₹<span id="payAmountText">500</span>)
+                            </h4>
+                            <p style="font-size: 12px; color: #555; margin-bottom: 10px;">स्कैन करें या नीचे दिए गए UPI बटन से भुगतान करें:</p>
+                            
+                            <div>
+                                <a id="cashfreePayBtn" href="https://payments.cashfree.com/forms/delhipress" target="_blank" class="btn-cashfree">
+                                    <i class="fa-solid fa-credit-card"></i> Cashfree से सुरक्षित भुगतान करें
+                                </a>
+                            </div>
+
+                            <div class="qr-wrapper">
+                                <img id="dynamicUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9304509464%40ybl%26pn%3DDelhi%2520Press%26am%3D500%26cu%3DINR" alt="UPI QR Code">
+                            </div>
+
+                            <div class="upi-buttons">
+                                <a id="gpayBtn" href="upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=500&cu=INR" class="upi-btn" style="background:#0f9d58;">
+                                    <i class="fa-brands fa-google-pay"></i> GPay
+                                </a>
+                                <a id="phonepeBtn" href="upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=500&cu=INR" class="upi-btn" style="background:#5f259f;">
+                                    <i class="fa-solid fa-mobile-screen-button"></i> PhonePe
+                                </a>
+                                <a id="paytmBtn" href="upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=500&cu=INR" class="upi-btn" style="background:#00baf2;">
+                                    <i class="fa-solid fa-wallet"></i> Paytm
+                                </a>
+                            </div>
+
+                            <div class="form-group" style="max-width: 320px; margin: 12px auto 0;">
+                                <label style="font-size: 12px; color: #333;">भुगतान के बाद UTR / Transaction ID दर्ज करें:</label>
+                                <input type="text" id="paymentTxnId" placeholder="उदा: 4215XXXXXXXX" style="text-align:center;">
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- २. दूल्हा-दुल्हन का नाम, पिता का नाम और पता (स्विच बटन सहित) -->
+                    <!-- २. दूल्हा-दुल्हन का नाम, पिता का नाम और पता -->
                     <div class="form-block">
                         <div class="form-block-header">
                             <h4 id="coupleSectionTitle">२. दूल्हा-दुल्हन का नाम, पिता का नाम और पता</h4>
@@ -380,7 +437,7 @@
                                 
                                 <div class="side-container-1">
                                     <div style="background:#f8fafc; padding:10px; border-radius:4px; margin-bottom:8px;">
-                                        <strong class="side-label-1" style="color:var(--primary); font-size:13px;">[दूल्हा पक्ष]</strong>
+                                        <strong style="color:var(--primary); font-size:13px;">[दूल्हा पक्ष]</strong>
                                         <div class="row-2" style="margin-top:4px;">
                                             <div class="form-group"><input type="text" class="groom-name" placeholder="लड़के का नाम" required></div>
                                             <div class="form-group"><input type="text" class="groom-father" placeholder="पिता का नाम" required></div>
@@ -393,7 +450,7 @@
 
                                 <div class="side-container-2">
                                     <div style="background:#f8fafc; padding:10px; border-radius:4px;">
-                                        <strong class="side-label-2" style="color:var(--secondary); font-size:13px;">[दुल्हन पक्ष]</strong>
+                                        <strong style="color:var(--secondary); font-size:13px;">[दुल्हन पक्ष]</strong>
                                         <div class="row-2" style="margin-top:4px;">
                                             <div class="form-group"><input type="text" class="bride-name" placeholder="लड़की का नाम" required></div>
                                             <div class="form-group"><input type="text" class="bride-father" placeholder="पिता का नाम" required></div>
@@ -636,6 +693,24 @@
             const balance = Math.max(0, total - advance);
 
             document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
+            
+            // Dynamic Payment details update
+            const payText = document.getElementById('payAmountText');
+            if (payText) payText.innerText = advance;
+
+            const upiUrl = `upi://pay?pa=9304509464@ybl&pn=Delhi%20Press&am=${advance}&cu=INR`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}`;
+
+            const qrImg = document.getElementById('dynamicUpiQr');
+            if (qrImg) qrImg.src = qrUrl;
+
+            const gpay = document.getElementById('gpayBtn');
+            const phonepe = document.getElementById('phonepeBtn');
+            const paytm = document.getElementById('paytmBtn');
+
+            if (gpay) gpay.href = upiUrl;
+            if (phonepe) phonepe.href = upiUrl;
+            if (paytm) paytm.href = upiUrl;
         }
 
         function addCouple() {
@@ -719,6 +794,7 @@
             const total = parseFloat(rate) * parseInt(qty);
             const adv = document.getElementById('advancePaidInput').value;
             const bal = Math.max(0, total - parseFloat(adv));
+            const txnId = document.getElementById('paymentTxnId').value || 'लागू नहीं / नकद';
 
             let couplesText = "";
             document.querySelectorAll('.couple-item').forEach((item, idx) => {
@@ -746,7 +822,7 @@
 
             finalMessage = `*📋 नया शादी कार्ड ऑर्डर - दिल्ली प्रेस*\n------------------------------\n` +
                            `👤 *ग्राहक:* ${name}\n📱 *मोबाइल:* ${mobile}\n📍 *पता:* ${address}\n\n` +
-                           `🎴 *कार्ड विवरण:*\nमॉडल: ${cardModel}\nरेट: ₹${rate}/पीस | संख्या: ${qty}\n*कुल बिल:* ₹${total} | *एडवांस:* ₹${adv} | *बाकी:* ₹${bal}\n` +
+                           `🎴 *कार्ड विवरण:*\nमॉडल: ${cardModel}\nरेट: ₹${rate}/पीस | संख्या: ${qty}\n*कुल बिल:* ₹${total} | *एडवांस जमा:* ₹${adv} | *बाकी:* ₹${bal}\n*पेमेंट UTR/Txn:* ${txnId}\n` +
                            `------------------------------\n` +
                            `*${isBrideFirst ? 'दुल्हन-दूल्हा' : 'दूल्हा-दुल्हन'} का विवरण:*${couplesText}\n` +
                            `*कार्यक्रम:* \n${eventsText}\n` +
