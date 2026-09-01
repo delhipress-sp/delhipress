@@ -290,13 +290,14 @@
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
             
-            <!-- डेस्कटॉप लॉगिन / प्रोफाइल कंटेनर -->
+            <!-- लॉगिन बटन (लॉगिन न होने पर दिखेगा) -->
             <li id="authNavContainer">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
 
+            <!-- प्रोफाइल और माय ऑर्डर्स (लॉगिन होने पर दिखेगा) -->
             <li class="user-logged-box" id="userLoggedBox">
-                <span class="user-name-display" id="displayUserName"></span>
+                <span class="user-name-display" id="displayUserName">👤 ग्राहक</span>
                 <a href="my_orders.html" class="btn-my-orders">
                     <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स
                 </a>
@@ -372,7 +373,7 @@
 
     </div>
 
-    <!-- ==================== Image Zoom Popup Modal ==================== -->
+    <!-- Image Zoom Popup Modal -->
     <div id="imageZoomModal" class="zoom-modal">
         <div class="zoom-header">
             <div class="zoom-title" id="zoomModalTitle">कार्ड विवरण</div>
@@ -431,55 +432,80 @@
             loadCardsCatalog();
         });
 
-        // चेक करें कि यूजर लॉग इन है या नहीं
-        function checkUserAuth() {
-            const userSession = localStorage.getItem('dp_user_data') || sessionStorage.getItem('dp_user_data');
+        // चेक करें यूजर लॉगिन है या नहीं (सभी Storage Keys के साथ)
+        async function checkUserAuth() {
+            let userData = null;
+
+            // 1. लोकल / सेशन स्टोरेज से डेटा चेक करें
+            const rawUser = localStorage.getItem('dp_user_data') || 
+                            localStorage.getItem('dp_user') || 
+                            localStorage.getItem('user') ||
+                            sessionStorage.getItem('dp_user_data') ||
+                            sessionStorage.getItem('dp_user');
+
+            if (rawUser) {
+                try {
+                    userData = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
+                } catch (e) {
+                    userData = { full_name: rawUser };
+                }
+            }
+
+            // 2. यदि स्टोरेज में न हो, तो Supabase सेशन चेक करें
+            if (!userData) {
+                try {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session && session.user) {
+                        userData = {
+                            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'ग्राहक',
+                            phone: session.user.phone || ''
+                        };
+                    }
+                } catch (err) {
+                    console.warn("Session check error", err);
+                }
+            }
+
+            // 3. UI अपडेट करें
             const authNavContainer = document.getElementById('authNavContainer');
             const userLoggedBox = document.getElementById('userLoggedBox');
             const displayUserName = document.getElementById('displayUserName');
             const mobileAuthBtn = document.getElementById('mobileAuthBtn');
             const mobileAuthLabel = document.getElementById('mobileAuthLabel');
 
-            if (userSession) {
-                try {
-                    const user = JSON.parse(userSession);
-                    if (authNavContainer) authNavContainer.style.display = 'none';
-                    if (userLoggedBox) userLoggedBox.style.display = 'inline-flex';
-                    if (displayUserName) displayUserName.innerText = user.full_name ? `👤 ${user.full_name}` : '👤 ग्राहक';
-                    
-                    if (mobileAuthBtn && mobileAuthLabel) {
-                        mobileAuthBtn.href = "my_orders.html";
-                        mobileAuthLabel.innerText = "ऑर्डर्स";
-                    }
-                } catch (e) {
-                    showDefaultLoginState();
+            if (userData) {
+                const name = userData.full_name || userData.name || userData.customer_name || 'ग्राहक';
+                if (authNavContainer) authNavContainer.style.display = 'none';
+                if (userLoggedBox) userLoggedBox.style.display = 'inline-flex';
+                if (displayUserName) displayUserName.innerText = `👤 ${name}`;
+                
+                if (mobileAuthBtn && mobileAuthLabel) {
+                    mobileAuthBtn.href = "my_orders.html";
+                    mobileAuthLabel.innerText = "ऑर्डर्स";
                 }
             } else {
-                showDefaultLoginState();
+                if (authNavContainer) authNavContainer.style.display = 'block';
+                if (userLoggedBox) userLoggedBox.style.display = 'none';
+                if (mobileAuthBtn && mobileAuthLabel) {
+                    mobileAuthBtn.href = "login.html";
+                    mobileAuthLabel.innerText = "लॉगिन";
+                }
             }
         }
 
-        function showDefaultLoginState() {
-            const authNavContainer = document.getElementById('authNavContainer');
-            const userLoggedBox = document.getElementById('userLoggedBox');
-            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
-            const mobileAuthLabel = document.getElementById('mobileAuthLabel');
-
-            if (authNavContainer) authNavContainer.style.display = 'block';
-            if (userLoggedBox) userLoggedBox.style.display = 'none';
-            if (mobileAuthBtn && mobileAuthLabel) {
-                mobileAuthBtn.href = "login.html";
-                mobileAuthLabel.innerText = "लॉगिन";
-            }
-        }
-
-        function handleLogout() {
+        async function handleLogout() {
             localStorage.removeItem('dp_user_data');
+            localStorage.removeItem('dp_user');
+            localStorage.removeItem('user');
             sessionStorage.removeItem('dp_user_data');
+            sessionStorage.removeItem('dp_user');
+            try {
+                await supabaseClient.auth.signOut();
+            } catch (e) {}
             location.reload();
         }
 
-        // कैटलॉग लोड करने का फंक्शन
+        // कैटलॉग डेटाबेस से लोड करें
         async function loadCardsCatalog() {
             const container = document.getElementById('catalogContainer');
             if (!container) return;
@@ -498,26 +524,34 @@
                     return;
                 }
 
-                container.innerHTML = data.map(card => `
-                    <div class="card-sample">
-                        <div class="img-box" onclick="openZoomModal('${card.image_url}', '${card.title}', '${card.model_type || ''}', '${card.rate_per_piece}')">
-                            <img src="${card.image_url}" alt="${card.title}" loading="lazy" onerror="this.src='logo.png'">
-                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                        </div>
-                        <div class="card-info">
-                            <h4>${card.title}</h4>
-                            <div class="card-price-tag">₹${card.rate_per_piece} / पीस</div>
-                            <div style="margin-bottom:6px;">
-                                <span class="stock-badge ${card.stock_status === 'in' ? 'in-stock' : 'out-stock'}">
-                                    ${card.stock_status === 'in' ? 'उपलब्ध (In Stock)' : 'स्टॉक समाप्त'}
-                                </span>
+                container.innerHTML = data.map(card => {
+                    const title = card.title || 'शादी कार्ड';
+                    const rate = card.rate_per_piece || '0';
+                    const model = card.model_type || '';
+                    const isInStock = card.stock_status === 'in';
+                    const imgUrl = card.image_url || 'logo.png';
+
+                    return `
+                        <div class="card-sample">
+                            <div class="img-box" onclick="openZoomModal('${imgUrl}', '${title}', '${model}', '${rate}')">
+                                <img src="${imgUrl}" alt="${title}" loading="lazy" onerror="this.src='logo.png'">
+                                <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
                             </div>
-                            <a href="order.html?card=${encodeURIComponent(card.title)}" class="btn-select-card">
-                                <i class="fa-solid fa-cart-shopping"></i> यह कार्ड चुनें
-                            </a>
+                            <div class="card-info">
+                                <h4>${title}</h4>
+                                <div class="card-price-tag">₹${rate} / पीस</div>
+                                <div style="margin-bottom:6px;">
+                                    <span class="stock-badge ${isInStock ? 'in-stock' : 'out-stock'}">
+                                        ${isInStock ? 'उपलब्ध (In Stock)' : 'स्टॉक समाप्त'}
+                                    </span>
+                                </div>
+                                <a href="order.html?card=${encodeURIComponent(title)}" class="btn-select-card">
+                                    <i class="fa-solid fa-cart-shopping"></i> यह कार्ड चुनें
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (err) {
                 container.innerHTML = `<p style="font-size:13px; color:red; grid-column:1/-1; text-align:center;">कैटलॉग लोड करने में त्रुटि: ${err.message}</p>`;
             }
