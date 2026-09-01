@@ -429,28 +429,42 @@
         let currentZoomCard = null;
         let zoomLevel = 1;
 
-        // कार्ड चुनकर सीधे order.html पर भेजना
+        // कार्ड चुनकर सुरक्षित रूप से order.html पर रीडायरेक्ट करना
         function selectCardToOrder(cardId, cardTitle, cardPrice, cardImg, cardModel) {
-            localStorage.setItem('selectedCardId', cardId || '');
-            localStorage.setItem('selectedCardName', cardTitle || '');
-            localStorage.setItem('selectedCardPrice', cardPrice || '10');
-            localStorage.setItem('selectedCardRate', cardPrice || '10');
-            localStorage.setItem('selectedCardImage', cardImg || '');
-            localStorage.setItem('selectedCardModel', cardModel || `Model #${cardId}`);
+            try {
+                const safeId = cardId ? String(cardId) : '';
+                const safeTitle = cardTitle ? String(cardTitle) : 'Wedding Card';
+                const safePrice = cardPrice ? String(cardPrice) : '10';
+                const safeModel = cardModel ? String(cardModel) : `Model #${safeId}`;
+                const safeImg = cardImg ? String(cardImg) : '';
 
-            const params = new URLSearchParams({
-                card_id: cardId || '',
-                name: cardTitle || '',
-                rate: cardPrice || '10',
-                price: cardPrice || '10',
-                model: cardModel || `Model #${cardId}`,
-                img: cardImg || ''
-            });
+                // LocalStorage में डेटा सुरक्षित रखें
+                localStorage.setItem('selectedCardId', safeId);
+                localStorage.setItem('selectedCardName', safeTitle);
+                localStorage.setItem('selectedCardPrice', safePrice);
+                localStorage.setItem('selectedCardRate', safePrice);
+                localStorage.setItem('selectedCardImage', safeImg);
+                localStorage.setItem('selectedCardModel', safeModel);
 
-            window.location.href = `order.html?${params.toString()}`;
+                // URL Parameters तैयार करें
+                const params = new URLSearchParams({
+                    card_id: safeId,
+                    name: safeTitle,
+                    rate: safePrice,
+                    price: safePrice,
+                    model: safeModel,
+                    img: safeImg
+                });
+
+                // सुरक्षित रीडायरेक्शन
+                window.location.href = 'order.html?' + params.toString();
+            } catch (err) {
+                console.error("Redirection Error:", err);
+                window.location.href = 'order.html';
+            }
         }
 
-        // Supabase public.catalog table se data fetch karna
+        // Supabase public.catalog टेबल से कार्ड फेच करना
         async function fetchCatalogCards() {
             const container = document.getElementById('catalogContainer');
             try {
@@ -472,7 +486,7 @@
 
                 container.innerHTML = '';
                 cards.forEach(card => {
-                    const id = card.id;
+                    const id = card.id || '';
                     const title = card.name || card.title || card.card_name || 'Wedding Card';
                     const price = card.rate ?? card.price ?? card.card_price ?? '10';
                     const model = card.code || card.model_no || card.model || card.card_no || `Model #${id}`;
@@ -483,7 +497,7 @@
                     const div = document.createElement('div');
                     div.className = 'card-sample';
                     div.innerHTML = `
-                        <div class="img-box" onclick="openZoomModal('${img}', '${title} (₹${price}/पीस)', '${id}', '${price}', '${model}')">
+                        <div class="img-box zoom-action">
                             <img src="${img}" alt="${title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'">
                             <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
                         </div>
@@ -494,11 +508,23 @@
                             <span class="stock-badge ${inStock ? 'in-stock' : 'out-stock'}">
                                 ${inStock ? 'उपलब्ध (In Stock)' : 'आउट ऑफ स्टॉक'}
                             </span>
-                            <button type="button" class="btn-select-card" onclick="selectCardToOrder('${id}', '${title}', '${price}', '${img}', '${model}')">
+                            <button type="button" class="btn-select-card select-action">
                                 <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
                             </button>
                         </div>
                     `;
+
+                    // ज़ूम इवेंट
+                    div.querySelector('.zoom-action').addEventListener('click', () => {
+                        openZoomModal(img, `${title} (₹${price}/पीस)`, id, price, model);
+                    });
+
+                    // ऑर्डर बटन क्लिक इवेंट
+                    div.querySelector('.select-action').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectCardToOrder(id, title, price, img, model);
+                    });
+
                     container.appendChild(div);
                 });
             } catch (err) {
@@ -508,23 +534,35 @@
         }
 
         function renderStaticCards(container) {
-            container.innerHTML = `
-                <div class="card-sample">
-                    <div class="img-box" onclick="openZoomModal('https://images.unsplash.com/photo-1544717305-2782549b5136?w=600', 'Muslim Wedding Card (₹10/पीस)', '1', '10', 'Model #68110089')">
-                        <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=400" alt="Muslim Wedding card">
-                        <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                    </div>
-                    <div class="card-info">
-                        <h4>Muslim Wedding card</h4>
-                        <div class="model-text">मॉडल: Model #68110089</div>
-                        <div class="card-price-tag">₹10 / पीस</div>
-                        <span class="stock-badge in-stock">उपलब्ध (In Stock)</span>
-                        <button type="button" class="btn-select-card" onclick="selectCardToOrder('1', 'Muslim Wedding card', '10', 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600', 'Model #68110089')">
-                            <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
-                        </button>
-                    </div>
+            container.innerHTML = '';
+            const staticDiv = document.createElement('div');
+            staticDiv.className = 'card-sample';
+            staticDiv.innerHTML = `
+                <div class="img-box zoom-static">
+                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=400" alt="Muslim Wedding card">
+                    <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
+                </div>
+                <div class="card-info">
+                    <h4>Muslim Wedding card</h4>
+                    <div class="model-text">मॉडल: Model #68110089</div>
+                    <div class="card-price-tag">₹10 / पीस</div>
+                    <span class="stock-badge in-stock">उपलब्ध (In Stock)</span>
+                    <button type="button" class="btn-select-card select-static">
+                        <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
+                    </button>
                 </div>
             `;
+
+            staticDiv.querySelector('.zoom-static').addEventListener('click', () => {
+                openZoomModal('https://images.unsplash.com/photo-1544717305-2782549b5136?w=600', 'Muslim Wedding Card (₹10/पीस)', '1', '10', 'Model #68110089');
+            });
+
+            staticDiv.querySelector('.select-static').addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectCardToOrder('1', 'Muslim Wedding card', '10', 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600', 'Model #68110089');
+            });
+
+            container.appendChild(staticDiv);
         }
 
         // ज़ूम मोडल फंक्शन
