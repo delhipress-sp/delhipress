@@ -503,7 +503,7 @@
                 }
             }
 
-            // सिर्फ मान्य यूजर होने पर ही माय ऑर्डर्स दिखेगा
+            // सिर्फ मान्य यूजर लॉगिन होने पर ही माय ऑर्डर्स दिखेगा
             if (userData && (userData.mobile || userData.phone || userData.email)) {
                 if (authNav) authNav.style.display = 'none';
                 if (loggedBox) loggedBox.style.display = 'flex';
@@ -520,11 +520,12 @@
             }
         }
 
+        // 2. FETCH LIVE CARDS (SUPABASE + ADMIN LOCALSTORAGE BACKUP)
         async function fetchLiveCards() {
             const catalogContainer = document.getElementById('catalogContainer');
             let cards = [];
 
-            // 1. Fetch from Supabase
+            // Supabase से कार्ड्स लोड करें
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -540,7 +541,17 @@
                 }
             }
 
-            // 2. Fallback Card
+            // एडमिन पैनल के लोकल स्टोरेज से बैकअप लोड करें
+            if (!cards || cards.length === 0) {
+                cards = JSON.parse(
+                    localStorage.getItem('dp_cards_catalog') || 
+                    localStorage.getItem('uploaded_cards') || 
+                    localStorage.getItem('admin_cards') || 
+                    '[]'
+                );
+            }
+
+            // डिफ़ॉल्ट फॉलबैक कार्ड
             if (!cards || cards.length === 0) {
                 cards = [
                     { 
