@@ -478,8 +478,10 @@
             const userData = JSON.parse(localStorage.getItem('user_data') || localStorage.getItem('user_session') || 'null');
             if (userData) {
                 // Desktop menu
-                document.getElementById('authNavContainer').style.display = 'none';
-                document.getElementById('userLoggedBox').style.display = 'block';
+                const authNav = document.getElementById('authNavContainer');
+                const loggedBox = document.getElementById('userLoggedBox');
+                if (authNav) authNav.style.display = 'none';
+                if (loggedBox) loggedBox.style.display = 'flex';
                 
                 // Mobile bottom bar
                 const mobileAuthText = document.getElementById('mobileAuthText');
