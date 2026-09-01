@@ -295,12 +295,10 @@
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
             <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
             
-            <!-- लॉगिन नहीं रहने पर -->
             <li id="authNavContainer">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
 
-            <!-- लॉगिन होने पर 'मेरे ऑर्डर्स' -->
             <li class="user-logged-box" id="userLoggedBox">
                 <a href="my_orders.html" class="btn-my-orders">
                     <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स
@@ -473,6 +471,7 @@
             selectCard(selectedZoomCard.title, selectedZoomCard.image, selectedZoomCard.price);
         }
 
+        // Check Login State
         function checkUserAuth() {
             const stored = localStorage.getItem('dp_current_user') || localStorage.getItem('user') || localStorage.getItem('user_data');
             let userData = null;
@@ -502,51 +501,46 @@
             const catalogContainer = document.getElementById('catalogContainer');
             let cards = [];
 
+            // 1. Fetch from Supabase (if available)
             if (supabaseClient) {
-                const possibleTables = ['cards', 'card_samples', 'wedding_cards', 'products'];
-                for (let tableName of possibleTables) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from(tableName)
-                            .select('*')
-                            .order('id', { ascending: false });
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('cards')
+                        .select('*')
+                        .order('id', { ascending: false });
 
-                        if (!error && data && data.length > 0) {
-                            cards = data;
-                            break;
-                        }
-                    } catch (e) {
-                        // ignore and try next table
+                    if (!error && data && data.length > 0) {
+                        cards = data;
                     }
+                } catch (e) {
+                    console.log('Supabase fetch bypassed');
                 }
             }
 
+            // 2. Fetch from Admin local storage (dp_cards_catalog)
             if (!cards || cards.length === 0) {
-                const localAdminCards = JSON.parse(localStorage.getItem('admin_cards') || localStorage.getItem('uploaded_cards') || '[]');
-                if (localAdminCards.length > 0) {
-                    cards = localAdminCards;
-                } else {
-                    cards = [
-                        { 
-                            title: 'प्रीमियम रेड वेडिंग कार्ड', 
-                            model: 'DP-101', 
-                            price: '₹12/पीस', 
-                            in_stock: true, 
-                            image_url: 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png' 
-                        }
-                    ];
-                }
+                cards = JSON.parse(localStorage.getItem('dp_cards_catalog') || localStorage.getItem('uploaded_cards') || '[]');
+            }
+
+            // 3. Fallback Card
+            if (!cards || cards.length === 0) {
+                cards = [
+                    { 
+                        title: 'प्रीमियम रेड वेडिंग कार्ड', 
+                        model: 'DP-101', 
+                        price: '12', 
+                        in_stock: true, 
+                        image_url: 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png' 
+                    }
+                ];
             }
 
             catalogContainer.innerHTML = cards.map(card => {
-                const cardImg = card.image_url || card.image || card.photo_url || card.img || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
-                const cardTitle = card.title || card.name || card.card_name || 'शादी कार्ड';
-                const cardModel = card.model || card.card_code || card.code || 'DP-Model';
-                
-                let rawPrice = card.price || card.rate || card.card_price || '10';
-                let cardPrice = String(rawPrice).includes('₹') ? rawPrice : `₹${rawPrice}/पीस`;
-                
-                const isAvailable = card.in_stock !== false && card.status !== 'out_of_stock';
+                const cardImg = card.image_url || card.image || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
+                const cardTitle = card.title || card.name || 'शादी कार्ड';
+                const cardModel = card.model || 'DP-Model';
+                const cardPrice = String(card.price).includes('₹') ? card.price : `₹${card.price}/पीस`;
+                const isAvailable = card.in_stock !== false;
 
                 return `
                     <div class="card-sample">
