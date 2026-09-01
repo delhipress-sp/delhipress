@@ -300,7 +300,7 @@
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन / रजिस्टर</a>
             </li>
 
-            <!-- लॉगिन होने पर केवल 'मेरे ऑर्डर्स' -->
+            <!-- लॉगिन होने पर 'मेरे ऑर्डर्स' -->
             <li class="user-logged-box" id="userLoggedBox">
                 <a href="my_orders.html" class="btn-my-orders">
                     <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स
@@ -473,7 +473,6 @@
             selectCard(selectedZoomCard.title, selectedZoomCard.image, selectedZoomCard.price);
         }
 
-        // Check Login State (Handles dp_current_user, user, and user_data)
         function checkUserAuth() {
             const stored = localStorage.getItem('dp_current_user') || localStorage.getItem('user') || localStorage.getItem('user_data');
             let userData = null;
@@ -484,13 +483,11 @@
             }
 
             if (userData && (userData.email || userData.name)) {
-                // Desktop Navbar
                 const authNav = document.getElementById('authNavContainer');
                 const loggedBox = document.getElementById('userLoggedBox');
                 if (authNav) authNav.style.display = 'none';
                 if (loggedBox) loggedBox.style.display = 'flex';
                 
-                // Mobile Bottom Bar
                 const mobileAuthText = document.getElementById('mobileAuthText');
                 const mobileAuthLink = document.getElementById('mobileAuthLink');
                 const mobileAuthIcon = document.getElementById('mobileAuthIcon');
@@ -503,68 +500,74 @@
 
         async function fetchLiveCards() {
             const catalogContainer = document.getElementById('catalogContainer');
-            try {
-                let cards = [];
-                if (supabaseClient) {
-                    const { data, error } = await supabaseClient
-                        .from('cards')
-                        .select('*')
-                        .order('created_at', { ascending: false });
+            let cards = [];
 
-                    if (!error && data && data.length > 0) {
-                        cards = data;
+            if (supabaseClient) {
+                const possibleTables = ['cards', 'card_samples', 'wedding_cards', 'products'];
+                for (let tableName of possibleTables) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from(tableName)
+                            .select('*')
+                            .order('id', { ascending: false });
+
+                        if (!error && data && data.length > 0) {
+                            cards = data;
+                            break;
+                        }
+                    } catch (e) {
+                        // ignore and try next table
                     }
                 }
-
-                if (cards.length === 0) {
-                    const localCards = JSON.parse(localStorage.getItem('uploaded_cards') || '[]');
-                    if (localCards.length > 0) {
-                        cards = localCards;
-                    } else {
-                        cards = [
-                            { 
-                                title: 'प्रीमियम रेड वेडिंग कार्ड', 
-                                model: 'DP-101', 
-                                price: '₹12/पीस', 
-                                in_stock: true, 
-                                image_url: 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png' 
-                            }
-                        ];
-                    }
-                }
-
-                catalogContainer.innerHTML = cards.map(card => {
-                    const cardImg = card.image_url || card.image || 'https://via.placeholder.com/200?text=Card+Image';
-                    const cardTitle = card.title || card.name || 'शादी कार्ड';
-                    const cardModel = card.model || card.card_code || 'DP-00';
-                    const cardPrice = card.price ? (String(card.price).includes('₹') ? card.price : `₹${card.price}`) : '₹10/पीस';
-                    const isAvailable = card.in_stock !== false;
-
-                    return `
-                        <div class="card-sample">
-                            <div class="img-box" onclick="openZoomModal('${cardTitle}', '${cardImg}', '${cardPrice}')">
-                                <img src="${cardImg}" alt="${cardTitle}" onerror="this.src='https://via.placeholder.com/200?text=Delhi+Press';">
-                                <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> ज़ूम</span>
-                            </div>
-                            <div class="card-info">
-                                <h4>${cardTitle}</h4>
-                                <div class="model-text">${cardModel}</div>
-                                <div class="card-price-tag">${cardPrice}</div>
-                                <span class="stock-badge ${isAvailable ? 'in-stock' : 'out-stock'}">
-                                    ${isAvailable ? 'उपलब्ध है' : 'स्टॉक समाप्त'}
-                                </span>
-                                <button type="button" class="btn-select-card" onclick="selectCard('${cardTitle}', '${cardImg}', '${cardPrice}')">
-                                    <i class="fa-solid fa-check"></i> यह कार्ड चुनें
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-            } catch (err) {
-                console.error('Error loading cards:', err);
-                catalogContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#e74c3c;">कार्ड्स लोड करने में समस्या आई। कृपया रिफ्रेश करें।</p>';
             }
+
+            if (!cards || cards.length === 0) {
+                const localAdminCards = JSON.parse(localStorage.getItem('admin_cards') || localStorage.getItem('uploaded_cards') || '[]');
+                if (localAdminCards.length > 0) {
+                    cards = localAdminCards;
+                } else {
+                    cards = [
+                        { 
+                            title: 'प्रीमियम रेड वेडिंग कार्ड', 
+                            model: 'DP-101', 
+                            price: '₹12/पीस', 
+                            in_stock: true, 
+                            image_url: 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png' 
+                        }
+                    ];
+                }
+            }
+
+            catalogContainer.innerHTML = cards.map(card => {
+                const cardImg = card.image_url || card.image || card.photo_url || card.img || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
+                const cardTitle = card.title || card.name || card.card_name || 'शादी कार्ड';
+                const cardModel = card.model || card.card_code || card.code || 'DP-Model';
+                
+                let rawPrice = card.price || card.rate || card.card_price || '10';
+                let cardPrice = String(rawPrice).includes('₹') ? rawPrice : `₹${rawPrice}/पीस`;
+                
+                const isAvailable = card.in_stock !== false && card.status !== 'out_of_stock';
+
+                return `
+                    <div class="card-sample">
+                        <div class="img-box" onclick="openZoomModal('${cardTitle}', '${cardImg}', '${cardPrice}')">
+                            <img src="${cardImg}" alt="${cardTitle}" onerror="this.src='https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';">
+                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> ज़ूम</span>
+                        </div>
+                        <div class="card-info">
+                            <h4>${cardTitle}</h4>
+                            <div class="model-text">${cardModel}</div>
+                            <div class="card-price-tag">${cardPrice}</div>
+                            <span class="stock-badge ${isAvailable ? 'in-stock' : 'out-stock'}">
+                                ${isAvailable ? 'उपलब्ध है' : 'स्टॉक समाप्त'}
+                            </span>
+                            <button type="button" class="btn-select-card" onclick="selectCard('${cardTitle}', '${cardImg}', '${cardPrice}')">
+                                <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         window.addEventListener('DOMContentLoaded', () => {
