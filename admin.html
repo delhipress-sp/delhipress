@@ -124,7 +124,7 @@
             <h3 style="color: var(--dark); margin-bottom: 14px;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
                 <label>एडमिन सुरक्षा पिन:</label>
-                <input type="password" id="adminPin" placeholder="४ अंकों का पिन दर्ज करें" onkeydown="if(event.key==='Enter') verifyAdminPin()">
+                <input type="password" id="adminPin" placeholder="सुरक्षा पिन दर्ज करें" onkeydown="if(event.key==='Enter') verifyAdminPin()">
             </div>
             <div style="text-align: right; margin-bottom: 12px;">
                 <a onclick="togglePinView('forgot')" style="font-size: 12px; color: var(--secondary); font-weight: bold; cursor: pointer;">
@@ -145,8 +145,8 @@
         <div id="adminForgotPinSection" style="display: none; max-width: 380px; margin: 40px auto;">
             <h3 style="color: var(--secondary); text-align: center; margin-bottom: 12px;">एडमिन पिन रीसेट</h3>
             <div class="form-group">
-                <label>मास्टर फोन नंबर:</label>
-                <input type="tel" id="masterPhone" placeholder="9304509464">
+                <label>मास्टर पंजीकृत फोन नंबर:</label>
+                <input type="tel" id="masterPhone" placeholder="अपना 10 अंकों का मोबाइल नंबर दर्ज करें">
             </div>
             <div class="form-group">
                 <label>नया ४ अंकों का पिन:</label>
@@ -329,34 +329,25 @@
             btn.innerText = "जाँच हो रही है...";
 
             try {
-                let actualPin = "1234";
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('admin_settings')
-                        .select('pin')
-                        .eq('id', 'admin_config')
-                        .maybeSingle();
+                let actualPin = null;
+                const { data, error } = await supabaseClient
+                    .from('admin_settings')
+                    .select('pin')
+                    .eq('id', 'admin_config')
+                    .maybeSingle();
 
-                    if (!error && data && data.pin) {
-                        actualPin = String(data.pin).trim();
-                    }
-                } catch (dbErr) {
-                    console.warn("डिफ़ॉल्ट पिन का उपयोग हो रहा है।");
+                if (!error && data && data.pin) {
+                    actualPin = String(data.pin).trim();
                 }
 
-                if (entered === actualPin || entered === "1234") {
+                if (actualPin && entered === actualPin) {
                     sessionStorage.setItem('dp_admin_auth', 'true');
                     showDashboard();
                 } else {
                     alert("गलत पिन! कृपया सही पिन दर्ज करें।");
                 }
             } catch (err) {
-                if (entered === "1234") {
-                    sessionStorage.setItem('dp_admin_auth', 'true');
-                    showDashboard();
-                } else {
-                    alert("लॉगिन त्रुटि: " + err.message);
-                }
+                alert("लॉगिन त्रुटि: " + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerText = "प्रवेश करें";
@@ -378,22 +369,33 @@
         function togglePinView(view) {
             document.getElementById('adminPinSection').style.display = (view === 'login') ? 'block' : 'none';
             document.getElementById('adminForgotPinSection').style.display = (view === 'forgot') ? 'block' : 'none';
+            if (view === 'forgot') {
+                document.getElementById('masterPhone').value = '';
+                document.getElementById('newPin').value = '';
+            }
         }
 
         async function resetAdminPin() {
             const phone = document.getElementById('masterPhone').value.trim();
             const newPin = document.getElementById('newPin').value.trim();
 
-            if (phone === "9304509464" && newPin.length >= 4) {
-                try {
-                    await supabaseClient.from('admin_settings').upsert({ id: 'admin_config', pin: newPin });
-                    alert("पिन सफलतापूर्वक अपडेट हो गया!");
-                    togglePinView('login');
-                } catch (e) {
-                    alert("पिन बदलने में त्रुटि: " + e.message);
-                }
-            } else {
-                alert("अमान्य फ़ोन या पिन (कम से कम ४ अंक होने चाहिए)!");
+            if (!phone || phone.length < 10) {
+                alert("कृपया सही 10 अंकों का मोबाइल नंबर दर्ज करें!");
+                return;
+            }
+
+            if (!newPin || newPin.length < 4) {
+                alert("नया पिन कम से कम 4 अंकों का होना चाहिए!");
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient.from('admin_settings').upsert({ id: 'admin_config', pin: newPin });
+                if (error) throw error;
+                alert("पिन सफलतापूर्वक अपडेट हो गया!");
+                togglePinView('login');
+            } catch (e) {
+                alert("पिन बदलने में त्रुटि: " + e.message);
             }
         }
 
