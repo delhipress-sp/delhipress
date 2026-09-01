@@ -309,7 +309,7 @@
             <div class="form-wrapper service-form-section" id="weddingFormSection">
                 <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
                 
-                <!-- चुना हुआ कार्ड दिखाने का बैनर -->
+                <!-- चुना हुआ कार्ड दिखाने का बैनर (शादी कार्ड ऑर्डर फॉर्म के ठीक नीचे) -->
                 <div class="selected-card-banner" id="selectedCardBanner">
                     <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
                     <div class="card-preview-body">
@@ -689,12 +689,12 @@
             }
         }
 
-        /* कैटलॉग से चुना गया शादी कार्ड लोड करना (Supabase, URL Query Params aur LocalStorage sabhi support karta hai) */
+        /* कैटलॉग से चुना गया कार्ड डेटा लोड करना */
         async function loadSelectedCard() {
             const urlParams = new URLSearchParams(window.location.search);
             const cardId = urlParams.get('card_id') || urlParams.get('id') || localStorage.getItem('selectedCardId');
 
-            // 1. Agar Supabase Card ID maujood hai to DB se fetch karein
+            // 1. Agar ID mili to database se details fetch karein
             if (cardId) {
                 try {
                     const { data: card, error } = await supabaseClient
@@ -706,26 +706,26 @@
                     if (!error && card) {
                         applyCardData(
                             card.id,
-                            card.card_name || card.name || card.title || 'शादी कार्ड',
+                            card.card_name || card.name || card.title || 'मुस्लिम वेडिंग कार्ड',
                             card.model || card.card_model || card.code || `Model #${card.id}`,
-                            card.price ?? card.card_price ?? card.rate ?? '0',
+                            card.price ?? card.card_price ?? card.rate ?? '10',
                             card.image_url || card.image || card.photo_url || ''
                         );
                         return;
                     }
                 } catch (err) {
-                    console.error("Supabase se card fetch karne me error:", err);
+                    console.error("Card load error:", err);
                 }
             }
 
-            // 2. Agar direct URL params ya localStorage me data bheja gaya hai
-            const name = urlParams.get('name') || urlParams.get('title') || localStorage.getItem('selectedCardName');
+            // 2. Agar direct parameters ya localStorage me details hain
+            const name = urlParams.get('name') || urlParams.get('title') || localStorage.getItem('selectedCardName') || localStorage.getItem('selectedCardTitle');
             const model = urlParams.get('model') || urlParams.get('code') || localStorage.getItem('selectedCardModel');
-            const rate = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selectedCardRate');
+            const rate = urlParams.get('rate') || urlParams.get('price') || localStorage.getItem('selectedCardRate') || localStorage.getItem('selectedCardPrice');
             const img = urlParams.get('img') || urlParams.get('image') || localStorage.getItem('selectedCardImage');
 
             if (name || model || rate || img) {
-                applyCardData(cardId || '', name || 'शादी कार्ड', model || '-', rate || '0', img || '');
+                applyCardData(cardId || '', name || 'मुस्लिम वेडिंग कार्ड', model || '-', rate || '10', img || '');
             }
         }
 
@@ -752,7 +752,6 @@
                 document.getElementById('selectedCardId').value = id;
             }
 
-            // Form inputs update karein
             if (document.getElementById('cardCategory')) {
                 document.getElementById('cardCategory').value = `${name} (${model})`;
             }
