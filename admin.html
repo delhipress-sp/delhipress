@@ -213,16 +213,23 @@
 
             <!-- TAB 2: ORDERS -->
             <div id="tabOrdersSection" style="display: none;">
-                <h4 style="font-size: 14px; margin-bottom: 8px;">हालिया ऑर्डर्स सूची:</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="font-size: 14px; margin-bottom: 0;">हालिया ऑर्डर्स सूची:</h4>
+                    <button type="button" onclick="loadAdminOrders()" style="background:none; border:1px solid #cbd5e1; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:12px;">
+                        <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश ऑर्डर्स
+                    </button>
+                </div>
                 <div style="overflow-x: auto;">
                     <table class="admin-table">
                         <thead>
                             <tr>
                                 <th>दिनांक</th>
-                                <th>सर्विस / मॉडल</th>
+                                <th>ऑर्डर ID / कार्ड</th>
                                 <th>ग्राहक विवरण</th>
-                                <th>कुल बिल</th>
-                                <th>एडवांस</th>
+                                <th>दूल्हा-दुल्हन</th>
+                                <th>बिल विवरण</th>
+                                <th>UTR / Trans ID</th>
+                                <th>एक्शन</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody"></tbody>
@@ -232,7 +239,12 @@
 
             <!-- TAB 3: REGISTERED USERS -->
             <div id="tabUsersSection" style="display: none;">
-                <h4 style="font-size: 14px; margin-bottom: 8px;">रजिस्टर्ड ग्राहक डेटाबेस:</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="font-size: 14px; margin-bottom: 0;">रजिस्टर्ड ग्राहक डेटाबेस:</h4>
+                    <button type="button" onclick="loadAdminUsers()" style="background:none; border:1px solid #cbd5e1; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:12px;">
+                        <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश ग्राहक
+                    </button>
+                </div>
                 <div style="overflow-x: auto;">
                     <table class="admin-table">
                         <thead>
@@ -378,12 +390,10 @@
                     image_url: imageUrl
                 };
 
-                // LocalStorage save
                 let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
                 localCards.unshift(newCard);
                 localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
 
-                // Supabase save attempt
                 if (supabaseClient) {
                     try {
                         await supabaseClient.from('cards').insert([{
@@ -428,59 +438,54 @@
                 } catch (e) {}
             }
 
-            if (!cards || cards.length === 0) {
+            if (cards.length === 0) {
                 cards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
             }
 
             if (cards.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड उपलब्ध नहीं है। ऊपर दिए गए फॉर्म से नया कार्ड जोड़ें।</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7">कैटलॉग में कोई कार्ड मौजूद नहीं है। ऊपर दिए गए फॉर्म से नया कार्ड जोड़ें।</td></tr>';
                 return;
             }
 
             tbody.innerHTML = cards.map(c => `
                 <tr>
-                    <td>
-                        <img src="${c.image_url || 'https://via.placeholder.com/60'}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
-                    </td>
-                    <td><b>${c.title || '-'}</b></td>
+                    <td><img src="${c.image_url || c.image || ''}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;"></td>
+                    <td><b>${c.title || c.name || '-'}</b></td>
                     <td>${c.model || '-'}</td>
-                    <td>₹${c.price || '0'}/पीस</td>
+                    <td>₹${c.price || '0'}</td>
                     <td>
-                        <span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">
-                            ${c.in_stock ? 'उपलब्ध' : 'समाप्त'}
+                        <span class="stock-badge ${c.in_stock !== false ? 'in-stock' : 'out-stock'}">
+                            ${c.in_stock !== false ? 'In Stock' : 'Out of Stock'}
                         </span>
                     </td>
                     <td>
-                        <button class="btn-stock-toggle ${c.in_stock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${!c.in_stock})">
-                            ${c.in_stock ? 'आउट करें' : 'इन करें'}
+                        <button class="btn-stock-toggle ${c.in_stock !== false ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${c.in_stock !== false})">
+                            ${c.in_stock !== false ? 'Out करें' : 'In करें'}
                         </button>
                     </td>
                     <td>
-                        <button class="btn-del" onclick="deleteCatalogCard(${c.id})">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <button class="btn-del" onclick="deleteCatalogCard(${c.id})"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // 3. TOGGLE STOCK
-        async function toggleCardStock(cardId, newStatus) {
+        async function toggleCardStock(cardId, currentStatus) {
             let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
-            localCards = localCards.map(c => c.id == cardId ? { ...c, in_stock: newStatus } : c);
+            localCards = localCards.map(c => c.id == cardId ? { ...c, in_stock: !currentStatus } : c);
             localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
 
             if (supabaseClient) {
                 try {
-                    await supabaseClient.from('cards').update({ in_stock: newStatus }).eq('id', cardId);
+                    await supabaseClient.from('cards').update({ in_stock: !currentStatus }).eq('id', cardId);
                 } catch (e) {}
             }
             loadCatalogStock();
         }
 
-        // 4. DELETE CARD
         async function deleteCatalogCard(cardId) {
-            if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
+            if (!confirm('क्या आप वाकई इस कार्ड को हटाना चाहते हैं?')) return;
+
             let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
             localCards = localCards.filter(c => c.id != cardId);
             localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
@@ -493,33 +498,125 @@
             loadCatalogStock();
         }
 
-        // 5. LOAD ORDERS
-        function loadAdminOrders() {
+        // 3. LOAD ORDERS
+        async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="5">कोई नया ऑर्डर नहीं मिला।</td></tr>';
-        }
+            tbody.innerHTML = '<tr><td colspan="7">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
-        // 6. LOAD USERS
-        async function loadAdminUsers() {
-            const tbody = document.getElementById('usersTableBody');
+            let orders = [];
+
             if (supabaseClient) {
                 try {
-                    const { data: users, error } = await supabaseClient.from('users').select('*').order('id', { ascending: false });
-                    if (!error && users && users.length > 0) {
-                        tbody.innerHTML = users.map(u => `
-                            <tr>
-                                <td><b>${u.name || '-'}</b></td>
-                                <td>${u.mobile || '-'}</td>
-                                <td>${u.email || '-'}</td>
-                                <td>${u.village || '-'}</td>
-                                <td>${u.address || '-'}</td>
-                            </tr>
-                        `).join('');
-                        return;
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*')
+                        .order('id', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        orders = data;
                     }
-                } catch(e) {}
+                } catch (e) {}
             }
-            tbody.innerHTML = '<tr><td colspan="5">कोई रजिस्टर्ड ग्राहक नहीं मिला।</td></tr>';
+
+            if (orders.length === 0) {
+                orders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
+            }
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">कोई नया ऑर्डर नहीं मिला।</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(o => {
+                const dateStr = new Date(o.created_at || Date.now()).toLocaleDateString('hi-IN');
+                return `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>
+                            <b>${o.card_title || 'शादी कार्ड'}</b><br>
+                            <span style="font-size:11px; color:#64748b;">${o.quantity || 100} पीस (₹${o.card_rate || 10}/पीस)</span>
+                        </td>
+                        <td style="text-align:left;">
+                            <b>${o.customer_name || '-'}</b><br>
+                            <span style="color:#0284c7;"><i class="fa-solid fa-phone"></i> ${o.customer_mobile || '-'}</span><br>
+                            <span style="font-size:11px; color:#64748b;">${o.customer_address || '-'}</span>
+                        </td>
+                        <td>
+                            <span style="font-weight:bold; color:var(--primary);">${o.groom_name || '-'}</span><br>
+                            <span style="font-size:10px; color:#64748b;">संग</span><br>
+                            <span style="font-weight:bold; color:var(--secondary);">${o.bride_name || '-'}</span>
+                        </td>
+                        <td>
+                            कुल: <b>₹${o.total_amount || 0}</b><br>
+                            <span style="color:green; font-weight:bold;">एडवांस: ₹${o.advance_paid || 0}</span><br>
+                            <span style="color:red; font-size:11px;">बाकी: ₹${o.balance_amount !== undefined ? o.balance_amount : ((o.total_amount || 0) - (o.advance_paid || 0))}</span>
+                        </td>
+                        <td><b>${o.utr_number || 'Cash/None'}</b></td>
+                        <td>
+                            <button class="btn-del" onclick="deleteAdminOrder(${o.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function deleteAdminOrder(orderId) {
+            if (!confirm('क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?')) return;
+
+            let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
+            allOrders = allOrders.filter(o => o.id != orderId);
+            localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
+
+            let userOrders = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
+            userOrders = userOrders.filter(o => o.id != orderId);
+            localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').delete().eq('id', orderId);
+                } catch (e) {}
+            }
+            loadAdminOrders();
+        }
+
+        // 4. LOAD USERS
+        async function loadAdminUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">ग्राहक सूची लोड हो रही है...</td></tr>';
+
+            let users = [];
+
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .order('id', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        users = data;
+                    }
+                } catch (e) {}
+            }
+
+            if (users.length === 0) {
+                users = JSON.parse(localStorage.getItem('dp_registered_users') || '[]');
+            }
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">कोई रजिस्टर्ड ग्राहक नहीं मिला।</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td><b>${u.full_name || u.name || '-'}</b></td>
+                    <td>${u.mobile || u.phone || '-'}</td>
+                    <td>${u.email || '-'}</td>
+                    <td>${u.village || u.city || '-'}</td>
+                    <td>${u.address || '-'}</td>
+                </tr>
+            `).join('');
         }
     </script>
 </body>
