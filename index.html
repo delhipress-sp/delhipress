@@ -239,7 +239,7 @@
         .btn-zoom-close {
             background: #e74c3c; color: white; border: none;
             width: 38px; height: 38px; border-radius: 50%;
-            font-size: 18px; cursor: pointer; display: flex;
+            font-size: 18px; cursor: display: flex;
             align-items: center; justify-content: center;
         }
 
@@ -414,216 +414,99 @@
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="order.html" style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
-        <a id="mobileAuthBtn" href="login.html"><i class="fa-solid fa-user"></i><span id="mobileAuthLabel">लॉगिन</span></a>
+        <a href="order.html" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span>ऑर्डर करें</span></a>
+        <a href="admin.html"><i class="fa-solid fa-user-lock"></i><span>एडमिन</span></a>
     </div>
 
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
-                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा</p>
-                <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
+                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</p>
+                <p><i class="fa-solid fa-phone"></i> 9304509464</p>
             </div>
             <div class="footer-col">
-                <h4>त्वरित लिंक</h4>
-                <p><a href="order.html" style="color:#cbd5e1; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> शादी कार्ड फॉर्म</a></p>
-                <p><a href="admin.html" style="color:#f1c40f; text-decoration:none;"><i class="fa-solid fa-angle-right"></i> एडमिन पैनल</a></p>
+                <h4>सेवाएं</h4>
+                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
             </div>
         </div>
         <div class="footer-bottom">
-            &copy; दिल्ली प्रेस जामताड़ा. सर्व अधिकार सुरक्षित.
+            &copy; 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित.
         </div>
     </footer>
 
+    <!-- Logic Script -->
     <script>
-        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentScale = 1;
+        let selectedZoomCard = { title: '', image: '', price: '' };
 
-        let currentZoomCard = null;
-        let zoomLevel = 1;
-
-        // सुरक्षित रीडायरेक्शन फ़ंक्शन
-        function selectCardToOrder(cardId, cardTitle, cardPrice, cardImg, cardModel) {
-            try {
-                const safeId = cardId ? String(cardId) : '';
-                const safeTitle = cardTitle ? String(cardTitle) : 'Muslim wedding card';
-                const safePrice = cardPrice ? String(cardPrice) : '10';
-                const safeModel = cardModel ? String(cardModel) : `Model #${safeId}`;
-                const safeImg = cardImg ? String(cardImg) : 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
-
-                localStorage.setItem('selectedCardId', safeId);
-                localStorage.setItem('selectedCardName', safeTitle);
-                localStorage.setItem('selectedCardPrice', safePrice);
-                localStorage.setItem('selectedCardRate', safePrice);
-                localStorage.setItem('selectedCardImage', safeImg);
-                localStorage.setItem('selectedCardModel', safeModel);
-
-                const params = new URLSearchParams({
-                    card_id: safeId,
-                    name: safeTitle,
-                    rate: safePrice,
-                    price: safePrice,
-                    model: safeModel,
-                    img: safeImg
-                });
-
-                window.location.assign('order.html?' + params.toString());
-            } catch (err) {
-                console.error("Redirect Error:", err);
-                window.location.assign('order.html');
-            }
+        function selectCard(title, image, price) {
+            const encodedTitle = encodeURIComponent(title || '');
+            const encodedImage = encodeURIComponent(image || '');
+            const encodedPrice = encodeURIComponent(price || '');
+            window.location.href = `order.html?card=${encodedTitle}&img=${encodedImage}&price=${encodedPrice}`;
         }
 
-        // Supabase public.catalog table fetch
-        async function fetchCatalogCards() {
-            const container = document.getElementById('catalogContainer');
-            try {
-                const { data: cards, error } = await supabaseClient
-                    .from('catalog')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error || !cards || cards.length === 0) {
-                    renderStaticCards(container);
-                    return;
-                }
-
-                container.innerHTML = '';
-                cards.forEach(card => {
-                    const id = card.id || '';
-                    const title = card.name || card.title || card.card_name || 'Muslim wedding card';
-                    const price = card.rate ?? card.price ?? card.card_price ?? '10';
-                    const model = card.code || card.model_no || card.model || card.card_no || `Model #${id}`;
-                    const img = card.sample_url || card.image_url || card.image || card.photo_url || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
-                    
-                    const inStock = (card.stock_status !== 'Out of Stock' && card.status !== 'out_of_stock' && card.is_available !== false);
-                    const targetUrl = `order.html?card_id=${encodeURIComponent(id)}&name=${encodeURIComponent(title)}&rate=${encodeURIComponent(price)}&price=${encodeURIComponent(price)}&model=${encodeURIComponent(model)}&img=${encodeURIComponent(img)}`;
-
-                    const div = document.createElement('div');
-                    div.className = 'card-sample';
-
-                    div.innerHTML = `
-                        <div class="img-box zoom-action">
-                            <img src="${img}" alt="${title}" loading="lazy" onerror="this.src='https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png'">
-                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                        </div>
-                        <div class="card-info">
-                            <h4>${title}</h4>
-                            <div class="model-text">मॉडल: ${model}</div>
-                            <div class="card-price-tag">₹${price} / पीस</div>
-                            <span class="stock-badge ${inStock ? 'in-stock' : 'out-stock'}">
-                                ${inStock ? 'उपलब्ध (In Stock)' : 'आउट ऑफ स्टॉक'}
-                            </span>
-                            <a href="${targetUrl}" class="btn-select-card select-action">
-                                <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
-                            </a>
-                        </div>
-                    `;
-
-                    div.querySelector('.zoom-action').addEventListener('click', () => {
-                        openZoomModal(img, `${title} (₹${price}/पीस)`, id, price, model);
-                    });
-
-                    div.querySelector('.select-action').addEventListener('click', () => {
-                        localStorage.setItem('selectedCardId', id);
-                        localStorage.setItem('selectedCardName', title);
-                        localStorage.setItem('selectedCardPrice', price);
-                        localStorage.setItem('selectedCardRate', price);
-                        localStorage.setItem('selectedCardImage', img);
-                        localStorage.setItem('selectedCardModel', model);
-                    });
-
-                    container.appendChild(div);
-                });
-            } catch (err) {
-                console.error("Fetch Exception:", err);
-                renderStaticCards(container);
-            }
-        }
-
-        function renderStaticCards(container) {
-            container.innerHTML = `
-                <div class="card-sample">
-                    <div class="img-box" onclick="openZoomModal('https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png', 'Muslim Wedding Card (₹10/पीस)', '1', '10', 'Model #68110089')">
-                        <img src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="Muslim Wedding card">
-                        <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                    </div>
-                    <div class="card-info">
-                        <h4>Muslim Wedding card</h4>
-                        <div class="model-text">मॉडल: Model #68110089</div>
-                        <div class="card-price-tag">₹10 / पीस</div>
-                        <span class="stock-badge in-stock">उपलब्ध (In Stock)</span>
-                        <a href="order.html?card_id=1&name=Muslim+Wedding+card&rate=10&price=10&model=Model+%2368110089&img=https%3A%2F%2Furzmdriydbofeoitvipj.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fcards_images%2Fcard_1788204223761.png" class="btn-select-card" onclick="localStorage.setItem('selectedCardId','1'); localStorage.setItem('selectedCardName','Muslim Wedding card'); localStorage.setItem('selectedCardPrice','10'); localStorage.setItem('selectedCardRate','10'); localStorage.setItem('selectedCardModel','Model #68110089'); localStorage.setItem('selectedCardImage','https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png');">
-                            <i class="fa-solid fa-cart-plus"></i> यह कार्ड चुनें
-                        </a>
-                    </div>
-                </div>
-            `;
-        }
-
-        // ज़ूम मोडल फंक्शन
-        function openZoomModal(imgSrc, title, id, price, model) {
-            currentZoomCard = { id, title: title.split(' (')[0], price, img: imgSrc, model };
-            document.getElementById('zoomModalImg').src = imgSrc;
-            document.getElementById('zoomModalTitle').innerText = title;
+        function openZoomModal(title, imgUrl, price) {
+            selectedZoomCard = { title, image: imgUrl, price };
+            document.getElementById('zoomModalTitle').innerText = title || 'कार्ड विवरण';
+            document.getElementById('zoomModalImg').src = imgUrl;
             document.getElementById('imageZoomModal').classList.add('active');
             resetZoom();
         }
 
         function closeZoomModal() {
             document.getElementById('imageZoomModal').classList.remove('active');
-            resetZoom();
         }
 
-        function applyZoom(step) {
-            zoomLevel = Math.max(0.5, Math.min(3, zoomLevel + step));
-            document.getElementById('zoomModalImg').style.transform = `scale(${zoomLevel})`;
+        function applyZoom(delta) {
+            currentScale += delta;
+            if (currentScale < 0.5) currentScale = 0.5;
+            if (currentScale > 3) currentScale = 3;
+            document.getElementById('zoomModalImg').style.transform = `scale(${currentScale})`;
         }
 
         function resetZoom() {
-            zoomLevel = 1;
-            document.getElementById('zoomModalImg').style.transform = 'scale(1)';
+            currentScale = 1;
+            document.getElementById('zoomModalImg').style.transform = `scale(1)`;
         }
 
         function redirectToOrderFromZoom() {
-            if (currentZoomCard) {
-                selectCardToOrder(currentZoomCard.id, currentZoomCard.title, currentZoomCard.price, currentZoomCard.img, currentZoomCard.model);
-            }
+            selectCard(selectedZoomCard.title, selectedZoomCard.image, selectedZoomCard.price);
         }
 
-        // यूज़र लॉगिन स्थिति जाँचना
-        function checkAuth() {
-            const userJson = localStorage.getItem('dp_current_user');
-            const authContainer = document.getElementById('authNavContainer');
-            const userLoggedBox = document.getElementById('userLoggedBox');
-            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
-            const mobileAuthLabel = document.getElementById('mobileAuthLabel');
-
-            if (userJson) {
-                try {
-                    const user = JSON.parse(userJson);
-                    authContainer.style.display = 'none';
-                    userLoggedBox.style.display = 'flex';
-                    document.getElementById('displayUserName').innerText = `👤 ${user.name || user.full_name || 'ग्राहक'}`;
-                    
-                    if (mobileAuthBtn && mobileAuthLabel) {
-                        mobileAuthBtn.href = 'my_orders.html';
-                        mobileAuthLabel.innerText = 'माय ऑर्डर्स';
-                    }
-                } catch (e) {}
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('dp_current_user');
-            location.reload();
-        }
-
+        // Dummy/Dynamic Catalog loader
         window.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            fetchCatalogCards();
+            const catalogContainer = document.getElementById('catalogContainer');
+            
+            // Sample data fallback if supabase fetch is not configured
+            const sampleCards = [
+                { id: 1, title: 'प्रीमियम रेड वेडिंग कार्ड', model: 'DP-101', price: '₹12/पीस', inStock: true, image: 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png' },
+                { id: 2, title: 'गोल्डन रॉयल कार्ड', model: 'DP-102', price: '₹18/पीस', inStock: true, image: 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png' }
+            ];
+
+            if (catalogContainer) {
+                catalogContainer.innerHTML = sampleCards.map(card => `
+                    <div class="card-sample">
+                        <div class="img-box" onclick="openZoomModal('${card.title}', '${card.image}', '${card.price}')">
+                            <img src="${card.image}" alt="${card.title}">
+                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> ज़ूम</span>
+                        </div>
+                        <div class="card-info">
+                            <h4>${card.title}</h4>
+                            <div class="model-text">${card.model}</div>
+                            <div class="card-price-tag">${card.price}</div>
+                            <span class="stock-badge ${card.inStock ? 'in-stock' : 'out-stock'}">
+                                ${card.inStock ? 'उपलब्ध है' : 'स्टॉक समाप्त'}
+                            </span>
+                            <button type="button" class="btn-select-card" onclick="selectCard('${card.title}', '${card.image}', '${card.price}')">
+                                <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
         });
     </script>
 </body>
