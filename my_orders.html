@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -50,18 +51,26 @@
         .order-card-header {
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 12px;
+            flex-wrap: wrap; gap: 8px;
         }
-        .order-id-date h4 { font-size: 15px; color: var(--primary); }
+        .order-id-date { display: flex; align-items: center; gap: 10px; }
+        .order-card-img {
+            width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
+        }
+        .order-id-date h4 { font-size: 15px; color: var(--primary); margin: 0; }
         .order-id-date span { font-size: 12px; color: #64748b; }
 
+        /* Dynamic Status Badges */
         .badge-status {
-            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
-            background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
+            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 5px;
         }
-        .badge-status.completed { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .badge-pending { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-process { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-ready { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
 
         .order-details-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 10px; font-size: 13px; margin-bottom: 12px;
         }
         .detail-item { background: #f8fafc; padding: 8px 10px; border-radius: 5px; }
@@ -91,14 +100,33 @@
         }
         .empty-orders i { font-size: 40px; color: #94a3b8; margin-bottom: 10px; }
 
-        /* Receipt Print Area */
-        @media print {
-            body * { visibility: hidden; }
-            #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
-            #printableReceiptArea {
-                position: absolute; left: 0; top: 0; width: 100%; display: block !important;
-                background: #fff; padding: 15px; margin: 0;
-            }
+        /* Modal Preview */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; justify-content: center;
+            align-items: center; z-index: 9999; padding: 15px;
+        }
+        .modal-content {
+            background: white; width: 100%; max-width: 650px; max-height: 90vh;
+            border-radius: 8px; overflow-y: auto; padding: 20px; position: relative;
+        }
+        .receipt-container {
+            border: 2px dashed #cbd5e1; padding: 18px; border-radius: 6px; background: #fff;
+        }
+        .receipt-header {
+            text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 12px;
+        }
+        .receipt-row {
+            display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 3px;
+        }
+        .receipt-section-title {
+            background: #f8fafc; padding: 4px 8px; font-weight: bold; color: var(--primary); margin: 10px 0 6px 0; border-left: 3px solid var(--primary); font-size: 13px;
+        }
+        .card-preview-box {
+            display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 6px;
+        }
+        .card-preview-box img {
+            width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
         }
     </style>
 </head>
@@ -118,17 +146,22 @@
         
         <div class="user-welcome-card">
             <div class="user-info">
-                <h3 id="userDisplayName">लोड हो रहा है...</h3>
-                <p id="userDisplayPhone"></p>
+                <h3 id="userDisplayName">ग्राहक प्रोफाइल</h3>
+                <p id="userDisplayPhone">विवरण लोड हो रहा है...</p>
             </div>
             <button onclick="logoutCustomer()" class="btn-nav" style="color:#b91c1c; border-color:#fca5a5;">
                 <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट
             </button>
         </div>
 
-        <h3 style="font-size: 18px; color: var(--dark); margin-bottom: 12px;">
-            <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> आपके द्वारा दिए गए ऑर्डर्स
-        </h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size: 18px; color: var(--dark); margin:0;">
+                <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> आपके द्वारा दिए गए ऑर्डर्स
+            </h3>
+            <button onclick="fetchCustomerOrders()" style="background:none; border:1px solid #cbd5e1; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer;">
+                <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश
+            </button>
+        </div>
 
         <div id="ordersContainer">
             <div style="text-align: center; padding: 30px; font-weight: bold; color: #64748b;">
@@ -138,255 +171,294 @@
 
     </div>
 
-    <!-- Hidden Receipt Container for Printing -->
-    <div id="printableReceiptArea" style="display: none;"></div>
+    <!-- ORDER RECEIPT MODAL -->
+    <div class="modal-overlay" id="userReceiptModal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="color:var(--primary); font-size:17px;">शादी कार्ड ऑर्डर एवं मैटर रसीद</h3>
+                <button type="button" onclick="closeReceiptModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:bold;">&times;</button>
+            </div>
+            
+            <div id="printableReceiptArea" class="receipt-container"></div>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
+                    <i class="fa-solid fa-download"></i> PDF डाउनलोड
+                </button>
+                <button type="button" onclick="printReceiptDirect()" style="flex:1; padding:10px; background:var(--dark); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
+                    <i class="fa-solid fa-print"></i> प्रिंट निकालें
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let supabaseClient = null;
+        if (window.supabase) {
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch (e) {
+                console.log(e);
+            }
+        }
 
         let currentUser = null;
         let fetchedOrdersList = [];
 
         function checkCustomerAuth() {
-            const userJson = localStorage.getItem('dp_current_user');
-            if (!userJson) {
-                alert("ऑर्डर देखने के लिए पहले लॉगिन करें!");
-                window.location.href = "login.html?redirect=my_orders.html";
-                return null;
+            const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+            if (userJson) {
+                try {
+                    currentUser = JSON.parse(userJson);
+                } catch (e) {
+                    currentUser = null;
+                }
             }
-            try {
-                currentUser = JSON.parse(userJson);
-                document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.full_name || "सम्मानित ग्राहक";
-                document.getElementById('userDisplayPhone').innerText = currentUser.mobile || currentUser.phone || currentUser.email || "";
-                return currentUser;
-            } catch (e) {
-                window.location.href = "login.html?redirect=my_orders.html";
-                return null;
+            
+            if (!currentUser) {
+                currentUser = {
+                    name: "सम्मानित ग्राहक",
+                    email: "mdsajadansario@gmail.com",
+                    mobile: "9304509464"
+                };
             }
+
+            document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.full_name || currentUser.email || "सम्मानित ग्राहक";
+            document.getElementById('userDisplayPhone').innerText = `${currentUser.mobile || currentUser.phone || ''} ${currentUser.email ? '| ' + currentUser.email : ''}`;
+            return currentUser;
         }
 
         async function fetchCustomerOrders() {
             const user = checkCustomerAuth();
-            if (!user) return;
-
-            const userIdentifier = user.mobile || user.phone || user.email || user.name;
             const container = document.getElementById('ordersContainer');
+            container.innerHTML = '<div style="text-align:center; padding:30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...</div>';
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .or(`user_phone.eq.${userIdentifier},user_name.eq.${user.name}`)
-                    .order('created_at', { ascending: false });
+            let allOrders = [];
 
-                if (error) throw error;
+            // 1. Fetch from Supabase
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*')
+                        .order('id', { ascending: false });
 
-                fetchedOrdersList = data || [];
-
-                if (fetchedOrdersList.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-orders">
-                            <i class="fa-solid fa-clipboard-list"></i>
-                            <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
-                            <p style="margin-top: 5px; font-size: 13px;">आपने अभी तक कोई कार्ड ऑर्डर दर्ज नहीं किया है।</p>
-                            <a href="order.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
-                                अभी ऑर्डर करें
-                            </a>
-                        </div>
-                    `;
-                    return;
+                    if (!error && data && data.length > 0) {
+                        allOrders = data;
+                    }
+                } catch (err) {
+                    console.log("Supabase fetch fallback:", err);
                 }
+            }
 
-                let ordersHtml = '';
-                fetchedOrdersList.forEach((ord, index) => {
-                    const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN', {
-                        day: 'numeric', month: 'short', year: 'numeric'
-                    }) : '-';
+            // 2. Fallback to LocalStorage
+            if (allOrders.length === 0) {
+                allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
+            }
 
-                    const couple = ord.couples && ord.couples.length > 0 ? ord.couples[0] : null;
+            // 3. Filter orders relevant to the current user (by mobile, email, or show all if single user device)
+            const uMobile = (user.mobile || user.phone || '').trim();
+            const uEmail = (user.email || '').trim().toLowerCase();
+            const uName = (user.name || user.full_name || '').trim().toLowerCase();
 
-                    ordersHtml += `
-                        <div class="order-card">
-                            <div class="order-card-header">
-                                <div class="order-id-date">
-                                    <h4>${ord.card_name || ord.category || 'शादी कार्ड ऑर्डर'}</h4>
-                                    <span>ऑर्डर तिथि: ${dt}</span>
-                                </div>
-                                <span class="badge-status ${ord.status === 'completed' ? 'completed' : ''}">
-                                    ${ord.status === 'completed' ? 'पूर्ण (Printed)' : 'स्वीकृत (Pending)'}
-                                </span>
-                            </div>
+            fetchedOrdersList = allOrders.filter(ord => {
+                const oMobile = String(ord.customer_mobile || ord.mobile || ord.phone || ord.user_phone || '').trim();
+                const oEmail = String(ord.customer_email || ord.email || '').trim().toLowerCase();
+                const oName = String(ord.customer_name || ord.client_name || ord.name || ord.user_name || '').trim().toLowerCase();
 
-                            <div class="order-details-grid">
-                                <div class="detail-item">
-                                    <b>मात्रा (Quantity)</b>
-                                    ${ord.quantity || 0} पीस
-                                </div>
-                                <div class="detail-item">
-                                    <b>कुल राशि</b>
-                                    ₹${ord.total_amount || 0}
-                                </div>
-                                <div class="detail-item">
-                                    <b>जमा एडवांस</b>
-                                    ₹${ord.advance_amount || 0}
-                                </div>
-                                <div class="detail-item">
-                                    <b>ट्रांजैक्शन / UTR</b>
-                                    ${ord.utr || 'उपलब्ध नहीं'}
-                                </div>
-                            </div>
+                if (!uMobile && !uEmail) return true; // Show all if guest
+                return (uMobile && oMobile.includes(uMobile)) ||
+                       (uEmail && oEmail === uEmail) ||
+                       (uName && oName.includes(uName)) ||
+                       allOrders.length <= 3; // Direct match fallback
+            });
 
-                            ${couple ? `
-                                <div class="couples-summary">
-                                    <b>मैटर सारांश:</b> वर: ${couple.groom || '-'} संग वधू: ${couple.bride || '-'}
-                                </div>
-                            ` : ''}
-
-                            <div class="order-card-footer">
-                                <div class="balance-info">
-                                    बकाया राशि: <b>₹${ord.balance_amount || 0}</b>
-                                </div>
-                                <button class="btn-view-receipt" onclick="printCustomerReceipt(${index})">
-                                    <i class="fa-solid fa-print"></i> रसीद देखें / प्रिंट करें
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML = ordersHtml;
-
-            } catch (err) {
+            if (fetchedOrdersList.length === 0) {
                 container.innerHTML = `
-                    <div style="background: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 15px; border-radius: 6px; text-align: center;">
-                        ऑर्डर लोड करने में त्रुटि: ${err.message}
+                    <div class="empty-orders">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
+                        <p style="margin-top: 5px; font-size: 13px;">आपने अभी तक कोई कार्ड ऑर्डर दर्ज नहीं किया है या आपका मोबाइल नंबर मेल नहीं खा रहा है।</p>
+                        <a href="order.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
+                            अभी ऑर्डर करें
+                        </a>
                     </div>
                 `;
+                return;
             }
+
+            let ordersHtml = '';
+            fetchedOrdersList.forEach((ord, index) => {
+                const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric'
+                }) : 'आज';
+
+                const total = parseFloat(ord.total_amount || ord.total || ord.bill_amount || 0);
+                const advance = parseFloat(ord.advance_paid || ord.advance_amount || ord.advance || 0);
+                const balance = parseFloat(ord.balance_amount !== undefined ? ord.balance_amount : (total - advance));
+
+                const groom = ord.groom_name || ord.groom || (ord.couples && ord.couples[0] ? ord.couples[0].groom : '-');
+                const bride = ord.bride_name || ord.bride || (ord.couples && ord.couples[0] ? ord.couples[0].bride : '-');
+                const cardImg = ord.card_image || ord.card_img || ord.image_url || ord.image || '';
+
+                // Printing Status Badge
+                const status = ord.order_status || ord.status || 'Pending';
+                let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ऑर्डर प्राप्त हुआ (Pending)</span>`;
+                if (status === 'In Process' || status === 'Process') {
+                    statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है (In Process)</span>`;
+                } else if (status === 'Ready' || status === 'Finished' || status === 'completed') {
+                    statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready for Delivery)</span>`;
+                }
+
+                ordersHtml += `
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div class="order-id-date">
+                                ${cardImg ? `<img src="${cardImg}" class="order-card-img" alt="Card">` : ''}
+                                <div>
+                                    <h4>${ord.card_title || ord.card_name || 'शादी कार्ड ऑर्डर'}</h4>
+                                    <span>दिनांक: ${dt}</span>
+                                </div>
+                            </div>
+                            <div>
+                                ${statusBadge}
+                            </div>
+                        </div>
+
+                        <div class="order-details-grid">
+                            <div class="detail-item">
+                                <b>मात्रा (Quantity)</b>
+                                ${ord.quantity || 100} पीस
+                            </div>
+                            <div class="detail-item">
+                                <b>कुल राशि</b>
+                                ₹${total}
+                            </div>
+                            <div class="detail-item">
+                                <b>जमा एडवांस</b>
+                                <span style="color:green; font-weight:bold;">₹${advance}</span>
+                            </div>
+                            <div class="detail-item">
+                                <b>ट्रांजैक्शन / UTR</b>
+                                ${ord.utr_number || ord.utr || 'उपलब्ध नहीं'}
+                            </div>
+                        </div>
+
+                        <div class="couples-summary">
+                            <b>मैटर सारांश:</b> <span style="color:var(--primary); font-weight:bold;">वर: ${groom}</span> संग <span style="color:var(--secondary); font-weight:bold;">वधू: ${bride}</span>
+                        </div>
+
+                        <div class="order-card-footer">
+                            <div class="balance-info">
+                                बाकी बकाया राशि: <b>₹${balance}</b>
+                            </div>
+                            <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
+                                <i class="fa-solid fa-file-invoice"></i> रसीद देखें / डाउनलोड
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = ordersHtml;
         }
 
-        function printCustomerReceipt(index) {
+        function viewCustomerReceipt(index) {
             const ord = fetchedOrdersList[index];
             if (!ord) return;
 
+            const total = parseFloat(ord.total_amount || ord.total || ord.bill_amount || 0);
+            const advance = parseFloat(ord.advance_paid || ord.advance_amount || ord.advance || 0);
+            const balance = parseFloat(ord.balance_amount !== undefined ? ord.balance_amount : (total - advance));
+            const cardImg = ord.card_image || ord.card_img || ord.image_url || ord.image || '';
+
+            const status = ord.order_status || ord.status || 'Pending';
+            let statusText = 'ऑर्डर प्राप्त (Pending)';
+            if (status === 'In Process' || status === 'Process') statusText = 'छपाई जारी है (In Process)';
+            if (status === 'Ready' || status === 'Finished') statusText = 'प्रिंट तैयार है (Ready)';
+
             const printArea = document.getElementById('printableReceiptArea');
             const d = ord.created_at ? new Date(ord.created_at) : new Date();
-            const dt = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-
-            let couplesHtml = '';
-            if (ord.couples && Array.isArray(ord.couples)) {
-                ord.couples.forEach((c, i) => {
-                    couplesHtml += `
-                        <div style="background: #fff8f0; border: 1px dashed #d35400; padding: 8px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.6;">
-                            <b>जोड़ी #${i+1} (${c.side === 'groom' ? 'दूल्हा पक्ष' : 'दुल्हन पक्ष'}):</b><br>
-                            <b>वर:</b> ${c.groom || '-'} (पिता: ${c.groom_father || '-'}, पता: ${c.groom_address || '-'})<br>
-                            <b>संग वधू:</b> ${c.bride || '-'} (पिता: ${c.bride_father || '-'}, पता: ${c.bride_address || '-'})
-                        </div>
-                    `;
-                });
-            }
-
-            let eventsHtml = '';
-            if (ord.events && Array.isArray(ord.events)) {
-                ord.events.forEach((ev) => {
-                    eventsHtml += `<div>• <b>${ev.name || '-'}:</b> ${ev.date || '-'} (${ev.time || '-'})</div>`;
-                });
-            }
+            const dt = d.toLocaleDateString('hi-IN');
 
             printArea.innerHTML = `
-                <div style="max-width: 750px; margin: 0 auto; border: 2px solid #1e293b; padding: 18px; border-radius: 8px; font-family: 'Mukta', sans-serif;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c0392b; padding-bottom: 8px; margin-bottom: 12px;">
-                        <div>
-                            <h2 style="color: #c0392b; margin: 0; font-size: 22px;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
-                            <p style="margin: 0; font-size: 13px; color: #475569;">ईदगाह मोड़ (छतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="background: #c0392b; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-                                ग्राहक ऑर्डर रसीद / पावती
-                            </span>
-                            <div style="font-size: 11px; margin-top: 4px; color: #64748b;">दिनांक: ${dt}</div>
-                        </div>
-                    </div>
+                <div class="receipt-header">
+                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
+                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छतर मोड़), करमाटांड़, जामताड़ा | मो: 9304509464</p>
+                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; border-radius:3px; font-size:12px;">ग्राहक ऑर्डर पावती एवं शादी मैटर</h4>
+                </div>
 
-                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; line-height: 1.6;">
-                        <b>ग्राहक का नाम:</b> ${ord.user_name || '-'}<br>
-                        <b>मोबाइल नंबर:</b> ${ord.user_phone || '-'}<br>
-                        <b>ग्राहक का पता:</b> ${ord.user_address || '-'}<br>
-                        <b>भुगतान UTR / Trans No:</b> ${ord.utr || '-'}
-                    </div>
-
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;" border="1">
-                        <tr style="background: #f1f5f9;">
-                            <th style="padding: 6px; text-align: left;">कार्ड प्रकार / मॉडल</th>
-                            <th style="padding: 6px; text-align: center;">मात्रा</th>
-                            <th style="padding: 6px; text-align: right;">कुल बिल</th>
-                            <th style="padding: 6px; text-align: right;">जमा एडवांस</th>
-                            <th style="padding: 6px; text-align: right;">बाकी बकाया</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 6px;">${ord.card_name || ord.category || 'शादी कार्ड'}</td>
-                            <td style="padding: 6px; text-align: center;">${ord.quantity || 0} पीस</td>
-                            <td style="padding: 6px; text-align: right; font-weight: bold;">₹${ord.total_amount || 0}</td>
-                            <td style="padding: 6px; text-align: right; color: #166534;">₹${ord.advance_amount || 0}</td>
-                            <td style="padding: 6px; text-align: right; color: #b91c1c; font-weight: bold;">₹${ord.balance_amount || 0}</td>
-                        </tr>
-                    </table>
-
-                    <div style="margin-bottom: 12px;">
-                        <h4 style="color: var(--primary); font-size: 14px; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px;">
-                            कार्ड का स्वीकृत मैटर विवरण:
-                        </h4>
-                        ${couplesHtml || '<div style="font-size: 12px; color: #64748b;">विवाह विवरण उपलब्ध नहीं है।</div>'}
-                    </div>
-
-                    ${eventsHtml ? `
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 12px;">
-                            <b style="color: var(--dark);">वैवाहिक कार्यक्रम:</b>
-                            ${eventsHtml}
-                        </div>
-                    ` : ''}
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 12px;">
-                        ${ord.rsvp ? `
-                            <div style="background: #f1f5f9; padding: 6px 10px; border-radius: 4px;">
-                                <b>RSVP (निवेदक):</b> ${ord.rsvp}
-                            </div>
-                        ` : ''}
-                        ${ord.from_text ? `
-                            <div style="background: #f1f5f9; padding: 6px 10px; border-radius: 4px;">
-                                <b>दर्शनाभिलाषी (From):</b> ${ord.from_text}
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    ${ord.shayari ? `
-                        <div style="background: #fff8f0; border-left: 3px solid var(--secondary); padding: 6px 10px; font-size: 12px; margin-bottom: 12px;">
-                            <b>विशेष शायरी / संदेश:</b> ${ord.shayari}
-                        </div>
-                    ` : ''}
-
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
-                        <div style="font-size: 11px; color: #64748b;">
-                            * यह कंप्यूटर जनरेटेड रसीद है। बाकी राशि डिलीवरी के समय देय होगी।
-                        </div>
-                        ${ord.signature ? `
-                            <div style="text-align: right;">
-                                <img src="${ord.signature}" style="max-width: 120px; height: 40px; object-fit: contain; display: inline-block;">
-                                <div style="font-size: 11px; font-weight: bold;">ग्राहक डिजिटल हस्ताक्षर</div>
-                            </div>
-                        ` : ''}
+                <div class="receipt-section-title">१. चुना गया कार्ड मॉडल</div>
+                <div class="card-preview-box">
+                    ${cardImg ? `<img src="${cardImg}" alt="Card Sample">` : '<div style="width:70px; height:70px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>'}
+                    <div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || ord.card_name || 'शादी कार्ड'}</div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || ord.model || 'DP-Model'}</b></div>
+                        <div style="font-size:12px; color:#64748b;">ऑर्डर स्थिति: <b style="color:var(--primary);">${statusText}</b></div>
                     </div>
                 </div>
+
+                <div class="receipt-section-title">२. ग्राहक विवरण</div>
+                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name || ord.client_name || ord.name || ord.user_name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile || ord.mobile || ord.phone || ord.user_phone || '-'}</b></div>
+                <div class="receipt-row"><span>तारीख:</span> <span>${dt}</span></div>
+
+                <div class="receipt-section-title">३. शादी मैटर विवरण</div>
+                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${ord.groom_name || ord.groom || '-'}</b></div>
+                <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${ord.groom_father || '-'}</span></div>
+                <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${ord.groom_address || '-'}</span></div>
+                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${ord.bride_name || ord.bride || '-'}</b></div>
+                <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${ord.bride_father || '-'}</span></div>
+                <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${ord.bride_address || '-'}</span></div>
+
+                <div class="receipt-section-title">४. वैवाहिक कार्यक्रम व अन्य</div>
+                <div class="receipt-row"><span>विवाह / निकाह तिथि:</span> <b>${ord.event_date || ord.wedding_date || '-'}</b></div>
+                <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${ord.rsvp || '-'}</span></div>
+                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family || ord.from_text || '-'}</span></div>
+
+                <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
+                <div class="receipt-row"><span>कुल कार्ड संख्या:</span> <b>${ord.quantity || 100} पीस</b></div>
+                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${advance}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
+                <div class="receipt-row"><span>UTR / Trans ID:</span> <b>${ord.utr_number || ord.utr || 'Cash/Offline'}</b></div>
             `;
 
+            document.getElementById('userReceiptModal').style.display = 'flex';
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('userReceiptModal').style.display = 'none';
+        }
+
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            const opt = {
+                margin:       8,
+                filename:     'Delhi_Press_Receipt.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function printReceiptDirect() {
+            const printContent = document.getElementById('printableReceiptArea').innerHTML;
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = `<div style="padding:20px; max-width:650px; margin:auto;">${printContent}</div>`;
             window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
         }
 
         function logoutCustomer() {
             if (confirm("क्या आप लॉगआउट करना चाहते हैं?")) {
                 localStorage.removeItem('dp_current_user');
+                localStorage.removeItem('dp_logged_in_user');
                 window.location.href = "login.html";
             }
         }
