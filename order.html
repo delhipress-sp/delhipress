@@ -88,7 +88,7 @@
         }
         .card-preview-body { display: flex; gap: 14px; align-items: center; }
         .card-preview-thumb {
-            width: 85px; height: 85px; object-fit: cover;
+            width: 90px; height: 90px; object-fit: cover;
             border-radius: 6px; border: 1px solid #cbd5e1;
             background-color: #f1f5f9;
         }
@@ -314,7 +314,7 @@
             <div class="selected-card-banner" id="selectedCardBanner">
                 <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
                 <div class="card-preview-body">
-                    <img id="previewCardImage" class="card-preview-thumb" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&auto=format&fit=crop&q=80" alt="चुना गया कार्ड" onerror="this.src='https://images.unsplash.com/photo-1544077960-604201fe74bc?w=300'">
+                    <img id="previewCardImage" class="card-preview-thumb" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&auto=format&fit=crop&q=80" alt="चुना गया कार्ड">
                     <div class="card-preview-info">
                         <h3 id="previewCardName">प्रीमियम शादी कार्ड</h3>
                         <p id="previewCardModel">मॉडल / कोड: DP-101</p>
@@ -541,7 +541,7 @@
                     </div>
                 </div>
 
-                <!-- सहमति घोषणा (Declaration) -->
+                <!-- सहमति घोषणा -->
                 <div class="declaration-box">
                     <input type="checkbox" id="orderConfirmDeclaration" required>
                     <label for="orderConfirmDeclaration">
@@ -560,7 +560,7 @@
         </div>
     </div>
 
-    <!-- समीक्षा मॉडल पॉपअप (Review Modal) -->
+    <!-- समीक्षा मॉडल पॉपअप -->
     <div class="modal" id="reviewModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReviewModal()">&times;</span>
@@ -615,45 +615,84 @@
         </a>
     </div>
 
-    <!-- जावास्क्रिप्ट लॉजिक -->
+    <!-- SUPABASE और जावास्क्रिप्ट लॉजिक -->
     <script>
+        // अपना SUPABASE URL और KEY यहाँ दर्ज करें
+        const SUPABASE_URL = 'https://urzmdriydbofeoitvipj.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko';
+
+        let supabase = null;
+        if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_PROJECT_URL') {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
         const UPI_ID = "9304509464@okbizaxis";
         const OWNER_MOBILE = "919304509464";
 
         let isGroomFirst = true;
 
-        // पेज लोड होने पर कार्ड का विवरण व फोटो सेट करना
-        window.addEventListener('DOMContentLoaded', () => {
+        // पेज लोड होते ही Supabase, LocalStorage या URL से कार्ड लोड करें
+        window.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
+            const cardId = urlParams.get('card_id') || urlParams.get('id') || localStorage.getItem('selectedCardId');
+
+            // 1. अगर कार्ड ID मौजूद है और Supabase कनेक्टेड है, तो डेटाबेस से लोड करें
+            if (cardId && supabase) {
+                try {
+                    const { data, error } = await supabase
+                        .from('cards')
+                        .select('*')
+                        .eq('id', cardId)
+                        .single();
+
+                    if (data && !error) {
+                        applyCardData(
+                            data.image_url || data.image, 
+                            data.title || data.name, 
+                            data.model_code || data.code, 
+                            data.price || data.rate
+                        );
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Supabase से डेटा लाने में त्रुटि:", e);
+                }
+            }
+
+            // 2. फ़ॉलबैक: LocalStorage या सीधे URL पैरामीटर से डेटा प्राप्त करें
             const cardImg = urlParams.get('img') || localStorage.getItem('selectedCardImage');
             const cardName = urlParams.get('name') || localStorage.getItem('selectedCardName');
             const cardCode = urlParams.get('code') || localStorage.getItem('selectedCardCode');
             const cardPrice = urlParams.get('price') || localStorage.getItem('selectedCardPrice');
 
+            applyCardData(cardImg, cardName, cardCode, cardPrice);
+        });
+
+        // कार्ड डेटा को फॉर्म और प्रीव्यू में सेट करने वाला फंक्शन
+        function applyCardData(imgUrl, name, code, price) {
             const previewImgElem = document.getElementById('previewCardImage');
 
-            if (cardImg && cardImg.trim() !== "") {
-                previewImgElem.src = cardImg;
-            } else {
-                // डिफ़ॉल्ट बैकअप फोटो
-                previewImgElem.src = "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&auto=format&fit=crop&q=80";
+            if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null" && imgUrl !== "undefined") {
+                previewImgElem.src = imgUrl;
+                document.getElementById('selectedCardImageStored').value = imgUrl;
             }
 
-            if (cardName) {
-                document.getElementById('previewCardName').innerText = cardName;
-                document.getElementById('cardCategory').value = cardName;
+            if (name) {
+                document.getElementById('previewCardName').innerText = name;
+                document.getElementById('cardCategory').value = name;
             }
-            if (cardCode) {
-                document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${cardCode}`;
+            if (code) {
+                document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${code}`;
+                document.getElementById('selectedCardModelStored').value = code;
             }
-            if (cardPrice) {
-                const priceNum = parseFloat(cardPrice) || 10;
+            if (price) {
+                const priceNum = parseFloat(price) || 10;
                 document.getElementById('previewCardRate').innerText = `मूल्य: ₹${priceNum} / पीस`;
                 document.getElementById('cardRate').value = priceNum;
             }
 
             calculateWeddingTotal(true);
-        });
+        }
 
         function calculateWeddingTotal(isInitial = false) {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
@@ -735,6 +774,7 @@
             const mobile = document.getElementById('custMobile').value;
             const address = document.getElementById('custFullAddress').value;
             const cardName = document.getElementById('cardCategory').value;
+            const cardImg = document.getElementById('selectedCardImageStored').value;
             const qty = document.getElementById('cardQty').value;
             const rate = document.getElementById('cardRate').value;
             const advance = document.getElementById('advancePaidInput').value;
@@ -745,13 +785,14 @@
 
             const summary = `*नया शादी कार्ड ऑर्डर (दिल्ली प्रेस)*
 -----------------------------------
+*कार्ड का नाम:* ${cardName}
+*कार्ड फ़ोटो:* ${cardImg ? cardImg : 'संलग्न'}
+*संख्या:* ${qty} पीस | *रेट:* ₹${rate}
+*एडवांस जमा:* ₹${advance} | *Txn ID:* ${txnId}
+
 *ग्राहक का नाम:* ${fullName}
 *मोबाइल:* ${mobile}
 *पता:* ${address}
-
-*कार्ड मॉडल:* ${cardName}
-*संख्या:* ${qty} पीस | *रेट:* ₹${rate}
-*एडवांस जमा:* ₹${advance} | *Txn ID:* ${txnId}
 
 *वर:* ${groom}
 *वधू:* ${bride}
