@@ -27,10 +27,13 @@
             padding: 12px 20px; position: sticky; top: 0; z-index: 1000;
         }
         .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; }
-        .nav-logo-img {
+        .nav-logo-box {
             width: 38px; height: 38px; border-radius: 50%;
-            object-fit: cover; border: 2px solid var(--primary);
+            border: 2px solid var(--primary); display: flex;
+            align-items: center; justify-content: center; overflow: hidden;
+            background: #fff;
         }
+        .nav-logo-img { width: 100%; height: 100%; object-fit: cover; }
         .nav-brand h2 { color: var(--primary); font-size: 20px; }
         .nav-actions { display: flex; align-items: center; gap: 8px; }
         .btn-nav {
@@ -62,6 +65,7 @@
         .order-id-date { display: flex; align-items: center; gap: 10px; }
         .order-card-img {
             width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
+            background: #f1f5f9;
         }
         .order-id-date h4 { font-size: 15px; color: var(--primary); margin: 0; }
         .order-id-date span { font-size: 12px; color: #64748b; }
@@ -131,6 +135,7 @@
         }
         .card-preview-box img {
             width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
+            background: #e2e8f0;
         }
 
         /* MAIN FOOTER */
@@ -182,7 +187,9 @@
 
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
-            <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.src='https://via.placeholder.com/38'">
+            <div class="nav-logo-box">
+                <i class="fa-solid fa-print" style="color:var(--primary); font-size:18px;"></i>
+            </div>
             <h2>दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
@@ -321,12 +328,10 @@
             const container = document.getElementById('ordersContainer');
             if (!container) return;
 
-            container.innerHTML = '<div style="text-align:center; padding:30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...</div>';
-
             const user = checkCustomerAuth();
             let rawOrders = [];
 
-            // 1. Supabase कॉल को अधिकतम 1.5 सेकंड का टाइमआउट दें
+            // 1. Supabase को 1.2 सेकंड का टाइमआउट दें (ताकि पेज कभी न लटके)
             if (supabaseClient) {
                 try {
                     const fetchPromise = supabaseClient
@@ -335,7 +340,7 @@
                         .order('id', { ascending: false });
 
                     const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Timeout')), 1500)
+                        setTimeout(() => reject(new Error('Timeout')), 1200)
                     );
 
                     const res = await Promise.race([fetchPromise, timeoutPromise]);
@@ -347,7 +352,7 @@
                 }
             }
 
-            // 2. अगर Supabase से डेटा न मिले तो लोकल स्टोरेज से लें
+            // 2. LocalStorage बैकअप
             if (rawOrders.length === 0) {
                 try {
                     rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
@@ -356,7 +361,7 @@
                 }
             }
 
-            // 3. डेटा को सुरक्षित रूप से प्रोसेस करें
+            // 3. डेटा सामान्यीकरण
             const normalizedOrders = (rawOrders || []).map(item => {
                 const nested = item.order_data || {};
                 const liveStatus = item.status || nested.status || nested.order_status || 'Pending';
@@ -393,7 +398,7 @@
             const userPhoneRaw = user ? String(user.mobile || user.customer_mobile || user.phone || '') : '';
             const cleanUserPhone = userPhoneRaw.replace(/[^0-9]/g, '').slice(-10);
 
-            if (cleanUserPhone.length >= 10) {
+            if (cleanUserPhone.length === 10) {
                 fetchedOrdersList = normalizedOrders.filter(ord => {
                     const ordPhoneClean = String(ord.customer_mobile).replace(/[^0-9]/g, '').slice(-10);
                     return ordPhoneClean === cleanUserPhone;
@@ -418,8 +423,7 @@
             }
 
             // 6. रेंडर करें
-            let ordersHtml = '';
-            fetchedOrdersList.forEach((ord, index) => {
+            container.innerHTML = fetchedOrdersList.map((ord, index) => {
                 const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
                     day: 'numeric', month: 'short', year: 'numeric'
                 });
@@ -428,14 +432,14 @@
                 const advance = parseFloat(ord.advance_paid || 0);
                 const balance = Math.max(0, total - advance);
 
-                let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ऑर्डर प्राप्त हुआ (Pending)</span>`;
+                let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> प्राप्त हुआ (Pending)</span>`;
                 if (ord.order_status === 'In Process' || ord.order_status === 'Process') {
                     statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है (In Process)</span>`;
                 } else if (ord.order_status === 'Ready' || ord.order_status === 'Finished') {
                     statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready)</span>`;
                 }
 
-                ordersHtml += `
+                return `
                     <div class="order-card">
                         <div class="order-card-header">
                             <div class="order-id-date">
@@ -481,9 +485,7 @@
                         </div>
                     </div>
                 `;
-            });
-
-            container.innerHTML = ordersHtml;
+            }).join('');
         }
 
         function viewCustomerReceipt(index) {
