@@ -190,13 +190,6 @@
             align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
         }
 
-        .footer-admin-link {
-            color: #64748b; text-decoration: none; font-size: 11px;
-            display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;
-            border-radius: 4px; border: 1px solid #334155; transition: 0.2s;
-        }
-        .footer-admin-link:hover { color: #f1c40f; border-color: #f1c40f; }
-
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
@@ -406,6 +399,7 @@
                 <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
                 <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</p>
                 <p><i class="fa-solid fa-phone"></i> 9304509464</p>
+                <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
             </div>
             <div class="footer-col">
                 <h4>सेवाएं</h4>
@@ -413,57 +407,123 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <span>&copy; 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित.</span>
-            <a href="admin.html" class="footer-admin-link">
-                <i class="fa-solid fa-lock"></i> एडमिन लॉगिन
-            </a>
+            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+            <a href="admin.html" style="color:#64748b; text-decoration:none;"><i class="fa-solid fa-lock"></i> एडमिन</a>
         </div>
     </footer>
 
-    <!-- Logic Script -->
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-
+        
         let supabaseClient = null;
         try {
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
-        } catch (e) {
-            console.error('Supabase कनेक्शन त्रुटि:', e);
-        }
+        } catch (e) {}
 
+        let globalCards = [];
+        let currentZoomCard = null;
         let currentScale = 1;
-        let selectedZoomCard = { title: '', image: '', price: '', model: '' };
 
-        function selectCard(title, image, price, model = 'DP-101') {
-            const cleanPrice = parseFloat(String(price).replace(/[^0-9.]/g, '')) || 10;
-            const cardObj = {
-                title: title || 'शादी कार्ड',
-                model: model || 'DP-101',
-                image: image || '',
-                price: cleanPrice
-            };
-            localStorage.setItem('dp_selected_card', JSON.stringify(cardObj));
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadCatalog();
+        });
 
-            const encodedModel = encodeURIComponent(cardObj.model);
-            const encodedTitle = encodeURIComponent(cardObj.title);
-            const encodedPrice = encodeURIComponent(cleanPrice);
-            
-            // अगर इमेज बहुत बड़ी Base64 स्ट्रिंग है तो URL में न भेजें, सीधे order.html उसे LocalStorage से उठा लेगा
-            const isBase64 = String(cardObj.image).startsWith('data:image');
-            const previewParam = isBase64 ? '' : `&preview=${encodeURIComponent(cardObj.image)}`;
+        async function loadCatalog() {
+            const container = document.getElementById('catalogContainer');
+            if (!supabaseClient) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
+                return;
+            }
 
-            window.location.href = `order.html?model=${encodedModel}&card=${encodedTitle}&item=${encodedTitle}&price=${encodedPrice}${previewParam}`;
+            const tables = ['cards_catalog', 'catalog', 'cards'];
+            let fetchedData = null;
+
+            for (const tbl of tables) {
+                try {
+                    const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                    if (data && data.length > 0) {
+                        fetchedData = data;
+                        break;
+                    }
+                } catch (e) {}
+            }
+
+            if (!fetchedData || fetchedData.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#64748b;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>';
+                return;
+            }
+
+            globalCards = fetchedData;
+            container.innerHTML = '';
+
+            fetchedData.forEach((card, index) => {
+                const name = card.name || card.title || 'शादी कार्ड';
+                const model = card.model || card.code || '';
+                const rate = card.rate || card.price || 0;
+                const img = card.image || card.image_url || card.photo || 'https://placehold.co/180x150?text=Card';
+
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-sample';
+                cardDiv.innerHTML = `
+                    <div class="img-box" onclick="openZoomModal(${index})">
+                        <img src="${img}" alt="${name}" onerror="this.src='https://placehold.co/180x150?text=Card'">
+                        <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>${name}</h4>
+                        <div class="model-text">${model}</div>
+                        <div class="card-price-tag">₹${rate} / पीस</div>
+                        <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
+                            <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                        </button>
+                    </div>
+                `;
+                container.appendChild(cardDiv);
+            });
         }
 
-        function openZoomModal(title, imgUrl, price, model) {
-            selectedZoomCard = { title, image: imgUrl, price, model: model || 'DP-101' };
-            document.getElementById('zoomModalTitle').innerText = `${title} | मॉडल: ${model || 'DP-101'}`;
-            document.getElementById('zoomModalImg').src = imgUrl;
-            document.getElementById('imageZoomModal').classList.add('active');
-            resetZoom();
+        // कार्ड चुनकर सीधे order.html पर सुरक्षित भेजने वाला फंक्शन
+        function selectCardForOrder(cardIndex) {
+            const card = globalCards[cardIndex];
+            if (!card) return;
+
+            // पुराना कैश्ड डेटा साफ़ करें
+            localStorage.clear();
+
+            const cardData = {
+                id: card.id || '',
+                name: card.name || card.title || 'शादी कार्ड',
+                model: card.model || card.code || '',
+                rate: parseFloat(card.rate || card.price) || 0,
+                image: card.image || card.image_url || card.photo || ''
+            };
+
+            // localStorage में ताज़ा डेटा सेव करें
+            localStorage.setItem('order_selected_card', JSON.stringify(cardData));
+
+            // URL पैरामीटर के साथ रीडायरेक्ट करें
+            window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
+        }
+
+        // ज़ूम पॉपअप के फंक्शन्स
+        function openZoomModal(index) {
+            const card = globalCards[index];
+            if (!card) return;
+            currentZoomCard = card;
+            currentScale = 1;
+
+            const modal = document.getElementById('imageZoomModal');
+            const img = document.getElementById('zoomModalImg');
+            const title = document.getElementById('zoomModalTitle');
+
+            img.src = card.image || card.image_url || card.photo || 'https://placehold.co/400x300?text=Card';
+            img.style.transform = `scale(1)`;
+            title.innerText = `${card.name || 'शादी कार्ड'} ${card.model ? '(' + card.model + ')' : ''}`;
+
+            modal.classList.add('active');
         }
 
         function closeZoomModal() {
@@ -471,138 +531,22 @@
         }
 
         function applyZoom(delta) {
-            currentScale += delta;
-            if (currentScale < 0.5) currentScale = 0.5;
-            if (currentScale > 3) currentScale = 3;
+            currentScale = Math.min(Math.max(1, currentScale + delta), 3.5);
             document.getElementById('zoomModalImg').style.transform = `scale(${currentScale})`;
         }
 
         function resetZoom() {
             currentScale = 1;
-            const img = document.getElementById('zoomModalImg');
-            if (img) img.style.transform = 'scale(1)';
+            document.getElementById('zoomModalImg').style.transform = `scale(1)`;
         }
 
         function redirectToOrderFromZoom() {
-            selectCard(selectedZoomCard.title, selectedZoomCard.image, selectedZoomCard.price, selectedZoomCard.model);
-        }
-
-        function checkUserAuth() {
-            const authNav = document.getElementById('authNavContainer');
-            const loggedBox = document.getElementById('userLoggedBox');
-            const mobileAuthText = document.getElementById('mobileAuthText');
-            const mobileAuthLink = document.getElementById('mobileAuthLink');
-            const mobileAuthIcon = document.getElementById('mobileAuthIcon');
-
-            const stored = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
-            let userData = null;
-
-            if (stored) {
-                try {
-                    userData = JSON.parse(stored);
-                } catch (e) {
-                    userData = null;
-                }
-            }
-
-            if (userData && (userData.mobile || userData.phone || userData.email)) {
-                if (authNav) authNav.style.display = 'none';
-                if (loggedBox) loggedBox.style.display = 'flex';
-                if (mobileAuthText) mobileAuthText.innerText = 'माई ऑर्डर्स';
-                if (mobileAuthLink) mobileAuthLink.href = 'my_orders.html';
-                if (mobileAuthIcon) mobileAuthIcon.className = 'fa-solid fa-box-archive';
-            } else {
-                if (authNav) authNav.style.display = 'block';
-                if (loggedBox) loggedBox.style.display = 'none';
-                if (mobileAuthText) mobileAuthText.innerText = 'लॉगिन';
-                if (mobileAuthLink) mobileAuthLink.href = 'login.html';
-                if (mobileAuthIcon) mobileAuthIcon.className = 'fa-solid fa-user';
+            if (!currentZoomCard) return;
+            const index = globalCards.indexOf(currentZoomCard);
+            if (index !== -1) {
+                selectCardForOrder(index);
             }
         }
-
-        async function fetchLiveCards() {
-            const catalogContainer = document.getElementById('catalogContainer');
-            let cards = [];
-
-            if (supabaseClient) {
-                try {
-                    // सुधार: टेबल का सही नाम 'cards_catalog' किया गया
-                    const { data, error } = await supabaseClient
-                        .from('cards_catalog')
-                        .select('*')
-                        .order('id', { ascending: false });
-
-                    if (error) {
-                        console.error('Supabase Query Error:', error.message);
-                    } else if (data && data.length > 0) {
-                        cards = data;
-                    }
-                } catch (e) {
-                    console.error('Supabase fetch exception:', e);
-                }
-            }
-
-            // अगर Supabase खाली हो तो LocalStorage चेक करें
-            if (!cards || cards.length === 0) {
-                try {
-                    cards = JSON.parse(
-                        localStorage.getItem('dp_cards_catalog') ||
-                        localStorage.getItem('uploaded_cards') ||
-                        localStorage.getItem('admin_cards') ||
-                        '[]'
-                    );
-                } catch (e) {
-                    cards = [];
-                }
-            }
-
-            // अगर कहीं भी कार्ड नहीं मिला तो संदेश दिखाएं
-            if (!cards || cards.length === 0) {
-                catalogContainer.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding: 25px; color:#64748b;">
-                    वर्तमान में कोई कार्ड उपलब्ध नहीं है। कृपया एडमिन पैनल से कार्ड जोड़ें।
-                </p>`;
-                return;
-            }
-
-            // कार्ड्स को HTML में रेंडर करें
-            catalogContainer.innerHTML = cards.map(card => {
-                const cardImg = card.image_url || card.image || '';
-                const cardTitle = card.title || card.name || 'शादी कार्ड';
-                const cardModel = card.model || 'DP-101';
-                const cardPrice = String(card.price).includes('₹') ? card.price : ('₹' + (card.price || 0));
-                const isAvailable = card.in_stock !== false;
-
-                // डेटा सेफली पास करने के लिए
-                const safeImg = encodeURIComponent(cardImg);
-                const safeTitle = cardTitle.replace(/'/g, "\\'");
-                const safeModel = cardModel.replace(/'/g, "\\'");
-
-                return `
-                    <div class="card-sample">
-                        <div class="img-box" onclick="openZoomModal('${safeTitle}', decodeURIComponent('${safeImg}'), '${cardPrice}', '${safeModel}')">
-                            <img src="${cardImg}" alt="${cardTitle}" loading="lazy">
-                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                        </div>
-                        <div class="card-info">
-                            <h4>${cardTitle}</h4>
-                            <div class="model-text">${cardModel}</div>
-                            <div class="card-price-tag">${cardPrice}</div>
-                            <span class="stock-badge ${isAvailable ? 'in-stock' : 'out-stock'}">
-                                ${isAvailable ? 'उपलब्ध है' : 'स्टॉक समाप्त'}
-                            </span>
-                            <button type="button" class="btn-select-card" onclick="selectCard('${safeTitle}', decodeURIComponent('${safeImg}'), '${cardPrice}', '${safeModel}')">
-                                <i class="fa-solid fa-cart-check"></i> यह कार्ड चुनें
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            checkUserAuth();
-            fetchLiveCards();
-        });
     </script>
 </body>
 </html>
