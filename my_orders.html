@@ -288,14 +288,13 @@
 
         function checkCustomerAuth() {
             let userData = null;
-            const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
-            
-            if (userJson) {
-                try {
+            try {
+                const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+                if (userJson) {
                     userData = typeof userJson === 'string' ? JSON.parse(userJson) : userJson;
-                } catch (e) {
-                    userData = null;
                 }
+            } catch (e) {
+                userData = null;
             }
 
             const nameEl = document.getElementById('userDisplayName');
@@ -327,23 +326,28 @@
             const user = checkCustomerAuth();
             let rawOrders = [];
 
-            // 1. Supabase से सुरक्षित फेच
+            // 1. Supabase कॉल को अधिकतम 1.5 सेकंड का टाइमआउट दें
             if (supabaseClient) {
                 try {
-                    const { data, error } = await supabaseClient
+                    const fetchPromise = supabaseClient
                         .from('orders')
                         .select('*')
                         .order('id', { ascending: false });
 
-                    if (!error && Array.isArray(data) && data.length > 0) {
-                        rawOrders = data;
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Timeout')), 1500)
+                    );
+
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+                        rawOrders = res.data;
                     }
                 } catch (err) {
-                    console.warn("Supabase fetch failed, falling back to local:", err);
+                    console.warn("Supabase स्किप, लोकल बैकअप लोड हो रहा है:", err);
                 }
             }
 
-            // 2. LocalStorage बैकअप
+            // 2. अगर Supabase से डेटा न मिले तो लोकल स्टोरेज से लें
             if (rawOrders.length === 0) {
                 try {
                     rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
@@ -352,7 +356,7 @@
                 }
             }
 
-            // 3. डेटा सामान्यीकरण (Safe Normalization)
+            // 3. डेटा को सुरक्षित रूप से प्रोसेस करें
             const normalizedOrders = (rawOrders || []).map(item => {
                 const nested = item.order_data || {};
                 const liveStatus = item.status || nested.status || nested.order_status || 'Pending';
@@ -385,7 +389,7 @@
                 };
             });
 
-            // 4. सुरक्षित फ़ोन नंबर फ़िल्टर
+            // 4. ग्राहक फ़ोन नंबर फ़िल्टर
             const userPhoneRaw = user ? String(user.mobile || user.customer_mobile || user.phone || '') : '';
             const cleanUserPhone = userPhoneRaw.replace(/[^0-9]/g, '').slice(-10);
 
@@ -413,7 +417,7 @@
                 return;
             }
 
-            // 6. कार्ड रेंडर करें
+            // 6. रेंडर करें
             let ordersHtml = '';
             fetchedOrdersList.forEach((ord, index) => {
                 const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
