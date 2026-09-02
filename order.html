@@ -287,7 +287,6 @@
                     </div>
                 </div>
 
-                <!-- अगर सीधे फॉर्म पर आये हैं, तो कार्ड यहाँ से भी बदल सकते हैं -->
                 <div class="card-picker-box">
                     <label style="font-size:12px; color:#c0392b;">या कैटलॉग से कोई अन्य कार्ड चुनें:</label>
                     <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
@@ -532,11 +531,12 @@
         </div>
     </div>
 
+    <!-- अपडेटेड फूटर -->
     <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
-                <h4>दिल्ली प्रेस & प्रिंटिंग सॉल्यूशंस</h4>
-                <p><i class="fa-solid fa-location-dot"></i> मुख्य बाजार, स्टेशन रोड, जामताड़ा</p>
+                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</p>
                 <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
                 <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
             </div>
@@ -548,7 +548,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <span>© 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित।</span>
+            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
             <a href="admin.html" style="color:#64748b; text-decoration:none;"><i class="fa-solid fa-lock"></i> एडमिन</a>
         </div>
     </footer>
@@ -593,7 +593,6 @@
                 }
             }
 
-            // अगर सीधे डेटा पास हुआ है
             if (cardName || cardRate || cardImg) {
                 applyCardDetails({
                     image: cardImg,
@@ -602,7 +601,6 @@
                     rate: cardRate
                 });
             } else if (globalCatalogCards.length > 0) {
-                // डिफ़ॉल्ट पहला कार्ड लोड करें
                 applyCardDetails(globalCatalogCards[0]);
                 document.getElementById('directCardSelect').value = globalCatalogCards[0].id;
             } else {
@@ -610,7 +608,6 @@
             }
         });
 
-        // Supabase से कार्ड फेच करने का फंक्शन
         async function fetchAndFillCatalogDropdown() {
             const dropdown = document.getElementById('directCardSelect');
             if (!supabaseClient) return;
@@ -637,7 +634,6 @@
             }
         }
 
-        // ड्रॉपडाउन से कार्ड बदलने पर
         function onCatalogSelectChange(cardId) {
             if (!cardId) return;
             const card = globalCatalogCards.find(c => String(c.id) === String(cardId));
@@ -646,21 +642,18 @@
             }
         }
 
-        // कार्ड की फोटो, नाम और रेट स्वतः भरने का मुख्य फंक्शन
         function applyCardDetails(card) {
             const imgUrl = card.image || card.image_url || card.photo || '';
             const name = card.name || card.title || 'शादी कार्ड';
             const model = card.model || card.code || 'DP-101';
             const rate = parseFloat(card.rate || card.price) || 10;
 
-            // 1. फोटो सेट करें
             const imgElem = document.getElementById('previewCardImage');
             if (imgUrl && imgUrl.trim() !== "") {
                 imgElem.src = imgUrl;
                 document.getElementById('selectedCardImageStored').value = imgUrl;
             }
 
-            // 2. टेक्स्ट और इनपुट सेट करें
             document.getElementById('previewCardName').innerText = name;
             document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${model}`;
             document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
@@ -669,7 +662,6 @@
             document.getElementById('selectedCardModelStored').value = model;
             document.getElementById('cardRate').value = rate;
 
-            // 3. रेट के हिसाब से बिल और एडवांस स्वतः कैलकुलेट करें
             calculateWeddingTotal(true);
         }
 
@@ -698,7 +690,6 @@
             document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
             document.getElementById('paidAmountFinal').value = advance;
             
-            // UPI QR कोड अपडेट
             const qrImg = document.getElementById('upiQrCodeImg');
             const upiLink = document.getElementById('btnPayUpiDirect');
             const upiUrl = `upi://pay?pa=${UPI_ID}&pn=DelhiPress&am=${advance}`;
@@ -761,7 +752,7 @@
             const groom = document.getElementById('groomName').value;
             const bride = document.getElementById('brideName').value;
 
-            const summary = `*नया शादी कार्ड ऑर्डर (दिल्ली प्रेस)*
+            const summary = `*नया शादी कार्ड ऑर्डर (दिल्ली प्रेस - सज्जाद प्रिंटर्स)*
 -----------------------------------
 *कार्ड:* ${cardName}
 *संख्या:* ${qty} पीस | *रेट:* ₹${rate}
