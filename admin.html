@@ -72,7 +72,7 @@
         .status-ready { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
 
         .status-select-box {
-            padding: 4px 6px; font-size: 11px; font-weight: bold; border-radius: 4px;
+            padding: 5px 8px; font-size: 12px; font-weight: bold; border-radius: 4px;
             border: 1px solid #cbd5e1; cursor: pointer; background: #fff;
         }
 
@@ -315,12 +315,12 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
-        if (window.supabase) {
-            try {
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } catch (e) {
-                console.error("Supabase init error:", e);
             }
+        } catch (e) {
+            console.error("Supabase init error:", e);
         }
 
         let globalOrdersCache = [];
@@ -594,7 +594,7 @@
                             बाकी: <b style="color:red;">₹${ord.balance_amount}</b>
                         </td>
                         <td>
-                            <select class="status-select-box" onchange="updateOrderStatus(${ord.id}, this.value, ${idx})">
+                            <select class="status-select-box" onchange="updateOrderStatus('${ord.id}', this.value, ${idx})">
                                 <option value="Pending" ${ord.status === 'Pending' ? 'selected' : ''}>⏳ प्राप्त (Pending)</option>
                                 <option value="In Process" ${ord.status === 'In Process' || ord.status === 'Process' ? 'selected' : ''}>⚙️ छपाई जारी (Process)</option>
                                 <option value="Ready" ${ord.status === 'Ready' ? 'selected' : ''}>✅ तैयार है (Ready)</option>
@@ -606,7 +606,7 @@
                             </button>
                         </td>
                         <td>
-                            <button type="button" class="btn-del" onclick="deleteAdminOrder(${ord.id})">
+                            <button type="button" class="btn-del" onclick="deleteAdminOrder('${ord.id}')">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -615,26 +615,46 @@
             }).join('');
         }
 
-        // 5. UPDATE ORDER STATUS (SYNC WITH SUPABASE & MY_ORDERS)
+        // 5. UPDATE ORDER STATUS (सुधारा हुआ और पक्का सिंक फ़ंक्शन)
         async function updateOrderStatus(orderId, newStatus, cacheIndex) {
             try {
-                if (supabaseClient && orderId) {
-                    const { error } = await supabaseClient
-                        .from('orders')
-                        .update({ status: newStatus })
-                        .eq('id', orderId);
-
-                    if (error) throw error;
+                if (!orderId) {
+                    alert("त्रुटि: ऑर्डर ID उपलब्ध नहीं है!");
+                    return;
                 }
 
-                // Update in Local Storage Cache
+                // Supabase ID को संख्या व स्ट्रिंग दोनों के लिए सुरक्षित करें
+                const targetId = isNaN(orderId) ? orderId : Number(orderId);
+
+                // 1. Supabase में स्थिति और JSON दोनों अपडेट करें
+                if (supabaseClient) {
+                    const currentOrder = globalOrdersCache[cacheIndex] || {};
+                    const updatedOrderData = { ...currentOrder, status: newStatus, order_status: newStatus };
+
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .update({ 
+                            status: newStatus,
+                            order_data: updatedOrderData
+                        })
+                        .eq('id', targetId)
+                        .select();
+
+                    if (error) {
+                        throw new Error("Supabase त्रुटि: " + error.message);
+                    }
+                    console.log("Supabase में अपडेट सफल:", data);
+                }
+
+                // 2. एडमिन के लोकल कैश में अपडेट करें
                 if (globalOrdersCache[cacheIndex]) {
                     globalOrdersCache[cacheIndex].status = newStatus;
                 }
 
+                // 3. LocalStorage में भी अपडेट करें
                 let localAll = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
                 localAll = localAll.map(o => {
-                    if (o.id === orderId) {
+                    if (String(o.id) === String(orderId)) {
                         o.status = newStatus;
                         o.order_status = newStatus;
                     }
@@ -642,10 +662,12 @@
                 });
                 localStorage.setItem('dp_all_orders', JSON.stringify(localAll));
 
-                alert("ऑर्डर स्टेटस सफलतापूर्वक '" + newStatus + "' में बदल दिया गया!");
+                alert(`✅ ऑर्डर का स्टेटस सफलतापूर्वक "${newStatus}" कर दिया गया!`);
+                loadAdminOrders();
+
             } catch (err) {
-                console.error(err);
-                alert("स्टेटस अपडेट करने में समस्या: " + err.message);
+                console.error("Status Update Failed:", err);
+                alert("स्टेटस अपडेट नहीं हो सका: " + err.message);
             }
         }
 
@@ -742,10 +764,11 @@
             if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
             try {
                 if (supabaseClient && orderId) {
-                    await supabaseClient.from('orders').delete().eq('id', orderId);
+                    const targetId = isNaN(orderId) ? orderId : Number(orderId);
+                    await supabaseClient.from('orders').delete().eq('id', targetId);
                 }
                 let localAll = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-                localAll = localAll.filter(o => o.id !== orderId);
+                localAll = localAll.filter(o => String(o.id) !== String(orderId));
                 localStorage.setItem('dp_all_orders', JSON.stringify(localAll));
                 loadAdminOrders();
             } catch (err) {
