@@ -231,6 +231,31 @@
             display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; text-decoration: none;
         }
 
+        /* MAIN FOOTER FROM INDEX */
+        .main-footer {
+            background: var(--dark); color: #cbd5e1; padding: 30px 15px 20px;
+            margin-top: 35px; font-size: 13px;
+        }
+        .footer-grid {
+            max-width: 900px; margin: 0 auto; display: grid;
+            grid-template-columns: 1.2fr 1fr; gap: 20px;
+        }
+        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 10px; }
+        .footer-col p { margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
+        .footer-col p i { color: #f1c40f; width: 18px; }
+        
+        .footer-bottom {
+            max-width: 900px; margin: 20px auto 0; padding-top: 15px;
+            border-top: 1px solid #334155; display: flex; justify-content: space-between;
+            align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
+        }
+        .footer-admin-link {
+            color: #64748b; text-decoration: none; font-size: 11px;
+            display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;
+            border-radius: 4px; border: 1px solid #334155; transition: 0.2s;
+        }
+        .footer-admin-link:hover { color: #f1c40f; border-color: #f1c40f; }
+
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
@@ -249,6 +274,8 @@
             .row-2, .row-3, .row-4 { flex-direction: column; gap: 0; }
             .total-bill-box { flex-direction: column; gap: 5px; text-align: center; }
             .form-wrapper { padding: 12px; }
+            .footer-grid { grid-template-columns: 1fr; gap: 15px; }
+            .footer-bottom { justify-content: center; text-align: center; }
         }
     </style>
 </head>
@@ -500,6 +527,27 @@
 
     </div>
 
+    <!-- MAIN FOOTER (Same as index.html) -->
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</p>
+                <p><i class="fa-solid fa-phone"></i> 9304509464</p>
+            </div>
+            <div class="footer-col">
+                <h4>सेवाएं</h4>
+                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित.</span>
+            <a href="admin.html" class="footer-admin-link">
+                <i class="fa-solid fa-lock"></i> एडमिन लॉगिन
+            </a>
+        </div>
+    </footer>
+
     <!-- REVIEW & CONFIRMATION MODAL -->
     <div class="modal" id="reviewModal">
         <div class="modal-content">
@@ -514,7 +562,7 @@
             </button>
 
             <button type="button" id="finalSubmitBtn" onclick="submitFinalOrder()" style="width:100%; padding:12px; background:var(--green); color:white; font-size:15px; font-weight:bold; border:none; border-radius:6px; cursor:pointer;">
-                <i class="fa-solid fa-paper-plane"></i> हाँ, सब सही है - ऑर्डर फाइनल करें
+                <i class="fa-solid fa-paper-plane"></i> हाँ, सब सही है - ऑर्डर फाइनल करें (Supabase + WhatsApp)
             </button>
         </div>
     </div>
@@ -546,7 +594,37 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadSelectedCard();
+            autoFillLoggedInUser();
         });
+
+        // 1. लॉगिन यूज़र का विवरण स्वतः भरें और मोबाइल नंबर लॉक करें
+        function autoFillLoggedInUser() {
+            const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+            if (userJson) {
+                try {
+                    const user = JSON.parse(userJson);
+                    const userMobile = (user.mobile || user.phone || user.customer_mobile || '').toString().replace(/[^0-9]/g, '').slice(-10);
+                    const userName = user.name || user.customer_name || '';
+                    const userAddr = user.address || user.customer_address || '';
+
+                    if (userMobile && document.getElementById('custMobile')) {
+                        const mobInput = document.getElementById('custMobile');
+                        mobInput.value = userMobile;
+                        mobInput.readOnly = true;
+                        mobInput.style.backgroundColor = "#e2e8f0";
+                        mobInput.title = "लॉगिन किया हुआ नंबर बदला नहीं जा सकता";
+                    }
+                    if (userName && document.getElementById('custFullName') && !document.getElementById('custFullName').value) {
+                        document.getElementById('custFullName').value = userName;
+                    }
+                    if (userAddr && document.getElementById('custFullAddress') && !document.getElementById('custFullAddress').value) {
+                        document.getElementById('custFullAddress').value = userAddr;
+                    }
+                } catch (e) {
+                    console.error("Autofill user error:", e);
+                }
+            }
+        }
 
         function loadSelectedCard() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -742,6 +820,7 @@
             window.open(url, '_blank');
         }
 
+        // 2. SUPABASE + WHATSAPP दोनों में ऑर्डर दर्ज करने का मुख्य फंक्शन
         async function submitFinalOrder() {
             const submitBtn = document.getElementById('finalSubmitBtn');
             submitBtn.disabled = true;
@@ -757,7 +836,9 @@
             const primaryDate = events.length > 0 ? events[0].date : new Date().toISOString().split('T')[0];
 
             const customerName = document.getElementById('custFullName').value.trim();
-            const customerMobile = document.getElementById('custMobile').value.trim();
+            const rawMobile = document.getElementById('custMobile').value.trim();
+            // शुद्ध 10 अंकों का मोबाइल नंबर ताकि Supabase व My Orders में आईडी मैच हो सके
+            const customerMobile = rawMobile.replace(/[^0-9]/g, '').slice(-10);
             const customerAddress = document.getElementById('custFullAddress').value.trim();
             const cardTitle = document.getElementById('cardCategory').value.trim();
             const cardModel = document.getElementById('selectedCardModelStored').value || 'DP-101';
@@ -793,7 +874,7 @@
                 date: primaryDate
             };
 
-            // 1. LocalStorage में बैकअप रखें
+            // LocalStorage में भी बैकअप रखें
             let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
             allOrders.unshift(fullOrderDetails);
             localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
@@ -805,10 +886,11 @@
             localStorage.setItem('dp_current_user', JSON.stringify({
                 name: customerName,
                 mobile: customerMobile,
+                customer_mobile: customerMobile,
                 address: customerAddress
             }));
 
-            // 2. Supabase की 'orders' टेबल में डालें (Admin और My Orders दोनों के अनुकूल)
+            // Supabase Database Insert
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -822,13 +904,13 @@
                             groom_name: groomName,
                             bride_name: brideName,
                             total_amount: total,
+                            advance_amount: adv,
                             status: 'Pending',
                             order_data: fullOrderDetails
                         }]);
 
                     if (error) {
                         console.error("Supabase Order Error:", error.message);
-                        alert("नोट: डेटाबेस एरर (" + error.message + "), परंतु ऑर्डर लोकल में सेव हो गया है।");
                     } else {
                         console.log("Supabase में ऑर्डर सेव हुआ:", data);
                     }
@@ -837,7 +919,17 @@
                 }
             }
 
-            alert("आपका शादी कार्ड ऑर्डर सफलतापूर्वक दर्ज कर लिया गया है!");
+            // WhatsApp पर भी स्वतः मैटर भेजना
+            try {
+                const text = generateOrderSummaryText();
+                const phone = "919304509464";
+                const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+                window.open(waUrl, '_blank');
+            } catch (e) {
+                console.log("WhatsApp open error", e);
+            }
+
+            alert("आपका शादी कार्ड ऑर्डर Supabase और WhatsApp पर दर्ज कर दिया गया है!");
             window.location.href = "my_orders.html";
         }
     </script>
