@@ -349,7 +349,7 @@
                     <div class="row-3">
                         <div class="form-group">
                             <label>कार्ड मॉडल / नाम:</label>
-                            <input type="text" id="cardCategory" value="" placeholder="लोड हो रहा है..." required>
+                            <input type="text" id="cardCategory" value="" placeholder="कार्ड का नाम" required>
                         </div>
                         <div class="form-group">
                             <label>प्रति पीस रेट (₹):</label>
@@ -500,7 +500,7 @@
                 <div class="form-block payment-box">
                     <h4 style="border:none; color:#166534;"><i class="fa-solid fa-qrcode"></i> ऑनलाइन एडवांस भुगतान</h4>
                     <p style="font-size: 13px; color: #15803d; margin-bottom: 5px;">
-                        UPI ID: <strong>9304509464@okbizaxis</strong>[span_1](start_span)[span_1](end_span)
+                        UPI ID: <strong>9304509464@okbizaxis</strong>
                     </p>
                     <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
                         नीचे दिए गए QR कोड को स्कैन करें या बटन पर क्लिक करके सीधे अपने UPI ऐप से भुगतान करें:
@@ -602,17 +602,18 @@
 
     <!-- SUPABASE और डायनामिक लोडर -->
     <script>
-        const SUPABASE_URL = 'https://urzmdriydbofeoitvipj.supabase.co';[span_2](start_span)[span_2](end_span)
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyem1kcml5ZGJvZmVvaXR2aXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTgxNDgsImV4cCI6MjEwMzU5NDE0OH0.yN7h1YBvc7zva2BIAQPgQ1nA4TXRM7ZRPqJKKlmK7Ko';[span_3](start_span)[span_3](end_span)
+        // आपके एडमिन पैनल का सही Supabase प्रोजेक्ट
+        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
 
         let supabase = null;
-        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
 
-        const UPI_ID = "9304509464@okbizaxis";[span_4](start_span)[span_4](end_span)
-        const OWNER_MOBILE = "919304509464";[span_5](start_span)[span_5](end_span)
-        let isGroomFirst = true;[span_6](start_span)[span_6](end_span)
+        const UPI_ID = "9304509464@okbizaxis";
+        const OWNER_MOBILE = "919304509464";
+        let isGroomFirst = true;
 
         window.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -627,44 +628,45 @@
                            (storedCardObj && (storedCardObj.id || storedCardObj._id)) ||
                            localStorage.getItem('selectedCardId');
 
-            // टेबल का नाम बदलकर 'cards_catalog' किया गया
+            // 1. Supabase से सही कार्ड फेच करना (catalog या cards_catalog से)
             if (cardId && supabase) {
-                try {
-                    const { data, error } = await supabase
-                        .from('cards_catalog')
-                        .select('*')
-                        .eq('id', cardId)
-                        .single();
+                const possibleTables = ['catalog', 'cards_catalog', 'cards'];
+                for (const tbl of possibleTables) {
+                    try {
+                        const { data, error } = await supabase
+                            .from(tbl)
+                            .select('*')
+                            .eq('id', cardId)
+                            .maybeSingle();
 
-                    if (data && !error) {
-                        applyCardData(
-                            data.image_url || data.image || data.photo || data.img || data.card_image,
-                            data.title || data.name || data.card_name || data.card_title,
-                            data.model_code || data.code || data.model || data.card_code || ('DP-' + data.id),
-                            data.price || data.rate || data.card_price || 10
-                        );
-                        return;
-                    }
-                } catch (e) {
-                    console.warn("Supabase fetch error from cards_catalog:", e);
+                        if (data && !error) {
+                            applyCardData(
+                                data.image || data.image_url || data.photo || data.card_image,
+                                data.name || data.title || data.card_name,
+                                data.model || data.model_code || data.code || ('DP-' + data.id),
+                                data.rate || data.price || data.card_price || 10
+                            );
+                            return;
+                        }
+                    } catch (err) {}
                 }
             }
 
-            // अगर सीधे URL या Storage में डेटा मौजूद है
-            const cardImg = urlParams.get('img') || urlParams.get('image') || urlParams.get('image_url') ||
-                           (storedCardObj && (storedCardObj.image_url || storedCardObj.image || storedCardObj.photo)) ||
+            // 2. फ़ॉलबैक: LocalStorage या URL पैरामीटर्स से
+            const cardImg = urlParams.get('img') || urlParams.get('image') ||
+                           (storedCardObj && (storedCardObj.image || storedCardObj.image_url || storedCardObj.photo)) ||
                            localStorage.getItem('selectedCardImage') || localStorage.getItem('cardImage');
 
-            const cardName = urlParams.get('name') || urlParams.get('title') || urlParams.get('card_name') ||
-                            (storedCardObj && (storedCardObj.name || storedCardObj.title || storedCardObj.card_name)) ||
+            const cardName = urlParams.get('name') || urlParams.get('title') ||
+                            (storedCardObj && (storedCardObj.name || storedCardObj.title)) ||
                             localStorage.getItem('selectedCardName') || localStorage.getItem('cardName');
 
-            const cardCode = urlParams.get('code') || urlParams.get('model') || urlParams.get('card_code') ||
-                            (storedCardObj && (storedCardObj.code || storedCardObj.model || storedCardObj.model_code)) ||
+            const cardCode = urlParams.get('code') || urlParams.get('model') ||
+                            (storedCardObj && (storedCardObj.model || storedCardObj.code)) ||
                             localStorage.getItem('selectedCardCode') || localStorage.getItem('cardCode');
 
             const cardPrice = urlParams.get('price') || urlParams.get('rate') ||
-                             (storedCardObj && (storedCardObj.price || storedCardObj.rate)) ||
+                             (storedCardObj && (storedCardObj.rate || storedCardObj.price)) ||
                              localStorage.getItem('selectedCardPrice') || localStorage.getItem('cardPrice') || 10;
 
             applyCardData(cardImg, cardName, cardCode, cardPrice);
