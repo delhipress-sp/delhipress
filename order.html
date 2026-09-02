@@ -80,6 +80,13 @@
         .card-preview-info p { font-size: 13px; color: #64748b; margin-bottom: 2px; }
         .card-preview-info .rate-tag { font-size: 14px; font-weight: 700; color: var(--green); }
 
+        .card-picker-box {
+            margin-top: 10px; padding-top: 8px; border-top: 1px dashed #fed7aa;
+        }
+        .card-picker-box select {
+            background: #fff; font-weight: 600; color: #1e293b;
+        }
+
         .form-block {
             background: #fdfaf6; padding: 14px; border-radius: 6px;
             margin-bottom: 15px; border-left: 4px solid var(--secondary);
@@ -250,10 +257,17 @@
                 <div class="card-preview-body">
                     <img id="previewCardImage" class="card-preview-thumb" src="https://placehold.co/90x90?text=Card+Photo" alt="चुना गया कार्ड">
                     <div class="card-preview-info">
-                        <h3 id="previewCardName">कार्ड लोड हो रहा है...</h3>
+                        <h3 id="previewCardName">कार्ड चुनें</h3>
                         <p id="previewCardModel">मॉडल / कोड: --</p>
                         <p class="rate-tag" id="previewCardRate">मूल्य: ₹-- / पीस</p>
                     </div>
+                </div>
+
+                <div class="card-picker-box">
+                    <label style="font-size:12px; color:#c0392b;">या कैटलॉग से कोई कार्ड बदलें:</label>
+                    <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
+                        <option value="">-- कैटलॉग कार्ड लोड हो रहे हैं... --</option>
+                    </select>
                 </div>
             </div>
 
@@ -529,37 +543,33 @@
         const UPI_ID = "9304509464@okbizaxis";
         const OWNER_MOBILE = "919304509464";
         let isGroomFirst = true;
+        let globalCatalogCards = [];
 
         window.addEventListener('DOMContentLoaded', async () => {
+            // 1. Supabase से कार्ड लिस्ट लोड करें
+            await fetchAndFillCatalogDropdown();
+
+            // 2. URL चेक करें
             const urlParams = new URLSearchParams(window.location.search);
             const cardId = urlParams.get('id') || urlParams.get('card_id');
 
-            // 1. यदि URL में ID मौजूद है, तो सीधे Supabase से असली डेटा निकालें
-            if (cardId && supabaseClient) {
-                const tables = ['cards_catalog', 'catalog', 'cards'];
-                for (const tbl of tables) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from(tbl)
-                            .select('*')
-                            .eq('id', cardId)
-                            .maybeSingle();
-
-                        if (data && !error) {
-                            applyCardDetails(data);
-                            return;
-                        }
-                    } catch (err) {}
+            // 3. यदि URL में ID मौजूद है, तो लोड करें
+            if (cardId && globalCatalogCards.length > 0) {
+                const found = globalCatalogCards.find(c => String(c.id) === String(cardId));
+                if (found) {
+                    applyCardDetails(found);
+                    document.getElementById('directCardSelect').value = found.id;
+                    return;
                 }
             }
 
-            // 2. यदि सीधे URL पैरामीटर में डेटा भेजा गया है
-            const cardImg = urlParams.get('img') || urlParams.get('image');
-            const cardName = urlParams.get('name') || urlParams.get('title');
-            const cardModel = urlParams.get('model') || urlParams.get('code');
-            const cardRate = urlParams.get('price') || urlParams.get('rate');
+            // 4. फ़ॉलबैक: LocalStorage या URL पैरामीटर्स से सुरक्षित रूप से डेटा लें
+            const cardImg = urlParams.get('img') || localStorage.getItem('selectedCardImage') || localStorage.getItem('cardImage');
+            const cardName = urlParams.get('name') || localStorage.getItem('selectedCardName') || localStorage.getItem('cardName');
+            const cardModel = urlParams.get('model') || localStorage.getItem('selectedCardCode') || localStorage.getItem('cardCode');
+            const cardRate = urlParams.get('price') || localStorage.getItem('selectedCardPrice') || localStorage.getItem('cardPrice');
 
-            if (cardName || cardRate) {
+            if (cardName || cardRate || (cardImg && cardImg.length > 20)) {
                 applyCardDetails({
                     image: cardImg,
                     name: cardName,
@@ -567,7 +577,7 @@
                     rate: cardRate
                 });
             } else {
-                // कोई गलत पुराना डेटा न दिखे
+                // बिल्कुल नया फॉर्म
                 document.getElementById('previewCardName').innerText = "कैटलॉग से कार्ड चुनें";
                 document.getElementById('previewCardModel').innerText = "कोई कार्ड नहीं चुना गया";
                 document.getElementById('previewCardRate').innerText = "मूल्य: ₹0 / पीस";
@@ -578,6 +588,40 @@
             }
         });
 
+        async function fetchAndFillCatalogDropdown() {
+            const dropdown = document.getElementById('directCardSelect');
+            if (!supabaseClient) return;
+
+            const tablesToCheck = ['cards_catalog', 'catalog', 'cards'];
+            for (const tbl of tablesToCheck) {
+                try {
+                    const { data, error } = await supabaseClient.from(tbl).select('*');
+                    if (data && data.length > 0) {
+                        globalCatalogCards = data;
+                        dropdown.innerHTML = '<option value="">-- कार्ड सूची में से चुनें --</option>';
+                        data.forEach(item => {
+                            const name = item.name || item.title || 'शादी कार्ड';
+                            const model = item.model || item.code || '';
+                            const rate = item.rate || item.price || 0;
+                            const opt = document.createElement('option');
+                            opt.value = item.id;
+                            opt.textContent = `${name} (${model}) - ₹${rate}/पीस`;
+                            dropdown.appendChild(opt);
+                        });
+                        break;
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function onCatalogSelectChange(cardId) {
+            if (!cardId) return;
+            const card = globalCatalogCards.find(c => String(c.id) === String(cardId));
+            if (card) {
+                applyCardDetails(card);
+            }
+        }
+
         function applyCardDetails(card) {
             const imgUrl = card.image || card.image_url || card.photo || '';
             const name = card.name || card.title || 'शादी कार्ड';
@@ -585,7 +629,7 @@
             const rate = parseFloat(card.rate || card.price) || 0;
 
             const imgElem = document.getElementById('previewCardImage');
-            if (imgUrl && imgUrl.trim() !== "") {
+            if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null" && imgUrl !== "undefined") {
                 imgElem.src = imgUrl;
                 document.getElementById('selectedCardImageStored').value = imgUrl;
             } else {
