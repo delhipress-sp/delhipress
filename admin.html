@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- PDF Generation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -64,15 +63,6 @@
             background: var(--blue); color: white; border: none; padding: 6px 10px;
             border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;
         }
-        .btn-status-process {
-            background: #f59e0b; color: white; border: none; padding: 4px 8px;
-            border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; display: block; width: 100%; margin-bottom: 4px;
-        }
-        .btn-status-ready {
-            background: #10b981; color: white; border: none; padding: 4px 8px;
-            border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; display: block; width: 100%;
-        }
-
         .status-badge {
             display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-bottom: 4px;
         }
@@ -107,7 +97,6 @@
         }
         .btn-home-action:hover { background: #e2e8f0; color: var(--primary); }
 
-        /* Modal Preview */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); display: none; justify-content: center;
@@ -120,21 +109,6 @@
         }
         .receipt-container {
             border: 2px dashed #cbd5e1; padding: 18px; border-radius: 6px; background: #fff;
-        }
-        .receipt-header {
-            text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 12px;
-        }
-        .receipt-row {
-            display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 3px;
-        }
-        .receipt-section-title {
-            background: #f8fafc; padding: 4px 8px; font-weight: bold; color: var(--primary); margin: 10px 0 6px 0; border-left: 3px solid var(--primary); font-size: 13px;
-        }
-        .card-preview-box {
-            display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 6px;
-        }
-        .card-preview-box img {
-            width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
         }
     </style>
 </head>
@@ -279,8 +253,7 @@
                                 <th>ग्राहक विवरण</th>
                                 <th>दूल्हा-दुल्हन पक्ष</th>
                                 <th>बिलिंग स्टेटस</th>
-                                <th>प्रिंटिंग स्टेटस व अपडेट</th>
-                                <th>मैटर व रिसिप्ट</th>
+                                <th>प्रिंटिंग स्टेटस</th>
                                 <th>एक्शन</th>
                             </tr>
                         </thead>
@@ -317,43 +290,19 @@
 
     </div>
 
-    <!-- ORDER RECEIPT & MATTER MODAL -->
-    <div class="modal-overlay" id="orderModal">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h3 style="color:var(--primary); font-size:18px;">शादी मैटर एवं प्रिंट रिसिप्ट</h3>
-                <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:bold;">&times;</button>
-            </div>
-            
-            <div id="printableReceiptArea" class="receipt-container">
-                <!-- Dynamic Content Injected Here -->
-            </div>
-
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-download"></i> PDF डाउनलोड करें
-                </button>
-                <button type="button" onclick="printReceipt()" style="flex:1; padding:10px; background:var(--dark); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-print"></i> प्रिंट निकालें
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        // वही URL और KEY जो index.html में उपयोग हो रही है
+        const SUPABASE_URL = "https://qvshwtfrklzclnqwpfdy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2c2h3dGZya2x6Y2xucXdwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY3Mjk3MzgsImV4cCI6MjA0MjMwOTczOH0.HLYUjfcKDWd8dC_uPMYr-aVw4iEUL29e46a78-2AXyE";
         
         let supabaseClient = null;
         if (window.supabase) {
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } catch (e) {
-                console.log(e);
+                console.error("Supabase init error:", e);
             }
         }
-
-        let globalOrdersCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('dp_admin_auth') === 'true') {
@@ -384,8 +333,8 @@
 
         function switchAdminTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tabOrdersSection').style.display = 'none';
             document.getElementById('tabCatalogSection').style.display = 'none';
+            document.getElementById('tabOrdersSection').style.display = 'none';
             document.getElementById('tabUsersSection').style.display = 'none';
 
             if (tab === 'catalog') {
@@ -403,458 +352,197 @@
             }
         }
 
-        function compressAndResizeImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 450;
-                        const MAX_HEIGHT = 450;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                        } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.65));
-                    };
-                };
-            });
-        }
-
-        // 1. ADD NEW CARD
-        async function handleAddNewCatalogCard(e) {
-            e.preventDefault();
+        // नया कार्ड Supabase में जोड़ने का फंक्शन
+        async function handleAddNewCatalogCard(event) {
+            event.preventDefault();
             const btn = document.getElementById('addCardSubmitBtn');
             btn.disabled = true;
-            btn.innerText = "सेव हो रहा है...";
-
-            const title = document.getElementById('admCardName').value.trim();
-            const model = document.getElementById('admCardModel').value.trim();
-            const price = document.getElementById('admCardRate').value.trim();
-            const in_stock = document.getElementById('admCardStock').value === 'true';
-            const fileInput = document.getElementById('admCardFile');
+            btn.innerText = "अपलोड हो रहा है...";
 
             try {
-                let imageUrl = 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
-                if (fileInput.files && fileInput.files[0]) {
-                    imageUrl = await compressAndResizeImage(fileInput.files[0]);
+                const title = document.getElementById('admCardName').value.trim();
+                const model = document.getElementById('admCardModel').value.trim();
+                const price = parseFloat(document.getElementById('admCardRate').value);
+                const in_stock = document.getElementById('admCardStock').value === "true";
+                const fileInput = document.getElementById('admCardFile');
+
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert("कृपया कार्ड की फोटो चुनें!");
+                    btn.disabled = false;
+                    btn.innerText = "+ स्टॉक में सुरक्षित करें";
+                    return;
                 }
 
-                const newCard = {
-                    id: Date.now(),
-                    title: title,
-                    model: model,
-                    price: price,
-                    in_stock: in_stock,
-                    image_url: imageUrl
-                };
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `card_${Date.now()}.${fileExt}`;
 
-                let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
-                localCards.unshift(newCard);
-                localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
+                // 1. Supabase Storage में फोटो अपलोड करें
+                const { data: uploadData, error: uploadError } = await supabaseClient
+                    .storage
+                    .from('cards_images')
+                    .upload(fileName, file);
 
-                if (supabaseClient) {
-                    try {
-                        await supabaseClient.from('cards').insert([{
-                            title: title,
-                            model: model,
-                            price: price,
-                            in_stock: in_stock,
-                            image_url: imageUrl
-                        }]);
-                    } catch (sbErr) {
-                        console.log("Supabase insert bypassed:", sbErr);
-                    }
+                if (uploadError) {
+                    throw new Error("इमेज अपलोड विफल: " + uploadError.message);
                 }
 
-                alert("कार्ड कैटलॉग में सफलतापूर्वक जुड़ गया!");
+                // 2. पब्लिक URL प्राप्त करें
+                const { data: { publicUrl } } = supabaseClient
+                    .storage
+                    .from('cards_images')
+                    .getPublicUrl(fileName);
+
+                // 3. cards_catalog टेबल में डेटा सेव करें
+                const { error: insertError } = await supabaseClient
+                    .from('cards_catalog')
+                    .insert([{
+                        title: title,
+                        model: model,
+                        price: price,
+                        image_url: publicUrl,
+                        in_stock: in_stock
+                    }]);
+
+                if (insertError) {
+                    throw new Error("डेटाबेस में सुरक्षित नहीं हुआ: " + insertError.message);
+                }
+
+                alert("कार्ड सफलतापूर्वक Supabase में जुड़ गया!");
                 document.getElementById('newCardForm').reset();
                 loadCatalogStock();
 
             } catch (err) {
-                alert("त्रुटि: " + err.message);
+                console.error(err);
+                alert("समस्या आई: " + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerText = "+ स्टॉक में सुरक्षित करें";
             }
         }
 
-        // 2. LOAD CATALOG STOCK
+        // Supabase से कार्ड लिस्ट लोड करें
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
-            let cards = [];
+            tbody.innerHTML = `<tr><td colspan="7">डेटा लोड हो रहा है...</td></tr>`;
 
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('cards')
-                        .select('*')
-                        .order('id', { ascending: false });
+            try {
+                const { data, error } = await supabaseClient
+                    .from('cards_catalog')
+                    .select('*')
+                    .order('id', { ascending: false });
 
-                    if (!error && data && data.length > 0) {
-                        cards = data;
-                    }
-                } catch (e) {}
-            }
+                if (error) throw error;
 
-            if (cards.length === 0) {
-                cards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
-            }
-
-            if (cards.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">कैटलॉग में कोई कार्ड मौजूद नहीं है। ऊपर दिए गए फॉर्म से नया कार्ड जोड़ें।</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = cards.map(c => `
-                <tr>
-                    <td><img src="${c.image_url || c.image || ''}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;"></td>
-                    <td><b>${c.title || c.name || '-'}</b></td>
-                    <td>${c.model || '-'}</td>
-                    <td>₹${c.price || '0'}</td>
-                    <td>
-                        <span class="stock-badge ${c.in_stock !== false ? 'in-stock' : 'out-stock'}">
-                            ${c.in_stock !== false ? 'In Stock' : 'Out of Stock'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn-stock-toggle ${c.in_stock !== false ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${c.in_stock !== false})">
-                            ${c.in_stock !== false ? 'Out करें' : 'In करें'}
-                        </button>
-                    </td>
-                    <td>
-                        <button class="btn-del" onclick="deleteCatalogCard(${c.id})"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        async function toggleCardStock(cardId, currentStatus) {
-            let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
-            localCards = localCards.map(c => c.id == cardId ? { ...c, in_stock: !currentStatus } : c);
-            localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
-
-            if (supabaseClient) {
-                try {
-                    await supabaseClient.from('cards').update({ in_stock: !currentStatus }).eq('id', cardId);
-                } catch (e) {}
-            }
-            loadCatalogStock();
-        }
-
-        async function deleteCatalogCard(cardId) {
-            if (!confirm('क्या आप वाकई इस कार्ड को हटाना चाहते हैं?')) return;
-
-            let localCards = JSON.parse(localStorage.getItem('dp_cards_catalog') || '[]');
-            localCards = localCards.filter(c => c.id != cardId);
-            localStorage.setItem('dp_cards_catalog', JSON.stringify(localCards));
-
-            if (supabaseClient) {
-                try {
-                    await supabaseClient.from('cards').delete().eq('id', cardId);
-                } catch (e) {}
-            }
-            loadCatalogStock();
-        }
-
-        // 3. LOAD ORDERS (WITH COMPLETE STATUS BUTTONS)
-        async function loadAdminOrders() {
-            const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="8">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
-
-            let orders = [];
-
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('orders')
-                        .select('*')
-                        .order('id', { ascending: false });
-
-                    if (!error && data && data.length > 0) {
-                        orders = data;
-                    }
-                } catch (e) {}
-            }
-
-            if (orders.length === 0) {
-                orders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
-            }
-
-            globalOrdersCache = orders;
-
-            if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8">कोई नया ऑर्डर नहीं मिला।</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = orders.map((o, index) => {
-                const dateStr = new Date(o.created_at || Date.now()).toLocaleDateString('hi-IN');
-                
-                const customerName = o.customer_name || o.client_name || o.name || '-';
-                const customerMobile = o.customer_mobile || o.mobile || o.phone || '-';
-                const customerAddress = o.customer_address || o.address || o.village || '';
-                
-                const groom = o.groom_name || o.groom || '-';
-                const bride = o.bride_name || o.bride || '-';
-                
-                const total = parseFloat(o.total_amount || o.total || o.bill_amount || 0);
-                const advance = parseFloat(o.advance_paid || o.advance_amount || o.advance || 0);
-                const balance = parseFloat(o.balance_amount !== undefined ? o.balance_amount : (total - advance));
-                const cardImg = o.card_image || o.card_img || o.image_url || o.image || '';
-
-                // Status Logic
-                const currentStatus = o.order_status || o.status || 'Pending';
-                let statusBadge = '<span class="status-badge status-pending">ऑर्डर मिला</span>';
-                if (currentStatus === 'In Process' || currentStatus === 'Process') {
-                    statusBadge = '<span class="status-badge status-process">⚙️ प्रिंटिंग प्रोसेस</span>';
-                } else if (currentStatus === 'Ready' || currentStatus === 'Finished') {
-                    statusBadge = '<span class="status-badge status-ready">✅ प्रिंट तैयार</span>';
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7">कोई कार्ड उपलब्ध नहीं है। ऊपर से नया कार्ड जोड़ें।</td></tr>`;
+                    return;
                 }
 
-                return `
+                tbody.innerHTML = data.map(item => `
                     <tr>
-                        <td>${dateStr}</td>
+                        <td><img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;"></td>
+                        <td><b>${item.title}</b></td>
+                        <td>${item.model}</td>
+                        <td>₹${item.price}</td>
                         <td>
-                            ${cardImg ? `<img src="${cardImg}" style="width:35px; height:35px; object-fit:cover; border-radius:4px; vertical-align:middle; margin-right:4px;">` : ''}
-                            <b>${o.card_title || o.card_name || 'शादी कार्ड'}</b><br>
-                            <span style="font-size:11px; color:#64748b;">${o.quantity || 100} पीस</span>
-                        </td>
-                        <td style="text-align:left;">
-                            <b>${customerName}</b><br>
-                            <span style="color:#0284c7; font-weight:bold;"><i class="fa-solid fa-phone"></i> ${customerMobile}</span><br>
-                            <span style="font-size:11px; color:#64748b;">${customerAddress}</span>
+                            <span class="stock-badge ${item.in_stock ? 'in-stock' : 'out-stock'}">
+                                ${item.in_stock ? 'उपलब्ध' : 'समाप्त'}
+                            </span>
                         </td>
                         <td>
-                            <span style="font-weight:bold; color:var(--primary);">${groom}</span><br>
-                            <span style="font-size:10px; color:#64748b;">संग</span><br>
-                            <span style="font-weight:bold; color:var(--secondary);">${bride}</span>
-                        </td>
-                        <td>
-                            कुल: <b>₹${total}</b><br>
-                            <span style="color:green; font-weight:bold;">एडवांस: ₹${advance}</span><br>
-                            <span style="color:red; font-size:11px; font-weight:bold;">बाकी: ₹${balance}</span>
-                        </td>
-                        <td style="min-width:130px;">
-                            ${statusBadge}<br>
-                            <button class="btn-status-process" onclick="updateOrderStatus('${o.id}', 'In Process')">
-                                <i class="fa-solid fa-gears"></i> प्रिंटिंग शुरू करें
-                            </button>
-                            <button class="btn-status-ready" onclick="updateOrderStatus('${o.id}', 'Ready')">
-                                <i class="fa-solid fa-circle-check"></i> प्रिंट तैयार हो गया
+                            <button class="btn-stock-toggle ${item.in_stock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleStock(${item.id}, ${item.in_stock})">
+                                ${item.in_stock ? 'Out करें' : 'In करें'}
                             </button>
                         </td>
                         <td>
-                            <button class="btn-view" onclick="openOrderModal(${index})">
-                                <i class="fa-solid fa-file-invoice"></i> मैटर / रिसिप्ट
-                            </button>
-                        </td>
-                        <td>
-                            <button class="btn-del" onclick="deleteAdminOrder('${o.id}')" title="हटाएं">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            <button class="btn-del" onclick="deleteCard(${item.id})"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
-                `;
-            }).join('');
-        }
+                `).join('');
 
-        // UPDATE ORDER STATUS (PROCESS / READY)
-        async function updateOrderStatus(orderId, newStatus) {
-            let statusText = (newStatus === 'In Process') ? 'प्रिंटिंग प्रोसेस में है' : 'प्रिंट तैयार हो गया है';
-            
-            // 1. Update in LocalStorage
-            let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-            allOrders = allOrders.map(o => String(o.id) === String(orderId) ? { ...o, order_status: newStatus } : o);
-            localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
-
-            let userOrders = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
-            userOrders = userOrders.map(o => String(o.id) === String(orderId) ? { ...o, order_status: newStatus } : o);
-            localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
-
-            // 2. Update in Supabase
-            if (supabaseClient) {
-                try {
-                    await supabaseClient.from('orders').update({ order_status: newStatus }).eq('id', orderId);
-                } catch (e) {
-                    console.log("Supabase status update error:", e);
-                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" style="color:red;">लोड करने में त्रुटि: ${err.message}</td></tr>`;
             }
-
-            alert(`ऑर्डर स्थिति अपडेट हो गई: ${statusText}`);
-            loadAdminOrders();
         }
 
-        // DELETE ORDER
-        async function deleteAdminOrder(orderId) {
-            if (!confirm('क्या आप वाकई इस ऑर्डर को हमेशा के लिए हटाना चाहते हैं?')) return;
+        // स्टॉक स्थिति टॉगल करें
+        async function toggleStock(id, currentStatus) {
+            const { error } = await supabaseClient
+                .from('cards_catalog')
+                .update({ in_stock: !currentStatus })
+                .eq('id', id);
 
-            // 1. LocalStorage Remove
-            let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-            allOrders = allOrders.filter(o => String(o.id) !== String(orderId));
-            localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
-
-            let userOrders = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
-            userOrders = userOrders.filter(o => String(o.id) !== String(orderId));
-            localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
-
-            // 2. Supabase Remove
-            if (supabaseClient) {
-                try {
-                    const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
-                    if (error) console.log("Supabase delete err:", error);
-                } catch (e) {
-                    console.log("Supabase delete bypass:", e);
-                }
+            if (error) {
+                alert("अपडेट विफल: " + error.message);
+            } else {
+                loadCatalogStock();
             }
-
-            alert("ऑर्डर सफलतापूर्वक हटा दिया गया!");
-            loadAdminOrders();
         }
 
-        // 4. MODAL PREVIEW AND PRINT
-        function openOrderModal(index) {
-            const o = globalOrdersCache[index];
-            if (!o) return;
+        // कार्ड डिलीट करें
+        async function deleteCard(id) {
+            if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
 
-            const total = parseFloat(o.total_amount || o.total || o.bill_amount || 0);
-            const advance = parseFloat(o.advance_paid || o.advance_amount || o.advance || 0);
-            const balance = parseFloat(o.balance_amount !== undefined ? o.balance_amount : (total - advance));
-            const cardImg = o.card_image || o.card_img || o.image_url || o.image || '';
+            const { error } = await supabaseClient
+                .from('cards_catalog')
+                .delete()
+                .eq('id', id);
 
-            const modalBody = document.getElementById('printableReceiptArea');
-            modalBody.innerHTML = `
-                <div class="receipt-header">
-                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छतर मोड़), करमाटांड़, जामताड़ा | मो: 9304509464</p>
-                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; border-radius:3px; font-size:12px;">शादी कार्ड ऑर्डर एवं मैटर रसीद</h4>
-                </div>
-
-                <div class="receipt-section-title">१. चुना गया कार्ड सैंपल (Card Model)</div>
-                <div class="card-preview-box">
-                    ${cardImg ? `<img src="${cardImg}" alt="Card Sample">` : '<div style="width:80px; height:80px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:11px; color:#64748b;">नो इमेज</div>'}
-                    <div>
-                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${o.card_title || o.card_name || 'शादी कार्ड'}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल कोड: <b>${o.card_model || o.model || 'DP-Model'}</b></div>
-                        <div style="font-size:12px; color:#64748b;">मात्रा: <b>${o.quantity || 100} पीस</b> | दर: <b>₹${o.card_rate || (total / (o.quantity || 1)) || 0}/पीस</b></div>
-                    </div>
-                </div>
-
-                <div class="receipt-section-title">२. ग्राहक विवरण</div>
-                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${o.customer_name || o.client_name || '-'}</b></div>
-                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${o.customer_mobile || o.mobile || '-'}</b></div>
-                <div class="receipt-row"><span>पता:</span> <span>${o.customer_address || o.address || '-'}</span></div>
-
-                <div class="receipt-section-title">३. शादी मैटर विवरण</div>
-                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${o.groom_name || o.groom || '-'}</b></div>
-                <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${o.groom_father || '-'}</span></div>
-                <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${o.groom_address || '-'}</span></div>
-                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${o.bride_name || o.bride || '-'}</b></div>
-                <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${o.bride_father || '-'}</span></div>
-                <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${o.bride_address || '-'}</span></div>
-
-                <div class="receipt-section-title">४. वैवाहिक कार्यक्रम व अन्य</div>
-                <div class="receipt-row"><span>विवाह / निकाह तिथि:</span> <b>${o.event_date || o.wedding_date || '-'}</b></div>
-                <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${o.rsvp || '-'}</span></div>
-                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${o.from_family || '-'}</span></div>
-                <div class="receipt-row"><span>विशेष निर्देश / शायरी:</span> <span>${o.special_note || o.note || '-'}</span></div>
-
-                <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
-                <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${o.quantity || 100} पीस</b></div>
-                <div class="receipt-row"><span>कुल राशि:</span> <b>₹${total}</b></div>
-                <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${advance}</b></div>
-                <div class="receipt-row"><span>बाकी राशि:</span> <b style="color:red;">₹${balance}</b></div>
-                <div class="receipt-row"><span>UTR / Transaction No:</span> <b>${o.utr_number || o.utr || 'Cash/Offline'}</b></div>
-
-                <div style="margin-top:14px; text-align:center; font-size:10px; color:#666;">
-                    * मैटर प्रूफ-रीडिंग ग्राहक द्वारा स्वीकृत है। छपाई के बाद किसी त्रुटि की जिम्मेदारी ग्राहक की होगी।
-                </div>
-            `;
-
-            document.getElementById('orderModal').style.display = 'flex';
+            if (error) {
+                alert("हटाने में समस्या: " + error.message);
+            } else {
+                loadCatalogStock();
+            }
         }
 
-        function closeOrderModal() {
-            document.getElementById('orderModal').style.display = 'none';
+        async function loadAdminOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = `<tr><td colspan="7">ऑर्डर्स लोड हो रहे हैं...</td></tr>`;
+            try {
+                const { data, error } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
+                if (error || !data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7">कोई नया ऑर्डर नहीं मिला।</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = data.map(o => `
+                    <tr>
+                        <td>${new Date(o.created_at || Date.now()).toLocaleDateString('hi-IN')}</td>
+                        <td>${o.card_title || o.model || '-'}</td>
+                        <td>${o.customer_name || '-'}<br><small>${o.mobile || o.phone || '-'}</small></td>
+                        <td>दूल्हा: ${o.groom_name || '-'}<br>दुल्हन: ${o.bride_name || '-'}</td>
+                        <td>₹${o.total_amount || 0}</td>
+                        <td><span class="status-badge status-pending">${o.status || 'Pending'}</span></td>
+                        <td><button class="btn-view" onclick="alert('ऑर्डर विवरण: ' + JSON.stringify(o))">देखें</button></td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="7">ऑर्डर लोड करने में असमर्थ।</td></tr>`;
+            }
         }
 
-        function downloadReceiptPDF() {
-            const element = document.getElementById('printableReceiptArea');
-            const opt = {
-                margin:       8,
-                filename:     'Delhi_Press_Order_Receipt.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-
-        function printReceipt() {
-            const printContent = document.getElementById('printableReceiptArea').innerHTML;
-            const originalContent = document.body.innerHTML;
-            document.body.innerHTML = `<div style="padding:20px; max-width:650px; margin:auto;">${printContent}</div>`;
-            window.print();
-            document.body.innerHTML = originalContent;
-            location.reload();
-        }
-
-        // 5. LOAD USERS
         async function loadAdminUsers() {
             const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = '<tr><td colspan="5">ग्राहक सूची लोड हो रही है...</td></tr>';
-
-            let users = [];
-
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .order('id', { ascending: false });
-
-                    if (!error && data && data.length > 0) {
-                        users = data;
-                    }
-                } catch (e) {}
+            tbody.innerHTML = `<tr><td colspan="5">ग्राहक सूची लोड हो रही है...</td></tr>`;
+            try {
+                const { data, error } = await supabaseClient.from('users').select('*').order('id', { ascending: false });
+                if (error || !data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5">कोई रजिस्टर्ड ग्राहक नहीं मिला।</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = data.map(u => `
+                    <tr>
+                        <td>${u.name || '-'}</td>
+                        <td>${u.mobile || u.phone || '-'}</td>
+                        <td>${u.email || '-'}</td>
+                        <td>${u.city || u.village || '-'}</td>
+                        <td>${u.address || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="5">डेटा लोड करने में असमर्थ।</td></tr>`;
             }
-
-            if (users.length === 0) {
-                users = JSON.parse(localStorage.getItem('dp_registered_users') || '[]');
-            }
-
-            if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5">कोई रजिस्टर्ड ग्राहक नहीं मिला।</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = users.map(u => `
-                <tr>
-                    <td><b>${u.full_name || u.name || '-'}</b></td>
-                    <td>${u.mobile || u.phone || '-'}</td>
-                    <td>${u.email || '-'}</td>
-                    <td>${u.village || u.city || '-'}</td>
-                    <td>${u.address || '-'}</td>
-                </tr>
-            `).join('');
         }
     </script>
 </body>
