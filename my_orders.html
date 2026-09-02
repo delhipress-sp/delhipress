@@ -107,7 +107,7 @@
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); display: none; justify-content: center;
+            background: rgba(0,0,0,0.65); display: none; justify-content: center;
             align-items: center; z-index: 9999; padding: 15px;
         }
         .modal-content {
@@ -131,6 +131,50 @@
         }
         .card-preview-box img {
             width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
+        }
+
+        /* MAIN FOOTER */
+        .main-footer {
+            background: var(--dark); color: #cbd5e1; padding: 30px 15px 20px;
+            margin-top: 40px; font-size: 13px;
+        }
+        .footer-grid {
+            max-width: 850px; margin: 0 auto; display: grid;
+            grid-template-columns: 1.2fr 1fr; gap: 20px;
+        }
+        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 10px; }
+        .footer-col p { margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
+        .footer-col p i { color: #f1c40f; width: 18px; }
+        
+        .footer-bottom {
+            max-width: 850px; margin: 20px auto 0; padding-top: 15px;
+            border-top: 1px solid #334155; display: flex; justify-content: space-between;
+            align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
+        }
+        .footer-admin-link {
+            color: #64748b; text-decoration: none; font-size: 11px;
+            display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;
+            border-radius: 4px; border: 1px solid #334155; transition: 0.2s;
+        }
+        .footer-admin-link:hover { color: #f1c40f; border-color: #f1c40f; }
+
+        .mobile-bottom-bar {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #fff; border-top: 1px solid #cbd5e1;
+            padding: 6px 0; z-index: 1001; justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .mobile-bottom-bar a {
+            background: none; border: none; color: var(--dark); text-decoration: none;
+            text-align: center; font-size: 11px; font-weight: 600;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .mobile-bottom-bar { display: flex; }
+            .footer-grid { grid-template-columns: 1fr; gap: 15px; }
+            .footer-bottom { justify-content: center; text-align: center; }
         }
     </style>
 </head>
@@ -197,6 +241,35 @@
         </div>
     </div>
 
+    <!-- FOOTER (Same as index.html) -->
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</p>
+                <p><i class="fa-solid fa-phone"></i> 9304509464</p>
+            </div>
+            <div class="footer-col">
+                <h4>सेवाएं</h4>
+                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित.</span>
+            <a href="admin.html" class="footer-admin-link">
+                <i class="fa-solid fa-lock"></i> एडमिन लॉगिन
+            </a>
+        </div>
+    </footer>
+
+    <!-- MOBILE BOTTOM BAR -->
+    <div class="mobile-bottom-bar">
+        <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
+        <a href="order.html"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर फॉर्म</span></a>
+        <a href="my_orders.html" style="color:var(--primary);"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
+        <a href="https://wa.me/919304509464"><i class="fa-brands fa-whatsapp" style="color:var(--green);"></i><span>संपर्क</span></a>
+    </div>
+
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
@@ -245,7 +318,7 @@
 
             let rawOrders = [];
 
-            // 1. Supabase से ऑर्डर्स लाएँ
+            // 1. Supabase से ऑर्डर्स लाएँ (हमेशा ताज़ा डेटा)
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -261,14 +334,18 @@
                 }
             }
 
-            // 2. अगर Supabase खाली हो तो LocalStorage का बैकअप चेक करें
+            // 2. अगर Supabase से न मिले तो LocalStorage चेक करें
             if (rawOrders.length === 0) {
                 rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
             }
 
-            // डेटा को सामान्य फॉर्मेट में बदलें (order_data को फ्लैट करना)
+            // 3. डेटा को साफ़ करें और Supabase के मुख्य 'status' को सर्वोच्च प्राथमिकता दें
             const normalizedOrders = rawOrders.map(item => {
                 const nested = item.order_data || {};
+                
+                // मुख्य सुधार: Supabase का live status ही पहले लिया जाएगा
+                const liveStatus = item.status || nested.status || nested.order_status || 'Pending';
+
                 return {
                     id: item.id || nested.id,
                     created_at: item.created_at || nested.created_at || new Date().toISOString(),
@@ -278,9 +355,9 @@
                     card_model: item.model || nested.card_model || 'DP-101',
                     card_image: nested.card_image || item.image_url || '',
                     quantity: nested.qty || nested.quantity || item.quantity || 100,
-                    total_amount: item.total_amount || nested.total_amount || 0,
-                    advance_paid: nested.advance_paid || item.advance_amount || 0,
-                    balance_amount: nested.balance_amount !== undefined ? nested.balance_amount : ((item.total_amount || 0) - (nested.advance_paid || 0)),
+                    total_amount: parseFloat(item.total_amount || nested.total_amount || 0),
+                    advance_paid: parseFloat(nested.advance_paid || item.advance_amount || 0),
+                    balance_amount: parseFloat(nested.balance_amount !== undefined ? nested.balance_amount : ((item.total_amount || 0) - (nested.advance_paid || 0))),
                     groom_name: item.groom_name || nested.groom_name || '-',
                     groom_father: nested.groom_father || '-',
                     groom_address: nested.groom_address || '-',
@@ -292,11 +369,11 @@
                     rsvp: nested.rsvp || '-',
                     from_family: nested.from_family || '-',
                     utr_number: nested.utr_number || 'Cash/Online',
-                    order_status: item.status || nested.status || 'Pending'
+                    order_status: liveStatus
                 };
             });
 
-            // 3. अगर ग्राहक लॉगिन है, तो उसके नंबर से छांटें, नहीं तो सभी हालिया ऑर्डर्स दिखाएं
+            // 4. ग्राहक के 10 अंकों के फ़ोन नंबर से फ़िल्टर करें
             if (user && (user.mobile || user.customer_mobile)) {
                 const cleanPhone = String(user.mobile || user.customer_mobile).replace(/[^0-9]/g, '').slice(-10);
                 fetchedOrdersList = normalizedOrders.filter(ord => {
@@ -321,7 +398,7 @@
                 return;
             }
 
-            // HTML कार्ड रेंडरिंग
+            // HTML कार्ड रेंडर करें
             let ordersHtml = '';
             fetchedOrdersList.forEach((ord, index) => {
                 const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
@@ -410,6 +487,10 @@
                 eventsHtml = `<div class="receipt-row"><span>विवाह तिथि:</span> <b>${ord.event_date || '-'}</b></div>`;
             }
 
+            let statusLabel = 'ऑर्डर प्राप्त हुआ (Pending)';
+            if (ord.order_status === 'In Process' || ord.order_status === 'Process') statusLabel = 'छपाई जारी है (In Process)';
+            if (ord.order_status === 'Ready' || ord.order_status === 'Finished') statusLabel = 'कार्ड तैयार है (Ready)';
+
             const printArea = document.getElementById('printableReceiptArea');
             const dt = new Date(ord.created_at).toLocaleDateString('hi-IN');
 
@@ -426,7 +507,7 @@
                     <div>
                         <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title}</div>
                         <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model}</b></div>
-                        <div style="font-size:12px; color:#64748b;">ऑर्डर स्थिति: <b style="color:var(--primary);">${ord.order_status}</b></div>
+                        <div style="font-size:12px; color:#64748b;">वर्तमान स्थिति: <b style="color:var(--primary);">${statusLabel}</b></div>
                     </div>
                 </div>
 
@@ -492,7 +573,23 @@
             }
         }
 
-        window.addEventListener('DOMContentLoaded', fetchCustomerOrders);
+        // SUPABASE REALTIME LISTENER (एडमिन द्वारा स्टेटस बदलते ही तुरंत पेज पर दिखेगा)
+        function listenToRealtimeOrderUpdates() {
+            if (supabaseClient) {
+                supabaseClient
+                    .channel('public:orders')
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+                        console.log('ऑर्डर स्टेटस रियल-टाइम अपडेट हुआ:', payload);
+                        fetchCustomerOrders();
+                    })
+                    .subscribe();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchCustomerOrders();
+            listenToRealtimeOrderUpdates();
+        });
     </script>
 </body>
 </html>
