@@ -111,9 +111,10 @@
 
         .card-sample .img-box {
             position: relative; overflow: hidden; cursor: pointer; background: #f8fafc;
+            height: 150px; display: flex; align-items: center; justify-content: center;
         }
         .card-sample .img-box img {
-            width: 100%; height: 140px; object-fit: cover; display: block;
+            width: 100%; height: 100%; object-fit: cover; display: block;
             transition: transform 0.3s ease;
         }
         .card-sample .img-box:hover img { transform: scale(1.05); }
@@ -263,7 +264,7 @@
             .navbar .nav-menu { display: none; }
             .mobile-bottom-bar { display: flex; }
             .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .card-sample .img-box img { height: 110px; }
+            .card-sample .img-box { height: 120px; }
             .showcase-box { padding: 10px; }
             .footer-grid { grid-template-columns: 1fr; gap: 15px; }
             .footer-bottom { justify-content: center; text-align: center; }
@@ -449,9 +450,12 @@
             const encodedModel = encodeURIComponent(cardObj.model);
             const encodedTitle = encodeURIComponent(cardObj.title);
             const encodedPrice = encodeURIComponent(cleanPrice);
-            const encodedImage = encodeURIComponent(cardObj.image);
+            
+            // अगर इमेज बहुत बड़ी Base64 स्ट्रिंग है तो URL में न भेजें, सीधे order.html उसे LocalStorage से उठा लेगा
+            const isBase64 = String(cardObj.image).startsWith('data:image');
+            const previewParam = isBase64 ? '' : `&preview=${encodeURIComponent(cardObj.image)}`;
 
-            window.location.href = `order.html?model=${encodedModel}&card=${encodedTitle}&item=${encodedTitle}&price=${encodedPrice}&preview=${encodedImage}`;
+            window.location.href = `order.html?model=${encodedModel}&card=${encodedTitle}&item=${encodedTitle}&price=${encodedPrice}${previewParam}`;
         }
 
         function openZoomModal(title, imgUrl, price, model) {
@@ -522,15 +526,15 @@
 
             if (supabaseClient) {
                 try {
+                    // सुधार: टेबल का सही नाम 'cards_catalog' किया गया
                     const { data, error } = await supabaseClient
-                        .from('cards')
+                        .from('cards_catalog')
                         .select('*')
                         .order('id', { ascending: false });
 
                     if (error) {
-                        console.error('Supabase Query Error:', error);
+                        console.error('Supabase Query Error:', error.message);
                     } else if (data && data.length > 0) {
-                        console.log('Supabase से कार्ड मिले:', data.length);
                         cards = data;
                     }
                 } catch (e) {
@@ -538,7 +542,7 @@
                 }
             }
 
-            // अगर Supabase में डेटा नहीं मिले तो LocalStorage चेक करें
+            // अगर Supabase खाली हो तो LocalStorage चेक करें
             if (!cards || cards.length === 0) {
                 try {
                     cards = JSON.parse(
@@ -552,38 +556,41 @@
                 }
             }
 
-            // अगर कहीं भी कार्ड न मिले तो डिफ़ॉल्ट कार्ड दिखाएं
+            // अगर कहीं भी कार्ड नहीं मिला तो संदेश दिखाएं
             if (!cards || cards.length === 0) {
-                cards = [
-                    {
-                        title: 'Muslim Wedding card',
-                        model: 'DP-101',
-                        price: '20',
-                        in_stock: true,
-                        image_url: 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png'
-                    }
-                ];
+                catalogContainer.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding: 25px; color:#64748b;">
+                    वर्तमान में कोई कार्ड उपलब्ध नहीं है। कृपया एडमिन पैनल से कार्ड जोड़ें।
+                </p>`;
+                return;
             }
 
+            // कार्ड्स को HTML में रेंडर करें
             catalogContainer.innerHTML = cards.map(card => {
-                const cardImg = card.image_url || card.image || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
+                const cardImg = card.image_url || card.image || '';
                 const cardTitle = card.title || card.name || 'शादी कार्ड';
                 const cardModel = card.model || 'DP-101';
                 const cardPrice = String(card.price).includes('₹') ? card.price : ('₹' + (card.price || 0));
                 const isAvailable = card.in_stock !== false;
 
+                // डेटा सेफली पास करने के लिए
+                const safeImg = encodeURIComponent(cardImg);
+                const safeTitle = cardTitle.replace(/'/g, "\\'");
+                const safeModel = cardModel.replace(/'/g, "\\'");
+
                 return `
                     <div class="card-sample">
-                        <div class="img-box" onclick="openZoomModal('${cardTitle}', '${cardImg}', '${cardPrice}', '${cardModel}')">
-                            <img src="${cardImg}" alt="${cardTitle}" onerror="this.src='https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png'">
+                        <div class="img-box" onclick="openZoomModal('${safeTitle}', decodeURIComponent('${safeImg}'), '${cardPrice}', '${safeModel}')">
+                            <img src="${cardImg}" alt="${cardTitle}" loading="lazy">
                             <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
                         </div>
                         <div class="card-info">
                             <h4>${cardTitle}</h4>
                             <div class="model-text">${cardModel}</div>
                             <div class="card-price-tag">${cardPrice}</div>
-                            <span class="stock-badge ${isAvailable ? 'in-stock' : 'out-stock'}">${isAvailable ? 'उपलब्ध है' : 'स्टॉक समाप्त'}</span>
-                            <button type="button" class="btn-select-card" onclick="selectCard('${cardTitle}', '${cardImg}', '${cardPrice}', '${cardModel}')">
+                            <span class="stock-badge ${isAvailable ? 'in-stock' : 'out-stock'}">
+                                ${isAvailable ? 'उपलब्ध है' : 'स्टॉक समाप्त'}
+                            </span>
+                            <button type="button" class="btn-select-card" onclick="selectCard('${safeTitle}', decodeURIComponent('${safeImg}'), '${cardPrice}', '${safeModel}')">
                                 <i class="fa-solid fa-cart-check"></i> यह कार्ड चुनें
                             </button>
                         </div>
