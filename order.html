@@ -90,6 +90,7 @@
         .card-preview-thumb {
             width: 85px; height: 85px; object-fit: cover;
             border-radius: 6px; border: 1px solid #cbd5e1;
+            background-color: #f1f5f9;
         }
         .card-preview-info h3 { font-size: 16px; color: var(--dark); margin-bottom: 2px; }
         .card-preview-info p { font-size: 13px; color: #64748b; margin-bottom: 2px; }
@@ -231,7 +232,7 @@
             display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; text-decoration: none;
         }
 
-        /* MAIN FOOTER FROM INDEX */
+        /* MAIN FOOTER */
         .main-footer {
             background: var(--dark); color: #cbd5e1; padding: 30px 15px 20px;
             margin-top: 35px; font-size: 13px;
@@ -313,9 +314,9 @@
             <div class="selected-card-banner" id="selectedCardBanner">
                 <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
                 <div class="card-preview-body">
-                    <img id="previewCardImage" class="card-preview-thumb" src="" alt="चुना गया कार्ड">
+                    <img id="previewCardImage" class="card-preview-thumb" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&auto=format&fit=crop&q=80" alt="चुना गया कार्ड" onerror="this.src='https://images.unsplash.com/photo-1544077960-604201fe74bc?w=300'">
                     <div class="card-preview-info">
-                        <h3 id="previewCardName">शादी कार्ड</h3>
+                        <h3 id="previewCardName">प्रीमियम शादी कार्ड</h3>
                         <p id="previewCardModel">मॉडल / कोड: DP-101</p>
                         <p class="rate-tag" id="previewCardRate">मूल्य: ₹10 / पीस</p>
                     </div>
@@ -337,7 +338,7 @@
                         </div>
                         <div class="form-group">
                             <label>मोबाइल नंबर / WhatsApp:</label>
-                            <input type="tel" id="custMobile" placeholder="उदा: 98XXXXXXXX" required>
+                            <input type="tel" id="custMobile" placeholder="उदा: 9304509464" required>
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
@@ -396,7 +397,7 @@
                     </div>
 
                     <div id="coupleContainer">
-                        <!-- दूल्हा विवरण (पहला ब्लॉक) -->
+                        <!-- दूल्हा विवरण -->
                         <div class="dynamic-item" id="groomBox">
                             <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> वर (दूल्हा) का विवरण</h5>
                             <div class="row-2">
@@ -429,7 +430,7 @@
                             <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग (Weds)</span>
                         </div>
 
-                        <!-- दुल्हन विवरण (दूसरा ब्लॉक) -->
+                        <!-- दुल्हन विवरण -->
                         <div class="dynamic-item" id="brideBox">
                             <h5 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-person-dress"></i> वधू (दुल्हन) का विवरण</h5>
                             <div class="row-2">
@@ -508,17 +509,20 @@
                 <!-- एडवांस भुगतान सेक्शन (QR & UPI) -->
                 <div class="form-block payment-box">
                     <h4 style="border:none; color:#166534;"><i class="fa-solid fa-qrcode"></i> ऑनलाइन एडवांस भुगतान</h4>
-                    <p style="font-size: 13px; color: #15803d; margin-bottom: 10px;">
-                        नीचे दिए गए QR कोड को स्कैन करके या UPI ऐप द्वारा एडवांस राशि का भुगतान करें।
+                    <p style="font-size: 13px; color: #15803d; margin-bottom: 5px;">
+                        UPI ID: <strong>9304509464@okbizaxis</strong>
+                    </p>
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
+                        नीचे दिए गए QR कोड को स्कैन करें या बटन पर क्लिक करके सीधे अपने UPI ऐप से भुगतान करें:
                     </p>
 
                     <div class="qr-wrapper">
-                        <img id="upiQrCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=delhipress@upi&pn=DelhiPress&am=500" alt="UPI QR Code">
+                        <img id="upiQrCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&am=500" alt="UPI QR Code">
                     </div>
 
                     <div class="payment-options-grid">
-                        <a href="upi://pay?pa=delhipress@upi&pn=DelhiPress" class="btn-pay-app" id="btnPayUpiDirect">
-                            <i class="fa-solid fa-mobile-screen-button"></i> UPI ऐप से पे करें
+                        <a href="upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&am=500" class="btn-pay-app" id="btnPayUpiDirect">
+                            <i class="fa-solid fa-mobile-screen-button"></i> सीधे UPI ऐप से पे करें
                         </a>
                         <button type="button" class="btn-pay-cashfree" onclick="initiateOnlinePayment()">
                             <i class="fa-solid fa-credit-card"></i> कार्ड / नेटबैंकिंग
@@ -565,9 +569,7 @@
             </h3>
             <p style="font-size: 12px; color: #64748b;">कृपया व्हाट्सएप पर भेजने से पहले सम्पूर्ण मैटर का मिलान कर लें:</p>
             
-            <div class="review-box" id="reviewBoxContent">
-                <!-- जावास्क्रिप्ट द्वारा मैटर यहाँ लोड होगा -->
-            </div>
+            <div class="review-box" id="reviewBoxContent"></div>
 
             <a href="#" class="btn-wa-action" id="waConfirmBtn" target="_blank">
                 <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजकर आर्डर कन्फर्म करें
@@ -575,14 +577,14 @@
         </div>
     </div>
 
-    <!-- फूटर (Main Footer) -->
+    <!-- फूटर -->
     <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>दिल्ली प्रेस & प्रिंटिंग सॉल्यूशंस</h4>
                 <p><i class="fa-solid fa-location-dot"></i> मुख्य बाजार, स्टेशन रोड</p>
-                <p><i class="fa-solid fa-phone"></i> +91 98XXXXXXXX</p>
-                <p><i class="fa-solid fa-envelope"></i> info@delhipress.example</p>
+                <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
+                <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
             </div>
             <div class="footer-col">
                 <h4>हमारी सेवाएं</h4>
@@ -607,7 +609,7 @@
             <i class="fa-solid fa-pen-to-square"></i>
             <span>ऑर्डर फॉर्म</span>
         </a>
-        <a href="https://wa.me/919800000000" target="_blank">
+        <a href="https://wa.me/919304509464" target="_blank">
             <i class="fa-brands fa-whatsapp" style="color: var(--wa-green);"></i>
             <span>व्हाट्सएप</span>
         </a>
@@ -615,7 +617,43 @@
 
     <!-- जावास्क्रिप्ट लॉजिक -->
     <script>
+        const UPI_ID = "9304509464@okbizaxis";
+        const OWNER_MOBILE = "919304509464";
+
         let isGroomFirst = true;
+
+        // पेज लोड होने पर कार्ड का विवरण व फोटो सेट करना
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardImg = urlParams.get('img') || localStorage.getItem('selectedCardImage');
+            const cardName = urlParams.get('name') || localStorage.getItem('selectedCardName');
+            const cardCode = urlParams.get('code') || localStorage.getItem('selectedCardCode');
+            const cardPrice = urlParams.get('price') || localStorage.getItem('selectedCardPrice');
+
+            const previewImgElem = document.getElementById('previewCardImage');
+
+            if (cardImg && cardImg.trim() !== "") {
+                previewImgElem.src = cardImg;
+            } else {
+                // डिफ़ॉल्ट बैकअप फोटो
+                previewImgElem.src = "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&auto=format&fit=crop&q=80";
+            }
+
+            if (cardName) {
+                document.getElementById('previewCardName').innerText = cardName;
+                document.getElementById('cardCategory').value = cardName;
+            }
+            if (cardCode) {
+                document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${cardCode}`;
+            }
+            if (cardPrice) {
+                const priceNum = parseFloat(cardPrice) || 10;
+                document.getElementById('previewCardRate').innerText = `मूल्य: ₹${priceNum} / पीस`;
+                document.getElementById('cardRate').value = priceNum;
+            }
+
+            calculateWeddingTotal(true);
+        });
 
         function calculateWeddingTotal(isInitial = false) {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
@@ -642,12 +680,14 @@
             document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
             document.getElementById('paidAmountFinal').value = advance;
             
-            // UPI QR Code Update
+            // UPI QR कोड और डायरेक्ट लिंक अपडेट
             const qrImg = document.getElementById('upiQrCodeImg');
             const upiLink = document.getElementById('btnPayUpiDirect');
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=delhipress@upi&pn=DelhiPress&am=${advance}`;
+            const upiUrl = `upi://pay?pa=${UPI_ID}&pn=DelhiPress&am=${advance}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiUrl)}`;
+            
             qrImg.src = qrUrl;
-            upiLink.href = `upi://pay?pa=delhipress@upi&pn=DelhiPress&am=${advance}`;
+            upiLink.href = upiUrl;
         }
 
         function swapCoupleSides() {
@@ -719,7 +759,7 @@
 कृपया इस ऑर्डर को स्वीकार करें व प्रूफ तैयार करें।`;
 
             document.getElementById('reviewBoxContent').innerText = summary;
-            const waUrl = `https://wa.me/919800000000?text=${encodeURIComponent(summary)}`;
+            const waUrl = `https://wa.me/${OWNER_MOBILE}?text=${encodeURIComponent(summary)}`;
             document.getElementById('waConfirmBtn').href = waUrl;
 
             document.getElementById('reviewModal').style.display = 'flex';
@@ -730,11 +770,8 @@
         }
 
         function initiateOnlinePayment() {
-            alert("गेटवे कनेक्ट किया जा रहा है... कृपया प्रतीक्षा करें।");
+            alert("ऑनलाइन पेमेंट गेटवे कनेक्ट किया जा रहा है... कृपया प्रतीक्षा करें।");
         }
-
-        // Initialize default state
-        calculateWeddingTotal(true);
     </script>
 </body>
 </html>
