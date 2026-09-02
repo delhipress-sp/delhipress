@@ -241,7 +241,7 @@
         </div>
     </div>
 
-    <!-- FOOTER (Same as index.html) -->
+    <!-- FOOTER -->
     <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
@@ -275,50 +275,59 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
-        if (window.supabase) {
-            try {
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } catch (e) {
-                console.error("Supabase Init Error:", e);
             }
+        } catch (e) {
+            console.error("Supabase Init Error:", e);
         }
 
         let currentUser = null;
         let fetchedOrdersList = [];
 
         function checkCustomerAuth() {
+            let userData = null;
             const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+            
             if (userJson) {
                 try {
-                    currentUser = JSON.parse(userJson);
+                    userData = typeof userJson === 'string' ? JSON.parse(userJson) : userJson;
                 } catch (e) {
-                    currentUser = null;
+                    userData = null;
                 }
-            } else {
-                currentUser = null;
             }
 
-            if (!currentUser) {
-                document.getElementById('userDisplayName').innerText = "अतिथि ग्राहक";
-                document.getElementById('userDisplayPhone').innerText = "हालिया दर्ज ऑर्डर देखे जा रहे हैं";
-                document.getElementById('logoutBtn').style.display = "none";
+            const nameEl = document.getElementById('userDisplayName');
+            const phoneEl = document.getElementById('userDisplayPhone');
+            const logoutEl = document.getElementById('logoutBtn');
+
+            if (!userData) {
+                if (nameEl) nameEl.innerText = "अतिथि ग्राहक";
+                if (phoneEl) phoneEl.innerText = "हालिया दर्ज ऑर्डर देखे जा रहे हैं";
+                if (logoutEl) logoutEl.style.display = "none";
+                currentUser = null;
                 return null;
             }
 
-            document.getElementById('logoutBtn').style.display = "inline-flex";
-            document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.customer_name || "सम्मानित ग्राहक";
-            document.getElementById('userDisplayPhone').innerText = currentUser.mobile || currentUser.customer_mobile || currentUser.phone || '';
-            return currentUser;
+            if (logoutEl) logoutEl.style.display = "inline-flex";
+            if (nameEl) nameEl.innerText = userData.name || userData.customer_name || "सम्मानित ग्राहक";
+            if (phoneEl) phoneEl.innerText = userData.mobile || userData.customer_mobile || userData.phone || '';
+            
+            currentUser = userData;
+            return userData;
         }
 
         async function fetchCustomerOrders() {
-            const user = checkCustomerAuth();
             const container = document.getElementById('ordersContainer');
+            if (!container) return;
+
             container.innerHTML = '<div style="text-align:center; padding:30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...</div>';
 
+            const user = checkCustomerAuth();
             let rawOrders = [];
 
-            // 1. Supabase से ऑर्डर्स लाएँ (हमेशा ताज़ा डेटा)
+            // 1. Supabase से सुरक्षित फेच
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -326,31 +335,34 @@
                         .select('*')
                         .order('id', { ascending: false });
 
-                    if (!error && data && data.length > 0) {
+                    if (!error && Array.isArray(data) && data.length > 0) {
                         rawOrders = data;
                     }
                 } catch (err) {
-                    console.warn("Supabase fetch fallback:", err);
+                    console.warn("Supabase fetch failed, falling back to local:", err);
                 }
             }
 
-            // 2. अगर Supabase से न मिले तो LocalStorage चेक करें
+            // 2. LocalStorage बैकअप
             if (rawOrders.length === 0) {
-                rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
+                try {
+                    rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
+                } catch (e) {
+                    rawOrders = [];
+                }
             }
 
-            // 3. डेटा को साफ़ करें और Supabase के मुख्य 'status' को सर्वोच्च प्राथमिकता दें
-            const normalizedOrders = rawOrders.map(item => {
+            // 3. डेटा सामान्यीकरण (Safe Normalization)
+            const normalizedOrders = (rawOrders || []).map(item => {
                 const nested = item.order_data || {};
-                
-                // मुख्य सुधार: Supabase का live status ही पहले लिया जाएगा
                 const liveStatus = item.status || nested.status || nested.order_status || 'Pending';
+                const rawPhone = String(item.mobile || item.phone || nested.customer_mobile || nested.mobile || '');
 
                 return {
-                    id: item.id || nested.id,
+                    id: item.id || nested.id || Date.now(),
                     created_at: item.created_at || nested.created_at || new Date().toISOString(),
                     customer_name: item.customer_name || nested.customer_name || 'ग्राहक',
-                    customer_mobile: item.mobile || item.phone || nested.customer_mobile || nested.mobile || '',
+                    customer_mobile: rawPhone,
                     card_title: item.card_title || nested.card_title || 'शादी कार्ड',
                     card_model: item.model || nested.card_model || 'DP-101',
                     card_image: nested.card_image || item.image_url || '',
@@ -373,23 +385,26 @@
                 };
             });
 
-            // 4. ग्राहक के 10 अंकों के फ़ोन नंबर से फ़िल्टर करें
-            if (user && (user.mobile || user.customer_mobile)) {
-                const cleanPhone = String(user.mobile || user.customer_mobile).replace(/[^0-9]/g, '').slice(-10);
+            // 4. सुरक्षित फ़ोन नंबर फ़िल्टर
+            const userPhoneRaw = user ? String(user.mobile || user.customer_mobile || user.phone || '') : '';
+            const cleanUserPhone = userPhoneRaw.replace(/[^0-9]/g, '').slice(-10);
+
+            if (cleanUserPhone.length >= 10) {
                 fetchedOrdersList = normalizedOrders.filter(ord => {
-                    const ordPhone = String(ord.customer_mobile).replace(/[^0-9]/g, '').slice(-10);
-                    return ordPhone === cleanPhone || ord.customer_mobile.includes(cleanPhone);
+                    const ordPhoneClean = String(ord.customer_mobile).replace(/[^0-9]/g, '').slice(-10);
+                    return ordPhoneClean === cleanUserPhone;
                 });
             } else {
                 fetchedOrdersList = normalizedOrders;
             }
 
+            // 5. अगर कोई ऑर्डर न हो
             if (fetchedOrdersList.length === 0) {
                 container.innerHTML = `
                     <div class="empty-orders">
                         <i class="fa-solid fa-clipboard-list"></i>
                         <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
-                        <p style="margin-top: 5px; font-size: 13px;">आपके नंबर पर कोई पुराना ऑर्डर दर्ज नहीं है।</p>
+                        <p style="margin-top: 5px; font-size: 13px;">दर्ज नंबर पर कोई सक्रिय ऑर्डर मौजूद नहीं है।</p>
                         <a href="order.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
                             अभी नया ऑर्डर करें
                         </a>
@@ -398,7 +413,7 @@
                 return;
             }
 
-            // HTML कार्ड रेंडर करें
+            // 6. कार्ड रेंडर करें
             let ordersHtml = '';
             fetchedOrdersList.forEach((ord, index) => {
                 const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
@@ -409,11 +424,10 @@
                 const advance = parseFloat(ord.advance_paid || 0);
                 const balance = Math.max(0, total - advance);
 
-                const status = ord.order_status;
                 let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ऑर्डर प्राप्त हुआ (Pending)</span>`;
-                if (status === 'In Process' || status === 'Process') {
+                if (ord.order_status === 'In Process' || ord.order_status === 'Process') {
                     statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है (In Process)</span>`;
-                } else if (status === 'Ready' || status === 'Finished') {
+                } else if (ord.order_status === 'Ready' || ord.order_status === 'Finished') {
                     statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready)</span>`;
                 }
 
@@ -427,9 +441,7 @@
                                     <span>दिनांक: ${dt}</span>
                                 </div>
                             </div>
-                            <div>
-                                ${statusBadge}
-                            </div>
+                            <div>${statusBadge}</div>
                         </div>
 
                         <div class="order-details-grid">
@@ -573,22 +585,8 @@
             }
         }
 
-        // SUPABASE REALTIME LISTENER (एडमिन द्वारा स्टेटस बदलते ही तुरंत पेज पर दिखेगा)
-        function listenToRealtimeOrderUpdates() {
-            if (supabaseClient) {
-                supabaseClient
-                    .channel('public:orders')
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
-                        console.log('ऑर्डर स्टेटस रियल-टाइम अपडेट हुआ:', payload);
-                        fetchCustomerOrders();
-                    })
-                    .subscribe();
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             fetchCustomerOrders();
-            listenToRealtimeOrderUpdates();
         });
     </script>
 </body>
