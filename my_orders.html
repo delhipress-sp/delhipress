@@ -138,7 +138,7 @@
 
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
-            <img src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="Logo" class="nav-logo-img">
+            <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.src='https://via.placeholder.com/38'">
             <h2>दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
@@ -206,33 +206,13 @@
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } catch (e) {
-                console.log(e);
+                console.error("Supabase Init Error:", e);
             }
         }
 
         let currentUser = null;
         let fetchedOrdersList = [];
 
-        // 1. INACTIVITY AUTO-LOGOUT (2 MINUTES = 120,000 MS)
-        let inactivityTimer;
-        const TIMEOUT_DURATION = 2 * 60 * 1000;
-
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => {
-                alert("2 मिनट तक कोई गतिविधि न होने के कारण आप सुरक्षित रूप से लॉगआउट हो गए हैं।");
-                logoutCustomerDirect();
-            }, TIMEOUT_DURATION);
-        }
-
-        window.onload = resetInactivityTimer;
-        document.onmousemove = resetInactivityTimer;
-        document.onkeydown = resetInactivityTimer;
-        document.ontouchstart = resetInactivityTimer;
-        document.onclick = resetInactivityTimer;
-        document.onscroll = resetInactivityTimer;
-
-        // 2. CHECK CUSTOMER AUTH (LOGOUT VERIFICATION)
         function checkCustomerAuth() {
             const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
             if (userJson) {
@@ -246,41 +226,26 @@
             }
 
             if (!currentUser) {
-                document.getElementById('userDisplayName').innerText = "लॉगिन नहीं हैं";
-                document.getElementById('userDisplayPhone').innerText = "कृपया नया ऑर्डर देने के लिए होम पेज पर जाएँ।";
+                document.getElementById('userDisplayName').innerText = "अतिथि ग्राहक";
+                document.getElementById('userDisplayPhone').innerText = "हालिया दर्ज ऑर्डर देखे जा रहे हैं";
                 document.getElementById('logoutBtn').style.display = "none";
                 return null;
             }
 
             document.getElementById('logoutBtn').style.display = "inline-flex";
-            document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.full_name || "सम्मानित ग्राहक";
-            document.getElementById('userDisplayPhone').innerText = `${currentUser.mobile || currentUser.phone || ''} ${currentUser.email ? '| ' + currentUser.email : ''}`;
+            document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.customer_name || "सम्मानित ग्राहक";
+            document.getElementById('userDisplayPhone').innerText = currentUser.mobile || currentUser.customer_mobile || currentUser.phone || '';
             return currentUser;
         }
 
-        // 3. FETCH ORDERS (DOES NOT SHOW ANY ORDERS AFTER LOGOUT)
         async function fetchCustomerOrders() {
             const user = checkCustomerAuth();
             const container = document.getElementById('ordersContainer');
-
-            if (!user) {
-                container.innerHTML = `
-                    <div class="empty-orders">
-                        <i class="fa-solid fa-lock"></i>
-                        <h4>आप लॉगआउट हो चुके हैं!</h4>
-                        <p style="margin-top: 5px; font-size: 13px;">ऑर्डर इतिहास देखने के लिए कृपया होम पेज से नया ऑर्डर दें या लॉगिन करें।</p>
-                        <a href="index.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
-                            <i class="fa-solid fa-house"></i> मुख्य मेन्यू पर जाएँ
-                        </a>
-                    </div>
-                `;
-                return;
-            }
-
             container.innerHTML = '<div style="text-align:center; padding:30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...</div>';
 
-            let allOrders = [];
+            let rawOrders = [];
 
+            // 1. Supabase से ऑर्डर्स लाएँ
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -289,37 +254,65 @@
                         .order('id', { ascending: false });
 
                     if (!error && data && data.length > 0) {
-                        allOrders = data;
+                        rawOrders = data;
                     }
                 } catch (err) {
-                    console.log("Supabase fetch fallback:", err);
+                    console.warn("Supabase fetch fallback:", err);
                 }
             }
 
-            if (allOrders.length === 0) {
-                allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
+            // 2. अगर Supabase खाली हो तो LocalStorage का बैकअप चेक करें
+            if (rawOrders.length === 0) {
+                rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
             }
 
-            const uMobile = (user.mobile || user.phone || '').trim();
-            const uEmail = (user.email || '').trim().toLowerCase();
-            const uName = (user.name || user.full_name || '').trim().toLowerCase();
-
-            fetchedOrdersList = allOrders.filter(ord => {
-                const oMobile = String(ord.customer_mobile || ord.mobile || ord.phone || ord.user_phone || '').trim();
-                const oEmail = String(ord.customer_email || ord.email || '').trim().toLowerCase();
-                const oName = String(ord.customer_name || ord.client_name || ord.name || ord.user_name || '').trim().toLowerCase();
-
-                return (uMobile && oMobile.includes(uMobile)) ||
-                       (uEmail && oEmail === uEmail) ||
-                       (uName && oName === uName);
+            // डेटा को सामान्य फॉर्मेट में बदलें (order_data को फ्लैट करना)
+            const normalizedOrders = rawOrders.map(item => {
+                const nested = item.order_data || {};
+                return {
+                    id: item.id || nested.id,
+                    created_at: item.created_at || nested.created_at || new Date().toISOString(),
+                    customer_name: item.customer_name || nested.customer_name || 'ग्राहक',
+                    customer_mobile: item.mobile || item.phone || nested.customer_mobile || nested.mobile || '',
+                    card_title: item.card_title || nested.card_title || 'शादी कार्ड',
+                    card_model: item.model || nested.card_model || 'DP-101',
+                    card_image: nested.card_image || item.image_url || '',
+                    quantity: nested.qty || nested.quantity || item.quantity || 100,
+                    total_amount: item.total_amount || nested.total_amount || 0,
+                    advance_paid: nested.advance_paid || item.advance_amount || 0,
+                    balance_amount: nested.balance_amount !== undefined ? nested.balance_amount : ((item.total_amount || 0) - (nested.advance_paid || 0)),
+                    groom_name: item.groom_name || nested.groom_name || '-',
+                    groom_father: nested.groom_father || '-',
+                    groom_address: nested.groom_address || '-',
+                    bride_name: item.bride_name || nested.bride_name || '-',
+                    bride_father: nested.bride_father || '-',
+                    bride_address: nested.bride_address || '-',
+                    events: nested.events || [],
+                    event_date: nested.date || nested.event_date || '',
+                    rsvp: nested.rsvp || '-',
+                    from_family: nested.from_family || '-',
+                    utr_number: nested.utr_number || 'Cash/Online',
+                    order_status: item.status || nested.status || 'Pending'
+                };
             });
+
+            // 3. अगर ग्राहक लॉगिन है, तो उसके नंबर से छांटें, नहीं तो सभी हालिया ऑर्डर्स दिखाएं
+            if (user && (user.mobile || user.customer_mobile)) {
+                const cleanPhone = String(user.mobile || user.customer_mobile).replace(/[^0-9]/g, '').slice(-10);
+                fetchedOrdersList = normalizedOrders.filter(ord => {
+                    const ordPhone = String(ord.customer_mobile).replace(/[^0-9]/g, '').slice(-10);
+                    return ordPhone === cleanPhone || ord.customer_mobile.includes(cleanPhone);
+                });
+            } else {
+                fetchedOrdersList = normalizedOrders;
+            }
 
             if (fetchedOrdersList.length === 0) {
                 container.innerHTML = `
                     <div class="empty-orders">
                         <i class="fa-solid fa-clipboard-list"></i>
                         <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
-                        <p style="margin-top: 5px; font-size: 13px;">आपके इस मोबाइल नंबर पर कोई पुराना ऑर्डर दर्ज नहीं है।</p>
+                        <p style="margin-top: 5px; font-size: 13px;">आपके नंबर पर कोई पुराना ऑर्डर दर्ज नहीं है।</p>
                         <a href="order.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">
                             अभी नया ऑर्डर करें
                         </a>
@@ -328,25 +321,22 @@
                 return;
             }
 
+            // HTML कार्ड रेंडरिंग
             let ordersHtml = '';
             fetchedOrdersList.forEach((ord, index) => {
-                const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN', {
+                const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
                     day: 'numeric', month: 'short', year: 'numeric'
-                }) : 'आज';
+                });
 
-                const total = parseFloat(ord.total_amount || ord.total || ord.bill_amount || 0);
-                const advance = parseFloat(ord.advance_paid || ord.advance_amount || ord.advance || 0);
-                const balance = parseFloat(ord.balance_amount !== undefined ? ord.balance_amount : (total - advance));
+                const total = parseFloat(ord.total_amount || 0);
+                const advance = parseFloat(ord.advance_paid || 0);
+                const balance = Math.max(0, total - advance);
 
-                const groom = ord.groom_name || ord.groom || (ord.couples && ord.couples[0] ? ord.couples[0].groom : '-');
-                const bride = ord.bride_name || ord.bride || (ord.couples && ord.couples[0] ? ord.couples[0].bride : '-');
-                const cardImg = ord.card_image || ord.card_img || ord.image_url || ord.image || '';
-
-                const status = ord.order_status || ord.status || 'Pending';
+                const status = ord.order_status;
                 let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ऑर्डर प्राप्त हुआ (Pending)</span>`;
                 if (status === 'In Process' || status === 'Process') {
                     statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है (In Process)</span>`;
-                } else if (status === 'Ready' || status === 'Finished' || status === 'completed') {
+                } else if (status === 'Ready' || status === 'Finished') {
                     statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready)</span>`;
                 }
 
@@ -354,9 +344,9 @@
                     <div class="order-card">
                         <div class="order-card-header">
                             <div class="order-id-date">
-                                ${cardImg ? `<img src="${cardImg}" class="order-card-img" alt="Card">` : ''}
+                                ${ord.card_image ? `<img src="${ord.card_image}" class="order-card-img" alt="Card">` : ''}
                                 <div>
-                                    <h4>${ord.card_title || ord.card_name || 'शादी कार्ड ऑर्डर'}</h4>
+                                    <h4>${ord.card_title}</h4>
                                     <span>दिनांक: ${dt}</span>
                                 </div>
                             </div>
@@ -368,7 +358,7 @@
                         <div class="order-details-grid">
                             <div class="detail-item">
                                 <b>मात्रा (Quantity)</b>
-                                ${ord.quantity || 100} पीस
+                                ${ord.quantity} पीस
                             </div>
                             <div class="detail-item">
                                 <b>कुल राशि</b>
@@ -380,12 +370,12 @@
                             </div>
                             <div class="detail-item">
                                 <b>ट्रांजैक्शन / UTR</b>
-                                ${ord.utr_number || ord.utr || 'उपलब्ध नहीं'}
+                                ${ord.utr_number}
                             </div>
                         </div>
 
                         <div class="couples-summary">
-                            <b>मैटर सारांश:</b> <span style="color:var(--primary); font-weight:bold;">वर: ${groom}</span> संग <span style="color:var(--secondary); font-weight:bold;">वधू: ${bride}</span>
+                            <b>मैटर सारांश:</b> <span style="color:var(--primary); font-weight:bold;">वर: ${ord.groom_name}</span> संग <span style="color:var(--secondary); font-weight:bold;">वधू: ${ord.bride_name}</span>
                         </div>
 
                         <div class="order-card-footer">
@@ -403,20 +393,13 @@
             container.innerHTML = ordersHtml;
         }
 
-        // 4. RECEIPT PREVIEW
         function viewCustomerReceipt(index) {
             const ord = fetchedOrdersList[index];
             if (!ord) return;
 
-            const total = parseFloat(ord.total_amount || ord.total || ord.bill_amount || 0);
-            const advance = parseFloat(ord.advance_paid || ord.advance_amount || ord.advance || 0);
-            const balance = parseFloat(ord.balance_amount !== undefined ? ord.balance_amount : (total - advance));
-            const cardImg = ord.card_image || ord.card_img || ord.image_url || ord.image || '';
-
-            const status = ord.order_status || ord.status || 'Pending';
-            let statusText = 'ऑर्डर प्राप्त (Pending)';
-            if (status === 'In Process' || status === 'Process') statusText = 'छपाई जारी है (In Process)';
-            if (status === 'Ready' || status === 'Finished') statusText = 'प्रिंट तैयार है (Ready)';
+            const total = parseFloat(ord.total_amount || 0);
+            const advance = parseFloat(ord.advance_paid || 0);
+            const balance = Math.max(0, total - advance);
 
             let eventsHtml = '';
             if (ord.events && Array.isArray(ord.events) && ord.events.length > 0) {
@@ -428,8 +411,7 @@
             }
 
             const printArea = document.getElementById('printableReceiptArea');
-            const d = ord.created_at ? new Date(ord.created_at) : new Date();
-            const dt = d.toLocaleDateString('hi-IN');
+            const dt = new Date(ord.created_at).toLocaleDateString('hi-IN');
 
             printArea.innerHTML = `
                 <div class="receipt-header">
@@ -440,38 +422,38 @@
 
                 <div class="receipt-section-title">१. चुना गया कार्ड मॉडल</div>
                 <div class="card-preview-box">
-                    ${cardImg ? `<img src="${cardImg}" alt="Card Sample">` : '<div style="width:70px; height:70px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>'}
+                    ${ord.card_image ? `<img src="${ord.card_image}" alt="Card Sample">` : '<div style="width:70px; height:70px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>'}
                     <div>
-                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || ord.card_name || 'शादी कार्ड'}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || 'DP-101'}</b></div>
-                        <div style="font-size:12px; color:#64748b;">ऑर्डर स्थिति: <b style="color:var(--primary);">${statusText}</b></div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title}</div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model}</b></div>
+                        <div style="font-size:12px; color:#64748b;">ऑर्डर स्थिति: <b style="color:var(--primary);">${ord.order_status}</b></div>
                     </div>
                 </div>
 
                 <div class="receipt-section-title">२. ग्राहक विवरण</div>
-                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name || '-'}</b></div>
-                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile || '-'}</b></div>
+                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name}</b></div>
+                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile}</b></div>
                 <div class="receipt-row"><span>तारीख:</span> <span>${dt}</span></div>
 
                 <div class="receipt-section-title">३. शादी मैटर विवरण</div>
-                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
-                <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${ord.groom_father || '-'}</span></div>
-                <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${ord.groom_address || '-'}</span></div>
-                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
-                <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${ord.bride_father || '-'}</span></div>
-                <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${ord.bride_address || '-'}</span></div>
+                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${ord.groom_name}</b></div>
+                <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${ord.groom_father}</span></div>
+                <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${ord.groom_address}</span></div>
+                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${ord.bride_name}</b></div>
+                <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${ord.bride_father}</span></div>
+                <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${ord.bride_address}</span></div>
 
                 <div class="receipt-section-title">४. वैवाहिक कार्यक्रम व अन्य</div>
                 ${eventsHtml}
-                <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${ord.rsvp || '-'}</span></div>
-                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family || '-'}</span></div>
+                <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${ord.rsvp}</span></div>
+                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family}</span></div>
 
                 <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
-                <div class="receipt-row"><span>कुल कार्ड संख्या:</span> <b>${ord.quantity || 100} पीस</b></div>
+                <div class="receipt-row"><span>कुल कार्ड संख्या:</span> <b>${ord.quantity} पीस</b></div>
                 <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
-                <div class="receipt-row"><span>जमा एडवांस (50%):</span> <b style="color:green;">₹${advance}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${advance}</b></div>
                 <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
-                <div class="receipt-row"><span>UTR / Trans ID:</span> <b>${ord.utr_number || 'Cash/Online'}</b></div>
+                <div class="receipt-row"><span>UTR / Trans ID:</span> <b>${ord.utr_number}</b></div>
             `;
 
             document.getElementById('userReceiptModal').style.display = 'flex';
@@ -502,21 +484,12 @@
             location.reload();
         }
 
-        // 5. COMPLETE STORAGE CLEAR & REDIRECT TO HOME (index.html)
         function logoutCustomer() {
             if (confirm("क्या आप लॉगआउट करके मुख्य मेन्यू (होम पेज) पर जाना चाहते हैं?")) {
-                logoutCustomerDirect();
+                localStorage.removeItem('dp_current_user');
+                localStorage.removeItem('dp_logged_in_user');
+                window.location.replace("index.html");
             }
-        }
-
-        function logoutCustomerDirect() {
-            localStorage.removeItem('dp_current_user');
-            localStorage.removeItem('dp_logged_in_user');
-            localStorage.removeItem('dp_user_orders');
-            localStorage.removeItem('dp_all_orders');
-            localStorage.removeItem('dp_selected_card');
-            sessionStorage.clear();
-            window.location.replace("index.html");
         }
 
         window.addEventListener('DOMContentLoaded', fetchCustomerOrders);
