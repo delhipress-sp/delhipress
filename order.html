@@ -256,7 +256,7 @@
 
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
-            <img src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="Logo" class="nav-logo-img">
+            <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.src='https://via.placeholder.com/40'">
             <h2>दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
@@ -287,7 +287,7 @@
             <div class="selected-card-banner" id="selectedCardBanner">
                 <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
                 <div class="card-preview-body">
-                    <img id="previewCardImage" class="card-preview-thumb" src="https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png" alt="चुना गया कार्ड">
+                    <img id="previewCardImage" class="card-preview-thumb" src="" alt="चुना गया कार्ड">
                     <div class="card-preview-info">
                         <h3 id="previewCardName">शादी कार्ड</h3>
                         <p id="previewCardModel">मॉडल / कोड: DP-101</p>
@@ -418,7 +418,6 @@
                     </div>
 
                     <div id="eventsContainer">
-                        <!-- Default Event 1 -->
                         <div class="event-box-item">
                             <div class="row-3">
                                 <div class="form-group">
@@ -461,13 +460,11 @@
                             एडवांस राशि (50%): <b>₹<span id="qrAdvanceDisplay">500</span></b>
                         </p>
 
-                        <!-- डायनामिक QR कोड -->
                         <div class="qr-wrapper">
                             <img id="upiQrCode" src="" alt="UPI Dynamic QR">
                         </div>
                         <p style="font-size: 12px; color: #475569; margin-bottom: 8px;">UPI ID: <b>9304509464@okbizaxis</b></p>
                         
-                        <!-- UPI App Buttons & Cashfree Gateway -->
                         <div class="payment-options-grid">
                             <a id="directUpiPayLink" href="#" class="btn-pay-app" style="background:#0284c7;">
                                 <i class="fa-solid fa-mobile-screen-button"></i> सीधे UPI ऐप से पे करें
@@ -539,26 +536,24 @@
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } catch (e) {
-                console.log(e);
+                console.error("Supabase Init Error:", e);
             }
         }
 
         const UPI_ID = "9304509464@okbizaxis";
         const PAYEE_NAME = "DelhiPress";
-
         let isBrideTop = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadSelectedCard();
         });
 
-        // 1. AUTO-FILL CARD DETAILS FROM LOCALSTORAGE & URL
         function loadSelectedCard() {
             const urlParams = new URLSearchParams(window.location.search);
-            const paramModel = urlParams.get('model') || urlParams.get('card');
-            const paramName = urlParams.get('title') || urlParams.get('name');
-            const paramRate = urlParams.get('rate') || urlParams.get('price');
-            const paramImg = urlParams.get('img') || urlParams.get('image');
+            const paramModel = urlParams.get('model');
+            const paramName = urlParams.get('card') || urlParams.get('item');
+            const paramRate = urlParams.get('price');
+            const paramImg = urlParams.get('preview');
 
             let selectedCard = JSON.parse(localStorage.getItem('dp_selected_card') || 'null');
 
@@ -567,18 +562,18 @@
                     model: paramModel || (selectedCard ? selectedCard.model : 'DP-101'),
                     title: paramName || (selectedCard ? selectedCard.title : 'शादी कार्ड'),
                     price: parseFloat(paramRate) || (selectedCard ? parseFloat(selectedCard.price) : 10),
-                    image_url: paramImg || (selectedCard ? (selectedCard.image_url || selectedCard.image) : 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png')
+                    image_url: paramImg || (selectedCard ? (selectedCard.image_url || selectedCard.image) : '')
                 };
             }
 
             if (selectedCard) {
-                const img = selectedCard.image_url || selectedCard.image || 'https://urzmdriydbofeoitvipj.supabase.co/storage/v1/object/public/cards_images/card_1788204223761.png';
-                const name = selectedCard.title || selectedCard.name || 'शादी कार्ड';
+                const img = selectedCard.image_url || selectedCard.image || '';
+                const name = selectedCard.title || 'शादी कार्ड';
                 const model = selectedCard.model || 'DP-101';
-                const rate = parseFloat(selectedCard.price || selectedCard.rate) || 10;
+                const rate = parseFloat(selectedCard.price) || 10;
 
                 document.getElementById('selectedCardBanner').style.display = 'block';
-                document.getElementById('previewCardImage').src = img;
+                if (img) document.getElementById('previewCardImage').src = img;
                 document.getElementById('previewCardName').innerText = name;
                 document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${model}`;
                 document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
@@ -592,7 +587,6 @@
             calculateWeddingTotal(true);
         }
 
-        // 2. AUTOMATIC 50% ADVANCE CALCULATION
         function calculateWeddingTotal(forceHalfAdvance = false) {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -609,7 +603,6 @@
             updateAdvanceCalculations();
         }
 
-        // 3. DYNAMIC UPI QR & LINK (9304509464@okbizaxis)
         function updateAdvanceCalculations() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -628,7 +621,6 @@
             document.getElementById('upiQrCode').src = qrUrl;
         }
 
-        // 4. DYNAMIC MULTIPLE EVENTS ADD / REMOVE
         function addNewEventField() {
             const container = document.getElementById('eventsContainer');
             const div = document.createElement('div');
@@ -712,7 +704,7 @@
 
             const events = collectEventsData();
             let eventsText = "";
-            events.forEach((ev, i) => {
+            events.forEach((ev) => {
                 eventsText += `\n📌 *${ev.title}:* ${ev.date} (${ev.time || 'सायं'})`;
             });
 
@@ -761,61 +753,87 @@
             const adv = parseFloat(document.getElementById('advancePaidInput').value) || 0;
             const bal = Math.max(0, total - adv);
 
-            const newOrderId = Date.now();
             const events = collectEventsData();
             const primaryDate = events.length > 0 ? events[0].date : new Date().toISOString().split('T')[0];
 
-            const orderData = {
-                id: newOrderId,
-                created_at: new Date().toISOString(),
-                customer_name: document.getElementById('custFullName').value.trim(),
-                customer_mobile: document.getElementById('custMobile').value.trim(),
-                customer_address: document.getElementById('custFullAddress').value.trim(),
-                card_title: document.getElementById('cardCategory').value.trim(),
-                card_model: document.getElementById('selectedCardModelStored').value || 'DP-101',
-                card_image: document.getElementById('selectedCardImageStored').value || document.getElementById('previewCardImage').src,
-                card_rate: rate,
-                quantity: qty,
+            const customerName = document.getElementById('custFullName').value.trim();
+            const customerMobile = document.getElementById('custMobile').value.trim();
+            const customerAddress = document.getElementById('custFullAddress').value.trim();
+            const cardTitle = document.getElementById('cardCategory').value.trim();
+            const cardModel = document.getElementById('selectedCardModelStored').value || 'DP-101';
+            const cardImage = document.getElementById('selectedCardImageStored').value || '';
+            const groomName = document.getElementById('groomName').value.trim();
+            const brideName = document.getElementById('brideName').value.trim();
+            const utrNo = document.getElementById('utrNumber').value.trim();
+
+            const fullOrderDetails = {
+                customer_name: customerName,
+                customer_mobile: customerMobile,
+                customer_address: customerAddress,
+                card_title: cardTitle,
+                card_model: cardModel,
+                card_image: cardImage,
+                rate: rate,
+                qty: qty,
                 total_amount: total,
                 advance_paid: adv,
-                advance_amount: adv,
                 balance_amount: bal,
-                groom_name: document.getElementById('groomName').value.trim(),
+                groom_name: groomName,
                 groom_father: document.getElementById('groomFather').value.trim(),
                 groom_address: document.getElementById('groomAddress').value.trim(),
-                bride_name: document.getElementById('brideName').value.trim(),
+                bride_name: brideName,
                 bride_father: document.getElementById('brideFather').value.trim(),
                 bride_address: document.getElementById('brideAddress').value.trim(),
-                event_date: primaryDate,
                 events: events,
                 rsvp: document.getElementById('rsvpInput').value.trim(),
                 from_family: document.getElementById('fromFamilyInput').value.trim(),
                 special_note: document.getElementById('specialNoteInput').value.trim(),
-                utr_number: document.getElementById('utrNumber').value.trim(),
-                order_status: 'Pending'
+                utr_number: utrNo,
+                status: 'Pending',
+                date: primaryDate
             };
 
-            // 1. LocalStorage Update
+            // 1. LocalStorage में बैकअप रखें
             let allOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-            allOrders.unshift(orderData);
+            allOrders.unshift(fullOrderDetails);
             localStorage.setItem('dp_all_orders', JSON.stringify(allOrders));
 
             let userOrders = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
-            userOrders.unshift(orderData);
+            userOrders.unshift(fullOrderDetails);
             localStorage.setItem('dp_user_orders', JSON.stringify(userOrders));
 
             localStorage.setItem('dp_current_user', JSON.stringify({
-                name: orderData.customer_name,
-                mobile: orderData.customer_mobile,
-                address: orderData.customer_address
+                name: customerName,
+                mobile: customerMobile,
+                address: customerAddress
             }));
 
-            // 2. Supabase Insert
+            // 2. Supabase की 'orders' टेबल में डालें (Admin और My Orders दोनों के अनुकूल)
             if (supabaseClient) {
                 try {
-                    await supabaseClient.from('orders').insert([orderData]);
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .insert([{
+                            card_title: cardTitle,
+                            model: cardModel,
+                            customer_name: customerName,
+                            mobile: customerMobile,
+                            phone: customerMobile,
+                            groom_name: groomName,
+                            bride_name: brideName,
+                            total_amount: total,
+                            status: 'Pending',
+                            order_data: fullOrderDetails
+                        }]);
+
+                    if (error) {
+                        console.error("Supabase Order Error:", error.message);
+                        alert("नोट: डेटाबेस एरर (" + error.message + "), परंतु ऑर्डर लोकल में सेव हो गया है।");
+                    } else {
+                        console.log("Supabase में ऑर्डर सेव हुआ:", data);
+                    }
                 } catch (sbErr) {
-                    console.log("Supabase insert bypassed:", sbErr);
+                    console.error("Supabase insert exception:", sbErr);
                 }
             }
 
