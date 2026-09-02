@@ -52,24 +52,10 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        .service-tabs-nav {
-            display: flex; background: #fff; border-radius: 8px 8px 0 0;
-            border: 1px solid #cbd5e1; border-bottom: none; overflow-x: auto; white-space: nowrap;
-        }
-        .service-tab-btn {
-            flex: 1; min-width: 140px; padding: 12px 10px; background: #f1f5f9;
-            border: none; font-size: 14px; font-weight: 700; color: #475569;
-            cursor: pointer; text-align: center; display: flex; align-items: center;
-            justify-content: center; gap: 6px;
-        }
-        .service-tab-btn.active {
-            background: #fff; color: var(--primary); border-bottom: 3px solid var(--primary);
-        }
-
         .form-wrapper {
-            background: #fff; padding: 18px; border-radius: 0 0 8px 8px;
+            background: #fff; padding: 18px; border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #cbd5e1;
-            border-top: none; margin-bottom: 25px;
+            margin-bottom: 25px;
         }
         .section-header {
             color: var(--primary); font-size: 20px; text-align: center;
@@ -84,7 +70,7 @@
         .selected-card-banner h4 {
             color: var(--secondary); font-size: 14px; font-weight: 700;
             border-bottom: 1px dashed #fed7aa; padding-bottom: 6px; margin-bottom: 10px;
-            display: flex; align-items: center; gap: 6px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
         }
         .card-preview-body { display: flex; gap: 14px; align-items: center; }
         .card-preview-thumb {
@@ -96,6 +82,13 @@
         .card-preview-info p { font-size: 13px; color: #64748b; margin-bottom: 2px; }
         .card-preview-info .rate-tag { font-size: 14px; font-weight: 700; color: var(--green); }
 
+        .card-picker-box {
+            margin-top: 10px; padding-top: 8px; border-top: 1px dashed #fed7aa;
+        }
+        .card-picker-box select {
+            background: #fff; font-weight: 600; color: #1e293b;
+        }
+
         .form-block {
             background: #fdfaf6; padding: 14px; border-radius: 6px;
             margin-bottom: 15px; border-left: 4px solid var(--secondary);
@@ -103,10 +96,9 @@
         .form-block h4 { margin-bottom: 10px; color: var(--dark); font-size: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
         
         .form-group { margin-bottom: 12px; }
-        .row-2, .row-3, .row-4 { display: flex; gap: 10px; flex-wrap: wrap; }
+        .row-2, .row-3 { display: flex; gap: 10px; flex-wrap: wrap; }
         .row-2 .form-group { flex: 1; min-width: 200px; }
         .row-3 .form-group { flex: 1; min-width: 140px; }
-        .row-4 .form-group { flex: 1; min-width: 110px; }
 
         label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #475569; }
         input, select, textarea {
@@ -178,20 +170,6 @@
         }
         .qr-wrapper img { width: 160px; height: 160px; display: block; }
 
-        .payment-options-grid {
-            display: flex; justify-content: center; gap: 8px; margin: 12px 0; flex-wrap: wrap;
-        }
-        .btn-pay-app {
-            background: #2563eb; color: white; padding: 8px 14px; border-radius: 5px;
-            font-size: 12px; text-decoration: none; font-weight: bold; display: inline-flex;
-            align-items: center; gap: 6px; border: none; cursor: pointer;
-        }
-        .btn-pay-cashfree {
-            background: var(--cashfree-purple); color: white; padding: 9px 16px; border-radius: 5px;
-            font-size: 13px; text-decoration: none; font-weight: bold; display: inline-flex;
-            align-items: center; gap: 6px; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(108, 43, 217, 0.2);
-        }
-
         .declaration-box {
             background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
             padding: 12px; margin-top: 5px; display: flex; align-items: flex-start; gap: 10px;
@@ -203,11 +181,10 @@
             font-size: 13px; color: #1e3a8a; font-weight: 600; line-height: 1.5; cursor: pointer; margin-bottom: 0;
         }
 
-        .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .btn-review-main {
             width: 100%; padding: 12px; background: var(--blue); color: white;
             font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
 
         .modal {
@@ -249,18 +226,11 @@
             border-top: 1px solid #334155; display: flex; justify-content: space-between;
             align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
         }
-        .footer-admin-link {
-            color: #64748b; text-decoration: none; font-size: 11px;
-            display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;
-            border-radius: 4px; border: 1px solid #334155; transition: 0.2s;
-        }
-        .footer-admin-link:hover { color: #f1c40f; border-color: #f1c40f; }
 
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: #fff; border-top: 1px solid #cbd5e1;
             padding: 6px 0; z-index: 1001; justify-content: space-around;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
         .mobile-bottom-bar a {
             background: none; border: none; color: var(--dark); text-decoration: none;
@@ -271,7 +241,7 @@
 
         @media (max-width: 768px) {
             .mobile-bottom-bar { display: flex; }
-            .row-2, .row-3, .row-4 { flex-direction: column; gap: 0; }
+            .row-2, .row-3 { flex-direction: column; gap: 0; }
             .total-bill-box { flex-direction: column; gap: 5px; text-align: center; }
             .form-wrapper { padding: 12px; }
             .footer-grid { grid-template-columns: 1fr; gap: 15px; }
@@ -298,26 +268,31 @@
             <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
         </div>
 
-        <div id="orderSectionContainer">
-            <div class="service-tabs-nav">
-                <button type="button" class="service-tab-btn active" id="tabBtnWedding">
-                    <i class="fa-solid fa-heart"></i> १. शादी कार्ड
-                </button>
-            </div>
-        </div>
-
-        <div class="form-wrapper" id="weddingFormSection">
+        <div class="form-wrapper">
             <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
             
-            <div class="selected-card-banner" id="selectedCardBanner">
-                <h4><i class="fa-solid fa-circle-check"></i> कैटलॉग से चुना हुआ शादी कार्ड</h4>
+            <!-- SELECTED CARD BANNER -->
+            <div class="selected-card-banner">
+                <h4>
+                    <span><i class="fa-solid fa-circle-check"></i> चुना हुआ शादी कार्ड</span>
+                    <a href="index.html#showcaseSection" style="color:var(--primary); font-size:12px; text-decoration:underline;">कैटलॉग में और कार्ड देखें</a>
+                </h4>
+                
                 <div class="card-preview-body">
-                    <img id="previewCardImage" class="card-preview-thumb" src="" alt="कार्ड लोड हो रहा है...">
+                    <img id="previewCardImage" class="card-preview-thumb" src="https://placehold.co/90x90?text=Card+Photo" alt="चुना गया कार्ड">
                     <div class="card-preview-info">
-                        <h3 id="previewCardName">कार्ड विवरण लोड हो रहा है...</h3>
+                        <h3 id="previewCardName">कार्ड चुनें</h3>
                         <p id="previewCardModel">मॉडल / कोड: --</p>
                         <p class="rate-tag" id="previewCardRate">मूल्य: ₹-- / पीस</p>
                     </div>
+                </div>
+
+                <!-- अगर सीधे फॉर्म पर आये हैं, तो कार्ड यहाँ से भी बदल सकते हैं -->
+                <div class="card-picker-box">
+                    <label style="font-size:12px; color:#c0392b;">या कैटलॉग से कोई अन्य कार्ड चुनें:</label>
+                    <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
+                        <option value="">-- कैटलॉग कार्ड लोड हो रहे हैं... --</option>
+                    </select>
                 </div>
             </div>
 
@@ -349,21 +324,21 @@
                     <div class="row-3">
                         <div class="form-group">
                             <label>कार्ड मॉडल / नाम:</label>
-                            <input type="text" id="cardCategory" value="" placeholder="कार्ड का नाम" required>
+                            <input type="text" id="cardCategory" value="शादी कार्ड" required>
                         </div>
                         <div class="form-group">
                             <label>प्रति पीस रेट (₹):</label>
-                            <input type="number" id="cardRate" value="0" min="1" step="any" oninput="calculateWeddingTotal(true)" required>
+                            <input type="number" id="cardRate" value="10" min="1" step="any" oninput="calculateWeddingTotal(false)" required>
                         </div>
                         <div class="form-group">
                             <label>संख्या (Quantity):</label>
-                            <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal(true)" required>
+                            <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal(false)" required>
                         </div>
                     </div>
 
                     <div class="total-bill-box">
                         <span>कुल बिल राशि:</span>
-                        <span id="weddingTotalDisplay">₹0</span>
+                        <span id="weddingTotalDisplay">₹1,000</span>
                     </div>
 
                     <div class="advance-calc-box">
@@ -372,11 +347,11 @@
                                 <label style="color: #166534; font-weight: bold;">
                                     <i class="fa-solid fa-hand-holding-dollar"></i> एडवांस जमा राशि (₹):
                                 </label>
-                                <input type="number" id="advancePaidInput" value="0" min="0" step="any" oninput="updateAdvanceCalculations()" required>
+                                <input type="number" id="advancePaidInput" value="500" min="0" step="any" oninput="updateAdvanceCalculations()" required>
                             </div>
                             <div class="form-group" style="margin-bottom: 0; text-align: right;">
                                 <label style="color: #b91c1c; font-weight: bold;">बाकी बकाया (Balance):</label>
-                                <div id="balanceAmountDisplay" style="font-size: 17px; font-weight: bold; color: #b91c1c;">₹0</div>
+                                <div id="balanceAmountDisplay" style="font-size: 17px; font-weight: bold; color: #b91c1c;">₹500</div>
                             </div>
                         </div>
                         <p style="font-size: 11px; color: #15803d; margin-top: 5px;">* कुल राशि का 50% एडवांस स्वतः निर्धारित हो गया है।</p>
@@ -503,20 +478,17 @@
                         UPI ID: <strong>9304509464@okbizaxis</strong>
                     </p>
                     <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
-                        नीचे दिए गए QR कोड को स्कैन करें या बटन पर क्लिक करके सीधे अपने UPI ऐप से भुगतान करें:
+                        नीचे दिए गए QR कोड को स्कैन करें या बटन पर क्लिक करके सीधे भुगतान करें:
                     </p>
 
                     <div class="qr-wrapper">
                         <img id="upiQrCodeImg" src="" alt="UPI QR Code">
                     </div>
 
-                    <div class="payment-options-grid">
-                        <a href="#" class="btn-pay-app" id="btnPayUpiDirect">
+                    <div style="margin: 10px 0;">
+                        <a href="#" class="btn-nav" id="btnPayUpiDirect" style="background:#2563eb; color:white; padding:8px 16px;">
                             <i class="fa-solid fa-mobile-screen-button"></i> सीधे UPI ऐप से पे करें
                         </a>
-                        <button type="button" class="btn-pay-cashfree" onclick="initiateOnlinePayment()">
-                            <i class="fa-solid fa-credit-card"></i> कार्ड / नेटबैंकिंग
-                        </button>
                     </div>
 
                     <div class="row-2" style="margin-top: 15px; text-align: left;">
@@ -526,7 +498,7 @@
                         </div>
                         <div class="form-group">
                             <label>जमा की गई राशि (₹):</label>
-                            <input type="number" id="paidAmountFinal" value="0" readonly style="background: #f1f5f9;">
+                            <input type="number" id="paidAmountFinal" value="500" readonly style="background: #f1f5f9;">
                         </div>
                     </div>
                 </div>
@@ -538,11 +510,9 @@
                     </label>
                 </div>
 
-                <div class="btn-row">
-                    <button type="submit" class="btn-review-main">
-                        <i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें
-                    </button>
-                </div>
+                <button type="submit" class="btn-review-main">
+                    <i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें
+                </button>
 
             </form>
         </div>
@@ -555,9 +525,7 @@
                 <i class="fa-solid fa-clipboard-check"></i> ऑर्डर मैटर समीक्षा
             </h3>
             <p style="font-size: 12px; color: #64748b;">कृपया व्हाट्सएप पर भेजने से पहले सम्पूर्ण मैटर का मिलान कर लें:</p>
-            
             <div class="review-box" id="reviewBoxContent"></div>
-
             <a href="#" class="btn-wa-action" id="waConfirmBtn" target="_blank">
                 <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजकर आर्डर कन्फर्म करें
             </a>
@@ -568,7 +536,7 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>दिल्ली प्रेस & प्रिंटिंग सॉल्यूशंस</h4>
-                <p><i class="fa-solid fa-location-dot"></i> मुख्य बाजार, स्टेशन रोड</p>
+                <p><i class="fa-solid fa-location-dot"></i> मुख्य बाजार, स्टेशन रोड, जामताड़ा</p>
                 <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
                 <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
             </div>
@@ -581,119 +549,127 @@
         </div>
         <div class="footer-bottom">
             <span>© 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित।</span>
-            <a href="admin.html" class="footer-admin-link"><i class="fa-solid fa-lock"></i> एडमिन लॉगिन</a>
+            <a href="admin.html" style="color:#64748b; text-decoration:none;"><i class="fa-solid fa-lock"></i> एडमिन</a>
         </div>
     </footer>
 
-    <div class="mobile-bottom-bar">
-        <a href="index.html">
-            <i class="fa-solid fa-house"></i>
-            <span>होम</span>
-        </a>
-        <a href="#weddingFormSection">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>ऑर्डर फॉर्म</span>
-        </a>
-        <a href="https://wa.me/919304509464" target="_blank">
-            <i class="fa-brands fa-whatsapp" style="color: var(--wa-green);"></i>
-            <span>व्हाट्सएप</span>
-        </a>
-    </div>
-
-    <!-- SUPABASE और डायनामिक लोडर -->
     <script>
-        // आपके एडमिन पैनल का सही Supabase प्रोजेक्ट
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-
-        let supabase = null;
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let supabaseClient = null;
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.error("Supabase Error:", e);
         }
 
         const UPI_ID = "9304509464@okbizaxis";
         const OWNER_MOBILE = "919304509464";
         let isGroomFirst = true;
+        let globalCatalogCards = [];
 
         window.addEventListener('DOMContentLoaded', async () => {
+            // 1. Supabase से सभी एक्टिव कार्ड लोड करें (ड्रॉपडाउन और ऑटो-फिल के लिए)
+            await fetchAndFillCatalogDropdown();
+
+            // 2. URL या LocalStorage से सिलेक्ट किया गया कार्ड पहचानें
             const urlParams = new URLSearchParams(window.location.search);
+            const cardId = urlParams.get('id') || urlParams.get('card_id') || localStorage.getItem('selectedCardId');
+            
+            const cardImg = urlParams.get('img') || localStorage.getItem('selectedCardImage');
+            const cardName = urlParams.get('name') || localStorage.getItem('selectedCardName');
+            const cardModel = urlParams.get('model') || localStorage.getItem('selectedCardCode');
+            const cardRate = urlParams.get('price') || localStorage.getItem('selectedCardPrice');
 
-            let storedCardObj = null;
-            try {
-                const storedRaw = localStorage.getItem('selectedCard') || localStorage.getItem('currentCard');
-                if (storedRaw) storedCardObj = JSON.parse(storedRaw);
-            } catch (e) {}
-
-            const cardId = urlParams.get('card_id') || urlParams.get('id') || 
-                           (storedCardObj && (storedCardObj.id || storedCardObj._id)) ||
-                           localStorage.getItem('selectedCardId');
-
-            // 1. Supabase से सही कार्ड फेच करना (catalog या cards_catalog से)
-            if (cardId && supabase) {
-                const possibleTables = ['catalog', 'cards_catalog', 'cards'];
-                for (const tbl of possibleTables) {
-                    try {
-                        const { data, error } = await supabase
-                            .from(tbl)
-                            .select('*')
-                            .eq('id', cardId)
-                            .maybeSingle();
-
-                        if (data && !error) {
-                            applyCardData(
-                                data.image || data.image_url || data.photo || data.card_image,
-                                data.name || data.title || data.card_name,
-                                data.model || data.model_code || data.code || ('DP-' + data.id),
-                                data.rate || data.price || data.card_price || 10
-                            );
-                            return;
-                        }
-                    } catch (err) {}
+            if (cardId && globalCatalogCards.length > 0) {
+                const found = globalCatalogCards.find(c => String(c.id) === String(cardId));
+                if (found) {
+                    applyCardDetails(found);
+                    document.getElementById('directCardSelect').value = found.id;
+                    return;
                 }
             }
 
-            // 2. फ़ॉलबैक: LocalStorage या URL पैरामीटर्स से
-            const cardImg = urlParams.get('img') || urlParams.get('image') ||
-                           (storedCardObj && (storedCardObj.image || storedCardObj.image_url || storedCardObj.photo)) ||
-                           localStorage.getItem('selectedCardImage') || localStorage.getItem('cardImage');
-
-            const cardName = urlParams.get('name') || urlParams.get('title') ||
-                            (storedCardObj && (storedCardObj.name || storedCardObj.title)) ||
-                            localStorage.getItem('selectedCardName') || localStorage.getItem('cardName');
-
-            const cardCode = urlParams.get('code') || urlParams.get('model') ||
-                            (storedCardObj && (storedCardObj.model || storedCardObj.code)) ||
-                            localStorage.getItem('selectedCardCode') || localStorage.getItem('cardCode');
-
-            const cardPrice = urlParams.get('price') || urlParams.get('rate') ||
-                             (storedCardObj && (storedCardObj.rate || storedCardObj.price)) ||
-                             localStorage.getItem('selectedCardPrice') || localStorage.getItem('cardPrice') || 10;
-
-            applyCardData(cardImg, cardName, cardCode, cardPrice);
+            // अगर सीधे डेटा पास हुआ है
+            if (cardName || cardRate || cardImg) {
+                applyCardDetails({
+                    image: cardImg,
+                    name: cardName,
+                    model: cardModel,
+                    rate: cardRate
+                });
+            } else if (globalCatalogCards.length > 0) {
+                // डिफ़ॉल्ट पहला कार्ड लोड करें
+                applyCardDetails(globalCatalogCards[0]);
+                document.getElementById('directCardSelect').value = globalCatalogCards[0].id;
+            } else {
+                calculateWeddingTotal(true);
+            }
         });
 
-        function applyCardData(imgUrl, name, code, price) {
-            const previewImgElem = document.getElementById('previewCardImage');
+        // Supabase से कार्ड फेच करने का फंक्शन
+        async function fetchAndFillCatalogDropdown() {
+            const dropdown = document.getElementById('directCardSelect');
+            if (!supabaseClient) return;
 
-            if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null" && imgUrl !== "undefined") {
-                previewImgElem.src = imgUrl;
+            const tablesToCheck = ['cards_catalog', 'catalog', 'cards'];
+            for (const tbl of tablesToCheck) {
+                try {
+                    const { data, error } = await supabaseClient.from(tbl).select('*');
+                    if (data && data.length > 0) {
+                        globalCatalogCards = data;
+                        dropdown.innerHTML = '<option value="">-- कार्ड सूची में से चुनें --</option>';
+                        data.forEach(item => {
+                            const name = item.name || item.title || 'शादी कार्ड';
+                            const model = item.model || item.code || '';
+                            const rate = item.rate || item.price || 10;
+                            const opt = document.createElement('option');
+                            opt.value = item.id;
+                            opt.textContent = `${name} (${model}) - ₹${rate}/पीस`;
+                            dropdown.appendChild(opt);
+                        });
+                        break;
+                    }
+                } catch (e) {}
+            }
+        }
+
+        // ड्रॉपडाउन से कार्ड बदलने पर
+        function onCatalogSelectChange(cardId) {
+            if (!cardId) return;
+            const card = globalCatalogCards.find(c => String(c.id) === String(cardId));
+            if (card) {
+                applyCardDetails(card);
+            }
+        }
+
+        // कार्ड की फोटो, नाम और रेट स्वतः भरने का मुख्य फंक्शन
+        function applyCardDetails(card) {
+            const imgUrl = card.image || card.image_url || card.photo || '';
+            const name = card.name || card.title || 'शादी कार्ड';
+            const model = card.model || card.code || 'DP-101';
+            const rate = parseFloat(card.rate || card.price) || 10;
+
+            // 1. फोटो सेट करें
+            const imgElem = document.getElementById('previewCardImage');
+            if (imgUrl && imgUrl.trim() !== "") {
+                imgElem.src = imgUrl;
                 document.getElementById('selectedCardImageStored').value = imgUrl;
-            } else {
-                previewImgElem.src = "https://placehold.co/100x100?text=Card+Photo";
             }
 
-            const finalName = (name && name.trim() !== "" && name !== "null") ? name : "शादी कार्ड";
-            document.getElementById('previewCardName').innerText = finalName;
-            document.getElementById('cardCategory').value = finalName;
+            // 2. टेक्स्ट और इनपुट सेट करें
+            document.getElementById('previewCardName').innerText = name;
+            document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${model}`;
+            document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
 
-            const finalCode = (code && code.trim() !== "" && code !== "null") ? code : "कैटलॉग मॉडल";
-            document.getElementById('previewCardModel').innerText = `मॉडल / कोड: ${finalCode}`;
-            document.getElementById('selectedCardModelStored').value = finalCode;
+            document.getElementById('cardCategory').value = `${name} (${model})`;
+            document.getElementById('selectedCardModelStored').value = model;
+            document.getElementById('cardRate').value = rate;
 
-            const priceNum = parseFloat(price) || 10;
-            document.getElementById('previewCardRate').innerText = `मूल्य: ₹${priceNum} / पीस`;
-            document.getElementById('cardRate').value = priceNum;
-
+            // 3. रेट के हिसाब से बिल और एडवांस स्वतः कैलकुलेट करें
             calculateWeddingTotal(true);
         }
 
@@ -705,7 +681,7 @@
             document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
             
             const advanceInput = document.getElementById('advancePaidInput');
-            if (isInitial) {
+            if (isInitial || advanceInput.value == 0) {
                 advanceInput.value = Math.round(total * 0.5);
             }
             updateAdvanceCalculations();
@@ -722,6 +698,7 @@
             document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
             document.getElementById('paidAmountFinal').value = advance;
             
+            // UPI QR कोड अपडेट
             const qrImg = document.getElementById('upiQrCodeImg');
             const upiLink = document.getElementById('btnPayUpiDirect');
             const upiUrl = `upi://pay?pa=${UPI_ID}&pn=DelhiPress&am=${advance}`;
@@ -776,8 +753,6 @@
             const mobile = document.getElementById('custMobile').value;
             const address = document.getElementById('custFullAddress').value;
             const cardName = document.getElementById('cardCategory').value;
-            const cardCode = document.getElementById('selectedCardModelStored').value;
-            const cardImg = document.getElementById('selectedCardImageStored').value;
             const qty = document.getElementById('cardQty').value;
             const rate = document.getElementById('cardRate').value;
             const advance = document.getElementById('advancePaidInput').value;
@@ -788,8 +763,7 @@
 
             const summary = `*नया शादी कार्ड ऑर्डर (दिल्ली प्रेस)*
 -----------------------------------
-*कार्ड:* ${cardName} (${cardCode})
-*कार्ड फ़ोटो:* ${cardImg ? cardImg : 'उपलब्ध नहीं'}
+*कार्ड:* ${cardName}
 *संख्या:* ${qty} पीस | *रेट:* ₹${rate}
 *एडवांस जमा:* ₹${advance} | *Txn ID:* ${txnId}
 
@@ -811,10 +785,6 @@
 
         function closeReviewModal() {
             document.getElementById('reviewModal').style.display = 'none';
-        }
-
-        function initiateOnlinePayment() {
-            alert("ऑनलाइन पेमेंट गेटवे कनेक्ट किया जा रहा है... कृपया प्रतीक्षा करें।");
         }
     </script>
 </body>
