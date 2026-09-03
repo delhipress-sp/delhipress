@@ -93,6 +93,7 @@
             background: var(--green); color: white; padding: 12px 26px;
             font-size: 15px; font-weight: bold; text-decoration: none; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: 0.2s;
+            cursor: pointer;
         }
 
         .showcase-box {
@@ -287,7 +288,7 @@
             <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="#aboutSection">हमारे बारे में</a></li>
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
-            <li><a href="order.html" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
+            <li><a href="javascript:void(0)" onclick="requireLoginForOrder()" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
             
             <li id="authNavContainer" style="display: block;">
                 <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन</a>
@@ -311,7 +312,7 @@
         <div class="order-btn-card">
             <h3>शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
             <p>यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।</p>
-            <a href="order.html" class="btn-main-order">
+            <a href="javascript:void(0)" onclick="requireLoginForOrder()" class="btn-main-order">
                 <i class="fa-solid fa-file-signature"></i> शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें
             </a>
         </div>
@@ -388,7 +389,7 @@
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="order.html" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span>ऑर्डर करें</span></a>
+        <a href="javascript:void(0)" onclick="requireLoginForOrder()" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span>ऑर्डर करें</span></a>
         <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user" id="mobileAuthIcon"></i><span id="mobileAuthText">लॉगिन</span></a>
     </div>
 
@@ -413,105 +414,147 @@
     </footer>
 
     <script>
-        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        
+        const SUPABASE_URL = "https://gipzvhcbqelstspzuhoc.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpcHp2aGNicWVsc3RzcHp1aG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzODU1MjMsImV4cCI6MjA1NTk2MTUyM30.4s8Vb76yKoxep-nq7x5s8_nIviL0d9lM7e8-eSgYmKw";
+
         let supabaseClient = null;
-        try {
-            if (window.supabase && typeof window.supabase.createClient === 'function') {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch (e) {}
-
         let globalCards = [];
-        let currentZoomCard = null;
         let currentScale = 1;
+        let currentZoomCard = null;
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            await loadCatalog();
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
+            } catch (e) {}
+
+            checkUserLogin();
+            loadCatalog();
         });
+
+        // लॉगिन चेक करने वाला फंक्शन
+        function isUserLoggedIn() {
+            const user = localStorage.getItem('dp_current_user');
+            return !!user;
+        }
+
+        // डायरेक्ट ऑर्डर फॉर्म पर जाने से पहले लॉगिन चेक
+        function requireLoginForOrder() {
+            if (!isUserLoggedIn()) {
+                alert("कृपया पहले लॉगिन करें!");
+                window.location.href = "login.html";
+                return;
+            }
+            window.location.href = "order.html";
+        }
+
+        function checkUserLogin() {
+            const user = localStorage.getItem('dp_current_user');
+            const authNav = document.getElementById('authNavContainer');
+            const loggedBox = document.getElementById('userLoggedBox');
+            const mobLink = document.getElementById('mobileAuthLink');
+            const mobText = document.getElementById('mobileAuthText');
+
+            if (user) {
+                if (authNav) authNav.style.display = 'none';
+                if (loggedBox) loggedBox.style.display = 'flex';
+                if (mobLink) {
+                    mobLink.href = 'my_orders.html';
+                    if (mobText) mobText.textContent = 'ऑर्डर्स';
+                }
+            } else {
+                if (authNav) authNav.style.display = 'block';
+                if (loggedBox) loggedBox.style.display = 'none';
+                if (mobLink) {
+                    mobLink.href = 'login.html';
+                    if (mobText) mobText.textContent = 'लॉगिन';
+                }
+            }
+        }
 
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
+            if (!container) return;
+
             if (!supabaseClient) {
                 container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
                 return;
             }
 
-            const tables = ['cards_catalog', 'catalog', 'cards'];
-            let fetchedData = null;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('cards')
+                    .select('*')
+                    .order('id', { ascending: false });
 
-            for (const tbl of tables) {
-                try {
-                    const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
-                    if (data && data.length > 0) {
-                        fetchedData = data;
-                        break;
-                    }
-                } catch (e) {}
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#64748b;">कोई कार्ड उपलब्ध नहीं है।</p>';
+                    return;
+                }
+
+                globalCards = data;
+                container.innerHTML = '';
+
+                data.forEach((card, idx) => {
+                    const cardName = card.name || 'शादी कार्ड';
+                    const cardModel = card.model || card.code || '';
+                    const cardRate = card.rate || card.price || '0';
+                    const cardImg = card.image || card.image_url || card.photo || 'https://placehold.co/400x300?text=Card';
+
+                    const cardBox = document.createElement('div');
+                    cardBox.className = 'card-sample';
+                    cardBox.innerHTML = `
+                        <div class="img-box" onclick="openZoomModal(${idx})">
+                            <img src="${cardImg}" alt="${cardName}" onerror="this.src='https://placehold.co/400x300?text=Card'">
+                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
+                        </div>
+                        <div class="card-info">
+                            <h4>${cardName}</h4>
+                            <div class="model-text">${cardModel}</div>
+                            <div class="card-price-tag">₹${cardRate} / पीस</div>
+                            <button type="button" class="btn-select-card" onclick="selectCardForOrder(${idx})">
+                                <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(cardBox);
+                });
+
+            } catch (err) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">कैटलॉग लोड करने में समस्या आई।</p>';
             }
+        }
 
-            if (!fetchedData || fetchedData.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#64748b;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>';
+        function selectCardForOrder(cardIndex) {
+            // लॉगिन चेक
+            if (!isUserLoggedIn()) {
+                alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
+                window.location.href = 'login.html';
                 return;
             }
 
-            globalCards = fetchedData;
-            container.innerHTML = '';
-
-            fetchedData.forEach((card, index) => {
-                const name = card.name || card.title || 'शादी कार्ड';
-                const model = card.model || card.code || '';
-                const rate = card.rate || card.price || 0;
-                const img = card.image || card.image_url || card.photo || 'https://placehold.co/180x150?text=Card';
-
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'card-sample';
-                cardDiv.innerHTML = `
-                    <div class="img-box" onclick="openZoomModal(${index})">
-                        <img src="${img}" alt="${name}" onerror="this.src='https://placehold.co/180x150?text=Card'">
-                        <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</div>
-                    </div>
-                    <div class="card-info">
-                        <h4>${name}</h4>
-                        <div class="model-text">${model}</div>
-                        <div class="card-price-tag">₹${rate} / पीस</div>
-                        <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
-                            <i class="fa-solid fa-check"></i> यह कार्ड चुनें
-                        </button>
-                    </div>
-                `;
-                container.appendChild(cardDiv);
-            });
-        }
-
-        // कार्ड चुनकर सीधे order.html पर सुरक्षित भेजने वाला फंक्शन
-        function selectCardForOrder(cardIndex) {
             const card = globalCards[cardIndex];
             if (!card) return;
 
-            // पुराना कैश्ड डेटा साफ़ करें
-            localStorage.clear();
-
             const cardData = {
                 id: card.id || '',
-                name: card.name || card.title || 'शादी कार्ड',
+                name: card.name || 'शादी कार्ड',
                 model: card.model || card.code || '',
                 rate: parseFloat(card.rate || card.price) || 0,
                 image: card.image || card.image_url || card.photo || ''
             };
 
-            // localStorage में ताज़ा डेटा सेव करें
             localStorage.setItem('order_selected_card', JSON.stringify(cardData));
-
-            // URL पैरामीटर के साथ रीडायरेक्ट करें
-            window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
+            window.location.href = 'order.html?' + encodeURIComponent(cardData.id);
         }
 
-        // ज़ूम पॉपअप के फंक्शन्स
         function openZoomModal(index) {
             const card = globalCards[index];
             if (!card) return;
+
             currentZoomCard = card;
             currentScale = 1;
 
@@ -520,31 +563,44 @@
             const title = document.getElementById('zoomModalTitle');
 
             img.src = card.image || card.image_url || card.photo || 'https://placehold.co/400x300?text=Card';
-            img.style.transform = `scale(1)`;
-            title.innerText = `${card.name || 'शादी कार्ड'} ${card.model ? '(' + card.model + ')' : ''}`;
+            title.textContent = (card.name || 'कार्ड') + (card.model ? ' (' + card.model + ')' : '');
 
             modal.classList.add('active');
         }
 
         function closeZoomModal() {
-            document.getElementById('imageZoomModal').classList.remove('active');
+            const modal = document.getElementById('imageZoomModal');
+            modal.classList.remove('active');
         }
 
         function applyZoom(delta) {
-            currentScale = Math.min(Math.max(1, currentScale + delta), 3.5);
+            currentScale = Math.max(0.5, Math.min(currentScale + delta, 3));
             document.getElementById('zoomModalImg').style.transform = `scale(${currentScale})`;
         }
 
         function resetZoom() {
             currentScale = 1;
-            document.getElementById('zoomModalImg').style.transform = `scale(1)`;
+            document.getElementById('zoomModalImg').style.transform = 'scale(1)';
         }
 
         function redirectToOrderFromZoom() {
-            if (!currentZoomCard) return;
-            const index = globalCards.indexOf(currentZoomCard);
-            if (index !== -1) {
-                selectCardForOrder(index);
+            // लॉगिन चेक
+            if (!isUserLoggedIn()) {
+                alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (currentZoomCard) {
+                const cardData = {
+                    id: currentZoomCard.id || '',
+                    name: currentZoomCard.name || 'शादी कार्ड',
+                    model: currentZoomCard.model || currentZoomCard.code || '',
+                    rate: parseFloat(currentZoomCard.rate || currentZoomCard.price) || 0,
+                    image: currentZoomCard.image || currentZoomCard.image_url || currentZoomCard.photo || ''
+                };
+                localStorage.setItem('order_selected_card', JSON.stringify(cardData));
+                window.location.href = 'order.html?' + encodeURIComponent(cardData.id);
             }
         }
     </script>
