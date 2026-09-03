@@ -157,7 +157,7 @@
             <h3 style="color: var(--dark); margin-bottom: 14px;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
                 <label>एडमिन सुरक्षा पिन:</label>
-                <input type="password" id="adminPin" placeholder="सुरक्षा पिन दर्ज करें" onkeydown="if(event.key==='Enter') verifyAdminPin()">
+                <input type="password" id="adminPin" placeholder="सुरक्षा पिन दर्ज करें (उदा: 1234)" autocomplete="off">
             </div>
             <button type="button" id="btnAdminLogin" onclick="verifyAdminPin()" style="width: 100%; padding: 10px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 12px;">
                 प्रवेश करें
@@ -177,7 +177,7 @@
                     <h2 style="color: var(--primary); font-size: 20px; cursor: pointer;" onclick="window.location.href='index.html'">
                         दिल्ली प्रेस - एडमिन डैशबोर्ड
                     </h2>
-                    <p style="font-size: 12px; color: #64748b;">सज्जाद डिजिटल प्रिंट्स | ईदगाह मोड़ (छतर मोड़), करमाटांड़</p>
+                    <p style="font-size: 12px; color: #64748b;">सज्जाद डिजिटल प्रिंट्स | ईदगाह मोड़ (छैतर मोड़), करमाटांड़</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <a href="index.html" class="btn-home-action">
@@ -355,29 +355,54 @@
         let globalCustomersCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('dp_admin_auth') === 'true') {
+            const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_logged') === 'true';
+            if (isAuth) {
                 showDashboard();
+            }
+
+            const pinInput = document.getElementById('adminPin');
+            if (pinInput) {
+                pinInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        verifyAdminPin();
+                    }
+                });
             }
         });
 
         function verifyAdminPin() {
-            const entered = document.getElementById('adminPin').value.trim();
+            const pinInput = document.getElementById('adminPin');
+            if (!pinInput) return;
+
+            const entered = pinInput.value.trim();
             if (entered === "1234" || entered === "9304" || entered === "815352") {
-                sessionStorage.setItem('dp_admin_auth', 'true');
+                try {
+                    sessionStorage.setItem('dp_admin_auth', 'true');
+                    localStorage.setItem('dp_admin_logged', 'true');
+                } catch (e) {}
                 showDashboard();
             } else {
-                alert("गलत सुरक्षा पिन!");
+                alert("गलत सुरक्षा पिन! कृपया सही पिन दर्ज करें।");
+                pinInput.value = "";
+                pinInput.focus();
             }
         }
 
         function showDashboard() {
-            document.getElementById('adminPinSection').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'block';
+            const pinSec = document.getElementById('adminPinSection');
+            const dashSec = document.getElementById('adminDashboard');
+
+            if (pinSec) pinSec.style.display = 'none';
+            if (dashSec) dashSec.style.display = 'block';
+            
             loadCatalogStock();
         }
 
         function handleAdminLogout() {
-            sessionStorage.removeItem('dp_admin_auth');
+            try {
+                sessionStorage.removeItem('dp_admin_auth');
+                localStorage.removeItem('dp_admin_logged');
+            } catch (e) {}
             location.reload();
         }
 
@@ -947,3 +972,6 @@
             document.body.innerHTML = originalContent;
             location.reload();
         }
+    </script>
+</body>
+</html>
