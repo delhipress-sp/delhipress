@@ -130,11 +130,6 @@
         .card-info h4 { font-size: 14px; color: #2d3748; margin-bottom: 2px; }
         .card-info .model-text { font-size: 12px; color: #64748b; margin-bottom: 4px; font-weight: 600; }
         .card-price-tag { color: var(--primary); font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-        .stock-badge {
-            display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: bold;
-        }
-        .in-stock { background: #dcfce7; color: #15803d; }
-        .out-stock { background: #fee2e2; color: #b91c1c; }
         
         .btn-select-card {
             display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -422,6 +417,38 @@
         let currentScale = 1;
         let currentZoomCard = null;
 
+        // डिफ़ॉल्ट कार्ड्स जो हमेशा दिखेंगे
+        const defaultCards = [
+            {
+                id: '1',
+                name: "Muslim wedding card",
+                model: "Window envelope and premium look card",
+                rate: "11",
+                image: "https://i.ibb.co/3ykjNHz/card1.jpg"
+            },
+            {
+                id: '2',
+                name: "Muslim wedding card without jadi",
+                model: "6x9 Normal Card",
+                rate: "6",
+                image: "https://i.ibb.co/C0W2kFq/card2.jpg"
+            },
+            {
+                id: '3',
+                name: "Muslim wedding card square",
+                model: "3pc Page 1Pc Plastic",
+                rate: "20",
+                image: "https://i.ibb.co/rfnL07H/card3.jpg"
+            },
+            {
+                id: '4',
+                name: "Muslim wedding card",
+                model: "4 Fold/White Card",
+                rate: "9",
+                image: "https://i.ibb.co/68Hn6yT/card4.jpg"
+            }
+        ];
+
         window.addEventListener('DOMContentLoaded', () => {
             try {
                 if (window.supabase) {
@@ -433,13 +460,13 @@
             loadCatalog();
         });
 
-        // लॉगिन चेक करने वाला फंक्शन
+        // लॉगिन स्टेटस चेक
         function isUserLoggedIn() {
             const user = localStorage.getItem('dp_current_user');
             return !!user;
         }
 
-        // डायरेक्ट ऑर्डर फॉर्म पर जाने से पहले लॉगिन चेक
+        // ऑर्डर फॉर्म पर जाने से पहले लॉगिन चेक
         function requireLoginForOrder() {
             if (!isUserLoggedIn()) {
                 alert("कृपया पहले लॉगिन करें!");
@@ -477,59 +504,57 @@
             const container = document.getElementById('catalogContainer');
             if (!container) return;
 
-            if (!supabaseClient) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
-                return;
-            }
+            let cardsToDisplay = [];
 
             try {
-                const { data, error } = await supabaseClient
-                    .from('cards')
-                    .select('*')
-                    .order('id', { ascending: false });
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient
+                        .from('cards')
+                        .select('*')
+                        .order('id', { ascending: false });
 
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#64748b;">कोई कार्ड उपलब्ध नहीं है।</p>';
-                    return;
+                    if (!error && data && data.length > 0) {
+                        cardsToDisplay = data;
+                    } else {
+                        cardsToDisplay = defaultCards;
+                    }
+                } else {
+                    cardsToDisplay = defaultCards;
                 }
-
-                globalCards = data;
-                container.innerHTML = '';
-
-                data.forEach((card, idx) => {
-                    const cardName = card.name || 'शादी कार्ड';
-                    const cardModel = card.model || card.code || '';
-                    const cardRate = card.rate || card.price || '0';
-                    const cardImg = card.image || card.image_url || card.photo || 'https://placehold.co/400x300?text=Card';
-
-                    const cardBox = document.createElement('div');
-                    cardBox.className = 'card-sample';
-                    cardBox.innerHTML = `
-                        <div class="img-box" onclick="openZoomModal(${idx})">
-                            <img src="${cardImg}" alt="${cardName}" onerror="this.src='https://placehold.co/400x300?text=Card'">
-                            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                        </div>
-                        <div class="card-info">
-                            <h4>${cardName}</h4>
-                            <div class="model-text">${cardModel}</div>
-                            <div class="card-price-tag">₹${cardRate} / पीस</div>
-                            <button type="button" class="btn-select-card" onclick="selectCardForOrder(${idx})">
-                                <i class="fa-solid fa-check"></i> यह कार्ड चुनें
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(cardBox);
-                });
-
             } catch (err) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">कैटलॉग लोड करने में समस्या आई।</p>';
+                cardsToDisplay = defaultCards;
             }
+
+            globalCards = cardsToDisplay;
+            container.innerHTML = '';
+
+            cardsToDisplay.forEach((card, idx) => {
+                const cardName = card.name || 'शादी कार्ड';
+                const cardModel = card.model || card.code || '';
+                const cardRate = card.rate || card.price || '0';
+                const cardImg = card.image || card.image_url || card.photo || 'https://placehold.co/400x300?text=Card';
+
+                const cardBox = document.createElement('div');
+                cardBox.className = 'card-sample';
+                cardBox.innerHTML = `
+                    <div class="img-box" onclick="openZoomModal(${idx})">
+                        <img src="${cardImg}" alt="${cardName}" onerror="this.src='https://placehold.co/400x300?text=Card'">
+                        <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
+                    </div>
+                    <div class="card-info">
+                        <h4>${cardName}</h4>
+                        <div class="model-text">${cardModel}</div>
+                        <div class="card-price-tag">₹${cardRate} / पीस</div>
+                        <button type="button" class="btn-select-card" onclick="selectCardForOrder(${idx})">
+                            <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                        </button>
+                    </div>
+                `;
+                container.appendChild(cardBox);
+            });
         }
 
         function selectCardForOrder(cardIndex) {
-            // लॉगिन चेक
             if (!isUserLoggedIn()) {
                 alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
                 window.location.href = 'login.html';
@@ -584,7 +609,6 @@
         }
 
         function redirectToOrderFromZoom() {
-            // लॉगिन चेक
             if (!isUserLoggedIn()) {
                 alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
                 window.location.href = 'login.html';
