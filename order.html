@@ -158,25 +158,6 @@
             padding: 10px 12px; border-radius: 6px; margin-top: 8px;
         }
 
-        .payment-box {
-            background: #f0fdf4; border: 1px solid #bbf7d0;
-            padding: 16px; border-radius: 8px; text-align: center;
-        }
-        .qr-wrapper {
-            background: #fff; border: 1px solid #cbd5e1; display: inline-block;
-            padding: 8px; border-radius: 8px; margin: 10px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .qr-wrapper img { width: 160px; height: 160px; display: block; }
-
-        .btn-cashfree {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: #38bdf8 !important; border: 1px solid #38bdf8;
-            padding: 10px 18px; border-radius: 6px; font-weight: bold; font-size: 13px;
-            display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
-            margin: 6px 4px; transition: 0.2s; cursor: pointer;
-        }
-        .btn-cashfree:hover { background: #0284c7; color: white !important; }
-
         .declaration-box {
             background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
             padding: 12px; margin-top: 5px; display: flex; align-items: flex-start; gap: 10px;
@@ -188,63 +169,14 @@
             font-size: 13px; color: #1e3a8a; font-weight: 600; line-height: 1.5; cursor: pointer; margin-bottom: 0;
         }
 
-        .btn-review-main {
-            width: 100%; padding: 14px; background: var(--blue); color: white;
-            font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
+        /* Order Now Button */
+        .btn-order-now {
+            width: 100%; padding: 15px; background: var(--green); color: white;
+            font-size: 17px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3); transition: 0.2s;
         }
-
-        /* मोडल एवं पेमेंट च्वाइस स्टाइल्स */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;
-            padding: 10px;
-        }
-        .modal-content {
-            background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 620px;
-            max-height: 90vh; overflow-y: auto; position: relative;
-        }
-        .close-btn { position: absolute; right: 12px; top: 10px; font-size: 22px; cursor: pointer; }
-        .review-box {
-            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;
-            padding: 12px; font-size: 13px; line-height: 1.6; margin: 12px 0;
-            max-height: 250px; overflow-y: auto; white-space: pre-line;
-        }
-
-        .payment-choice-card {
-            border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px;
-            background: #fff; text-align: left;
-        }
-        .payment-choice-card.selected {
-            border-color: var(--green); background: #f0fdf4;
-        }
-        .payment-choice-header {
-            display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; cursor: pointer;
-        }
-        .payment-choice-header input[type="radio"] {
-            width: 18px; height: 18px; cursor: pointer;
-        }
-
-        .btn-confirm-submit {
-            width: 100%; padding: 14px; background: var(--green); color: white;
-            font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;
-        }
-        .btn-edit-action {
-            width: 100%; padding: 10px; background: #fff; color: #334155;
-            font-size: 14px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;
-        }
-        .btn-wa-action {
-            width: 100%; padding: 12px; background: var(--wa-green); color: white;
-            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; text-decoration: none;
-        }
-        .btn-redirect-myorders {
-            width: 100%; padding: 12px; background: var(--blue); color: white;
-            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
-        }
+        .btn-order-now:hover { background: #219653; }
 
         .main-footer {
             background: var(--dark); color: #cbd5e1; padding: 30px 15px 20px;
@@ -310,8 +242,8 @@
                 </div>
             </div>
 
-            <!-- स्टेप 1: फॉर्म सबमिट करने पर पहले प्रीव्यू व पेमेंट मोड खुलेगा -->
-            <form id="weddingForm" onsubmit="event.preventDefault(); showPreviewBeforeSubmit();">
+            <!-- फॉर्म सबमिट होने पर सीधे payment.html पर जाएगा -->
+            <form id="weddingForm" onsubmit="event.preventDefault(); processOrderNow();">
                 
                 <input type="hidden" id="selectedCardImageStored" value="">
                 <input type="hidden" id="selectedCardModelStored" value="">
@@ -362,7 +294,7 @@
                                 <label style="color: #166534; font-weight: bold;">
                                     <i class="fa-solid fa-hand-holding-dollar"></i> एडवांस जमा राशि (₹):
                                 </label>
-                                <input type="number" id="advancePaidInput" value="0" min="0" step="any" oninput="updateAdvanceCalculations()" required>
+                                <input type="number" id="advancePaidInput" value="0" min="0" step="any" required>
                             </div>
                             <div class="form-group" style="margin-bottom: 0; text-align: right;">
                                 <label style="color: #b91c1c; font-weight: bold;">बाकी बकाया (Balance):</label>
@@ -486,95 +418,12 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn-review-main">
-                    <i class="fa-solid fa-eye"></i> मैटर चेक करें एवं पेमेंट / सबमिट विकल्प चुनें
+                <!-- Order Now Button -->
+                <button type="submit" class="btn-order-now">
+                    <i class="fa-solid fa-bag-shopping"></i> Order Now (भुगतान पृष्ठ पर जाएं)
                 </button>
 
             </form>
-        </div>
-    </div>
-
-    <!-- Review, Payment Choice & Submit Modal -->
-    <div class="modal" id="reviewModal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeReviewModal()">&times;</span>
-            <h3 style="color: var(--primary); margin-bottom: 4px;" id="modalHeaderTitle">
-                <i class="fa-solid fa-file-invoice"></i> ऑर्डर समीक्षा एवं पेमेंट विकल्प
-            </h3>
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">मैटर जांचें और भुगतान का तरीका चुनकर सबमिट करें:</p>
-            
-            <div class="review-box" id="reviewBoxContent"></div>
-
-            <!-- स्टेप A: सबमिट से पहले पेमेंट विकल्प (Pay Now vs Cash on Delivery) -->
-            <div id="preSubmitActionGroup">
-                
-                <div style="margin: 12px 0;">
-                    <label style="font-weight:bold; font-size:14px; margin-bottom:6px; display:block;">भुगतान का तरीका चुनें:</label>
-                    
-                    <!-- विकल्प 1: Pay Now -->
-                    <div class="payment-choice-card selected" id="optPayNowCard" onclick="selectPayOption('pay_now')">
-                        <div class="payment-choice-header">
-                            <input type="radio" name="payOptionRadio" id="radioPayNow" value="pay_now" checked>
-                            <label for="radioPayNow" style="cursor:pointer; margin-bottom:0; color:#15803d;">
-                                <i class="fa-solid fa-bolt"></i> Pay Now (UPI / QR / Cashfree से तुरंत भुगतान)
-                            </label>
-                        </div>
-                        
-                        <div id="payNowDetailsBlock" style="margin-top:10px; padding-top:8px; border-top:1px dashed #cbd5e1; text-align:center;">
-                            <div class="qr-wrapper" style="margin:5px 0;">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi%3A%2F%2Fpay%3Fpa%3D9304509464%40okbizaxis%26pn%3DDelhiPress" alt="UPI QR">
-                            </div>
-                            <p style="font-size:12px; color:#64748b; margin:4px 0;">UPI ID: <b>9304509464@okbizaxis</b></p>
-                            <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin:8px 0;">
-                                <a href="#" class="btn-nav" id="btnModalUpiPay" style="background:#2563eb; color:white; padding:6px 14px;">
-                                    <i class="fa-solid fa-mobile-screen-button"></i> UPI ऐप से पे करें
-                                </a>
-                                <a href="javascript:void(0)" onclick="openCashfreePayment()" class="btn-cashfree" style="padding:6px 14px; margin:0;">
-                                    <i class="fa-solid fa-credit-card"></i> Cashfree पे
-                                </a>
-                            </div>
-                            <div style="text-align:left; margin-top:8px;">
-                                <label style="font-size:12px; font-weight:bold;">भुगतान UTR / Txn ID दर्ज करें:</label>
-                                <input type="text" id="modalTxnIdInput" placeholder="उदा: 4123XXXXXXXX" style="padding:8px; font-size:13px;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- विकल्प 2: Cash On Delivery / दुकान पर भुगतान -->
-                    <div class="payment-choice-card" id="optCodCard" onclick="selectPayOption('cod')">
-                        <div class="payment-choice-header">
-                            <input type="radio" name="payOptionRadio" id="radioCod" value="cod">
-                            <label for="radioCod" style="cursor:pointer; margin-bottom:0; color:#b45309;">
-                                <i class="fa-solid fa-handshake"></i> Cash on Delivery / दुकान पर नकद भुगतान
-                            </label>
-                        </div>
-                        <p style="font-size:12px; color:#64748b; margin:6px 0 0 28px;">
-                            एडवांस राशि प्रूफ देखने के समय या दुकान पर आकर नकद जमा करें।
-                        </p>
-                    </div>
-
-                </div>
-
-                <button type="button" class="btn-confirm-submit" id="finalSubmitBtn" onclick="executeDatabaseOrderSave()">
-                    <i class="fa-solid fa-circle-check"></i> ऑर्डर कन्फर्म एवं सबमिट करें
-                </button>
-                <button type="button" class="btn-edit-action" onclick="closeReviewModal()">
-                    <i class="fa-solid fa-pen-to-square"></i> ✏️ सुधारें / एडिट करें (Back to Edit)
-                </button>
-            </div>
-
-            <!-- स्टेप B: डेटाबेस में सेव होने के बाद दिखने वाले विकल्प -->
-            <div id="postSubmitActionGroup" style="display: none;">
-                <div style="background:#dcfce7; color:#15803d; padding:10px; border-radius:6px; font-weight:bold; font-size:13px; text-align:center; margin-bottom:12px;">
-                    <i class="fa-solid fa-circle-check"></i> आपका ऑर्डर एडमिन पैनल व डेटाबेस में सफलतापूर्वक दर्ज हो गया है!
-                </div>
-                <a href="#" class="btn-wa-action" id="waConfirmBtn" target="_blank">
-                    <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर मैटर भेजें
-                </a>
-                <button type="button" class="btn-redirect-myorders" onclick="goToMyOrders()">
-                    <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स (My Orders) पर जाएं
-                </button>
-            </div>
         </div>
     </div>
 
@@ -610,11 +459,8 @@
             }
         } catch (e) {}
 
-        const UPI_ID = "9304509464@okbizaxis";
-        const OWNER_MOBILE = "919304509464";
         let isGroomFirst = true;
         let globalCatalogCards = [];
-        let preparedOrderSummary = "";
 
         window.addEventListener('DOMContentLoaded', async () => {
             const currentUser = localStorage.getItem('dp_current_user');
@@ -657,8 +503,7 @@
             if (targetCard) {
                 applyCardDetails(targetCard);
                 if (targetCard.id) {
-                    const dropdown = document.getElementById('directCardSelect');
-                    dropdown.value = targetCard.id;
+                    document.getElementById('directCardSelect').value = targetCard.id;
                 }
             } else {
                 document.getElementById('previewCardName').innerText = "कैटलॉग से कार्ड चुनें";
@@ -701,9 +546,7 @@
         function onCatalogSelectChange(cardId) {
             if (!cardId) return;
             const card = globalCatalogCards.find(c => String(c.id) === String(cardId));
-            if (card) {
-                applyCardDetails(card);
-            }
+            if (card) applyCardDetails(card);
         }
 
         function applyCardDetails(card) {
@@ -745,58 +588,10 @@
             if (isInitial || advanceInput.value == 0) {
                 advanceInput.value = Math.round(total * 0.5);
             }
-            updateAdvanceCalculations();
-        }
-
-        function updateAdvanceCalculations() {
-            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            const qty = parseInt(document.getElementById('cardQty').value) || 0;
-            const total = rate * qty;
             
-            const advance = parseFloat(document.getElementById('advancePaidInput').value) || 0;
+            const advance = parseFloat(advanceInput.value) || 0;
             const balance = Math.max(0, total - advance);
-            
             document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
-            
-            const upiLink = document.getElementById('btnModalUpiPay');
-            if (upiLink) {
-                upiLink.href = `upi://pay?pa=${UPI_ID}&pn=DelhiPress&am=${advance}`;
-            }
-        }
-
-        function selectPayOption(mode) {
-            const payCard = document.getElementById('optPayNowCard');
-            const codCard = document.getElementById('optCodCard');
-            const radioPayNow = document.getElementById('radioPayNow');
-            const radioCod = document.getElementById('radioCod');
-            const payBlock = document.getElementById('payNowDetailsBlock');
-
-            if (mode === 'pay_now') {
-                radioPayNow.checked = true;
-                payCard.classList.add('selected');
-                codCard.classList.remove('selected');
-                payBlock.style.display = 'block';
-            } else {
-                radioCod.checked = true;
-                codCard.classList.add('selected');
-                payCard.classList.remove('selected');
-                payBlock.style.display = 'none';
-            }
-        }
-
-        function openCashfreePayment() {
-            const advance = document.getElementById('advancePaidInput').value;
-            const mobile = document.getElementById('custMobile').value || "9304509464";
-            const name = document.getElementById('custFullName').value || "Customer";
-
-            if (!advance || advance <= 0) {
-                alert("कृपया पहले एडवांस राशि निर्धारित करें।");
-                return;
-            }
-
-            alert(`Cashfree पेमेंट विंडो खुल रही है। राशि: ₹${advance}\nभुगतान के बाद प्राप्त Transaction / Order ID बॉक्स में दर्ज करें।`);
-            const cashfreeUrl = `https://payments.cashfree.com/order/#/payment?amount=${advance}&customer_phone=${encodeURIComponent(mobile)}&customer_name=${encodeURIComponent(name)}`;
-            window.open(cashfreeUrl, '_blank');
         }
 
         function swapCoupleSides() {
@@ -844,119 +639,21 @@
             const div = document.createElement('div');
             div.className = 'event-box-item custom-note-item';
             div.innerHTML = `
-                <button type="button" class="btn-remove-event" onclick="removeCustomTextBox(this)">हटाएं</button>
+                <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
                 <div class="form-group">
-                    <label>शीर्षक (जैसे: शायरी, बाल मनुहार आदि):</label>
-                    <input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार / शायरी / स्वागत संदेश">
+                    <label>शीर्षक (शायरी / बाल मनुहार):</label>
+                    <input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार">
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>संदेश / मैटर लिखें:</label>
-                    <textarea class="custom-note-text" rows="3" placeholder="यहाँ शायरी, बच्चों के नाम या कोई भी जरूरी मैटर दर्ज करें..."></textarea>
+                    <label>संदेश लिखें:</label>
+                    <textarea class="custom-note-text" rows="2" placeholder="मैटर..."></textarea>
                 </div>
             `;
             container.appendChild(div);
         }
 
-        function removeCustomTextBox(btn) {
-            btn.closest('.custom-note-item').remove();
-        }
-
-        function goToMyOrders() {
-            window.location.href = "my_orders.html";
-        }
-
-        // स्टेप 1: सबमिट करने से पहले सिर्फ प्रीव्यू व पेमेंट मोड दिखाना
-        function showPreviewBeforeSubmit() {
-            const fullName = document.getElementById('custFullName').value;
-            const mobile = document.getElementById('custMobile').value;
-            const address = document.getElementById('custFullAddress').value;
-            const cardName = document.getElementById('cardCategory').value;
-            const cardModel = document.getElementById('selectedCardModelStored').value;
-
-            const qty = parseInt(document.getElementById('cardQty').value) || 0;
-            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            const total = qty * rate;
-            const advance = parseFloat(document.getElementById('advancePaidInput').value) || 0;
-            const balance = Math.max(0, total - advance);
-
-            const groom = document.getElementById('groomName').value;
-            const groomFather = document.getElementById('groomFather').value;
-            const bride = document.getElementById('brideName').value;
-            const brideFather = document.getElementById('brideFather').value;
-
-            const vineet = document.getElementById('vineetNames').value;
-            const darshan = document.getElementById('darshanNames').value;
-
-            let eventsList = [];
-            document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
-                const title = el.querySelector('.event-title') ? el.querySelector('.event-title').value : '';
-                const date = el.querySelector('.event-date') ? el.querySelector('.event-date').value : '';
-                const time = el.querySelector('.event-time') ? el.querySelector('.event-time').value : '';
-                if (title) eventsList.push(`${title}: ${date} (${time})`);
-            });
-
-            let customNotesWhatsApp = "";
-            document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
-                const t = el.querySelector('.custom-note-title').value.trim();
-                const m = el.querySelector('.custom-note-text').value.trim();
-                if (t || m) {
-                    customNotesWhatsApp += `\n*${t || 'अतिरिक्त मैटर'}:*\n${m}\n`;
-                }
-            });
-
-            // प्रीव्यू टेक्स्ट तैयार करना
-            preparedOrderSummary = `📌 *शादी कार्ड ऑर्डर एवं मैटर सारांश*
----------------------------------------
-कार्ड: ${cardName} (${cardModel || 'DP'})
-कुल मात्रा: ${qty} पीस | कुल बिल: ₹${total}
-एडवांस निर्धारित: ₹${advance} | बकाया: ₹${balance}
-
-ग्राहक: ${fullName} (${mobile})
-पता: ${address}
-
-वर: ${groom} (पिता: ${groomFather})
-वधू: ${bride} (पिता: ${brideFather})
-
-कार्यक्रम:
-${eventsList.map(e => `• ${e}`).join('\n')}
-${customNotesWhatsApp ? `---------------------------------------\nअतिरिक्त मैटर:\n${customNotesWhatsApp}` : ''}
-RSVP / निवेदक: ${vineet || '-'}
-दर्शनाभिलाषी: ${darshan || '-'}`;
-
-            document.getElementById('reviewBoxContent').innerText = preparedOrderSummary;
-
-            // UPI लिंक अपडेट
-            const upiLink = document.getElementById('btnModalUpiPay');
-            if (upiLink) {
-                upiLink.href = `upi://pay?pa=${UPI_ID}&pn=DelhiPress&am=${advance}`;
-            }
-
-            // मोडल मोड सेट करें
-            document.getElementById('preSubmitActionGroup').style.display = 'block';
-            document.getElementById('postSubmitActionGroup').style.display = 'none';
-
-            document.getElementById('reviewModal').style.display = 'flex';
-        }
-
-        // स्टेप 2: पुष्टि होने पर डेटाबेस (Admin + My Orders) में दर्ज करना
-        async function executeDatabaseOrderSave() {
-            const isPayNow = document.getElementById('radioPayNow').checked;
-            let txnId = "COD (Cash on Delivery)";
-            
-            if (isPayNow) {
-                const enteredTxn = document.getElementById('modalTxnIdInput').value.trim();
-                if (!enteredTxn) {
-                    alert("कृपया ऑनलाइन भुगतान के बाद प्राप्त UTR / Transaction ID दर्ज करें। यदि नकद देना चाहते हैं तो 'Cash on Delivery' विकल्प चुनें।");
-                    document.getElementById('modalTxnIdInput').focus();
-                    return;
-                }
-                txnId = enteredTxn;
-            }
-
-            const finalBtn = document.getElementById('finalSubmitBtn');
-            finalBtn.disabled = true;
-            finalBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> एडमिन पैनल में दर्ज हो रहा है...';
-
+        // Order Now दबाने पर डेटा पैक करके सीधे payment.html पर भेजना
+        function processOrderNow() {
             const fullName = document.getElementById('custFullName').value;
             const mobile = document.getElementById('custMobile').value;
             const address = document.getElementById('custFullAddress').value;
@@ -966,9 +663,7 @@ RSVP / निवेदक: ${vineet || '-'}
             let cardImage = document.getElementById('selectedCardImageStored').value;
             if (!cardImage || cardImage.includes('placehold.co')) {
                 const previewSrc = document.getElementById('previewCardImage').src;
-                if (previewSrc && !previewSrc.includes('placehold.co')) {
-                    cardImage = previewSrc;
-                }
+                if (previewSrc && !previewSrc.includes('placehold.co')) cardImage = previewSrc;
             }
 
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
@@ -990,9 +685,9 @@ RSVP / निवेदक: ${vineet || '-'}
 
             let eventsArr = [];
             document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
-                const title = el.querySelector('.event-title') ? el.querySelector('.event-title').value : '';
-                const date = el.querySelector('.event-date') ? el.querySelector('.event-date').value : '';
-                const time = el.querySelector('.event-time') ? el.querySelector('.event-time').value : '';
+                const title = el.querySelector('.event-title').value;
+                const date = el.querySelector('.event-date').value;
+                const time = el.querySelector('.event-time').value;
                 if (title) eventsArr.push(`${title}: ${date} (${time})`);
             });
 
@@ -1000,7 +695,7 @@ RSVP / निवेदक: ${vineet || '-'}
             document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
                 const t = el.querySelector('.custom-note-title').value.trim();
                 const m = el.querySelector('.custom-note-text').value.trim();
-                if (t || m) customNotesText += `${t || 'अतिरिक्त मैटर'}: ${m}\n`;
+                if (t || m) customNotesText += `${t || 'मैटर'}: ${m}\n`;
             });
 
             let userIdentifier = mobile;
@@ -1012,7 +707,6 @@ RSVP / निवेदक: ${vineet || '-'}
                 } catch (e) {}
             }
 
-            // एडमिन पैनल (admin.html) के सटीक नेस्टेड ऑब्जेक्ट संरचना
             const nestedOrderData = {
                 id: Date.now(),
                 customer_name: fullName,
@@ -1025,8 +719,6 @@ RSVP / निवेदक: ${vineet || '-'}
                 total_amount: total,
                 advance_paid: advance,
                 balance_amount: balance,
-                utr_number: txnId,
-                payment_mode: isPayNow ? 'Online' : 'Cash on Delivery',
                 groom_name: groom,
                 groom_father: groomFather,
                 groom_address: groomAddress,
@@ -1040,8 +732,8 @@ RSVP / निवेदक: ${vineet || '-'}
                 created_at: new Date().toISOString()
             };
 
-            // दोनों स्कीमा के लिए संयुक्त पेलोड
             const fullPayload = {
+                id: nestedOrderData.id,
                 user_id: userIdentifier,
                 mobile: mobile,
                 phone: mobile,
@@ -1061,8 +753,6 @@ RSVP / निवेदक: ${vineet || '-'}
                 advance_paid: advance,
                 advance_amount: advance,
                 balance_amount: balance,
-                txn_id: txnId,
-                utr_number: txnId,
                 groom_name: groom,
                 groom_father: groomFather,
                 groom_address: groomAddress,
@@ -1073,47 +763,14 @@ RSVP / निवेदक: ${vineet || '-'}
                 custom_notes: customNotesText,
                 vineet: vineet,
                 darshanabhilashi: darshan,
-                order_data: nestedOrderData, // admin.html के लिए
+                order_data: nestedOrderData,
                 status: 'pending',
                 created_at: new Date().toISOString()
             };
 
-            // 1. Supabase में सेव करें
-            if (supabaseClient) {
-                try {
-                    const { error } = await supabaseClient.from('orders').insert([fullPayload]).select();
-                    if (error) {
-                        console.warn("Supabase Save Warning:", error.message);
-                    }
-                } catch (err) {
-                    console.warn("Supabase Error:", err);
-                }
-            }
-
-            // 2. लोकल स्टोरेज बैकअप (admin.html और my_orders.html दोनों की कीज़ अपडेट करें)
-            try {
-                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                localOrders.unshift(fullPayload);
-                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
-                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
-            } catch (e) {}
-
-            // 3. WhatsApp लिंक तैयार करें
-            const textContent = document.getElementById('reviewBoxContent').innerText;
-            const waSummary = `✨ *नया शादी कार्ड प्रिंटिंग ऑर्डर* ✨\n🏢 *प्रतिष्ठान:* दिल्ली प्रेस (सज्जाद प्रिंटर्स), जामताड़ा\n══════════════════════════\n*भुगतान मोड:* ${isPayNow ? 'ऑनलाइन भुगतान (Txn ID: ' + txnId + ')' : 'Cash on Delivery (दुकान पर भुगतान)'}\n══════════════════════════\n${textContent}\n══════════════════════════\n✅ ग्राहक द्वारा मैटर सत्यापित कर लिया गया है। कृपया प्रूफ तैयार करें।`;
-            const waUrl = `https://wa.me/${OWNER_MOBILE}?text=${encodeURIComponent(waSummary)}`;
-            document.getElementById('waConfirmBtn').href = waUrl;
-
-            // 4. मोडल को पोस्ट-सबमिट मोड में बदलें
-            document.getElementById('preSubmitActionGroup').style.display = 'none';
-            document.getElementById('postSubmitActionGroup').style.display = 'block';
-
-            finalBtn.disabled = false;
-            finalBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> ऑर्डर कन्फर्म एवं सबमिट करें';
-        }
-
-        function closeReviewModal() {
-            document.getElementById('reviewModal').style.display = 'none';
+            // अस्थायी रूप से डेटा सेव करके पेमेंट पेज पर रीडायरेक्ट करें
+            localStorage.setItem('dp_temp_order', JSON.stringify(fullPayload));
+            window.location.href = "payment.html";
         }
     </script>
 </body>
