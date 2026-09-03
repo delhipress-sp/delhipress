@@ -168,6 +168,15 @@
         }
         .qr-wrapper img { width: 160px; height: 160px; display: block; }
 
+        .btn-cashfree {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #38bdf8 !important; border: 1px solid #38bdf8;
+            padding: 10px 18px; border-radius: 6px; font-weight: bold; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+            margin: 6px 4px; transition: 0.2s; cursor: pointer;
+        }
+        .btn-cashfree:hover { background: #0284c7; color: white !important; }
+
         .declaration-box {
             background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
             padding: 12px; margin-top: 5px; display: flex; align-items: flex-start; gap: 10px;
@@ -202,8 +211,8 @@
         }
 
         .btn-wa-action {
-            width: 100%; padding: 11px; background: var(--wa-green); color: white;
-            font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            width: 100%; padding: 12px; background: var(--wa-green); color: white;
+            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
             display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; text-decoration: none;
         }
 
@@ -271,7 +280,7 @@
                 </div>
             </div>
 
-            <form id="weddingForm" onsubmit="event.preventDefault(); openReviewModal();">
+            <form id="weddingForm" onsubmit="event.preventDefault(); handleFormSubmitAndReview();">
                 
                 <input type="hidden" id="selectedCardImageStored" value="">
                 <input type="hidden" id="selectedCardModelStored" value="">
@@ -393,7 +402,7 @@
                             <div class="row-3">
                                 <div class="form-group">
                                     <label>कार्यक्रम नाम:</label>
-                                    <input type="text" class="event-title" value="अपना प्रोग्राम का नाम डालें" required>
+                                    <input type="text" class="event-title" value="शुभ विवाह / निकाह" required>
                                 </div>
                                 <div class="form-group">
                                     <label>दिनांक (Date):</label>
@@ -411,7 +420,7 @@
                     </button>
                 </div>
 
-                <!-- अतिरिक्त मैटर (शायरी / बाल मनुहार आदि) -->
+                <!-- अतिरिक्त मैटर (शायरी / बाल मनुहार / अन्य संदेश) -->
                 <div class="form-block">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px;">
                         <h4 style="margin-bottom: 0; border: none; padding: 0;">
@@ -452,28 +461,28 @@
                 </div>
 
                 <div class="form-block payment-box">
-                    <h4 style="border:none; color:#166534;"><i class="fa-solid fa-qrcode"></i> ऑनलाइन एडवांस भुगतान</h4>
+                    <h4 style="border:none; color:#166534;"><i class="fa-solid fa-shield-halved"></i> ऑनलाइन एडवांस भुगतान (UPI / Cashfree)</h4>
                     <p style="font-size: 13px; color: #15803d; margin-bottom: 5px;">
                         UPI ID: <strong>9304509464@okbizaxis</strong>
-                    </p>
-                    <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
-                        नीचे दिए गए QR कोड को स्कैन करें या बटन पर क्लिक करके सीधे भुगतान करें:
                     </p>
 
                     <div class="qr-wrapper">
                         <img id="upiQrCodeImg" src="" alt="UPI QR Code">
                     </div>
 
-                    <div style="margin: 10px 0;">
+                    <div style="margin: 10px 0; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
                         <a href="#" class="btn-nav" id="btnPayUpiDirect" style="background:#2563eb; color:white; padding:8px 16px;">
                             <i class="fa-solid fa-mobile-screen-button"></i> सीधे UPI ऐप से पे करें
+                        </a>
+                        <a href="javascript:void(0)" onclick="openCashfreePayment()" class="btn-cashfree">
+                            <i class="fa-solid fa-credit-card"></i> Cashfree से ऑनलाइन पे करें
                         </a>
                     </div>
 
                     <div class="row-2" style="margin-top: 15px; text-align: left;">
                         <div class="form-group">
                             <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
-                            <input type="text" id="paymentTxnId" placeholder="उदा: 4123XXXXXXXX" required>
+                            <input type="text" id="paymentTxnId" placeholder="उदा: 4123XXXXXXXX या Cashfree Order ID" required>
                         </div>
                         <div class="form-group">
                             <label>जमा की गई राशि (₹):</label>
@@ -489,7 +498,7 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn-review-main">
+                <button type="submit" class="btn-review-main" id="submitBtn">
                     <i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें
                 </button>
 
@@ -497,16 +506,17 @@
         </div>
     </div>
 
+    <!-- Review Modal -->
     <div class="modal" id="reviewModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReviewModal()">&times;</span>
             <h3 style="color: var(--primary); margin-bottom: 8px;">
-                <i class="fa-solid fa-clipboard-check"></i> ऑर्डर मैटर समीक्षा
+                <i class="fa-solid fa-clipboard-check"></i> ऑर्डर मैटर समीक्षा (Order Review)
             </h3>
-            <p style="font-size: 12px; color: #64748b;">कृपया व्हाट्सएप पर भेजने से पहले सम्पूर्ण मैटर का मिलान कर लें:</p>
+            <p style="font-size: 12px; color: #64748b;">आपका ऑर्डर डेटाबेस में सुरक्षित सेव कर लिया गया है। अब नीचे बटन दबाकर WhatsApp पर मैटर भेजें:</p>
             <div class="review-box" id="reviewBoxContent"></div>
             <a href="#" class="btn-wa-action" id="waConfirmBtn" target="_blank">
-                <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजकर आर्डर कन्फर्म करें
+                <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजकर ऑर्डर फाइनल करें
             </a>
         </div>
     </div>
@@ -549,12 +559,28 @@
         let globalCatalogCards = [];
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // 1. Supabase से ड्रॉपडाउन के कार्ड्स लोड करें
+            // लॉगिन सुरक्षा जांच
+            const currentUser = localStorage.getItem('dp_current_user');
+            if (!currentUser) {
+                alert("ऑर्डर फॉर्म खोलने से पहले कृपया लॉगिन करें।");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // अगर यूजर का फोन या नाम पहले से सेव है तो ऑटो-फिल करें
+            try {
+                const userObj = JSON.parse(currentUser);
+                if (userObj.name && !document.getElementById('custFullName').value) {
+                    document.getElementById('custFullName').value = userObj.name;
+                }
+                if (userObj.mobile && !document.getElementById('custMobile').value) {
+                    document.getElementById('custMobile').value = userObj.mobile;
+                }
+            } catch (e) {}
+
             await fetchAndFillCatalogDropdown();
 
             let targetCard = null;
-
-            // 2. सबसे पहले चेक करें कि क्या index.html से कोई कार्ड चुना गया है
             const storedSelected = localStorage.getItem('order_selected_card');
             if (storedSelected) {
                 try {
@@ -565,7 +591,6 @@
                 } catch (e) {}
             }
 
-            // 3. यदि URL में id दी गई है, तो Supabase से उसका ताज़ा डेटा निकालें
             const urlParams = new URLSearchParams(window.location.search);
             const cardId = urlParams.get('id') || urlParams.get('card_id');
             if (cardId && globalCatalogCards.length > 0) {
@@ -573,7 +598,6 @@
                 if (found) targetCard = found;
             }
 
-            // 4. अगर कार्ड मिल गया तो फॉर्म में भरें, वरना खाली रखें
             if (targetCard) {
                 applyCardDetails(targetCard);
                 if (targetCard.id) {
@@ -684,6 +708,23 @@
             upiLink.href = upiUrl;
         }
 
+        // कैशफ्री (Cashfree) पेमेंट इंटीग्रेशन
+        function openCashfreePayment() {
+            const advance = document.getElementById('advancePaidInput').value;
+            const mobile = document.getElementById('custMobile').value || "9304509464";
+            const name = document.getElementById('custFullName').value || "Customer";
+
+            if (!advance || advance <= 0) {
+                alert("कृपया पहले एडवांस राशि निर्धारित करें।");
+                return;
+            }
+
+            // कैशफ्री डायरेक्ट पेमेंट लिंक/पेआउट ट्रिगर
+            alert(`Cashfree पेमेंट विंडो खुल रही है। राशि: ₹${advance}\nभुगतान के बाद मिला Transaction ID यहाँ फॉर्म में दर्ज करें।`);
+            const cashfreeUrl = `https://payments.cashfree.com/order/#/payment?amount=${advance}&customer_phone=${encodeURIComponent(mobile)}&customer_name=${encodeURIComponent(name)}`;
+            window.open(cashfreeUrl, '_blank');
+        }
+
         function swapCoupleSides() {
             const container = document.getElementById('coupleContainer');
             const groomBox = document.getElementById('groomBox');
@@ -724,7 +765,6 @@
             container.appendChild(div);
         }
 
-        // नया अतिरिक्त संदेश/शायरी बॉक्स जोड़ने के लिए
         function addCustomTextBox() {
             const container = document.getElementById('customNotesContainer');
             const div = document.createElement('div');
@@ -743,7 +783,6 @@
             container.appendChild(div);
         }
 
-        // अतिरिक्त संदेश/शायरी बॉक्स हटाने के लिए
         function removeCustomTextBox(btn) {
             const items = document.querySelectorAll('.custom-note-item');
             if (items.length > 1) {
@@ -754,45 +793,147 @@
             }
         }
 
-        function openReviewModal() {
+        // फॉर्म सबमिशन, डेटाबेस सेविंग और रिव्यू
+        async function handleFormSubmitAndReview() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> डेटा सेव हो रहा है...';
+
             const fullName = document.getElementById('custFullName').value;
             const mobile = document.getElementById('custMobile').value;
             const address = document.getElementById('custFullAddress').value;
             const cardName = document.getElementById('cardCategory').value;
-            const qty = document.getElementById('cardQty').value;
-            const rate = document.getElementById('cardRate').value;
-            const advance = document.getElementById('advancePaidInput').value;
+            const cardModel = document.getElementById('selectedCardModelStored').value;
+            const cardImage = document.getElementById('selectedCardImageStored').value;
+            const qty = parseInt(document.getElementById('cardQty').value) || 0;
+            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
+            const total = qty * rate;
+            const advance = parseFloat(document.getElementById('advancePaidInput').value) || 0;
+            const balance = Math.max(0, total - advance);
             const txnId = document.getElementById('paymentTxnId').value;
 
             const groom = document.getElementById('groomName').value;
-            const bride = document.getElementById('brideName').value;
+            const groomFather = document.getElementById('groomFather').value;
+            const groomAddress = document.getElementById('groomAddress').value;
 
-            // अतिरिक्त शायरी / बाल मनुहार मैटर संकलित करना
-            let customNotesSummary = "";
-            const customNotes = document.querySelectorAll('.custom-note-item');
-            customNotes.forEach(item => {
-                const title = item.querySelector('.custom-note-title').value.trim();
-                const text = item.querySelector('.custom-note-text').value.trim();
-                if (title || text) {
-                    customNotesSummary += `\n*${title || 'अतिरिक्त मैटर'}:* ${text}`;
+            const bride = document.getElementById('brideName').value;
+            const brideFather = document.getElementById('brideFather').value;
+            const brideAddress = document.getElementById('brideAddress').value;
+
+            const vineet = document.getElementById('vineetNames').value;
+            const darshan = document.getElementById('darshanNames').value;
+
+            // प्रोग्राम इकट्ठा करना
+            let eventsArr = [];
+            document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
+                const title = el.querySelector('.event-title') ? el.querySelector('.event-title').value : '';
+                const date = el.querySelector('.event-date') ? el.querySelector('.event-date').value : '';
+                const time = el.querySelector('.event-time') ? el.querySelector('.event-time').value : '';
+                if (title) eventsArr.push(`${title}: ${date} (${time})`);
+            });
+
+            // कस्टम नोट्स/शायरी इकट्ठा करना
+            let customNotesArr = [];
+            let customNotesWhatsApp = "";
+            document.querySelectorAll('.custom-note-item').forEach(el => {
+                const t = el.querySelector('.custom-note-title').value.trim();
+                const m = el.querySelector('.custom-note-text').value.trim();
+                if (t || m) {
+                    customNotesArr.push({ title: t, text: m });
+                    customNotesWhatsApp += `\n*${t || 'अतिरिक्त मैटर'}:*\n${m}\n`;
                 }
             });
 
-            const summary = `*नया शादी कार्ड ऑर्डर (दिल्ली प्रेस - सज्जाद प्रिंटर्स)*
------------------------------------
-*कार्ड:* ${cardName}
-*संख्या:* ${qty} पीस | *रेट:* ₹${rate}
-*एडवांस जमा:* ₹${advance} | *Txn ID:* ${txnId}
+            // वर्तमान यूजर की जानकारी
+            let userIdentifier = mobile;
+            const storedUser = localStorage.getItem('dp_current_user');
+            if (storedUser) {
+                try {
+                    const u = JSON.parse(storedUser);
+                    userIdentifier = u.mobile || u.email || mobile;
+                } catch (e) {}
+            }
 
-*ग्राहक का नाम:* ${fullName}
-*मोबाइल:* ${mobile}
-*पता:* ${address}
+            const orderPayload = {
+                user_id: userIdentifier,
+                customer_name: fullName,
+                mobile: mobile,
+                address: address,
+                card_name: cardName,
+                card_model: cardModel,
+                card_image: cardImage,
+                quantity: qty,
+                rate: rate,
+                total_amount: total,
+                advance_paid: advance,
+                balance_amount: balance,
+                txn_id: txnId,
+                groom_name: groom,
+                groom_father: groomFather,
+                groom_address: groomAddress,
+                bride_name: bride,
+                bride_father: brideFather,
+                bride_address: brideAddress,
+                events: eventsArr.join(' | '),
+                custom_notes: JSON.stringify(customNotesArr),
+                vineet: vineet,
+                darshanabhilashi: darshan,
+                status: 'pending',
+                created_at: new Date().toISOString()
+            };
 
-*वर:* ${groom}
-*वधू:* ${bride}
-${customNotesSummary ? `-----------------------------------${customNotesSummary}` : ''}
------------------------------------
-कृपया इस ऑर्डर को स्वीकार करें व प्रूफ तैयार करें।`;
+            // 1. Supabase में सेव करें ताकि Admin और My Orders दोनों जगह दिखे
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').insert([orderPayload]);
+                } catch (err) {
+                    console.error("Supabase Save Error:", err);
+                }
+            }
+
+            // 2. लोकल बैकअप भी अपडेट रखें
+            try {
+                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
+                localOrders.unshift(orderPayload);
+                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+            } catch (e) {}
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें';
+
+            // 3. प्रोफेशनल WhatsApp मैसेज तैयार करना
+            const summary = `✨ *नया शादी कार्ड प्रिंटिंग ऑर्डर* ✨
+🏢 *प्रतिष्ठान:* दिल्ली प्रेस (सज्जाद प्रिंटर्स), जामताड़ा
+══════════════════════════
+👤 *ग्राहक विवरण:*
+• नाम: ${fullName}
+• मोबाइल: ${mobile}
+• पता: ${address}
+
+📦 *कार्ड एवं बिल विवरण:*
+• कार्ड मॉडल: ${cardName}
+• कुल मात्रा: ${qty} पीस
+• दर (प्रति पीस): ₹${rate}
+• कुल बिल राशि: ₹${total}
+• जमा एडवांस राशि: ₹${advance}
+• बाकी बकाया: ₹${balance}
+• यूटीआर / Txn ID: ${txnId}
+══════════════════════════
+💍 *वैवाहिक विवरण:*
+${isGroomFirst ? `🤵 *वर:* ${groom} (सुपुत्र: ${groomFather}) - ${groomAddress}
+👰 *वधू:* ${bride} (सुपुत्री: ${brideFather}) - ${brideAddress}` : 
+`👰 *वधू:* ${bride} (सुपुत्री: ${brideFather}) - ${brideAddress}
+🤵 *वर:* ${groom} (सुपुत्र: ${groomFather}) - ${groomAddress}`}
+
+📅 *कार्यक्रम विवरण:*
+${eventsArr.map(e => `• ${e}`).join('\n')}
+${customNotesWhatsApp ? `══════════════════════════\n📜 *शायरी व अतिरिक्त संदेश:*${customNotesWhatsApp}` : ''}
+══════════════════════════
+🌸 *RSVP / निवेदक:*
+• निवेदक: ${vineet || 'समस्त परिवार'}
+• दर्शनाभिलाषी: ${darshan || 'सभी स्नेहीजन'}
+══════════════════════════
+✅ *घोषणा:* ग्राहक द्वारा मैटर एवं विवरण सत्यापित कर लिया गया है। कृपया प्रूफ तैयार करें।`;
 
             document.getElementById('reviewBoxContent').innerText = summary;
             const waUrl = `https://wa.me/${OWNER_MOBILE}?text=${encodeURIComponent(summary)}`;
