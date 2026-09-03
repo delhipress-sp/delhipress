@@ -54,8 +54,8 @@
         }
         .cat-slider-btn {
             flex: 1; border: none; background: transparent; padding: 10px 8px;
-            border-radius: 30px; font-weight: 700; font-size: 14px; color: #475569;
-            cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px;
+            border-radius: 30px; font-weight: 700; font-size: 13px; color: #475569;
+            cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 5px;
         }
         .cat-slider-btn.active {
             background: var(--primary); color: #fff; box-shadow: 0 3px 10px rgba(192, 57, 43, 0.35);
@@ -71,9 +71,16 @@
             margin-bottom: 15px; font-weight: bold;
         }
 
+        /* कैटलॉग कार्ड बैनर (Previous Design) */
         .selected-card-banner {
             display: block; background: #fffaf0; border: 2px solid var(--secondary);
             border-radius: 8px; padding: 12px 15px; margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(211, 84, 0, 0.08);
+        }
+        .selected-card-banner h4 {
+            color: var(--secondary); font-size: 14px; font-weight: 700;
+            border-bottom: 1px dashed #fed7aa; padding-bottom: 6px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
         }
         .card-preview-body { display: flex; gap: 14px; align-items: center; }
         .card-preview-thumb {
@@ -83,7 +90,6 @@
         .card-preview-info h3 { font-size: 16px; color: var(--dark); margin-bottom: 2px; }
         .card-preview-info p { font-size: 13px; color: #64748b; margin-bottom: 2px; }
         .card-preview-info .rate-tag { font-size: 14px; font-weight: 700; color: var(--green); }
-
         .card-picker-box {
             margin-top: 10px; padding-top: 8px; border-top: 1px dashed #fed7aa;
         }
@@ -211,10 +217,10 @@
 
     <div class="container">
         
-        <!-- सेवा स्लाइडर बटन (Service Slider) -->
+        <!-- ऊपर सेवा स्विच करने का स्लाइडर (Slider) -->
         <div class="category-switcher-container">
             <button type="button" class="cat-slider-btn active" id="btnTabWedding" onclick="switchOrderCategory('wedding')">
-                <i class="fa-solid fa-heart"></i> शादी कार्ड
+                <i class="fa-solid fa-heart"></i> शादी कार्ड ऑर्डर
             </button>
             <button type="button" class="cat-slider-btn" id="btnTabBanner" onclick="switchOrderCategory('banner')">
                 <i class="fa-solid fa-panorama"></i> फ्लेक्स बैनर
@@ -253,11 +259,15 @@
                     </div>
                 </div>
 
-                <!-- 1. शादी कार्ड सेक्शन (WEDDING CARD SECTION) -->
+                <!-- 1. शादी कार्ड सेक्शन (कैबिनेट कार्ड प्रीव्यू और पुराना डिज़ाइन) -->
                 <div id="sectionWeddingCard">
                     <div class="selected-card-banner">
+                        <h4>
+                            <span><i class="fa-solid fa-circle-check"></i> चुना हुआ शादी कार्ड</span>
+                            <a href="index.html#showcaseSection" style="color:var(--primary); font-size:12px; text-decoration:underline;">कैटलॉग देखें</a>
+                        </h4>
                         <div class="card-preview-body">
-                            <img id="previewCardImage" class="card-preview-thumb" src="https://placehold.co/90x90?text=Card+Photo" alt="कार्ड फोटो">
+                            <img id="previewCardImage" class="card-preview-thumb" src="https://placehold.co/90x90?text=Card+Photo" alt="चुना गया कार्ड">
                             <div class="card-preview-info">
                                 <h3 id="previewCardName">कार्ड चुनें</h3>
                                 <p id="previewCardModel">मॉडल / कोड: --</p>
@@ -370,7 +380,7 @@
                     </div>
                 </div>
 
-                <!-- 2. फ्लेक्स बैनर सेक्शन (FLEX BANNER SECTION) -->
+                <!-- 2. फ्लेक्स बैनर सेक्शन -->
                 <div id="sectionBanner" style="display: none;">
                     <div class="form-block" style="border-left-color: #8e44ad;">
                         <h4><i class="fa-solid fa-panorama"></i> बैनर साइज एवं स्पेसिफिकेशन</h4>
@@ -427,7 +437,7 @@
                     </div>
                 </div>
 
-                <!-- 3. विज़िटिंग कार्ड सेक्शन (VISITING CARD SECTION) -->
+                <!-- 3. विज़िटिंग कार्ड सेक्शन -->
                 <div id="sectionVisiting" style="display: none;">
                     <div class="form-block" style="border-left-color: #16a085;">
                         <h4><i class="fa-solid fa-address-card"></i> विज़िटिंग कार्ड टाइप एवं मात्रा</h4>
@@ -489,7 +499,7 @@
                     </div>
                 </div>
 
-                <!-- बिलिंग एवं एडवांस बॉक्स (Universal Billing) -->
+                <!-- कुल बिल और एडवांस बॉक्स -->
                 <div class="total-bill-box">
                     <span>कुल बिल राशि:</span>
                     <span id="universalTotalDisplay">₹0</span>
@@ -510,10 +520,11 @@
                     </div>
                 </div>
 
-                <div class="declaration-box">
-                    <input type="checkbox" id="orderConfirmDeclaration" required>
-                    <label for="orderConfirmDeclaration">
-                        मैं प्रमाणित करता/करती हूँ कि ऊपर दी गई सभी जानकारियाँ, नाम, साइज़ और मैटर पूर्णतः सही हैं। प्रिंटिंग के बाद गलती की ज़िम्मेदारी मेरी होगी।
+                <!-- नियम एवं शर्तें (Terms & Conditions Checkbox) -->
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-top: 15px; display: flex; align-items: flex-start; gap: 10px;">
+                    <input type="checkbox" id="termsConditionCheck" required style="width: 20px; height: 20px; margin-top: 2px; cursor: pointer; flex-shrink: 0;">
+                    <label for="termsConditionCheck" style="font-size: 13px; color: #334155; font-weight: 600; line-height: 1.5; cursor: pointer; margin-bottom: 0;">
+                        मैं दिल्ली प्रेस (सज्जाद प्रिंटर्स) के <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color: var(--primary); text-decoration: underline;">नियम एवं शर्तों</a> तथा <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color: var(--primary); text-decoration: underline;">रिफंड नीति</a> से सहमत हूँ। छपाई के बाद वर्तनी (Spelling) या मैटर की त्रुटि की जिम्मेदारी मेरी होगी।
                     </label>
                 </div>
 
@@ -581,7 +592,6 @@
         let globalCatalogCards = [];
         let calculatedGrandTotal = 0;
 
-        // स्विच / स्लाइडर फंक्शन
         function switchOrderCategory(cat) {
             currentActiveCategory = cat;
             document.querySelectorAll('.cat-slider-btn').forEach(btn => btn.classList.remove('active'));
@@ -607,33 +617,28 @@
             }
         }
 
-        // कैलकुलेशन 1: शादी कार्ड
         function calculateWeddingTotal() {
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             updateUniversalTotals(rate * qty);
         }
 
-        // कैलकुलेशन 2: बैनर
         function calculateBannerTotal() {
             const w = parseFloat(document.getElementById('bannerWidth').value) || 0;
             const h = parseFloat(document.getElementById('bannerHeight').value) || 0;
             const rate = parseFloat(document.getElementById('bannerQuality').value) || 12;
             const qty = parseInt(document.getElementById('bannerQty').value) || 1;
-
             const sqft = w * h;
             document.getElementById('bannerTotalSqFt').value = `${sqft} Sq. Ft`;
             updateUniversalTotals(sqft * rate * qty);
         }
 
-        // कैलकुलेशन 3: विज़िटिंग कार्ड
         function calculateVisitingTotal() {
             const ratePerThousand = parseFloat(document.getElementById('visitingCardType').value) || 500;
             const boxes = parseInt(document.getElementById('visitingQuantity').value) || 1;
             updateUniversalTotals(ratePerThousand * boxes);
         }
 
-        // कॉमन बिलिंग अपडेटर
         function updateUniversalTotals(total) {
             calculatedGrandTotal = Math.round(total);
             document.getElementById('universalTotalDisplay').innerText = `₹${calculatedGrandTotal.toLocaleString('en-IN')}`;
@@ -652,7 +657,6 @@
             document.getElementById('universalBalanceDisplay').innerText = `₹${bal.toLocaleString('en-IN')}`;
         });
 
-        // शादी कार्ड कैटलॉग फेचर
         window.addEventListener('DOMContentLoaded', async () => {
             const currentUser = localStorage.getItem('dp_current_user');
             if (currentUser) {
@@ -664,36 +668,79 @@
             }
 
             await fetchAndFillCatalogDropdown();
-            calculateWeddingTotal();
+
+            let targetCard = null;
+            const storedSelected = localStorage.getItem('order_selected_card');
+            if (storedSelected) {
+                try {
+                    const parsed = JSON.parse(storedSelected);
+                    if (parsed && parsed.name) targetCard = parsed;
+                } catch (e) {}
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardId = urlParams.get('id') || urlParams.get('card_id');
+            if (cardId && globalCatalogCards.length > 0) {
+                const found = globalCatalogCards.find(c => String(c.id) === String(cardId));
+                if (found) targetCard = found;
+            }
+
+            if (targetCard) {
+                applyCardDetails(targetCard);
+                if (targetCard.id) document.getElementById('directCardSelect').value = targetCard.id;
+            } else {
+                calculateWeddingTotal();
+            }
         });
 
         async function fetchAndFillCatalogDropdown() {
             const dropdown = document.getElementById('directCardSelect');
             if (!supabaseClient) return;
-            try {
-                const { data } = await supabaseClient.from('cards_catalog').select('*');
-                if (data && data.length > 0) {
-                    globalCatalogCards = data;
-                    dropdown.innerHTML = '<option value="">-- कार्ड चुनें --</option>';
-                    data.forEach(item => {
-                        const opt = document.createElement('option');
-                        opt.value = item.id;
-                        opt.textContent = `${item.name || 'शादी कार्ड'} (${item.model || ''}) - ₹${item.rate || 0}/पीस`;
-                        dropdown.appendChild(opt);
-                    });
-                }
-            } catch (e) {}
+            const tablesToCheck = ['cards_catalog', 'catalog', 'cards'];
+            for (const tbl of tablesToCheck) {
+                try {
+                    const { data } = await supabaseClient.from(tbl).select('*');
+                    if (data && data.length > 0) {
+                        globalCatalogCards = data;
+                        dropdown.innerHTML = '<option value="">-- कैटलॉग से दूसरा कार्ड चुनें --</option>';
+                        data.forEach(item => {
+                            const opt = document.createElement('option');
+                            opt.value = item.id;
+                            opt.textContent = `${item.name || item.title || 'शादी कार्ड'} (${item.model || item.code || ''}) - ₹${item.rate || item.price || 0}/पीस`;
+                            dropdown.appendChild(opt);
+                        });
+                        break;
+                    }
+                } catch (e) {}
+            }
         }
 
         function onCatalogSelectChange(cardId) {
+            if (!cardId) return;
             const card = globalCatalogCards.find(c => String(c.id) === String(cardId));
-            if (!card) return;
-            document.getElementById('previewCardName').innerText = card.name || 'शादी कार्ड';
-            document.getElementById('previewCardModel').innerText = `मॉडल: ${card.model || '--'}`;
-            document.getElementById('previewCardRate').innerText = `मूल्य: ₹${card.rate || 0} / पीस`;
-            document.getElementById('previewCardImage').src = card.image || 'https://placehold.co/90x90?text=Card';
-            document.getElementById('cardCategory').value = `${card.name} (${card.model || ''})`;
-            document.getElementById('cardRate').value = card.rate || 0;
+            if (card) applyCardDetails(card);
+        }
+
+        function applyCardDetails(card) {
+            const imgUrl = card.image || card.image_url || card.photo || '';
+            const name = card.name || card.title || 'शादी कार्ड';
+            const model = card.model || card.code || '';
+            const rate = parseFloat(card.rate || card.price) || 0;
+
+            const imgElem = document.getElementById('previewCardImage');
+            if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null") {
+                imgElem.src = imgUrl;
+            } else {
+                imgElem.src = "https://placehold.co/90x90?text=Card+Photo";
+            }
+
+            document.getElementById('previewCardName').innerText = name;
+            document.getElementById('previewCardModel').innerText = model ? `मॉडल / कोड: ${model}` : '';
+            document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
+
+            document.getElementById('cardCategory').value = model ? `${name} (${model})` : name;
+            document.getElementById('cardRate').value = rate;
+
             calculateWeddingTotal();
         }
 
@@ -736,7 +783,6 @@
             document.getElementById('customNotesContainer').appendChild(div);
         }
 
-        // मास्टर सबमिट फ़ंक्शन (तीनों सेवाओं के लिए)
         function processUniversalOrder() {
             const fullName = document.getElementById('custFullName').value;
             const mobile = document.getElementById('custMobile').value;
@@ -766,7 +812,9 @@
                 
                 let notes = [];
                 document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
-                    notes.push(`${el.querySelector('.custom-note-title').value}: ${el.querySelector('.custom-note-text').value}`);
+                    const t = el.querySelector('.custom-note-title').value;
+                    const m = el.querySelector('.custom-note-text').value;
+                    if(t || m) notes.push(`${t}: ${m}`);
                 });
                 orderNotes = notes.join('\n');
 
@@ -786,20 +834,27 @@
                 orderNotes = `शॉप: ${document.getElementById('visitingShopName').value}\nनाम: ${document.getElementById('visitingPersonName').value}\nसर्विसेज: ${document.getElementById('visitingServices').value}\nपता: ${document.getElementById('visitingPrintAddress').value}\nईमेल/वेब: ${document.getElementById('visitingEmailWeb').value}`;
             }
 
-            const payload = {
+            let userIdentifier = mobile;
+            const storedUser = localStorage.getItem('dp_current_user');
+            if (storedUser) {
+                try {
+                    const u = JSON.parse(storedUser);
+                    userIdentifier = u.mobile || u.phone || mobile;
+                } catch (e) {}
+            }
+
+            const nestedData = {
                 id: Date.now(),
                 customer_name: fullName,
-                mobile: mobile,
-                phone: mobile,
-                address: address,
-                card_name: orderTitle,
+                customer_mobile: mobile,
                 card_title: orderTitle,
                 card_model: orderModel,
+                card_image: cardImg,
+                qty: finalQty,
                 quantity: finalQty,
                 total_amount: calculatedGrandTotal,
                 advance_paid: advance,
                 balance_amount: balance,
-                card_image: cardImg,
                 groom_name: groom,
                 groom_father: groomF,
                 groom_address: groomA,
@@ -811,11 +866,42 @@
                 created_at: new Date().toISOString()
             };
 
-            localStorage.setItem('dp_temp_order', JSON.stringify(payload));
+            const fullPayload = {
+                id: nestedData.id,
+                user_id: userIdentifier,
+                mobile: mobile,
+                phone: mobile,
+                customer_name: fullName,
+                address: address,
+                card_name: orderTitle,
+                card_title: orderTitle,
+                card_model: orderModel,
+                model: orderModel,
+                card_image: cardImg,
+                image_url: cardImg,
+                photo: cardImg,
+                image: cardImg,
+                quantity: finalQty,
+                total_amount: calculatedGrandTotal,
+                advance_paid: advance,
+                advance_amount: advance,
+                balance_amount: balance,
+                groom_name: groom,
+                groom_father: groomF,
+                groom_address: groomA,
+                bride_name: bride,
+                bride_father: brideF,
+                bride_address: brideA,
+                custom_notes: orderNotes,
+                order_data: nestedData,
+                status: 'Pending',
+                created_at: new Date().toISOString()
+            };
+
+            localStorage.setItem('dp_temp_order', JSON.stringify(fullPayload));
             window.location.href = "payment.html";
         }
 
-        // पॉलिसी मोडल फंक्शन्स
         const policyContents = {
             terms: `<p>1. <b>कस्टम प्रिंटिंग:</b> शादी कार्ड, बैनर एवं विज़िटिंग कार्ड का कार्य ग्राहक द्वारा दिए गए मैटर के आधार पर होता है।</p><p>2. <b>प्रूफ चेकिंग:</b> छपाई से पहले स्पेलिंग व मोबाइल नंबर की जांच ग्राहक को स्वयं करनी होगी।</p>`,
             privacy: `<p>1. आपका फोन नंबर और शादी/व्यापारिक मैटर केवल प्रिंटिंग और डिलीवरी के लिए सुरक्षित रखा जाता है।</p>`,
