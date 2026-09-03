@@ -406,12 +406,13 @@
                 <h4>सेवाएं</h4>
                 <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
             </div>
-        </div><div style="text-align: center; margin-top: 15px; font-size: 13px; color: #94a3b8;">
-    <a href="policy.html#terms" style="color: #cbd5e1; margin: 0 8px; text-decoration: none;">Terms & Conditions</a> |
-    <a href="policy.html#privacy" style="color: #cbd5e1; margin: 0 8px; text-decoration: none;">Privacy Policy</a> |
-    <a href="policy.html#refund" style="color: #cbd5e1; margin: 0 8px; text-decoration: none;">Refund Policy</a> |
-    <a href="policy.html#contact" style="color: #cbd5e1; margin: 0 8px; text-decoration: none;">Contact Us</a>
+        <div style="text-align: center; margin-top: 15px; font-size: 13px; color: #94a3b8;">
+    <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Terms & Conditions</a> |
+    <a href="javascript:void(0)" onclick="openPolicyModal('privacy')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Privacy Policy</a> |
+    <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Refund Policy</a> |
+    <a href="javascript:void(0)" onclick="openPolicyModal('contact')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Contact Us</a>
 </div>
+
 
         <div class="footer-bottom">
             <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
@@ -601,6 +602,67 @@
                 selectCardForOrder(index);
             }
         }
-    </script>
+    </script><!-- पॉलिसी पॉपअप विंडो (Modal) -->
+<div id="policyModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center; padding: 15px;">
+    <div style="background: #fff; width: 100%; max-width: 650px; max-height: 85vh; border-radius: 8px; overflow-y: auto; padding: 22px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+            <h3 id="policyModalTitle" style="color: #c0392b; font-size: 18px; margin: 0;">पॉलिसी विवरण</h3>
+            <button type="button" onclick="closePolicyModal()" style="border: none; background: #e2e8f0; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; font-weight: bold;">&times;</button>
+        </div>
+        <div id="policyModalBody" style="font-size: 14px; color: #334155; line-height: 1.6;"></div>
+    </div>
+</div>
+
+<script>
+    const policyContents = {
+        terms: `
+            <h4 style="color:#1e293b; margin-bottom:8px;">नियम व शर्तें (Terms & Conditions)</h4>
+            <p>1. <b>कस्टम प्रिंटिंग:</b> दिल्ली प्रेस (सज्जाद प्रिंटर्स) में शादी कार्ड और फ्लेक्स प्रिंटिंग का कार्य ग्राहक द्वारा दिए गए मैटर/प्रूफ के आधार पर किया जाता है।</p>
+            <p>2. <b>प्रूफ चेकिंग:</b> छपाई शुरू होने से पहले प्रूफ की पूरी जांच ग्राहक को स्वयं करनी होगी। ग्राहक की सहमति के बाद मैटर में किसी भी गलती की जिम्मेदारी प्रेस की नहीं होगी।</p>
+            <p>3. <b>डिलीवरी समय:</b> सामान्यतः कार्ड छपाई का काम ऑर्डर कन्फर्म होने के 3 से 7 कार्य दिवसों में पूर्ण कर दिया जाता है।</p>
+        `,
+        privacy: `
+            <h4 style="color:#1e293b; margin-bottom:8px;">गोपनीयता नीति (Privacy Policy)</h4>
+            <p>1. <b>व्यक्तिगत डेटा:</b> ऑर्डर प्रोसेस करने के लिए ग्राहक का नाम, मोबाइल नंबर और वैवाहिक विवरण हमारे सुरक्षित सिस्टम में दर्ज किया जाता है।</p>
+            <p>2. <b>डेटा सुरक्षा:</b> आपकी कोई भी निजी जानकारी या संपर्क सूत्र किसी भी तीसरे पक्ष (Third Party) को नहीं बेची जाती है।</p>
+            <p>3. <b>ऑनलाइन लेन-देन:</b> सभी ऑनलाइन पेमेंट सुरक्षित गेटवे (Cashfree / UPI) के जरिए 128-bit एन्क्रिप्शन के साथ होते हैं।</p>
+        `,
+        refund: `
+            <h4 style="color:#1e293b; margin-bottom:8px;">रिफंड एवं रद्दीकरण नीति (Refund Policy)</h4>
+            <p>1. <b>कस्टमाइज्ड प्रिंटिंग:</b> चूंकि कार्ड प्रिंटिंग व्यक्तिगत मैटर पर आधारित होती है, इसलिए प्लेट बनने और छपाई शुरू होने के बाद ऑर्डर रद्द या रिफंड नहीं किया जाएगा।</p>
+            <p>2. <b>छपाई से पहले कैंसिलेशन:</b> यदि छपाई प्रक्रिया शुरू होने से पहले ऑर्डर कैंसिल किया जाता है, तो डिजाइनिंग शुल्क काटकर शेष राशि 5-7 दिनों में रिफंड कर दी जाएगी।</p>
+            <p>3. <b>प्रेस की गलती:</b> यदि प्रिंटिंग में प्रेस की तकनीकी खराबी के कारण कार्ड खराब होता है, तो दोबारा सही कार्ड प्रिंट करके दिया जाएगा।</p>
+        `,
+        contact: `
+            <h4 style="color:#1e293b; margin-bottom:8px;">संपर्क विवरण (Contact Us)</h4>
+            <p><b>प्रतिष्ठान:</b> दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</p>
+            <p><b>पता:</b> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जिला - जामताड़ा, झारखंड - 815352</p>
+            <p><b>मोबाइल / WhatsApp:</b> +91 9304509464</p>
+            <p><b>ईमेल:</b> mdsajadans@gmail.com</p>
+            <p><b>समय:</b> सोमवार से शनिवार (सुबह 09:00 बजे से रात 08:00 बजे तक)</p>
+        `
+    };
+
+    function openPolicyModal(type) {
+        const modal = document.getElementById('policyModalOverlay');
+        const body = document.getElementById('policyModalBody');
+        const title = document.getElementById('policyModalTitle');
+
+        if (policyContents[type]) {
+            body.innerHTML = policyContents[type];
+            if(type === 'terms') title.innerText = "नियम व शर्तें (Terms & Conditions)";
+            if(type === 'privacy') title.innerText = "गोपनीयता नीति (Privacy Policy)";
+            if(type === 'refund') title.innerText = "रिफंड एवं रद्दीकरण नीति (Refund Policy)";
+            if(type === 'contact') title.innerText = "संपर्क विवरण (Contact Us)";
+            
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closePolicyModal() {
+        document.getElementById('policyModalOverlay').style.display = 'none';
+    }
+</script>
+    
 </body>
 </html>
