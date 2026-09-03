@@ -189,14 +189,14 @@
         }
 
         .btn-review-main {
-            width: 100%; padding: 12px; background: var(--blue); color: white;
-            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            width: 100%; padding: 14px; background: var(--blue); color: white;
+            font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
         }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); z-index: 2000; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;
             padding: 10px;
         }
         .modal-content {
@@ -205,20 +205,25 @@
         }
         .close-btn { position: absolute; right: 12px; top: 10px; font-size: 22px; cursor: pointer; }
         .review-box {
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;
             padding: 12px; font-size: 13px; line-height: 1.6; margin: 12px 0;
             max-height: 280px; overflow-y: auto; white-space: pre-line;
         }
 
+        .btn-confirm-submit {
+            width: 100%; padding: 13px; background: var(--green); color: white;
+            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;
+        }
+        .btn-edit-action {
+            width: 100%; padding: 10px; background: #fff; color: #334155;
+            font-size: 14px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;
+        }
         .btn-wa-action {
             width: 100%; padding: 12px; background: var(--wa-green); color: white;
             font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
             display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; text-decoration: none;
-        }
-        .btn-edit-action {
-            width: 100%; padding: 10px; background: #f8fafc; color: var(--dark);
-            font-size: 14px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;
         }
         .btn-redirect-myorders {
             width: 100%; padding: 12px; background: var(--blue); color: white;
@@ -290,7 +295,8 @@
                 </div>
             </div>
 
-            <form id="weddingForm" onsubmit="event.preventDefault(); handleFormSubmitAndReview();">
+            <!-- स्टेप 1: फॉर्म सबमिट करने पर सिर्फ प्रीव्यू खुलेगा -->
+            <form id="weddingForm" onsubmit="event.preventDefault(); showPreviewBeforeSubmit();">
                 
                 <input type="hidden" id="selectedCardImageStored" value="">
                 <input type="hidden" id="selectedCardModelStored" value="">
@@ -304,7 +310,7 @@
                         </div>
                         <div class="form-group">
                             <label>मोबाइल नंबर / WhatsApp:</label>
-                            <input type="tel" id="custMobile" placeholder="उदा: अपना मोबाइल नंबर दर्ज करें" required>
+                            <input type="tel" id="custMobile" placeholder="उदा: अपना 10 अंकों का मोबाइल नंबर दर्ज करें" required>
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
@@ -366,7 +372,7 @@
                             <div class="row-2">
                                 <div class="form-group">
                                     <label>वर का नाम (Groom's Name):</label>
-                                    <input type="text" id="groomName" placeholder="उदा: लड़का/लड़की का नाम" required>
+                                    <input type="text" id="groomName" placeholder="उदा: लड़का का नाम" required>
                                 </div>
                                 <div class="form-group">
                                     <label>पिता का नाम:</label>
@@ -389,7 +395,7 @@
                             <div class="row-2">
                                 <div class="form-group">
                                     <label>वधू का नाम (Bride's Name):</label>
-                                    <input type="text" id="brideName" placeholder="उदा: लड़की/लड़का का नाम" required>
+                                    <input type="text" id="brideName" placeholder="उदा: लड़की का नाम" required>
                                 </div>
                                 <div class="form-group">
                                     <label>पिता का नाम:</label>
@@ -430,7 +436,7 @@
                     </button>
                 </div>
 
-                <!-- अतिरिक्त मैटर (सिर्फ बटन दिखेगा, क्लिक करने पर ही नया बॉक्स जुड़ेगा) -->
+                <!-- अतिरिक्त मैटर -->
                 <div class="form-block">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h4 style="margin-bottom: 0; border: none; padding: 0;">
@@ -461,13 +467,13 @@
                 </div>
 
                 <div class="form-block payment-box">
-                    <h4 style="border:none; color:#166534;"><i class="fa-solid fa-qrcode"></i> ऑनलाइन एडवांस भुगतान</h4>
+                    <h4 style="border:none; color:#166534;"><i class="fa-solid fa-shield-halved"></i> ऑनलाइन एडवांस भुगतान</h4>
                     <p style="font-size: 13px; color: #15803d; margin-bottom: 5px;">
                         UPI ID: <strong>9304509464@okbizaxis</strong>
                     </p>
 
                     <div class="qr-wrapper">
-                        <!-- स्टैटिक नॉन-डायनामिक QR कोड -->
+                        <!-- गैर-डायनामिक स्थायी QR कोड -->
                         <img id="upiQrCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi%3A%2F%2Fpay%3Fpa%3D9304509464%40okbizaxis%26pn%3DDelhiPress" alt="UPI QR Code">
                     </div>
 
@@ -499,36 +505,47 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn-review-main" id="submitBtn">
-                    <i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें
+                <button type="submit" class="btn-review-main">
+                    <i class="fa-solid fa-eye"></i> मैटर प्रीव्यू करें एवं ऑर्डर प्रोसेस करें
                 </button>
 
             </form>
         </div>
     </div>
 
-    <!-- Review & Confirmation Modal -->
+    <!-- Review & Final Action Modal -->
     <div class="modal" id="reviewModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReviewModal()">&times;</span>
-            <h3 style="color: var(--primary); margin-bottom: 8px;">
-                <i class="fa-solid fa-clipboard-check"></i> ऑर्डर मैटर समीक्षा (Order Review)
+            <h3 style="color: var(--primary); margin-bottom: 8px;" id="modalHeaderTitle">
+                <i class="fa-solid fa-file-invoice"></i> ऑर्डर एवं मैटर समीक्षा (Preview & Edit)
             </h3>
-            <p style="font-size: 12px; color: #64748b;">आपका ऑर्डर डेटाबेस में सुरक्षित सेव कर लिया गया है। आप मैटर का मिलान करके WhatsApp पर भेज सकते हैं या सुधार कर सकते हैं:</p>
+            <p style="font-size: 12px; color: #64748b;" id="modalSubTitle">कृपया सबमिट करने से पहले सभी विवरण ठीक से जांच लें:</p>
             
             <div class="review-box" id="reviewBoxContent"></div>
 
-            <button type="button" class="btn-edit-action" onclick="closeReviewModal()">
-                <i class="fa-solid fa-pen-to-square"></i> मैटर में सुधार / एडिट करें
-            </button>
+            <!-- स्टेप A: सबमिट करने से पहले दिखने वाले बटन -->
+            <div id="preSubmitActionGroup">
+                <button type="button" class="btn-confirm-submit" id="finalSubmitBtn" onclick="executeDatabaseOrderSave()">
+                    <i class="fa-solid fa-paper-plane"></i> पुष्टि करें एवं ऑर्डर सबमिट करें (Confirm & Submit)
+                </button>
+                <button type="button" class="btn-edit-action" onclick="closeReviewModal()">
+                    <i class="fa-solid fa-pen-to-square"></i> ✏️ सुधारें / एडिट करें (Back & Edit)
+                </button>
+            </div>
 
-            <a href="#" class="btn-wa-action" id="waConfirmBtn" target="_blank">
-                <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजें (वैकल्पिक)
-            </a>
-
-            <button type="button" class="btn-redirect-myorders" onclick="goToMyOrders()">
-                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स (My Orders) पर जाएं
-            </button>
+            <!-- स्टेप B: डेटाबेस में सेव होने के बाद दिखने वाले बटन -->
+            <div id="postSubmitActionGroup" style="display: none;">
+                <div style="background:#dcfce7; color:#15803d; padding:8px 10px; border-radius:6px; font-weight:bold; font-size:13px; text-align:center; margin-bottom:10px;">
+                    <i class="fa-solid fa-circle-check"></i> आपका ऑर्डर एडमिन पैनल व डेटाबेस में सफलतापूर्वक दर्ज हो गया है!
+                </div>
+                <a href="#" class="btn-wa-action" id="waConfirmBtn" target="_blank">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजें
+                </a>
+                <button type="button" class="btn-redirect-myorders" onclick="goToMyOrders()">
+                    <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स (My Orders) पर जाएं
+                </button>
+            </div>
         </div>
     </div>
 
@@ -568,6 +585,7 @@
         const OWNER_MOBILE = "919304509464";
         let isGroomFirst = true;
         let globalCatalogCards = [];
+        let currentOrderDataToSave = null;
 
         window.addEventListener('DOMContentLoaded', async () => {
             const currentUser = localStorage.getItem('dp_current_user');
@@ -727,7 +745,7 @@
                 return;
             }
 
-            alert(`Cashfree पेमेंट विंडो खुल रही है। राशि: ₹${advance}\nभुगतान के बाद मिला Transaction ID यहाँ फॉर्म में दर्ज करें।`);
+            alert(`Cashfree पेमेंट विंडो खुल रही है। राशि: ₹${advance}\nभुगतान के बाद प्राप्त Transaction / Order ID यहाँ फॉर्म में दर्ज करें।`);
             const cashfreeUrl = `https://payments.cashfree.com/order/#/payment?amount=${advance}&customer_phone=${encodeURIComponent(mobile)}&customer_name=${encodeURIComponent(name)}`;
             window.open(cashfreeUrl, '_blank');
         }
@@ -798,11 +816,8 @@
             window.location.href = "my_orders.html";
         }
 
-        async function handleFormSubmitAndReview() {
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> डेटाबेस में सेव हो रहा है...';
-
+        // स्टेप 1: सबमिट करने से पहले सिर्फ प्रीव्यू व एडिट दिखाना
+        function showPreviewBeforeSubmit() {
             const fullName = document.getElementById('custFullName').value;
             const mobile = document.getElementById('custMobile').value;
             const address = document.getElementById('custFullAddress').value;
@@ -859,24 +874,56 @@
             if (storedUser) {
                 try {
                     const u = JSON.parse(storedUser);
-                    userIdentifier = u.mobile || u.email || mobile;
+                    userIdentifier = u.mobile || u.phone || mobile;
                 } catch (e) {}
             }
 
-            const orderPayload = {
-                user_id: userIdentifier,
+            // एडमिन पैनल (admin.html) और My Orders दोनों के लिए कम्पैटिबल ऑब्जेक्ट
+            const nestedOrderData = {
+                id: Date.now(),
                 customer_name: fullName,
+                customer_mobile: mobile,
+                card_title: cardName,
+                card_model: cardModel,
+                card_image: cardImage,
+                qty: qty,
+                quantity: qty,
+                total_amount: total,
+                advance_paid: advance,
+                balance_amount: balance,
+                utr_number: txnId,
+                groom_name: groom,
+                groom_father: groomFather,
+                groom_address: groomAddress,
+                bride_name: bride,
+                bride_father: brideFather,
+                bride_address: brideAddress,
+                events: eventsArr,
+                custom_notes: customNotesText,
+                rsvp: vineet,
+                from_family: darshan,
+                created_at: new Date().toISOString()
+            };
+
+            currentOrderDataToSave = {
+                user_id: userIdentifier,
                 mobile: mobile,
+                phone: mobile,
+                customer_name: fullName,
                 address: address,
                 card_name: cardName,
+                card_title: cardName,
                 card_model: cardModel,
+                model: cardModel,
                 card_image: cardImage,
                 photo: cardImage,
                 image: cardImage,
+                image_url: cardImage,
                 quantity: qty,
                 rate: rate,
                 total_amount: total,
                 advance_paid: advance,
+                advance_amount: advance,
                 balance_amount: balance,
                 txn_id: txnId,
                 groom_name: groom,
@@ -889,68 +936,84 @@
                 custom_notes: customNotesText,
                 vineet: vineet,
                 darshanabhilashi: darshan,
+                order_data: nestedOrderData, // admin.html के लिए आवश्यक
                 status: 'pending',
                 created_at: new Date().toISOString()
             };
 
+            // प्रीव्यू टेक्स्ट
+            const previewText = `📌 *ऑर्डर मैटर सारांश*
+---------------------------------------
+कार्ड मॉडल: ${cardName} (${cardModel || 'DP'})
+कुल मात्रा: ${qty} पीस | कुल बिल: ₹${total}
+एडवांस भुगतान: ₹${advance} | बकाया: ₹${balance}
+UTR / Txn ID: ${txnId}
+
+ग्राहक: ${fullName} (${mobile})
+पता: ${address}
+
+वर: ${groom} (पिता: ${groomFather})
+वधू: ${bride} (पिता: ${brideFather})
+
+कार्यक्रम:
+${eventsArr.map(e => `• ${e}`).join('\n')}
+${customNotesWhatsApp ? `---------------------------------------\nअतिरिक्त मैटर:\n${customNotesWhatsApp}` : ''}
+RSVP / विनीत: ${vineet || '-'}
+दर्शनाभिलाषी: ${darshan || '-'}`;
+
+            document.getElementById('reviewBoxContent').innerText = previewText;
+
+            // मोडल की स्थिति सेट करें (प्री-सबमिट मोड)
+            document.getElementById('modalHeaderTitle').innerHTML = `<i class="fa-solid fa-file-invoice"></i> मैटर प्रीव्यू एवं सुधार (Preview & Edit)`;
+            document.getElementById('modalSubTitle').innerText = "कृपया पूरा मैटर जांच लें। सही होने पर 'पुष्टि करें एवं सबमिट करें' दबाएं:";
+            document.getElementById('preSubmitActionGroup').style.display = 'block';
+            document.getElementById('postSubmitActionGroup').style.display = 'none';
+
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        // स्टेप 2: पुष्टि होने के बाद ही डेटाबेस में सेव करना और व्हाट्सएप तैयार करना
+        async function executeDatabaseOrderSave() {
+            if (!currentOrderDataToSave) return;
+
+            const finalBtn = document.getElementById('finalSubmitBtn');
+            finalBtn.disabled = true;
+            finalBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> एडमिन व डेटाबेस में दर्ज हो रहा है...';
+
+            // 1. Supabase में सेव करें (admin.html और my_orders.html दोनों जगह जाएगा)
             if (supabaseClient) {
                 try {
-                    const { data, error } = await supabaseClient.from('orders').insert([orderPayload]).select();
+                    const { error } = await supabaseClient.from('orders').insert([currentOrderDataToSave]).select();
                     if (error) {
-                        console.warn("Supabase Error:", error.message);
+                        console.warn("Supabase Save Alert:", error.message);
                     }
                 } catch (err) {
-                    console.warn("Supabase insert error:", err);
+                    console.warn("Supabase Error:", err);
                 }
             }
 
+            // 2. लोकल बैकअप भी अपडेट रखें
             try {
-                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                localOrders.unshift(orderPayload);
+                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                localOrders.unshift(currentOrderDataToSave);
                 localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
             } catch (e) {}
 
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें';
-
-            const summary = `✨ *नया शादी कार्ड प्रिंटिंग ऑर्डर* ✨
-🏢 *प्रतिष्ठान:* दिल्ली प्रेस (सज्जाद प्रिंटर्स), जामताड़ा
-══════════════════════════
-👤 *ग्राहक विवरण:*
-• नाम: ${fullName}
-• मोबाइल: ${mobile}
-• पता: ${address}
-
-📦 *कार्ड एवं बिल विवरण:*
-• कार्ड मॉडल: ${cardName}
-${cardImage ? `• कार्ड फोटो लिंक: ${cardImage}\n` : ''}• कुल मात्रा: ${qty} पीस
-• दर (प्रति पीस): ₹${rate}
-• कुल बिल राशि: ₹${total}
-• जमा एडवांस राशि: ₹${advance}
-• बाकी बकाया: ₹${balance}
-• यूटीआर / Txn ID: ${txnId}
-══════════════════════════
-💍 *वैवाहिक विवरण:*
-${isGroomFirst ? `🤵 *वर:* ${groom} (सुपुत्र: ${groomFather}) - ${groomAddress}
-👰 *वधू:* ${bride} (सुपुत्री: ${brideFather}) - ${brideAddress}` : 
-`👰 *वधू:* ${bride} (सुपुत्री: ${brideFather}) - ${brideAddress}
-🤵 *वर:* ${groom} (सुपुत्र: ${groomFather}) - ${groomAddress}`}
-
-📅 *कार्यक्रम विवरण:*
-${eventsArr.map(e => `• ${e}`).join('\n')}
-${customNotesWhatsApp ? `══════════════════════════\n📜 *शायरी व अतिरिक्त संदेश:*${customNotesWhatsApp}` : ''}
-══════════════════════════
-🌸 *RSVP / निवेदक:*
-• निवेदक: ${vineet || 'समस्त परिवार'}
-• दर्शनाभिलाषी: ${darshan || 'सभी स्नेहीजन'}
-══════════════════════════
-✅ *घोषणा:* ग्राहक द्वारा मैटर एवं विवरण सत्यापित कर लिया गया है।`;
-
-            document.getElementById('reviewBoxContent').innerText = summary;
-            const waUrl = `https://wa.me/${OWNER_MOBILE}?text=${encodeURIComponent(summary)}`;
+            // 3. WhatsApp लिंक सेट करें
+            const textContent = document.getElementById('reviewBoxContent').innerText;
+            const waSummary = `✨ *नया शादी कार्ड प्रिंटिंग ऑर्डर* ✨\n🏢 *प्रतिष्ठान:* दिल्ली प्रेस (सज्जाद प्रिंटर्स), जामताड़ा\n══════════════════════════\n${textContent}\n══════════════════════════\n✅ ग्राहक द्वारा मैटर सत्यापित कर लिया गया है। कृपया प्रूफ तैयार करें।`;
+            const waUrl = `https://wa.me/${OWNER_MOBILE}?text=${encodeURIComponent(waSummary)}`;
             document.getElementById('waConfirmBtn').href = waUrl;
 
-            document.getElementById('reviewModal').style.display = 'flex';
+            // 4. मोडल को पोस्ट-सबमिट मोड में बदलें
+            document.getElementById('modalHeaderTitle').innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--green);"></i> ऑर्डर सफलतापूर्वक सबमिट हुआ!`;
+            document.getElementById('modalSubTitle').innerText = "आपका ऑर्डर सुरक्षित दर्ज कर लिया गया है। अब आप WhatsApp पर भेज सकते हैं:";
+            document.getElementById('preSubmitActionGroup').style.display = 'none';
+            document.getElementById('postSubmitActionGroup').style.display = 'block';
+
+            finalBtn.disabled = false;
+            finalBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> पुष्टि करें एवं ऑर्डर सबमिट करें (Confirm & Submit)';
         }
 
         function closeReviewModal() {
