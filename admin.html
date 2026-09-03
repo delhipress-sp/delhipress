@@ -295,9 +295,7 @@
                 <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:bold;">&times;</button>
             </div>
             
-            <div id="printableReceiptArea" class="receipt-container">
-                <!-- Dynamic Receipt Content -->
-            </div>
+            <div id="printableReceiptArea" class="receipt-container"></div>
 
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
@@ -368,7 +366,6 @@
             }
         }
 
-        // 1. BASE64 IMAGE CONVERTER
         function convertImageToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -386,136 +383,149 @@
                             height = Math.round((height * maxWidth) / width);
                             width = maxWidth;
                         }
-
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.65));
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
                     };
-                    img.onerror = (err) => reject(err);
+                    img.onerror = () => reject(new Error("Image Load Error"));
                 };
-                reader.onerror = (err) => reject(err);
+                reader.onerror = (error) => reject(error);
             });
         }
 
-        // 2. ADD CATALOG CARD
-        async function handleAddNewCatalogCard(event) {
-            event.preventDefault();
+        async function handleAddNewCatalogCard(e) {
+            e.preventDefault();
             const btn = document.getElementById('addCardSubmitBtn');
             btn.disabled = true;
             btn.innerText = "सुरक्षित हो रहा है...";
 
             try {
-                const title = document.getElementById('admCardName').value.trim();
+                const name = document.getElementById('admCardName').value.trim();
                 const model = document.getElementById('admCardModel').value.trim();
-                const price = parseFloat(document.getElementById('admCardRate').value);
-                const in_stock = document.getElementById('admCardStock').value === "true";
-                const fileInput = document.getElementById('admCardFile');
+                const rate = parseFloat(document.getElementById('admCardRate').value) || 0;
+                const inStock = document.getElementById('admCardStock').value === "true";
+                const file = document.getElementById('admCardFile').files[0];
 
-                if (!fileInput.files || fileInput.files.length === 0) {
-                    alert("कृपया कार्ड फोटो चुनें!");
-                    btn.disabled = false;
-                    btn.innerText = "+ स्टॉक में सुरक्षित करें";
-                    return;
+                let base64 = "";
+                if (file) {
+                    base64 = await convertImageToBase64(file);
                 }
 
-                const base64Image = await convertImageToBase64(fileInput.files[0]);
+                const newCard = {
+                    name: name,
+                    title: name,
+                    model: model,
+                    code: model,
+                    rate: rate,
+                    price: rate,
+                    image: base64,
+                    image_url: base64,
+                    photo: base64,
+                    in_stock: inStock
+                };
 
-                const { error } = await supabaseClient
-                    .from('cards_catalog')
-                    .insert([{
-                        title: title,
-                        model: model,
-                        price: price,
-                        image_url: base64Image,
-                        in_stock: in_stock
-                    }]);
+                let saved = false;
+                if (supabaseClient) {
+                    const tables = ['cards_catalog', 'catalog', 'cards'];
+                    for (const tbl of tables) {
+                        try {
+                            const { error } = await supabaseClient.from(tbl).insert([newCard]);
+                            if (!error) { saved = true; break; }
+                        } catch (err) {}
+                    }
+                }
 
-                if (error) throw error;
-
-                alert("कार्ड सफलतापूर्वक कैटलॉग में जुड़ गया!");
+                alert("नया कार्ड सफलतापूर्वक कैटलॉग में जोड़ दिया गया!");
                 document.getElementById('newCardForm').reset();
                 loadCatalogStock();
-
             } catch (err) {
-                console.error(err);
-                alert("त्रुटि: " + err.message);
+                alert("कार्ड जोड़ने में समस्या: " + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerText = "+ स्टॉक में सुरक्षित करें";
             }
         }
 
-        // 3. LOAD CATALOG STOCK
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
-            tbody.innerHTML = `<tr><td colspan="7">डेटा लोड हो रहा है...</td></tr>`;
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="7" style="padding:15px; color:#64748b;">कैटलॉग लोड हो रहा है...</td></tr>';
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('cards_catalog')
-                    .select('*')
-                    .order('id', { ascending: false });
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7">कोई कार्ड उपलब्ध नहीं है। ऊपर से जोड़ें।</td></tr>`;
-                    return;
+            let cards = [];
+            if (supabaseClient) {
+                const tables = ['cards_catalog', 'catalog', 'cards'];
+                for (const tbl of tables) {
+                    try {
+                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                        if (!error && data && data.length > 0) {
+                            cards = data;
+                            break;
+                        }
+                    } catch (e) {}
                 }
+            }
 
-                tbody.innerHTML = data.map(item => `
+            if (cards.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="padding:15px; color:#64748b;">कोई कार्ड नहीं मिला।</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = cards.map(c => {
+                const img = c.image || c.image_url || c.photo || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+                const isStock = c.in_stock !== false;
+                return `
                     <tr>
-                        <td><img src="${item.image_url}" style="width:45px; height:45px; object-fit:cover; border-radius:4px;"></td>
-                        <td><b>${item.title}</b></td>
-                        <td>${item.model}</td>
-                        <td>₹${item.price}</td>
+                        <td><img src="${img}" style="width:45px; height:45px; object-fit:cover; border-radius:4px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'"></td>
+                        <td style="font-weight:bold;">${c.name || c.title || '-'}</td>
+                        <td>${c.model || c.code || '-'}</td>
+                        <td style="color:var(--primary); font-weight:bold;">₹${c.rate || c.price || 0}</td>
+                        <td><span class="stock-badge ${isStock ? 'in-stock' : 'out-stock'}">${isStock ? 'उपलब्ध' : 'समाप्त'}</span></td>
                         <td>
-                            <span class="stock-badge ${item.in_stock ? 'in-stock' : 'out-stock'}">
-                                ${item.in_stock ? 'उपलब्ध' : 'समाप्त'}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn-stock-toggle ${item.in_stock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleStock(${item.id}, ${item.in_stock})">
-                                ${item.in_stock ? 'Out करें' : 'In करें'}
+                            <button type="button" class="btn-stock-toggle ${isStock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${!isStock})">
+                                ${isStock ? 'Out करें' : 'In करें'}
                             </button>
                         </td>
-                        <td>
-                            <button class="btn-del" onclick="deleteCard(${item.id})"><i class="fa-solid fa-trash"></i></button>
-                        </td>
+                        <td><button type="button" class="btn-del" onclick="deleteCatalogCard(${c.id})"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
-                `).join('');
+                `;
+            }).join('');
+        }
 
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="7" style="color:red;">लोडिंग त्रुटि: ${err.message}</td></tr>`;
+        async function toggleCardStock(cardId, newStatus) {
+            if (!supabaseClient) return;
+            const tables = ['cards_catalog', 'catalog', 'cards'];
+            for (const tbl of tables) {
+                try {
+                    await supabaseClient.from(tbl).update({ in_stock: newStatus }).eq('id', cardId);
+                } catch (e) {}
             }
+            loadCatalogStock();
         }
 
-        async function toggleStock(id, currentStatus) {
-            const { error } = await supabaseClient
-                .from('cards_catalog')
-                .update({ in_stock: !currentStatus })
-                .eq('id', id);
-
-            if (error) alert(error.message);
-            else loadCatalogStock();
+        async function deleteCatalogCard(cardId) {
+            if (!confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) return;
+            if (supabaseClient) {
+                const tables = ['cards_catalog', 'catalog', 'cards'];
+                for (const tbl of tables) {
+                    try {
+                        await supabaseClient.from(tbl).delete().eq('id', cardId);
+                    } catch (e) {}
+                }
+            }
+            loadCatalogStock();
         }
 
-        async function deleteCard(id) {
-            if (!confirm("क्या आप वाकई इसे हटाना चाहते हैं?")) return;
-            const { error } = await supabaseClient.from('cards_catalog').delete().eq('id', id);
-            if (error) alert(error.message);
-            else loadCatalogStock();
-        }
-
-        // 4. LOAD & MANAGE ADMIN ORDERS
+        // 2. LOAD ORDERS (Both Root-level and Nested order_data compatibility)
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = `<tr><td colspan="8">ऑर्डर्स लोड हो रहे हैं...</td></tr>`;
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; color:#64748b;">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
-            let rawOrders = [];
+            let rawList = [];
 
+            // 1. Supabase से 'orders' टेबल से पढ़ें
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -523,90 +533,126 @@
                         .select('*')
                         .order('id', { ascending: false });
 
-                    if (!error && data) rawOrders = data;
+                    if (!error && data && Array.isArray(data) && data.length > 0) {
+                        rawList = data;
+                    }
                 } catch (e) {
-                    console.warn(e);
+                    console.warn("Supabase fetch error:", e);
                 }
             }
 
-            if (rawOrders.length === 0) {
-                rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
+            // 2. लोकल स्टोरेज बैकअप
+            if (rawList.length === 0) {
+                try {
+                    rawList = JSON.parse(
+                        localStorage.getItem('dp_all_orders') || 
+                        localStorage.getItem('my_orders_list') || 
+                        localStorage.getItem('dp_user_orders') || '[]'
+                    );
+                } catch (e) {
+                    rawList = [];
+                }
             }
 
-            globalOrdersCache = rawOrders.map(item => {
-                const nested = item.order_data || {};
-                return {
-                    id: item.id || nested.id,
-                    created_at: item.created_at || nested.created_at || new Date().toISOString(),
-                    customer_name: item.customer_name || nested.customer_name || 'अज्ञात ग्राहक',
-                    customer_mobile: item.mobile || item.phone || nested.customer_mobile || nested.mobile || '-',
-                    customer_address: nested.customer_address || '-',
-                    card_title: item.card_title || nested.card_title || 'शादी कार्ड',
-                    card_model: item.model || nested.card_model || 'DP-101',
-                    card_image: nested.card_image || item.image_url || '',
-                    quantity: nested.qty || nested.quantity || 100,
-                    total_amount: parseFloat(item.total_amount || nested.total_amount || 0),
-                    advance_paid: parseFloat(nested.advance_paid || item.advance_amount || 0),
-                    balance_amount: parseFloat(nested.balance_amount !== undefined ? nested.balance_amount : ((item.total_amount || 0) - (nested.advance_paid || 0))),
-                    groom_name: item.groom_name || nested.groom_name || '-',
-                    groom_father: nested.groom_father || '-',
-                    groom_address: nested.groom_address || '-',
-                    bride_name: item.bride_name || nested.bride_name || '-',
-                    bride_father: nested.bride_father || '-',
-                    bride_address: nested.bride_address || '-',
-                    events: nested.events || [],
-                    event_date: nested.date || nested.event_date || '',
-                    rsvp: nested.rsvp || '-',
-                    from_family: nested.from_family || '-',
-                    utr_number: nested.utr_number || 'उपलब्ध नहीं',
-                    status: item.status || nested.status || 'Pending'
-                };
-            });
-
-            if (globalOrdersCache.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8">अभी तक कोई ऑर्डर नहीं आया है।</td></tr>`;
+            if (rawList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="padding:20px; color:#64748b;">वर्तमान में कोई ग्राहक ऑर्डर प्राप्त नहीं हुआ है।</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = globalOrdersCache.map((ord, idx) => {
-                const dt = new Date(ord.created_at).toLocaleDateString('hi-IN');
+            globalOrdersCache = rawList.map(item => {
+                const nested = item.order_data || {};
                 
+                let detectedImage = item.card_image || item.photo || item.image || item.image_url || nested.card_image || nested.photo || nested.image || '';
+                if (detectedImage && (detectedImage.includes('placehold.co') || detectedImage === 'null' || detectedImage === 'undefined')) {
+                    detectedImage = '';
+                }
+
+                const total = parseFloat(item.total_amount || nested.total_amount || 0);
+                const advance = parseFloat(item.advance_paid || item.advance_amount || nested.advance_paid || 0);
+                const balance = parseFloat(item.balance_amount !== undefined ? item.balance_amount : (total - advance));
+
+                return {
+                    id: item.id || nested.id || Date.now(),
+                    created_at: item.created_at || nested.created_at || new Date().toISOString(),
+                    customer_name: item.customer_name || nested.customer_name || 'ग्राहक',
+                    customer_mobile: item.mobile || item.phone || nested.customer_mobile || nested.mobile || '-',
+                    address: item.address || nested.address || '-',
+                    card_title: item.card_name || item.card_title || nested.card_title || nested.card_name || 'शादी कार्ड',
+                    card_model: item.card_model || item.model || nested.card_model || '',
+                    card_image: detectedImage,
+                    quantity: item.quantity || nested.qty || nested.quantity || 100,
+                    rate: item.rate || nested.rate || 0,
+                    total_amount: total,
+                    advance_paid: advance,
+                    balance_amount: Math.max(0, balance),
+                    utr_number: item.txn_id || nested.utr_number || nested.txn_id || 'COD/Pending',
+                    groom_name: item.groom_name || nested.groom_name || '-',
+                    groom_father: item.groom_father || nested.groom_father || '-',
+                    groom_address: item.groom_address || nested.groom_address || '-',
+                    bride_name: item.bride_name || nested.bride_name || '-',
+                    bride_father: item.bride_father || nested.bride_father || '-',
+                    bride_address: item.bride_address || nested.bride_address || '-',
+                    events: item.events || nested.events || [],
+                    custom_notes: item.custom_notes || nested.custom_notes || '',
+                    rsvp: item.vineet || nested.rsvp || '-',
+                    from_family: item.darshanabhilashi || nested.from_family || '-',
+                    status: item.status || nested.status || nested.order_status || 'Pending'
+                };
+            });
+
+            tbody.innerHTML = globalOrdersCache.map((ord, idx) => {
+                const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
+                    day: 'numeric', month: 'short'
+                });
+
+                const imgHtml = ord.card_image 
+                    ? `<img src="${ord.card_image}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">`
+                    : `<div style="width:40px; height:40px; background:#e2e8f0; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;">No Img</div>`;
+
+                let statusClass = 'status-pending';
+                if (ord.status === 'In Process' || ord.status === 'Process') statusClass = 'status-process';
+                if (ord.status === 'Ready' || ord.status === 'Finished') statusClass = 'status-ready';
+
                 return `
                     <tr>
-                        <td><b>${dt}</b></td>
-                        <td>
-                            <b>${ord.card_title}</b><br>
-                            <small>मॉडल: ${ord.card_model} | ${ord.quantity} पीस</small>
+                        <td>${dt}</td>
+                        <td style="text-align:left;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                ${imgHtml}
+                                <div>
+                                    <b>${ord.card_title}</b>
+                                    <div style="font-size:11px; color:#64748b;">${ord.card_model} (${ord.quantity} पीस)</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align:left;">
+                            <b>${ord.customer_name}</b>
+                            <div style="font-size:11px; color:#475569;"><i class="fa-solid fa-phone"></i> ${ord.customer_mobile}</div>
+                        </td>
+                        <td style="text-align:left;">
+                            <div>वर: <b>${ord.groom_name}</b></div>
+                            <div>वधू: <b>${ord.bride_name}</b></div>
                         </td>
                         <td>
-                            <b>${ord.customer_name}</b><br>
-                            <a href="tel:${ord.customer_mobile}" style="color:var(--blue); font-weight:bold; text-decoration:none;">
-                                <i class="fa-solid fa-phone"></i> ${ord.customer_mobile}
-                            </a>
+                            <div>कुल: <b>₹${ord.total_amount}</b></div>
+                            <div style="color:green; font-size:11px;">जमा: ₹${ord.advance_paid}</div>
+                            <div style="color:red; font-size:11px;">बाकी: ₹${ord.balance_amount}</div>
                         </td>
                         <td>
-                            <span style="color:var(--primary);">वर: ${ord.groom_name}</span><br>
-                            <span style="color:var(--secondary);">वधू: ${ord.bride_name}</span>
-                        </td>
-                        <td>
-                            कुल: <b>₹${ord.total_amount}</b><br>
-                            एडवांस: <b style="color:green;">₹${ord.advance_paid}</b><br>
-                            बाकी: <b style="color:red;">₹${ord.balance_amount}</b>
-                        </td>
-                        <td>
-                            <select class="status-select-box" onchange="updateOrderStatus('${ord.id}', this.value, ${idx})">
-                                <option value="Pending" ${ord.status === 'Pending' ? 'selected' : ''}>⏳ प्राप्त (Pending)</option>
-                                <option value="In Process" ${ord.status === 'In Process' || ord.status === 'Process' ? 'selected' : ''}>⚙️ छपाई जारी (Process)</option>
-                                <option value="Ready" ${ord.status === 'Ready' ? 'selected' : ''}>✅ तैयार है (Ready)</option>
+                            <span class="status-badge ${statusClass}">${ord.status}</span><br>
+                            <select class="status-select-box" onchange="updateOrderStatus(${ord.id}, this.value)">
+                                <option value="Pending" ${ord.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="In Process" ${ord.status === 'In Process' ? 'selected' : ''}>In Process</option>
+                                <option value="Ready" ${ord.status === 'Ready' ? 'selected' : ''}>Ready</option>
                             </select>
                         </td>
                         <td>
-                            <button type="button" class="btn-view" onclick="openAdminReceiptModal(${idx})">
-                                <i class="fa-solid fa-file-invoice"></i> रसीद / मैटर
+                            <button type="button" class="btn-view" onclick="viewOrderReceiptModal(${idx})">
+                                <i class="fa-solid fa-file-lines"></i> मैटर / रसीद
                             </button>
                         </td>
                         <td>
-                            <button type="button" class="btn-del" onclick="deleteAdminOrder('${ord.id}')">
+                            <button type="button" class="btn-del" onclick="deleteOrder(${ord.id})">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -615,121 +661,117 @@
             }).join('');
         }
 
-        // 5. UPDATE ORDER STATUS (सुधारा हुआ और पक्का सिंक फ़ंक्शन)
-        async function updateOrderStatus(orderId, newStatus, cacheIndex) {
-            try {
-                if (!orderId) {
-                    alert("त्रुटि: ऑर्डर ID उपलब्ध नहीं है!");
-                    return;
+        async function updateOrderStatus(orderId, newStatus) {
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', orderId);
+                } catch (e) {
+                    console.error(e);
                 }
-
-                // Supabase ID को संख्या व स्ट्रिंग दोनों के लिए सुरक्षित करें
-                const targetId = isNaN(orderId) ? orderId : Number(orderId);
-
-                // 1. Supabase में स्थिति और JSON दोनों अपडेट करें
-                if (supabaseClient) {
-                    const currentOrder = globalOrdersCache[cacheIndex] || {};
-                    const updatedOrderData = { ...currentOrder, status: newStatus, order_status: newStatus };
-
-                    const { data, error } = await supabaseClient
-                        .from('orders')
-                        .update({ 
-                            status: newStatus,
-                            order_data: updatedOrderData
-                        })
-                        .eq('id', targetId)
-                        .select();
-
-                    if (error) {
-                        throw new Error("Supabase त्रुटि: " + error.message);
-                    }
-                    console.log("Supabase में अपडेट सफल:", data);
-                }
-
-                // 2. एडमिन के लोकल कैश में अपडेट करें
-                if (globalOrdersCache[cacheIndex]) {
-                    globalOrdersCache[cacheIndex].status = newStatus;
-                }
-
-                // 3. LocalStorage में भी अपडेट करें
-                let localAll = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-                localAll = localAll.map(o => {
-                    if (String(o.id) === String(orderId)) {
-                        o.status = newStatus;
-                        o.order_status = newStatus;
-                    }
-                    return o;
-                });
-                localStorage.setItem('dp_all_orders', JSON.stringify(localAll));
-
-                alert(`✅ ऑर्डर का स्टेटस सफलतापूर्वक "${newStatus}" कर दिया गया!`);
-                loadAdminOrders();
-
-            } catch (err) {
-                console.error("Status Update Failed:", err);
-                alert("स्टेटस अपडेट नहीं हो सका: " + err.message);
             }
+            try {
+                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                localOrders.forEach(o => {
+                    if (o.id == orderId) {
+                        o.status = newStatus;
+                        if (o.order_data) o.order_data.status = newStatus;
+                    }
+                });
+                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
+            } catch (e) {}
+            loadAdminOrders();
         }
 
-        // 6. OPEN DETAILED RECEIPT MODAL FOR ADMIN
-        function openAdminReceiptModal(index) {
+        async function deleteOrder(orderId) {
+            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').delete().eq('id', orderId);
+                } catch (e) {}
+            }
+            try {
+                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                localOrders = localOrders.filter(o => o.id != orderId);
+                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
+            } catch (e) {}
+            loadAdminOrders();
+        }
+
+        function viewOrderReceiptModal(index) {
             const ord = globalOrdersCache[index];
             if (!ord) return;
 
             let eventsHtml = '';
-            if (ord.events && Array.isArray(ord.events) && ord.events.length > 0) {
-                ord.events.forEach(ev => {
-                    eventsHtml += `<div class="receipt-row"><span>${ev.title}:</span> <b>${ev.date} (${ev.time || 'सायं'})</b></div>`;
-                });
-            } else {
-                eventsHtml = `<div class="receipt-row"><span>विवाह तिथि:</span> <b>${ord.event_date || '-'}</b></div>`;
+            if (ord.events) {
+                if (Array.isArray(ord.events) && ord.events.length > 0) {
+                    ord.events.forEach(ev => {
+                        eventsHtml += `<div class="receipt-row"><span>${ev.title || 'कार्यक्रम'}:</span> <b>${ev.date || ''} (${ev.time || 'सायं'})</b></div>`;
+                    });
+                } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
+                    eventsHtml = `<div class="receipt-row"><span>कार्यक्रम:</span> <b>${ord.events}</b></div>`;
+                }
+            }
+
+            let customNotesHtml = '';
+            if (ord.custom_notes && typeof ord.custom_notes === 'string' && ord.custom_notes.trim() !== '') {
+                customNotesHtml = `
+                    <div class="receipt-section-title">शायरी / बाल मनुहार / अन्य मैटर</div>
+                    <div style="font-size:12px; background:#f8fafc; padding:8px; border-radius:4px; white-space:pre-line; border:1px solid #e2e8f0;">${ord.custom_notes}</div>
+                `;
             }
 
             const printArea = document.getElementById('printableReceiptArea');
             const dt = new Date(ord.created_at).toLocaleDateString('hi-IN');
 
+            const cardImgHtml = ord.card_image 
+                ? `<img src="${ord.card_image}" alt="Card Sample" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">` 
+                : `<div style="width:75px; height:75px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>`;
+
             printArea.innerHTML = `
                 <div class="receipt-header">
                     <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छतर मोड़), करमाटांड़, जामताड़ा | मो: 9304509464</p>
-                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; border-radius:3px; font-size:12px;">शादी मैटर एवं प्रिंटिंग वर्क-ऑर्डर</h4>
+                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा | मो: 9304509464</p>
+                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; border-radius:3px; font-size:12px;">शादी मैटर एवं प्रिंटिंग आदेश पत्र</h4>
                 </div>
 
-                <div class="receipt-section-title">१. कार्ड विवरण व स्थिति</div>
+                <div class="receipt-section-title">१. कार्ड विवरण</div>
                 <div class="card-preview-box">
-                    ${ord.card_image ? `<img src="${ord.card_image}" alt="Card">` : '<div style="width:75px; height:75px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>'}
+                    ${cardImgHtml}
                     <div>
-                        <div style="font-size:15px; font-weight:bold; color:var(--dark);">${ord.card_title}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल / कोड: <b>${ord.card_model}</b></div>
-                        <div style="font-size:12px; color:#64748b;">मात्रा: <b>${ord.quantity} पीस</b></div>
-                        <div style="font-size:12px; color:#64748b;">वर्तमान स्थिति: <b style="color:var(--primary);">${ord.status}</b></div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title}</div>
+                        ${ord.card_model ? `<div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model}</b></div>` : ''}
+                        <div style="font-size:12px; color:#64748b;">वर्तमान स्टेटस: <b style="color:var(--primary);">${ord.status}</b></div>
                     </div>
                 </div>
 
                 <div class="receipt-section-title">२. ग्राहक विवरण</div>
                 <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name}</b></div>
                 <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile}</b></div>
-                <div class="receipt-row"><span>पूरा पता:</span> <span>${ord.customer_address}</span></div>
-                <div class="receipt-row"><span>ऑर्डर दिनांक:</span> <span>${dt}</span></div>
+                <div class="receipt-row"><span>ग्राहक का पता:</span> <span>${ord.address}</span></div>
+                <div class="receipt-row"><span>तारीख:</span> <span>${dt}</span></div>
 
-                <div class="receipt-section-title">३. शादी मैटर (वर-वधू पक्ष)</div>
-                <div class="receipt-row"><span>दूल्हा (वर):</span> <b style="color:var(--primary);">${ord.groom_name}</b></div>
-                <div class="receipt-row"><span>वर के पिता:</span> <span>${ord.groom_father}</span></div>
-                <div class="receipt-row"><span>वर का पता:</span> <span>${ord.groom_address}</span></div>
-                <div class="receipt-row"><span>दुल्हन (वधू):</span> <b style="color:var(--secondary);">${ord.bride_name}</b></div>
-                <div class="receipt-row"><span>वधू के पिता:</span> <span>${ord.bride_father}</span></div>
-                <div class="receipt-row"><span>वधू का पता:</span> <span>${ord.bride_address}</span></div>
+                <div class="receipt-section-title">३. शादी मैटर विवरण</div>
+                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${ord.groom_name}</b></div>
+                <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${ord.groom_father}</span></div>
+                <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${ord.groom_address}</span></div>
+                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${ord.bride_name}</b></div>
+                <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${ord.bride_father}</span></div>
+                <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${ord.bride_address}</span></div>
 
-                <div class="receipt-section-title">४. वैवाहिक कार्यक्रम विवरण</div>
-                ${eventsHtml}
+                <div class="receipt-section-title">४. वैवाहिक कार्यक्रम</div>
+                ${eventsHtml || '<div class="receipt-row"><span>कार्यक्रम:</span> <span>-</span></div>'}
+                ${customNotesHtml}
                 <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${ord.rsvp}</span></div>
                 <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family}</span></div>
 
-                <div class="receipt-section-title">५. बिल एवं अग्रिम भुगतान विवरण</div>
-                <div class="receipt-row"><span>कुल बिल राशि:</span> <b>₹${ord.total_amount}</b></div>
-                <div class="receipt-row"><span>जमा एडवांस (50%):</span> <b style="color:green;">₹${ord.advance_paid}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया राशि:</span> <b style="color:red;">₹${ord.balance_amount}</b></div>
-                <div class="receipt-row"><span>UTR / Trans ID:</span> <b>${ord.utr_number}</b></div>
+                <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
+                <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${ord.quantity} पीस</b></div>
+                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${ord.total_amount}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${ord.advance_paid}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${ord.balance_amount}</b></div>
+                <div class="receipt-row"><span>भुगतान UTR / Txn ID:</span> <b>${ord.utr_number}</b></div>
             `;
 
             document.getElementById('orderModal').style.display = 'flex';
@@ -743,7 +785,7 @@
             const element = document.getElementById('printableReceiptArea');
             const opt = {
                 margin:       8,
-                filename:     'Delhi_Press_Work_Order.pdf',
+                filename:     'Delhi_Press_Order_Slip.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -758,22 +800,6 @@
             window.print();
             document.body.innerHTML = originalContent;
             location.reload();
-        }
-
-        async function deleteAdminOrder(orderId) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
-            try {
-                if (supabaseClient && orderId) {
-                    const targetId = isNaN(orderId) ? orderId : Number(orderId);
-                    await supabaseClient.from('orders').delete().eq('id', targetId);
-                }
-                let localAll = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-                localAll = localAll.filter(o => String(o.id) !== String(orderId));
-                localStorage.setItem('dp_all_orders', JSON.stringify(localAll));
-                loadAdminOrders();
-            } catch (err) {
-                alert("हटाने में त्रुटि: " + err.message);
-            }
         }
     </script>
 </body>
