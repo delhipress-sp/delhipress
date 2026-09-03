@@ -194,6 +194,9 @@
                 <button type="button" class="tab-btn" id="tabBtnOrders" onclick="switchAdminTab('orders')">
                     <i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स प्रबंधन
                 </button>
+                <button type="button" class="tab-btn" id="tabBtnCustomers" onclick="switchAdminTab('customers')">
+                    <i class="fa-solid fa-users"></i> पंजीकृत ग्राहक लिस्ट (Users)
+                </button>
             </div>
 
             <!-- TAB 1: CATALOG & STOCK -->
@@ -283,6 +286,31 @@
                 </div>
             </div>
 
+            <!-- TAB 3: REGISTERED CUSTOMERS LIST -->
+            <div id="tabCustomersSection" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="font-size: 14px; margin-bottom: 0;">पंजीकृत ग्राहक (Registered Users) सूची:</h4>
+                    <button type="button" onclick="loadRegisteredCustomers()" style="background:none; border:1px solid #cbd5e1; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:12px;">
+                        <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश ग्राहक
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>क्र.सं.</th>
+                                <th>ग्राहक का नाम</th>
+                                <th>मोबाइल नंबर</th>
+                                <th>ईमेल / पता</th>
+                                <th>पंजीकरण दिनांक</th>
+                                <th>कार्रवाई</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -322,6 +350,7 @@
         }
 
         let globalOrdersCache = [];
+        let globalCustomersCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('dp_admin_auth') === 'true') {
@@ -354,6 +383,7 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tabCatalogSection').style.display = 'none';
             document.getElementById('tabOrdersSection').style.display = 'none';
+            document.getElementById('tabCustomersSection').style.display = 'none';
 
             if (tab === 'catalog') {
                 document.getElementById('tabBtnCatalog').classList.add('active');
@@ -363,6 +393,10 @@
                 document.getElementById('tabBtnOrders').classList.add('active');
                 document.getElementById('tabOrdersSection').style.display = 'block';
                 loadAdminOrders();
+            } else if (tab === 'customers') {
+                document.getElementById('tabBtnCustomers').classList.add('active');
+                document.getElementById('tabCustomersSection').style.display = 'block';
+                loadRegisteredCustomers();
             }
         }
 
@@ -517,7 +551,7 @@
             loadCatalogStock();
         }
 
-        // 2. LOAD ORDERS (Both Root-level and Nested order_data compatibility)
+        // 2. LOAD ORDERS
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
@@ -525,7 +559,6 @@
 
             let rawList = [];
 
-            // 1. Supabase से 'orders' टेबल से पढ़ें
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
@@ -541,7 +574,6 @@
                 }
             }
 
-            // 2. लोकल स्टोरेज बैकअप
             if (rawList.length === 0) {
                 try {
                     rawList = JSON.parse(
@@ -602,7 +634,7 @@
 
             tbody.innerHTML = globalOrdersCache.map((ord, idx) => {
                 const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
-                    day: 'numeric', month: 'short'
+                    day: 'numeric', month: 'short', year: 'numeric'
                 });
 
                 const imgHtml = ord.card_image 
@@ -659,6 +691,104 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        // 3. LOAD REGISTERED CUSTOMERS
+        async function loadRegisteredCustomers() {
+            const tbody = document.getElementById('customersTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:15px; color:#64748b;">ग्राहक लिस्ट लोड हो रही है...</td></tr>';
+
+            let customers = [];
+
+            // A. Supabase में 'users' / 'customers' / 'profiles' टेबल चेक करें
+            if (supabaseClient) {
+                const userTables = ['users', 'customers', 'profiles', 'clients'];
+                for (const tbl of userTables) {
+                    try {
+                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                        if (!error && data && data.length > 0) {
+                            customers = data;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            // B. अगर अलग यूजर्स टेबल न मिले, तो 'orders' टेबल से यूनिक ग्राहक निकालें
+            if (customers.length === 0) {
+                if (globalOrdersCache.length === 0) {
+                    await loadAdminOrders();
+                }
+                const map = new Map();
+                globalOrdersCache.forEach(o => {
+                    const phone = (o.customer_mobile || '').replace(/\D/g, '').slice(-10);
+                    if (phone && !map.has(phone)) {
+                        map.set(phone, {
+                            name: o.customer_name || 'ग्राहक',
+                            mobile: phone,
+                            address: o.address || '-',
+                            created_at: o.created_at
+                        });
+                    }
+                });
+                customers = Array.from(map.values());
+            }
+
+            // C. लोकल बैकअप भी चेक करें
+            if (customers.length === 0) {
+                try {
+                    const localU = JSON.parse(localStorage.getItem('dp_all_users') || '[]');
+                    if (Array.isArray(localU) && localU.length > 0) {
+                        customers = localU;
+                    }
+                } catch (e) {}
+            }
+
+            if (customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; color:#64748b;">कोई पंजीकृत ग्राहक नहीं मिला।</td></tr>';
+                return;
+            }
+
+            globalCustomersCache = customers;
+            tbody.innerHTML = customers.map((u, i) => {
+                const dt = u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric'
+                }) : '-';
+
+                const name = u.name || u.customer_name || u.full_name || 'ग्राहक';
+                const phone = u.mobile || u.phone || u.customer_mobile || '-';
+                const addr = u.address || u.email || '-';
+
+                return `
+                    <tr>
+                        <td><b>${i + 1}</b></td>
+                        <td style="font-weight:bold; color:var(--dark); text-align:left;">${name}</td>
+                        <td style="color:var(--primary); font-weight:bold;">${phone}</td>
+                        <td style="text-align:left;">${addr}</td>
+                        <td>${dt}</td>
+                        <td>
+                            <button type="button" class="btn-view" onclick="filterOrdersByCustomer('${phone}')">
+                                <i class="fa-solid fa-eye"></i> ऑर्डर्स देखें
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterOrdersByCustomer(phone) {
+            switchAdminTab('orders');
+            const clean = String(phone).replace(/\D/g, '').slice(-10);
+            const rows = document.querySelectorAll('#ordersTableBody tr');
+            rows.forEach(r => {
+                if (r.innerText.includes(clean)) {
+                    r.style.display = '';
+                    r.style.background = '#fef9c3';
+                } else {
+                    r.style.display = 'none';
+                }
+            });
         }
 
         async function updateOrderStatus(orderId, newStatus) {
