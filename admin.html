@@ -551,7 +551,7 @@
             loadCatalogStock();
         }
 
-        // 2. LOAD ORDERS
+        // 2. LOAD ORDERS (Both Supabase and LocalStorage Fallback)
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
@@ -576,11 +576,17 @@
 
             if (rawList.length === 0) {
                 try {
-                    rawList = JSON.parse(
-                        localStorage.getItem('dp_all_orders') || 
-                        localStorage.getItem('my_orders_list') || 
-                        localStorage.getItem('dp_user_orders') || '[]'
-                    );
+                    const local1 = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
+                    const local2 = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
+                    const local3 = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
+                    rawList = [...local1, ...local2, ...local3];
+                    const seen = new Set();
+                    rawList = rawList.filter(item => {
+                        const id = item.id || item.created_at;
+                        if (!id || seen.has(id)) return false;
+                        seen.add(id);
+                        return true;
+                    });
                 } catch (e) {
                     rawList = [];
                 }
@@ -701,7 +707,6 @@
 
             let customers = [];
 
-            // A. Supabase में 'users' / 'customers' / 'profiles' टेबल चेक करें
             if (supabaseClient) {
                 const userTables = ['users', 'customers', 'profiles', 'clients'];
                 for (const tbl of userTables) {
@@ -715,7 +720,6 @@
                 }
             }
 
-            // B. अगर अलग यूजर्स टेबल न मिले, तो 'orders' टेबल से यूनिक ग्राहक निकालें
             if (customers.length === 0) {
                 if (globalOrdersCache.length === 0) {
                     await loadAdminOrders();
@@ -735,7 +739,6 @@
                 customers = Array.from(map.values());
             }
 
-            // C. लोकल बैकअप भी चेक करें
             if (customers.length === 0) {
                 try {
                     const localU = JSON.parse(localStorage.getItem('dp_all_users') || '[]');
