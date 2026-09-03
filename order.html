@@ -115,14 +115,14 @@
             padding: 12px; margin-bottom: 10px; position: relative;
         }
         .btn-remove-event {
-            background: #ef4444; color: white; border: none; padding: 3px 8px;
+            background: #ef4444; color: white; border: none; padding: 4px 10px;
             border-radius: 4px; font-size: 11px; cursor: pointer; position: absolute;
             right: 8px; top: 8px; font-weight: bold;
         }
         .btn-add-event {
-            background: #4f46e5; color: white; border: none; padding: 7px 14px;
-            border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;
+            background: #4f46e5; color: white; border: none; padding: 8px 16px;
+            border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px;
         }
 
         .couple-header-bar {
@@ -420,29 +420,19 @@
                     </button>
                 </div>
 
-                <!-- अतिरिक्त मैटर (शायरी / बाल मनुहार / अन्य संदेश) -->
+                <!-- अतिरिक्त मैटर (सिर्फ बटन दिखेगा, क्लिक करने पर ही बॉक्स खुलेगा) -->
                 <div class="form-block">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h4 style="margin-bottom: 0; border: none; padding: 0;">
                             <i class="fa-solid fa-feather-pointed"></i> अतिरिक्त मैटर (शायरी / बाल मनुहार / अन्य संदेश)
                         </h4>
-                        <button type="button" class="btn-add-event" onclick="addCustomTextBox()" style="background: var(--secondary); margin-top: 0;">
+                        <button type="button" class="btn-add-event" onclick="addCustomTextBox()" style="background: var(--secondary);">
                             <i class="fa-solid fa-plus"></i> नया बॉक्स जोड़ें
                         </button>
                     </div>
                     
-                    <div id="customNotesContainer">
-                        <div class="event-box-item custom-note-item">
-                            <button type="button" class="btn-remove-event" onclick="removeCustomTextBox(this)">हटाएं</button>
-                            <div class="form-group">
-                                <label>शीर्षक (जैसे: शायरी, बाल मनुहार आदि):</label>
-                                <input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार / शायरी / स्वागत संदेश">
-                            </div>
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label>संदेश / मैटर लिखें:</label>
-                                <textarea class="custom-note-text" rows="3" placeholder="यहाँ शायरी, बच्चों के नाम या कोई भी जरूरी मैटर दर्ज करें..."></textarea>
-                            </div>
-                        </div>
+                    <div id="customNotesContainer" style="margin-top: 10px;">
+                        <!-- डिफ़ॉल्ट रूप से यहाँ कोई बॉक्स नहीं रहेगा -->
                     </div>
                 </div>
 
@@ -559,7 +549,6 @@
         let globalCatalogCards = [];
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // लॉगिन सुरक्षा जांच
             const currentUser = localStorage.getItem('dp_current_user');
             if (!currentUser) {
                 alert("ऑर्डर फॉर्म खोलने से पहले कृपया लॉगिन करें।");
@@ -567,7 +556,6 @@
                 return;
             }
 
-            // अगर यूजर का फोन या नाम पहले से सेव है तो ऑटो-फिल करें
             try {
                 const userObj = JSON.parse(currentUser);
                 if (userObj.name && !document.getElementById('custFullName').value) {
@@ -708,7 +696,6 @@
             upiLink.href = upiUrl;
         }
 
-        // कैशफ्री (Cashfree) पेमेंट इंटीग्रेशन
         function openCashfreePayment() {
             const advance = document.getElementById('advancePaidInput').value;
             const mobile = document.getElementById('custMobile').value || "9304509464";
@@ -719,7 +706,6 @@
                 return;
             }
 
-            // कैशफ्री डायरेक्ट पेमेंट लिंक/पेआउट ट्रिगर
             alert(`Cashfree पेमेंट विंडो खुल रही है। राशि: ₹${advance}\nभुगतान के बाद मिला Transaction ID यहाँ फॉर्म में दर्ज करें।`);
             const cashfreeUrl = `https://payments.cashfree.com/order/#/payment?amount=${advance}&customer_phone=${encodeURIComponent(mobile)}&customer_name=${encodeURIComponent(name)}`;
             window.open(cashfreeUrl, '_blank');
@@ -765,12 +751,13 @@
             container.appendChild(div);
         }
 
+        // नया अतिरिक्त संदेश/शायरी बॉक्स जोड़ने के लिए
         function addCustomTextBox() {
             const container = document.getElementById('customNotesContainer');
             const div = document.createElement('div');
             div.className = 'event-box-item custom-note-item';
             div.innerHTML = `
-                <button type="button" class="btn-remove-event" onclick="removeCustomTextBox(this)">हटाएं</button>
+                <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
                 <div class="form-group">
                     <label>शीर्षक (जैसे: शायरी, बाल मनुहार आदि):</label>
                     <input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार / शायरी / स्वागत संदेश">
@@ -783,21 +770,11 @@
             container.appendChild(div);
         }
 
-        function removeCustomTextBox(btn) {
-            const items = document.querySelectorAll('.custom-note-item');
-            if (items.length > 1) {
-                btn.closest('.custom-note-item').remove();
-            } else {
-                btn.closest('.custom-note-item').querySelector('.custom-note-title').value = '';
-                btn.closest('.custom-note-item').querySelector('.custom-note-text').value = '';
-            }
-        }
-
-        // फॉर्म सबमिशन, डेटाबेस सेविंग और रिव्यू
+        // फॉर्म सबमिशन, डेटाबेस सेविंग और WhatsApp रिव्यू
         async function handleFormSubmitAndReview() {
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> डेटा सेव हो रहा है...';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> डेटाबेस में सेव हो रहा है...';
 
             const fullName = document.getElementById('custFullName').value;
             const mobile = document.getElementById('custMobile').value;
@@ -823,7 +800,6 @@
             const vineet = document.getElementById('vineetNames').value;
             const darshan = document.getElementById('darshanNames').value;
 
-            // प्रोग्राम इकट्ठा करना
             let eventsArr = [];
             document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
                 const title = el.querySelector('.event-title') ? el.querySelector('.event-title').value : '';
@@ -832,19 +808,17 @@
                 if (title) eventsArr.push(`${title}: ${date} (${time})`);
             });
 
-            // कस्टम नोट्स/शायरी इकट्ठा करना
-            let customNotesArr = [];
             let customNotesWhatsApp = "";
-            document.querySelectorAll('.custom-note-item').forEach(el => {
+            let customNotesText = "";
+            document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
                 const t = el.querySelector('.custom-note-title').value.trim();
                 const m = el.querySelector('.custom-note-text').value.trim();
                 if (t || m) {
-                    customNotesArr.push({ title: t, text: m });
+                    customNotesText += `${t || 'अतिरिक्त मैटर'}: ${m} \n`;
                     customNotesWhatsApp += `\n*${t || 'अतिरिक्त मैटर'}:*\n${m}\n`;
                 }
             });
 
-            // वर्तमान यूजर की जानकारी
             let userIdentifier = mobile;
             const storedUser = localStorage.getItem('dp_current_user');
             if (storedUser) {
@@ -875,23 +849,30 @@
                 bride_father: brideFather,
                 bride_address: brideAddress,
                 events: eventsArr.join(' | '),
-                custom_notes: JSON.stringify(customNotesArr),
+                custom_notes: customNotesText,
                 vineet: vineet,
                 darshanabhilashi: darshan,
-                status: 'pending',
-                created_at: new Date().toISOString()
+                status: 'pending'
             };
 
-            // 1. Supabase में सेव करें ताकि Admin और My Orders दोनों जगह दिखे
+            // Supabase Database Save
+            let isSavedInDB = false;
             if (supabaseClient) {
                 try {
-                    await supabaseClient.from('orders').insert([orderPayload]);
+                    const { data, error } = await supabaseClient.from('orders').insert([orderPayload]).select();
+                    if (error) {
+                        alert("डेटाबेस में सेव करने में समस्या आई: " + error.message + "\n(कृपया सुनिश्चित करें कि 'orders' टेबल मौजूद है और RLS इंसर्ट अलाउ है)");
+                    } else {
+                        isSavedInDB = true;
+                    }
                 } catch (err) {
-                    console.error("Supabase Save Error:", err);
+                    alert("कनेक्शन एरर: " + err.message);
                 }
+            } else {
+                alert("Supabase क्लाइंट कनेक्ट नहीं हो पाया।");
             }
 
-            // 2. लोकल बैकअप भी अपडेट रखें
+            // लोकल स्टोरेज बैकअप (my_orders.html के लिए भी)
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
                 localOrders.unshift(orderPayload);
@@ -901,7 +882,7 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें';
 
-            // 3. प्रोफेशनल WhatsApp मैसेज तैयार करना
+            // WhatsApp मैसेज तैयार करना
             const summary = `✨ *नया शादी कार्ड प्रिंटिंग ऑर्डर* ✨
 🏢 *प्रतिष्ठान:* दिल्ली प्रेस (सज्जाद प्रिंटर्स), जामताड़ा
 ══════════════════════════
@@ -933,7 +914,7 @@ ${customNotesWhatsApp ? `══════════════════�
 • निवेदक: ${vineet || 'समस्त परिवार'}
 • दर्शनाभिलाषी: ${darshan || 'सभी स्नेहीजन'}
 ══════════════════════════
-✅ *घोषणा:* ग्राहक द्वारा मैटर एवं विवरण सत्यापित कर लिया गया है। कृपया प्रूफ तैयार करें।`;
+✅ *घोषणा:* ग्राहक द्वारा मैटर एवं विवरण सत्यापित कर लिया गया है।`;
 
             document.getElementById('reviewBoxContent').innerText = summary;
             const waUrl = `https://wa.me/${OWNER_MOBILE}?text=${encodeURIComponent(summary)}`;
