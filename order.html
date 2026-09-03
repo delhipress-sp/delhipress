@@ -196,7 +196,7 @@
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.65); z-index: 2000; justify-content: center; align-items: center;
             padding: 10px;
         }
         .modal-content {
@@ -207,13 +207,23 @@
         .review-box {
             background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
             padding: 12px; font-size: 13px; line-height: 1.6; margin: 12px 0;
-            max-height: 320px; overflow-y: auto; white-space: pre-line;
+            max-height: 280px; overflow-y: auto; white-space: pre-line;
         }
 
         .btn-wa-action {
             width: 100%; padding: 12px; background: var(--wa-green); color: white;
             font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; text-decoration: none;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; text-decoration: none;
+        }
+        .btn-edit-action {
+            width: 100%; padding: 10px; background: #f8fafc; color: var(--dark);
+            font-size: 14px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;
+        }
+        .btn-redirect-myorders {
+            width: 100%; padding: 12px; background: var(--blue); color: white;
+            font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
         }
 
         .main-footer {
@@ -420,7 +430,7 @@
                     </button>
                 </div>
 
-                <!-- अतिरिक्त मैटर (सिर्फ बटन दिखेगा, क्लिक करने पर ही बॉक्स खुलेगा) -->
+                <!-- अतिरिक्त मैटर (सिर्फ बटन दिखेगा, क्लिक करने पर ही नया बॉक्स जुड़ेगा) -->
                 <div class="form-block">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h4 style="margin-bottom: 0; border: none; padding: 0;">
@@ -432,7 +442,7 @@
                     </div>
                     
                     <div id="customNotesContainer" style="margin-top: 10px;">
-                        <!-- डिफ़ॉल्ट रूप से यहाँ कोई बॉक्स नहीं रहेगा -->
+                        <!-- डिफ़ॉल्ट रूप से कोई बॉक्स नहीं रहेगा -->
                     </div>
                 </div>
 
@@ -451,13 +461,14 @@
                 </div>
 
                 <div class="form-block payment-box">
-                    <h4 style="border:none; color:#166534;"><i class="fa-solid fa-shield-halved"></i> ऑनलाइन एडवांस भुगतान (UPI / Cashfree)</h4>
+                    <h4 style="border:none; color:#166534;"><i class="fa-solid fa-qrcode"></i> ऑनलाइन एडवांस भुगतान</h4>
                     <p style="font-size: 13px; color: #15803d; margin-bottom: 5px;">
                         UPI ID: <strong>9304509464@okbizaxis</strong>
                     </p>
 
                     <div class="qr-wrapper">
-                        <img id="upiQrCodeImg" src="" alt="UPI QR Code">
+                        <!-- स्टैटिक नॉन-डायनामिक QR कोड -->
+                        <img id="upiQrCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi%3A%2F%2Fpay%3Fpa%3D9304509464%40okbizaxis%26pn%3DDelhiPress" alt="UPI QR Code">
                     </div>
 
                     <div style="margin: 10px 0; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
@@ -496,18 +507,28 @@
         </div>
     </div>
 
-    <!-- Review Modal -->
+    <!-- Review & Confirmation Modal -->
     <div class="modal" id="reviewModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReviewModal()">&times;</span>
             <h3 style="color: var(--primary); margin-bottom: 8px;">
                 <i class="fa-solid fa-clipboard-check"></i> ऑर्डर मैटर समीक्षा (Order Review)
             </h3>
-            <p style="font-size: 12px; color: #64748b;">आपका ऑर्डर डेटाबेस में सुरक्षित सेव कर लिया गया है। अब नीचे बटन दबाकर WhatsApp पर मैटर भेजें:</p>
+            <p style="font-size: 12px; color: #64748b;">आपका ऑर्डर डेटाबेस में सुरक्षित सेव कर लिया गया है। आप मैटर का मिलान करके WhatsApp पर भेज सकते हैं या सुधार कर सकते हैं:</p>
+            
             <div class="review-box" id="reviewBoxContent"></div>
+
+            <button type="button" class="btn-edit-action" onclick="closeReviewModal()">
+                <i class="fa-solid fa-pen-to-square"></i> मैटर में सुधार / एडिट करें
+            </button>
+
             <a href="#" class="btn-wa-action" id="waConfirmBtn" target="_blank">
-                <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजकर ऑर्डर फाइनल करें
+                <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> WhatsApp पर भेजें (वैकल्पिक)
             </a>
+
+            <button type="button" class="btn-redirect-myorders" onclick="goToMyOrders()">
+                <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स (My Orders) पर जाएं
+            </button>
         </div>
     </div>
 
@@ -597,6 +618,7 @@
                 document.getElementById('previewCardModel').innerText = "कोई कार्ड नहीं चुना गया";
                 document.getElementById('previewCardRate').innerText = "मूल्य: ₹0 / पीस";
                 document.getElementById('previewCardImage').src = "https://placehold.co/90x90?text=Card+Photo";
+                document.getElementById('selectedCardImageStored').value = "";
                 document.getElementById('cardCategory').value = "";
                 document.getElementById('cardRate').value = 0;
                 calculateWeddingTotal(true);
@@ -644,11 +666,14 @@
             const rate = parseFloat(card.rate || card.price) || 0;
 
             const imgElem = document.getElementById('previewCardImage');
+            const storedInput = document.getElementById('selectedCardImageStored');
+
             if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null" && imgUrl !== "undefined") {
                 imgElem.src = imgUrl;
-                document.getElementById('selectedCardImageStored').value = imgUrl;
+                storedInput.value = imgUrl;
             } else {
                 imgElem.src = "https://placehold.co/90x90?text=Card+Photo";
+                storedInput.value = "";
             }
 
             document.getElementById('previewCardName').innerText = name;
@@ -687,12 +712,8 @@
             document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
             document.getElementById('paidAmountFinal').value = advance;
             
-            const qrImg = document.getElementById('upiQrCodeImg');
             const upiLink = document.getElementById('btnPayUpiDirect');
             const upiUrl = `upi://pay?pa=${UPI_ID}&pn=DelhiPress&am=${advance}`;
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiUrl)}`;
-            
-            qrImg.src = qrUrl;
             upiLink.href = upiUrl;
         }
 
@@ -751,13 +772,12 @@
             container.appendChild(div);
         }
 
-        // नया अतिरिक्त संदेश/शायरी बॉक्स जोड़ने के लिए
         function addCustomTextBox() {
             const container = document.getElementById('customNotesContainer');
             const div = document.createElement('div');
             div.className = 'event-box-item custom-note-item';
             div.innerHTML = `
-                <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
+                <button type="button" class="btn-remove-event" onclick="removeCustomTextBox(this)">हटाएं</button>
                 <div class="form-group">
                     <label>शीर्षक (जैसे: शायरी, बाल मनुहार आदि):</label>
                     <input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार / शायरी / स्वागत संदेश">
@@ -770,7 +790,14 @@
             container.appendChild(div);
         }
 
-        // फॉर्म सबमिशन, डेटाबेस सेविंग और WhatsApp रिव्यू
+        function removeCustomTextBox(btn) {
+            btn.closest('.custom-note-item').remove();
+        }
+
+        function goToMyOrders() {
+            window.location.href = "my_orders.html";
+        }
+
         async function handleFormSubmitAndReview() {
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -781,7 +808,15 @@
             const address = document.getElementById('custFullAddress').value;
             const cardName = document.getElementById('cardCategory').value;
             const cardModel = document.getElementById('selectedCardModelStored').value;
-            const cardImage = document.getElementById('selectedCardImageStored').value;
+            
+            let cardImage = document.getElementById('selectedCardImageStored').value;
+            if (!cardImage || cardImage.includes('placehold.co')) {
+                const previewSrc = document.getElementById('previewCardImage').src;
+                if (previewSrc && !previewSrc.includes('placehold.co')) {
+                    cardImage = previewSrc;
+                }
+            }
+
             const qty = parseInt(document.getElementById('cardQty').value) || 0;
             const rate = parseFloat(document.getElementById('cardRate').value) || 0;
             const total = qty * rate;
@@ -814,7 +849,7 @@
                 const t = el.querySelector('.custom-note-title').value.trim();
                 const m = el.querySelector('.custom-note-text').value.trim();
                 if (t || m) {
-                    customNotesText += `${t || 'अतिरिक्त मैटर'}: ${m} \n`;
+                    customNotesText += `${t || 'अतिरिक्त मैटर'}: ${m}\n`;
                     customNotesWhatsApp += `\n*${t || 'अतिरिक्त मैटर'}:*\n${m}\n`;
                 }
             });
@@ -836,6 +871,8 @@
                 card_name: cardName,
                 card_model: cardModel,
                 card_image: cardImage,
+                photo: cardImage,
+                image: cardImage,
                 quantity: qty,
                 rate: rate,
                 total_amount: total,
@@ -852,27 +889,21 @@
                 custom_notes: customNotesText,
                 vineet: vineet,
                 darshanabhilashi: darshan,
-                status: 'pending'
+                status: 'pending',
+                created_at: new Date().toISOString()
             };
 
-            // Supabase Database Save
-            let isSavedInDB = false;
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient.from('orders').insert([orderPayload]).select();
                     if (error) {
-                        alert("डेटाबेस में सेव करने में समस्या आई: " + error.message + "\n(कृपया सुनिश्चित करें कि 'orders' टेबल मौजूद है और RLS इंसर्ट अलाउ है)");
-                    } else {
-                        isSavedInDB = true;
+                        console.warn("Supabase Error:", error.message);
                     }
                 } catch (err) {
-                    alert("कनेक्शन एरर: " + err.message);
+                    console.warn("Supabase insert error:", err);
                 }
-            } else {
-                alert("Supabase क्लाइंट कनेक्ट नहीं हो पाया।");
             }
 
-            // लोकल स्टोरेज बैकअप (my_orders.html के लिए भी)
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
                 localOrders.unshift(orderPayload);
@@ -882,7 +913,6 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fa-solid fa-file-lines"></i> मैटर चेक करें और ऑर्डर सबमिट करें';
 
-            // WhatsApp मैसेज तैयार करना
             const summary = `✨ *नया शादी कार्ड प्रिंटिंग ऑर्डर* ✨
 🏢 *प्रतिष्ठान:* दिल्ली प्रेस (सज्जाद प्रिंटर्स), जामताड़ा
 ══════════════════════════
@@ -893,7 +923,7 @@
 
 📦 *कार्ड एवं बिल विवरण:*
 • कार्ड मॉडल: ${cardName}
-• कुल मात्रा: ${qty} पीस
+${cardImage ? `• कार्ड फोटो लिंक: ${cardImage}\n` : ''}• कुल मात्रा: ${qty} पीस
 • दर (प्रति पीस): ₹${rate}
 • कुल बिल राशि: ₹${total}
 • जमा एडवांस राशि: ₹${advance}
