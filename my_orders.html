@@ -64,8 +64,8 @@
         }
         .order-id-date { display: flex; align-items: center; gap: 10px; }
         .order-card-img {
-            width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
-            background: #f1f5f9;
+            width: 52px; height: 52px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
+            background: #f1f5f9; flex-shrink: 0;
         }
         .order-id-date h4 { font-size: 15px; color: var(--primary); margin: 0; }
         .order-id-date span { font-size: 12px; color: #64748b; }
@@ -134,8 +134,8 @@
             display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 6px;
         }
         .card-preview-box img {
-            width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
-            background: #e2e8f0;
+            width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
+            background: #e2e8f0; flex-shrink: 0;
         }
 
         /* MAIN FOOTER */
@@ -331,7 +331,7 @@
             const user = checkCustomerAuth();
             let rawOrders = [];
 
-            // 1. Supabase को 1.2 सेकंड का टाइमआउट दें (ताकि पेज कभी न लटके)
+            // 1. Supabase से ऑर्डर्स लाएं
             if (supabaseClient) {
                 try {
                     const fetchPromise = supabaseClient
@@ -340,7 +340,7 @@
                         .order('id', { ascending: false });
 
                     const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Timeout')), 1200)
+                        setTimeout(() => reject(new Error('Timeout')), 2500)
                     );
 
                     const res = await Promise.race([fetchPromise, timeoutPromise]);
@@ -348,53 +348,63 @@
                         rawOrders = res.data;
                     }
                 } catch (err) {
-                    console.warn("Supabase स्किप, लोकल बैकअप लोड हो रहा है:", err);
+                    console.warn("Supabase एरर या टाइमआउट, लोकल स्टोरेज बैकअप देखा जा रहा है:", err);
                 }
             }
 
-            // 2. LocalStorage बैकअप
+            // 2. लोकल स्टोरेज बैकअप (my_orders_list, dp_all_orders)
             if (rawOrders.length === 0) {
                 try {
-                    rawOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('dp_user_orders') || '[]');
+                    rawOrders = JSON.parse(
+                        localStorage.getItem('my_orders_list') || 
+                        localStorage.getItem('dp_all_orders') || 
+                        localStorage.getItem('dp_user_orders') || '[]'
+                    );
                 } catch (e) {
                     rawOrders = [];
                 }
             }
 
-            // 3. डेटा सामान्यीकरण
+            // 3. डेटा सामान्यीकरण (सभी संभावित कॉलम नामों से फोटो और नाम उठाना)
             const normalizedOrders = (rawOrders || []).map(item => {
                 const nested = item.order_data || {};
                 const liveStatus = item.status || nested.status || nested.order_status || 'Pending';
-                const rawPhone = String(item.mobile || item.phone || nested.customer_mobile || nested.mobile || '');
+                const rawPhone = String(item.mobile || item.phone || item.user_id || nested.customer_mobile || nested.mobile || '');
+
+                // फोटो के सभी संभावित स्रोतों की जांच
+                let detectedImage = item.card_image || item.photo || item.image || item.card_photo || item.image_url || nested.card_image || nested.photo || nested.image || '';
+                if (detectedImage && (detectedImage.includes('placehold.co') || detectedImage === 'null' || detectedImage === 'undefined')) {
+                    detectedImage = '';
+                }
 
                 return {
                     id: item.id || nested.id || Date.now(),
                     created_at: item.created_at || nested.created_at || new Date().toISOString(),
                     customer_name: item.customer_name || nested.customer_name || 'ग्राहक',
                     customer_mobile: rawPhone,
-                    card_title: item.card_title || nested.card_title || 'शादी कार्ड',
-                    card_model: item.model || nested.card_model || 'DP-101',
-                    card_image: nested.card_image || item.image_url || '',
-                    quantity: nested.qty || nested.quantity || item.quantity || 100,
+                    card_title: item.card_name || item.card_title || nested.card_title || nested.card_name || 'शादी कार्ड',
+                    card_model: item.card_model || item.model || nested.card_model || '',
+                    card_image: detectedImage,
+                    quantity: item.quantity || nested.qty || nested.quantity || 100,
                     total_amount: parseFloat(item.total_amount || nested.total_amount || 0),
-                    advance_paid: parseFloat(nested.advance_paid || item.advance_amount || 0),
-                    balance_amount: parseFloat(nested.balance_amount !== undefined ? nested.balance_amount : ((item.total_amount || 0) - (nested.advance_paid || 0))),
+                    advance_paid: parseFloat(item.advance_paid || item.advance_amount || nested.advance_paid || 0),
+                    balance_amount: parseFloat(item.balance_amount !== undefined ? item.balance_amount : ((item.total_amount || 0) - (item.advance_paid || 0))),
                     groom_name: item.groom_name || nested.groom_name || '-',
-                    groom_father: nested.groom_father || '-',
-                    groom_address: nested.groom_address || '-',
+                    groom_father: item.groom_father || nested.groom_father || '-',
+                    groom_address: item.groom_address || nested.groom_address || '-',
                     bride_name: item.bride_name || nested.bride_name || '-',
-                    bride_father: nested.bride_father || '-',
-                    bride_address: nested.bride_address || '-',
-                    events: nested.events || [],
-                    event_date: nested.date || nested.event_date || '',
-                    rsvp: nested.rsvp || '-',
-                    from_family: nested.from_family || '-',
-                    utr_number: nested.utr_number || 'Cash/Online',
+                    bride_father: item.bride_father || nested.bride_father || '-',
+                    bride_address: item.bride_address || nested.bride_address || '-',
+                    events: item.events || nested.events || [],
+                    custom_notes: item.custom_notes || nested.custom_notes || '',
+                    rsvp: item.vineet || nested.rsvp || '-',
+                    from_family: item.darshanabhilashi || nested.from_family || '-',
+                    utr_number: item.txn_id || nested.utr_number || nested.txn_id || 'Cash/Online',
                     order_status: liveStatus
                 };
             });
 
-            // 4. ग्राहक फ़ोन नंबर फ़िल्टर
+            // 4. ग्राहक फ़ोन नंबर से फ़िल्टर
             const userPhoneRaw = user ? String(user.mobile || user.customer_mobile || user.phone || '') : '';
             const cleanUserPhone = userPhoneRaw.replace(/[^0-9]/g, '').slice(-10);
 
@@ -439,13 +449,17 @@
                     statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready)</span>`;
                 }
 
+                const cardImgHtml = ord.card_image 
+                    ? `<img src="${ord.card_image}" class="order-card-img" alt="Card" onerror="this.onerror=null; this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';">`
+                    : `<div class="order-card-img" style="display:flex; align-items:center; justify-content:center; color:#94a3b8;"><i class="fa-solid fa-image"></i></div>`;
+
                 return `
                     <div class="order-card">
                         <div class="order-card-header">
                             <div class="order-id-date">
-                                ${ord.card_image ? `<img src="${ord.card_image}" class="order-card-img" alt="Card">` : ''}
+                                ${cardImgHtml}
                                 <div>
-                                    <h4>${ord.card_title}</h4>
+                                    <h4>${ord.card_title} ${ord.card_model ? '(' + ord.card_model + ')' : ''}</h4>
                                     <span>दिनांक: ${dt}</span>
                                 </div>
                             </div>
@@ -497,12 +511,22 @@
             const balance = Math.max(0, total - advance);
 
             let eventsHtml = '';
-            if (ord.events && Array.isArray(ord.events) && ord.events.length > 0) {
-                ord.events.forEach(ev => {
-                    eventsHtml += `<div class="receipt-row"><span>${ev.title}:</span> <b>${ev.date} (${ev.time || 'सायं'})</b></div>`;
-                });
-            } else {
-                eventsHtml = `<div class="receipt-row"><span>विवाह तिथि:</span> <b>${ord.event_date || '-'}</b></div>`;
+            if (ord.events) {
+                if (Array.isArray(ord.events) && ord.events.length > 0) {
+                    ord.events.forEach(ev => {
+                        eventsHtml += `<div class="receipt-row"><span>${ev.title || 'कार्यक्रम'}:</span> <b>${ev.date || ''} (${ev.time || 'सायं'})</b></div>`;
+                    });
+                } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
+                    eventsHtml = `<div class="receipt-row"><span>कार्यक्रम:</span> <b>${ord.events}</b></div>`;
+                }
+            }
+
+            let customNotesHtml = '';
+            if (ord.custom_notes && typeof ord.custom_notes === 'string' && ord.custom_notes.trim() !== '') {
+                customNotesHtml = `
+                    <div class="receipt-section-title">शायरी व अन्य मैटर</div>
+                    <div style="font-size:12px; background:#f8fafc; padding:6px 10px; border-radius:4px; white-space:pre-line;">${ord.custom_notes}</div>
+                `;
             }
 
             let statusLabel = 'ऑर्डर प्राप्त हुआ (Pending)';
@@ -512,19 +536,23 @@
             const printArea = document.getElementById('printableReceiptArea');
             const dt = new Date(ord.created_at).toLocaleDateString('hi-IN');
 
+            const receiptImageHtml = ord.card_image 
+                ? `<img src="${ord.card_image}" alt="Card Photo" onerror="this.onerror=null; this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';">`
+                : `<div style="width:80px; height:80px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:11px; color:#64748b;">नो इमेज</div>`;
+
             printArea.innerHTML = `
                 <div class="receipt-header">
                     <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छतर मोड़), करमाटांड़, जामताड़ा | मो: 9304509464</p>
+                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा | मो: 9304509464</p>
                     <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; border-radius:3px; font-size:12px;">ग्राहक ऑर्डर पावती एवं शादी मैटर</h4>
                 </div>
 
                 <div class="receipt-section-title">१. चुना गया कार्ड मॉडल</div>
                 <div class="card-preview-box">
-                    ${ord.card_image ? `<img src="${ord.card_image}" alt="Card Sample">` : '<div style="width:70px; height:70px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>'}
+                    ${receiptImageHtml}
                     <div>
                         <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model}</b></div>
+                        ${ord.card_model ? `<div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model}</b></div>` : ''}
                         <div style="font-size:12px; color:#64748b;">वर्तमान स्थिति: <b style="color:var(--primary);">${statusLabel}</b></div>
                     </div>
                 </div>
@@ -543,7 +571,8 @@
                 <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${ord.bride_address}</span></div>
 
                 <div class="receipt-section-title">४. वैवाहिक कार्यक्रम व अन्य</div>
-                ${eventsHtml}
+                ${eventsHtml || '<div class="receipt-row"><span>कार्यक्रम:</span> <span>-</span></div>'}
+                ${customNotesHtml}
                 <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${ord.rsvp}</span></div>
                 <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family}</span></div>
 
