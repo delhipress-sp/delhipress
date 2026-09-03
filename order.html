@@ -15,7 +15,6 @@
             --dark: #1e272e;
             --green: #27ae60;
             --blue: #2980b9;
-            --wa-green: #25D366;
             --warn-bg: #fff3cd;
             --warn-border: #ffeeba;
             --warn-text: #856404;
@@ -30,10 +29,7 @@
             padding: 10px 16px; position: sticky; top: 0; z-index: 1000;
         }
         .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; }
-        .nav-logo-img {
-            width: 40px; height: 40px; border-radius: 50%;
-            object-fit: cover; border: 2px solid var(--primary);
-        }
+        .nav-logo-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
         .nav-brand h2 { color: var(--primary); font-size: 19px; }
         .btn-nav {
             text-decoration: none; color: #1e293b; font-weight: 700; font-size: 13px;
@@ -50,6 +46,21 @@
             display: flex; align-items: center; gap: 8px;
         }
 
+        /* Category Slider / Switcher Bar */
+        .category-switcher-container {
+            background: #e2e8f0; padding: 5px; border-radius: 35px;
+            display: flex; gap: 5px; margin-bottom: 20px; position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+        }
+        .cat-slider-btn {
+            flex: 1; border: none; background: transparent; padding: 10px 8px;
+            border-radius: 30px; font-weight: 700; font-size: 14px; color: #475569;
+            cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .cat-slider-btn.active {
+            background: var(--primary); color: #fff; box-shadow: 0 3px 10px rgba(192, 57, 43, 0.35);
+        }
+
         .form-wrapper {
             background: #fff; padding: 18px; border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #cbd5e1;
@@ -63,18 +74,11 @@
         .selected-card-banner {
             display: block; background: #fffaf0; border: 2px solid var(--secondary);
             border-radius: 8px; padding: 12px 15px; margin-bottom: 18px;
-            box-shadow: 0 2px 8px rgba(211, 84, 0, 0.08);
-        }
-        .selected-card-banner h4 {
-            color: var(--secondary); font-size: 14px; font-weight: 700;
-            border-bottom: 1px dashed #fed7aa; padding-bottom: 6px; margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
         }
         .card-preview-body { display: flex; gap: 14px; align-items: center; }
         .card-preview-thumb {
             width: 90px; height: 90px; object-fit: cover;
-            border-radius: 6px; border: 1px solid #cbd5e1;
-            background-color: #f1f5f9;
+            border-radius: 6px; border: 1px solid #cbd5e1; background-color: #f1f5f9;
         }
         .card-preview-info h3 { font-size: 16px; color: var(--dark); margin-bottom: 2px; }
         .card-preview-info p { font-size: 13px; color: #64748b; margin-bottom: 2px; }
@@ -82,9 +86,6 @@
 
         .card-picker-box {
             margin-top: 10px; padding-top: 8px; border-top: 1px dashed #fed7aa;
-        }
-        .card-picker-box select {
-            background: #fff; font-weight: 600; color: #1e293b;
         }
 
         .form-block {
@@ -144,7 +145,7 @@
         .weds-badge {
             background: linear-gradient(135deg, #c0392b, #d35400); color: #fff;
             padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
-            position: relative; z-index: 2; box-shadow: 0 2px 5px rgba(192, 57, 43, 0.2);
+            position: relative; z-index: 2;
         }
 
         .total-bill-box {
@@ -160,7 +161,7 @@
 
         .declaration-box {
             background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
-            padding: 12px; margin-top: 5px; display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px; margin-top: 15px; display: flex; align-items: flex-start; gap: 10px;
         }
         .declaration-box input[type="checkbox"] {
             width: 22px; height: 22px; margin-top: 2px; cursor: pointer; flex-shrink: 0;
@@ -169,7 +170,6 @@
             font-size: 13px; color: #1e3a8a; font-weight: 600; line-height: 1.5; cursor: pointer; margin-bottom: 0;
         }
 
-        /* Order Now Button */
         .btn-order-now {
             width: 100%; padding: 15px; background: var(--green); color: white;
             font-size: 17px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
@@ -211,43 +211,30 @@
 
     <div class="container">
         
+        <!-- सेवा स्लाइडर बटन (Service Slider) -->
+        <div class="category-switcher-container">
+            <button type="button" class="cat-slider-btn active" id="btnTabWedding" onclick="switchOrderCategory('wedding')">
+                <i class="fa-solid fa-heart"></i> शादी कार्ड
+            </button>
+            <button type="button" class="cat-slider-btn" id="btnTabBanner" onclick="switchOrderCategory('banner')">
+                <i class="fa-solid fa-panorama"></i> फ्लेक्स बैनर
+            </button>
+            <button type="button" class="cat-slider-btn" id="btnTabVisiting" onclick="switchOrderCategory('visiting')">
+                <i class="fa-solid fa-address-card"></i> विज़िटिंग कार्ड
+            </button>
+        </div>
+
         <div class="notice-banner">
             <i class="fa-solid fa-triangle-exclamation" style="font-size: 16px;"></i>
-            <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
+            <span>नोट: प्रिंटिंग से पहले मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
         </div>
 
         <div class="form-wrapper">
-            <div class="section-header">शादी कार्ड ऑर्डर फॉर्म</div>
-            
-            <div class="selected-card-banner">
-                <h4>
-                    <span><i class="fa-solid fa-circle-check"></i> चुना हुआ शादी कार्ड</span>
-                    <a href="index.html#showcaseSection" style="color:var(--primary); font-size:12px; text-decoration:underline;">कैटलॉग में और कार्ड देखें</a>
-                </h4>
+            <div class="section-header" id="currentSectionTitle">शादी कार्ड ऑर्डर फॉर्म</div>
+
+            <form id="masterOrderForm" onsubmit="event.preventDefault(); processUniversalOrder();">
                 
-                <div class="card-preview-body">
-                    <img id="previewCardImage" class="card-preview-thumb" src="https://placehold.co/90x90?text=Card+Photo" alt="चुना गया कार्ड">
-                    <div class="card-preview-info">
-                        <h3 id="previewCardName">कार्ड चुनें</h3>
-                        <p id="previewCardModel">मॉडल / कोड: --</p>
-                        <p class="rate-tag" id="previewCardRate">मूल्य: ₹-- / पीस</p>
-                    </div>
-                </div>
-
-                <div class="card-picker-box">
-                    <label style="font-size:12px; color:#c0392b;">या कैटलॉग से कोई अन्य कार्ड चुनें:</label>
-                    <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
-                        <option value="">-- कैटलॉग कार्ड लोड हो रहे हैं... --</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- फॉर्म सबमिट होने पर सीधे payment.html पर जाएगा -->
-            <form id="weddingForm" onsubmit="event.preventDefault(); processOrderNow();">
-                
-                <input type="hidden" id="selectedCardImageStored" value="">
-                <input type="hidden" id="selectedCardModelStored" value="">
-
+                <!-- कॉमन ग्राहक विवरण -->
                 <div class="form-block" style="border-left-color: var(--blue);">
                     <h4><i class="fa-solid fa-user-tag"></i> ग्राहक का विवरण (Customer Details)</h4>
                     <div class="row-2">
@@ -257,7 +244,7 @@
                         </div>
                         <div class="form-group">
                             <label>मोबाइल नंबर / WhatsApp:</label>
-                            <input type="tel" id="custMobile" placeholder="उदा: अपना 10 अंकों का मोबाइल नंबर दर्ज करें" required>
+                            <input type="tel" id="custMobile" placeholder="10 अंकों का मोबाइल नंबर" required>
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
@@ -266,147 +253,259 @@
                     </div>
                 </div>
 
-                <div class="form-block">
-                    <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
-                    <div class="row-3">
-                        <div class="form-group">
-                            <label>कार्ड मॉडल / नाम:</label>
-                            <input type="text" id="cardCategory" value="" placeholder="कार्ड का नाम" required>
+                <!-- 1. शादी कार्ड सेक्शन (WEDDING CARD SECTION) -->
+                <div id="sectionWeddingCard">
+                    <div class="selected-card-banner">
+                        <div class="card-preview-body">
+                            <img id="previewCardImage" class="card-preview-thumb" src="https://placehold.co/90x90?text=Card+Photo" alt="कार्ड फोटो">
+                            <div class="card-preview-info">
+                                <h3 id="previewCardName">कार्ड चुनें</h3>
+                                <p id="previewCardModel">मॉडल / कोड: --</p>
+                                <p class="rate-tag" id="previewCardRate">मूल्य: ₹-- / पीस</p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>प्रति पीस रेट (₹):</label>
-                            <input type="number" id="cardRate" value="0" min="0" step="any" oninput="calculateWeddingTotal(false)" required>
-                        </div>
-                        <div class="form-group">
-                            <label>संख्या (Quantity):</label>
-                            <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal(false)" required>
+                        <div class="card-picker-box">
+                            <label style="font-size:12px; color:#c0392b;">या कैटलॉग से कोई अन्य कार्ड चुनें:</label>
+                            <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
+                                <option value="">-- कैटलॉग कार्ड लोड हो रहे हैं... --</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="total-bill-box">
-                        <span>कुल बिल राशि:</span>
-                        <span id="weddingTotalDisplay">₹0</span>
+                    <div class="form-block">
+                        <h4>१. कार्ड कैटगरी, रेट एवं संख्या</h4>
+                        <div class="row-3">
+                            <div class="form-group">
+                                <label>कार्ड मॉडल / नाम:</label>
+                                <input type="text" id="cardCategory" placeholder="कार्ड का नाम">
+                            </div>
+                            <div class="form-group">
+                                <label>प्रति पीस रेट (₹):</label>
+                                <input type="number" id="cardRate" value="0" min="0" step="any" oninput="calculateWeddingTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>संख्या (Quantity):</label>
+                                <input type="number" id="cardQty" value="100" min="1" oninput="calculateWeddingTotal()">
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="advance-calc-box">
+                    <div class="form-block">
+                        <div class="couple-header-bar">
+                            <h4 style="margin-bottom:0; border:none; padding:0;">२. दूल्हा-दुल्हन का विवरण</h4>
+                            <button type="button" class="btn-switch-couple" onclick="swapCoupleSides()">
+                                <i class="fa-solid fa-right-left"></i> <span id="switchBtnText">दुल्हन पक्ष ऊपर करें</span>
+                            </button>
+                        </div>
+
+                        <div id="coupleContainer">
+                            <div class="dynamic-item" id="groomBox">
+                                <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> वर (दूल्हा) का विवरण</h5>
+                                <div class="row-2">
+                                    <div class="form-group">
+                                        <label>वर का नाम:</label>
+                                        <input type="text" id="groomName" placeholder="लड़का का नाम">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>पिता का नाम:</label>
+                                        <input type="text" id="groomFather" placeholder="पिता का नाम">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>वर का पता:</label>
+                                    <input type="text" id="groomAddress" placeholder="ग्राम - ...">
+                                </div>
+                            </div>
+
+                            <div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग (Weds)</span></div>
+
+                            <div class="dynamic-item" id="brideBox">
+                                <h5 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-person-dress"></i> वधू (दुल्हन) का विवरण</h5>
+                                <div class="row-2">
+                                    <div class="form-group">
+                                        <label>वधू का नाम:</label>
+                                        <input type="text" id="brideName" placeholder="लड़की का नाम">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>पिता का नाम:</label>
+                                        <input type="text" id="brideFather" placeholder="पिता का नाम">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>वधू का पता:</label>
+                                    <input type="text" id="brideAddress" placeholder="ग्राम - ...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>३. वैवाहिक कार्यक्रम</h4>
+                        <div id="eventsContainer">
+                            <div class="event-box-item">
+                                <div class="row-3">
+                                    <div class="form-group"><label>कार्यक्रम नाम:</label><input type="text" class="event-title" value="शुभ विवाह / निकाह"></div>
+                                    <div class="form-group"><label>दिनांक (Date):</label><input type="date" class="event-date"></div>
+                                    <div class="form-group"><label>समय:</label><input type="text" class="event-time" placeholder="उदा: रात्रि 08:00 बजे"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-add-event" onclick="addEventRow()"><i class="fa-solid fa-plus"></i> अन्य कार्यक्रम जोड़ें</button>
+                    </div>
+
+                    <div class="form-block">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin-bottom: 0; border: none; padding: 0;"><i class="fa-solid fa-feather-pointed"></i> शायरी / बाल मनुहार</h4>
+                            <button type="button" class="btn-add-event" onclick="addCustomTextBox()" style="background: var(--secondary);"><i class="fa-solid fa-plus"></i> नया बॉक्स</button>
+                        </div>
+                        <div id="customNotesContainer" style="margin-top: 10px;"></div>
+                    </div>
+
+                    <div class="form-block">
+                        <h4>४. RSVP / दर्शनाभिलाषी</h4>
                         <div class="row-2">
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label style="color: #166534; font-weight: bold;">
-                                    <i class="fa-solid fa-hand-holding-dollar"></i> एडवांस जमा राशि (₹):
-                                </label>
-                                <input type="number" id="advancePaidInput" value="0" min="0" step="any" required>
-                            </div>
-                            <div class="form-group" style="margin-bottom: 0; text-align: right;">
-                                <label style="color: #b91c1c; font-weight: bold;">बाकी बकाया (Balance):</label>
-                                <div id="balanceAmountDisplay" style="font-size: 17px; font-weight: bold; color: #b91c1c;">₹0</div>
-                            </div>
+                            <div class="form-group"><label>From (निवेदक परिवार):</label><textarea id="vineetNames" rows="2" placeholder="सभी दोस्त रिश्तेदार"></textarea></div>
+                            <div class="form-group"><label>अदाई / आकांक्षी:</label><textarea id="darshanNames" rows="2" placeholder="चाचा, ताऊ..."></textarea></div>
                         </div>
-                        <p style="font-size: 11px; color: #15803d; margin-top: 5px;">* कुल राशि का 50% एडवांस स्वतः निर्धारित है।</p>
                     </div>
                 </div>
 
-                <div class="form-block">
-                    <div class="couple-header-bar">
-                        <h4 style="margin-bottom:0; border:none; padding:0;">२. दूल्हा-दुल्हन का विवरण</h4>
-                        <button type="button" class="btn-switch-couple" onclick="swapCoupleSides()">
-                            <i class="fa-solid fa-right-left"></i> <span id="switchBtnText">दुल्हन पक्ष ऊपर करें</span>
-                        </button>
+                <!-- 2. फ्लेक्स बैनर सेक्शन (FLEX BANNER SECTION) -->
+                <div id="sectionBanner" style="display: none;">
+                    <div class="form-block" style="border-left-color: #8e44ad;">
+                        <h4><i class="fa-solid fa-panorama"></i> बैनर साइज एवं स्पेसिफिकेशन</h4>
+                        <div class="row-3">
+                            <div class="form-group">
+                                <label>चौड़ाई (Width in Feet):</label>
+                                <input type="number" id="bannerWidth" value="6" min="1" oninput="calculateBannerTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>ऊंचाई (Height in Feet):</label>
+                                <input type="number" id="bannerHeight" value="3" min="1" oninput="calculateBannerTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>क्वालिटी (Flex Quality):</label>
+                                <select id="bannerQuality" onchange="calculateBannerTotal()">
+                                    <option value="12">नॉर्मल फ्लेक्स (₹12/sq.ft)</option>
+                                    <option value="16">स्टार फ्लेक्स - HD (₹16/sq.ft)</option>
+                                    <option value="25">बैकलिट / ग्लोसाइन (₹25/sq.ft)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>बैनर की संख्या (Quantity):</label>
+                                <input type="number" id="bannerQty" value="1" min="1" oninput="calculateBannerTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>कुल वर्ग फीट (Sq. Feet):</label>
+                                <input type="text" id="bannerTotalSqFt" value="18 Sq. Ft" readonly style="background:#f1f5f9;">
+                            </div>
+                        </div>
                     </div>
 
-                    <div id="coupleContainer">
-                        <div class="dynamic-item" id="groomBox">
-                            <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> वर (दूल्हा) का विवरण</h5>
-                            <div class="row-2">
-                                <div class="form-group">
-                                    <label>वर का नाम (Groom's Name):</label>
-                                    <input type="text" id="groomName" placeholder="उदा: लड़का का नाम" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>पिता का नाम:</label>
-                                    <input type="text" id="groomFather" placeholder="उदा: पिता का नाम" required>
-                                </div>
-                            </div>
-                    
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label>वर का पता (गाँव/शहर, जिला):</label>
-                                <input type="text" id="groomAddress" placeholder="ग्राम - ...">
-                            </div>
+                    <div class="form-block" style="border-left-color: #8e44ad;">
+                        <h4><i class="fa-solid fa-pen-nib"></i> बैनर पर क्या लिखवाना है (मैटर विवरण)</h4>
+                        <div class="form-group">
+                            <label>दुकान / संस्था / आयोजन का मुख्य शीर्षक (Title):</label>
+                            <input type="text" id="bannerHeading" placeholder="उदा: पूजा ज्वेलर्स / शुभ उद्घाटन">
                         </div>
-
-                        <div class="weds-divider">
-                            <span class="weds-badge"><i class="fa-solid fa-heart"></i> संग (Weds)</span>
+                        <div class="form-group">
+                            <label>सेवाएं / ऑफर / अन्य मैटर:</label>
+                            <textarea id="bannerSubDetails" rows="4" placeholder="यहाँ सभी पॉइंट लिखें जो बैनर पर छापने हैं..."></textarea>
                         </div>
-
-                        <div class="dynamic-item" id="brideBox">
-                            <h5 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-person-dress"></i> वधू (दुल्हन) का विवरण</h5>
-                            <div class="row-2">
-                                <div class="form-group">
-                                    <label>वधू का नाम (Bride's Name):</label>
-                                    <input type="text" id="brideName" placeholder="उदा: लड़की का नाम" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>पिता का नाम:</label>
-                                    <input type="text" id="brideFather" placeholder="उदा: पिता का नाम" required>
-                                </div>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>प्रोपराइटर / संपर्क नाम:</label>
+                                <input type="text" id="bannerProprietor" placeholder="नाम...">
                             </div>
-                            
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label>वधू का पता (गाँव/शहर, जिला):</label>
-                                <input type="text" id="brideAddress" placeholder="ग्राम - ...">
+                            <div class="form-group">
+                                <label>बैनर पर डालने हेतु मोबाइल नंबर:</label>
+                                <input type="text" id="bannerContactPhones" placeholder="उदा: 93045XXXXX">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-block">
-                    <h4>३. प्रोग्राम (Wedding Program Events)</h4>
-                    <div id="eventsContainer">
-                        <div class="event-box-item">
-                            <div class="row-3">
-                                <div class="form-group">
-                                    <label>कार्यक्रम नाम:</label>
-                                    <input type="text" class="event-title" value="शुभ विवाह / निकाह" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>दिनांक (Date):</label>
-                                    <input type="date" class="event-date" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>समय / दिन के साथ डालें:</label>
-                                    <input type="text" class="event-time" placeholder="उदा: रात्रि 08:00 बजे">
-                                </div>
+                <!-- 3. विज़िटिंग कार्ड सेक्शन (VISITING CARD SECTION) -->
+                <div id="sectionVisiting" style="display: none;">
+                    <div class="form-block" style="border-left-color: #16a085;">
+                        <h4><i class="fa-solid fa-address-card"></i> विज़िटिंग कार्ड टाइप एवं मात्रा</h4>
+                        <div class="row-3">
+                            <div class="form-group">
+                                <label>कार्ड पेपर प्रकार:</label>
+                                <select id="visitingCardType" onchange="calculateVisitingTotal()">
+                                    <option value="500">300 GSM नॉर्मल मैट (₹500 / 1000 पीस)</option>
+                                    <option value="750">ग्लोस लेमिनेशन (₹750 / 1000 पीस)</option>
+                                    <option value="950">मैट लेमिनेशन + वेलवेट (₹950 / 1000 पीस)</option>
+                                    <option value="1400">बोथ साइड प्रिंट (₹1400 / 1000 पीस)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>मात्रा (Quantity):</label>
+                                <select id="visitingQuantity" onchange="calculateVisitingTotal()">
+                                    <option value="1">1000 पीस (1 बॉक्स)</option>
+                                    <option value="2">2000 पीस (2 बॉक्स)</option>
+                                    <option value="3">3000 पीस (3 बॉक्स)</option>
+                                    <option value="5">5000 पीस (5 बॉक्स)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>कार्ड डिज़ाइन प्रकार:</label>
+                                <select id="visitingSide">
+                                    <option value="सिंगल साइड">Single Side Print</option>
+                                    <option value="डबल साइड">Double Side Print</option>
+                                </select>
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn-add-event" onclick="addEventRow()">
-                        <i class="fa-solid fa-plus"></i> अन्य कार्यक्रम जोड़ें
-                    </button>
-                </div>
 
-                <!-- अतिरिक्त मैटर -->
-                <div class="form-block">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h4 style="margin-bottom: 0; border: none; padding: 0;">
-                            <i class="fa-solid fa-feather-pointed"></i> अतिरिक्त मैटर (शायरी / बाल मनुहार / अन्य संदेश)
-                        </h4>
-                        <button type="button" class="btn-add-event" onclick="addCustomTextBox()" style="background: var(--secondary);">
-                            <i class="fa-solid fa-plus"></i> नया बॉक्स जोड़ें
-                        </button>
+                    <div class="form-block" style="border-left-color: #16a085;">
+                        <h4><i class="fa-solid fa-briefcase"></i> बिज़नेस कार्ड मैटर</h4>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>फर्म / दुकान / कंपनी का नाम:</label>
+                                <input type="text" id="visitingShopName" placeholder="उदा: दिल्ली प्रेस">
+                            </div>
+                            <div class="form-group">
+                                <label>व्यक्ति का नाम एवं पद:</label>
+                                <input type="text" id="visitingPersonName" placeholder="उदा: मो. सज्जाद (संचालक)">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>उपलब्ध सेवाएं / डीलिंग सामग्री:</label>
+                            <textarea id="visitingServices" rows="3" placeholder="आप क्या बेचते हैं या क्या सेवा देते हैं..."></textarea>
+                        </div>
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>कार्ड पर छपने वाला पता:</label>
+                                <input type="text" id="visitingPrintAddress" placeholder="ईदगाह मोड़, करमाटांड़...">
+                            </div>
+                            <div class="form-group">
+                                <label>ईमेल / वेबसाइट (यदि हो):</label>
+                                <input type="text" id="visitingEmailWeb" placeholder="email@gmail.com">
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div id="customNotesContainer" style="margin-top: 10px;"></div>
                 </div>
 
-                <div class="form-block">
-                    <h4>४. RSVP / दर्शनाभिलाषी</h4>
+                <!-- बिलिंग एवं एडवांस बॉक्स (Universal Billing) -->
+                <div class="total-bill-box">
+                    <span>कुल बिल राशि:</span>
+                    <span id="universalTotalDisplay">₹0</span>
+                </div>
+
+                <div class="advance-calc-box">
                     <div class="row-2">
-                        <div class="form-group">
-                            <label>From (निवेदक परिवार):</label>
-                            <textarea id="vineetNames" rows="2" placeholder="सभी दोस्त रिश्तेदार"></textarea>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="color: #166534; font-weight: bold;">
+                                <i class="fa-solid fa-hand-holding-dollar"></i> एडवांस जमा राशि (₹):
+                            </label>
+                            <input type="number" id="universalAdvanceInput" value="0" min="0" step="any" required>
                         </div>
-                        <div class="form-group">
-                            <label>अदाई / आकांक्षी:</label>
-                            <textarea id="darshanNames" rows="2" placeholder="उदा: चाचा, ताऊ, भाई-बंधु..."></textarea>
+                        <div class="form-group" style="margin-bottom: 0; text-align: right;">
+                            <label style="color: #b91c1c; font-weight: bold;">बाकी बकाया (Balance):</label>
+                            <div id="universalBalanceDisplay" style="font-size: 17px; font-weight: bold; color: #b91c1c;">₹0</div>
                         </div>
                     </div>
                 </div>
@@ -414,11 +513,10 @@
                 <div class="declaration-box">
                     <input type="checkbox" id="orderConfirmDeclaration" required>
                     <label for="orderConfirmDeclaration">
-                        मैं प्रमाणित करता/करती हूँ कि ऊपर दी गई सभी जानकारियाँ, नाम, और दिनांक पूर्णतः सही हैं। कार्ड छपने के बाद किसी भी गलती की ज़िम्मेदारी मेरी होगी।
+                        मैं प्रमाणित करता/करती हूँ कि ऊपर दी गई सभी जानकारियाँ, नाम, साइज़ और मैटर पूर्णतः सही हैं। प्रिंटिंग के बाद गलती की ज़िम्मेदारी मेरी होगी।
                     </label>
                 </div>
 
-                <!-- Order Now Button -->
                 <button type="submit" class="btn-order-now">
                     <i class="fa-solid fa-bag-shopping"></i> Order Now (भुगतान पृष्ठ पर जाएं)
                 </button>
@@ -438,15 +536,34 @@
             <div class="footer-col">
                 <h4>हमारी सेवाएं</h4>
                 <p><i class="fa-solid fa-angle-right"></i> शादी कार्ड छपाई</p>
-                <p><i class="fa-solid fa-angle-right"></i> निमंत्रण एवं ग्रीटिंग कार्ड</p>
-                <p><i class="fa-solid fa-angle-right"></i> फ्लेक्स व डिजिटल प्रिंटिंग</p>
+                <p><i class="fa-solid fa-angle-right"></i> फ्लेक्स एवं डिजिटल बैनर</p>
+                <p><i class="fa-solid fa-angle-right"></i> विज़िटिंग कार्ड एवं बिल बुक</p>
             </div>
         </div>
+        
+        <div style="text-align: center; margin-top: 15px; font-size: 13px; color: #94a3b8;">
+            <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Terms & Conditions</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('privacy')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Privacy Policy</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Refund Policy</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('contact')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Contact Us</a>
+        </div>
+
         <div class="footer-bottom">
             <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
             <a href="admin.html" style="color:#64748b; text-decoration:none;"><i class="fa-solid fa-lock"></i> एडमिन</a>
         </div>
     </footer>
+
+    <!-- पॉलिसी पॉपअप विंडो -->
+    <div id="policyModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center; padding: 15px;">
+        <div style="background: #fff; width: 100%; max-width: 650px; max-height: 85vh; border-radius: 8px; overflow-y: auto; padding: 22px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+                <h3 id="policyModalTitle" style="color: #c0392b; font-size: 18px; margin: 0;">पॉलिसी विवरण</h3>
+                <button type="button" onclick="closePolicyModal()" style="border: none; background: #e2e8f0; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; font-weight: bold;">&times;</button>
+            </div>
+            <div id="policyModalBody" style="font-size: 14px; color: #334155; line-height: 1.6;"></div>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
@@ -459,318 +576,259 @@
             }
         } catch (e) {}
 
+        let currentActiveCategory = 'wedding';
         let isGroomFirst = true;
         let globalCatalogCards = [];
+        let calculatedGrandTotal = 0;
 
+        // स्विच / स्लाइडर फंक्शन
+        function switchOrderCategory(cat) {
+            currentActiveCategory = cat;
+            document.querySelectorAll('.cat-slider-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('sectionWeddingCard').style.display = 'none';
+            document.getElementById('sectionBanner').style.display = 'none';
+            document.getElementById('sectionVisiting').style.display = 'none';
+
+            if (cat === 'wedding') {
+                document.getElementById('btnTabWedding').classList.add('active');
+                document.getElementById('sectionWeddingCard').style.display = 'block';
+                document.getElementById('currentSectionTitle').innerText = "शादी कार्ड ऑर्डर फॉर्म";
+                calculateWeddingTotal();
+            } else if (cat === 'banner') {
+                document.getElementById('btnTabBanner').classList.add('active');
+                document.getElementById('sectionBanner').style.display = 'block';
+                document.getElementById('currentSectionTitle').innerText = "फ्लेक्स बैनर ऑर्डर फॉर्म";
+                calculateBannerTotal();
+            } else if (cat === 'visiting') {
+                document.getElementById('btnTabVisiting').classList.add('active');
+                document.getElementById('sectionVisiting').style.display = 'block';
+                document.getElementById('currentSectionTitle').innerText = "विज़िटिंग कार्ड ऑर्डर फॉर्म";
+                calculateVisitingTotal();
+            }
+        }
+
+        // कैलकुलेशन 1: शादी कार्ड
+        function calculateWeddingTotal() {
+            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
+            const qty = parseInt(document.getElementById('cardQty').value) || 0;
+            updateUniversalTotals(rate * qty);
+        }
+
+        // कैलकुलेशन 2: बैनर
+        function calculateBannerTotal() {
+            const w = parseFloat(document.getElementById('bannerWidth').value) || 0;
+            const h = parseFloat(document.getElementById('bannerHeight').value) || 0;
+            const rate = parseFloat(document.getElementById('bannerQuality').value) || 12;
+            const qty = parseInt(document.getElementById('bannerQty').value) || 1;
+
+            const sqft = w * h;
+            document.getElementById('bannerTotalSqFt').value = `${sqft} Sq. Ft`;
+            updateUniversalTotals(sqft * rate * qty);
+        }
+
+        // कैलकुलेशन 3: विज़िटिंग कार्ड
+        function calculateVisitingTotal() {
+            const ratePerThousand = parseFloat(document.getElementById('visitingCardType').value) || 500;
+            const boxes = parseInt(document.getElementById('visitingQuantity').value) || 1;
+            updateUniversalTotals(ratePerThousand * boxes);
+        }
+
+        // कॉमन बिलिंग अपडेटर
+        function updateUniversalTotals(total) {
+            calculatedGrandTotal = Math.round(total);
+            document.getElementById('universalTotalDisplay').innerText = `₹${calculatedGrandTotal.toLocaleString('en-IN')}`;
+
+            const advanceInput = document.getElementById('universalAdvanceInput');
+            advanceInput.value = Math.round(calculatedGrandTotal * 0.5);
+
+            const advance = parseFloat(advanceInput.value) || 0;
+            const balance = Math.max(0, calculatedGrandTotal - advance);
+            document.getElementById('universalBalanceDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
+        }
+
+        document.getElementById('universalAdvanceInput').addEventListener('input', function() {
+            const adv = parseFloat(this.value) || 0;
+            const bal = Math.max(0, calculatedGrandTotal - adv);
+            document.getElementById('universalBalanceDisplay').innerText = `₹${bal.toLocaleString('en-IN')}`;
+        });
+
+        // शादी कार्ड कैटलॉग फेचर
         window.addEventListener('DOMContentLoaded', async () => {
             const currentUser = localStorage.getItem('dp_current_user');
-            if (!currentUser) {
-                alert("ऑर्डर फॉर्म खोलने से पहले कृपया लॉगिन करें।");
-                window.location.href = "login.html";
-                return;
-            }
-
-            try {
-                const userObj = JSON.parse(currentUser);
-                if (userObj.name && !document.getElementById('custFullName').value) {
-                    document.getElementById('custFullName').value = userObj.name;
-                }
-                if (userObj.mobile && !document.getElementById('custMobile').value) {
-                    document.getElementById('custMobile').value = userObj.mobile;
-                }
-            } catch (e) {}
-
-            await fetchAndFillCatalogDropdown();
-
-            let targetCard = null;
-            const storedSelected = localStorage.getItem('order_selected_card');
-            if (storedSelected) {
+            if (currentUser) {
                 try {
-                    const parsed = JSON.parse(storedSelected);
-                    if (parsed && parsed.name && !parsed.name.toLowerCase().includes('kjfkf')) {
-                        targetCard = parsed;
-                    }
+                    const u = JSON.parse(currentUser);
+                    if (u.name) document.getElementById('custFullName').value = u.name;
+                    if (u.mobile) document.getElementById('custMobile').value = u.mobile;
                 } catch (e) {}
             }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const cardId = urlParams.get('id') || urlParams.get('card_id');
-            if (cardId && globalCatalogCards.length > 0) {
-                const found = globalCatalogCards.find(c => String(c.id) === String(cardId));
-                if (found) targetCard = found;
-            }
-
-            if (targetCard) {
-                applyCardDetails(targetCard);
-                if (targetCard.id) {
-                    document.getElementById('directCardSelect').value = targetCard.id;
-                }
-            } else {
-                document.getElementById('previewCardName').innerText = "कैटलॉग से कार्ड चुनें";
-                document.getElementById('previewCardModel').innerText = "कोई कार्ड नहीं चुना गया";
-                document.getElementById('previewCardRate').innerText = "मूल्य: ₹0 / पीस";
-                document.getElementById('previewCardImage').src = "https://placehold.co/90x90?text=Card+Photo";
-                document.getElementById('selectedCardImageStored').value = "";
-                document.getElementById('cardCategory').value = "";
-                document.getElementById('cardRate').value = 0;
-                calculateWeddingTotal(true);
-            }
+            await fetchAndFillCatalogDropdown();
+            calculateWeddingTotal();
         });
 
         async function fetchAndFillCatalogDropdown() {
             const dropdown = document.getElementById('directCardSelect');
             if (!supabaseClient) return;
-
-            const tablesToCheck = ['cards_catalog', 'catalog', 'cards'];
-            for (const tbl of tablesToCheck) {
-                try {
-                    const { data, error } = await supabaseClient.from(tbl).select('*');
-                    if (data && data.length > 0) {
-                        globalCatalogCards = data;
-                        dropdown.innerHTML = '<option value="">-- कार्ड सूची में से चुनें --</option>';
-                        data.forEach(item => {
-                            const name = item.name || item.title || 'शादी कार्ड';
-                            const model = item.model || item.code || '';
-                            const rate = item.rate || item.price || 0;
-                            const opt = document.createElement('option');
-                            opt.value = item.id;
-                            opt.textContent = `${name} (${model}) - ₹${rate}/पीस`;
-                            dropdown.appendChild(opt);
-                        });
-                        break;
-                    }
-                } catch (e) {}
-            }
+            try {
+                const { data } = await supabaseClient.from('cards_catalog').select('*');
+                if (data && data.length > 0) {
+                    globalCatalogCards = data;
+                    dropdown.innerHTML = '<option value="">-- कार्ड चुनें --</option>';
+                    data.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.textContent = `${item.name || 'शादी कार्ड'} (${item.model || ''}) - ₹${item.rate || 0}/पीस`;
+                        dropdown.appendChild(opt);
+                    });
+                }
+            } catch (e) {}
         }
 
         function onCatalogSelectChange(cardId) {
-            if (!cardId) return;
             const card = globalCatalogCards.find(c => String(c.id) === String(cardId));
-            if (card) applyCardDetails(card);
-        }
-
-        function applyCardDetails(card) {
-            const imgUrl = card.image || card.image_url || card.photo || '';
-            const name = card.name || card.title || 'शादी कार्ड';
-            const model = card.model || card.code || '';
-            const rate = parseFloat(card.rate || card.price) || 0;
-
-            const imgElem = document.getElementById('previewCardImage');
-            const storedInput = document.getElementById('selectedCardImageStored');
-
-            if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null" && imgUrl !== "undefined") {
-                imgElem.src = imgUrl;
-                storedInput.value = imgUrl;
-            } else {
-                imgElem.src = "https://placehold.co/90x90?text=Card+Photo";
-                storedInput.value = "";
-            }
-
-            document.getElementById('previewCardName').innerText = name;
-            document.getElementById('previewCardModel').innerText = model ? `मॉडल / कोड: ${model}` : '';
-            document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
-
-            document.getElementById('cardCategory').value = model ? `${name} (${model})` : name;
-            document.getElementById('selectedCardModelStored').value = model;
-            document.getElementById('cardRate').value = rate;
-
-            calculateWeddingTotal(true);
-        }
-
-        function calculateWeddingTotal(isInitial = false) {
-            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            const qty = parseInt(document.getElementById('cardQty').value) || 0;
-            const total = rate * qty;
-            
-            document.getElementById('weddingTotalDisplay').innerText = `₹${total.toLocaleString('en-IN')}`;
-            
-            const advanceInput = document.getElementById('advancePaidInput');
-            if (isInitial || advanceInput.value == 0) {
-                advanceInput.value = Math.round(total * 0.5);
-            }
-            
-            const advance = parseFloat(advanceInput.value) || 0;
-            const balance = Math.max(0, total - advance);
-            document.getElementById('balanceAmountDisplay').innerText = `₹${balance.toLocaleString('en-IN')}`;
+            if (!card) return;
+            document.getElementById('previewCardName').innerText = card.name || 'शादी कार्ड';
+            document.getElementById('previewCardModel').innerText = `मॉडल: ${card.model || '--'}`;
+            document.getElementById('previewCardRate').innerText = `मूल्य: ₹${card.rate || 0} / पीस`;
+            document.getElementById('previewCardImage').src = card.image || 'https://placehold.co/90x90?text=Card';
+            document.getElementById('cardCategory').value = `${card.name} (${card.model || ''})`;
+            document.getElementById('cardRate').value = card.rate || 0;
+            calculateWeddingTotal();
         }
 
         function swapCoupleSides() {
             const container = document.getElementById('coupleContainer');
             const groomBox = document.getElementById('groomBox');
             const brideBox = document.getElementById('brideBox');
-            const btnText = document.getElementById('switchBtnText');
-            
             if (isGroomFirst) {
                 container.insertBefore(brideBox, container.firstChild);
-                btnText.innerText = "दूल्हा पक्ष ऊपर करें";
+                document.getElementById('switchBtnText').innerText = "दूल्हा पक्ष ऊपर करें";
             } else {
                 container.insertBefore(groomBox, container.firstChild);
-                btnText.innerText = "दुल्हन पक्ष ऊपर करें";
+                document.getElementById('switchBtnText').innerText = "दुल्हन पक्ष ऊपर करें";
             }
             isGroomFirst = !isGroomFirst;
         }
 
         function addEventRow() {
-            const container = document.getElementById('eventsContainer');
             const div = document.createElement('div');
             div.className = 'event-box-item';
             div.innerHTML = `
                 <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
                 <div class="row-3">
-                    <div class="form-group">
-                        <label>कार्यक्रम नाम:</label>
-                        <input type="text" class="event-title" placeholder="उदा: महिला संगीत / मटकोर" required>
-                    </div>
-                    <div class="form-group">
-                        <label>दिनांक (Date):</label>
-                        <input type="date" class="event-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>समय / दिन:</label>
-                        <input type="text" class="event-time" placeholder="उदा: शाम 05:00 बजे">
-                    </div>
+                    <div class="form-group"><label>कार्यक्रम:</label><input type="text" class="event-title" placeholder="उदा: संगीत"></div>
+                    <div class="form-group"><label>दिनांक:</label><input type="date" class="event-date"></div>
+                    <div class="form-group"><label>समय:</label><input type="text" class="event-time" placeholder="शाम 05:00"></div>
                 </div>
             `;
-            container.appendChild(div);
+            document.getElementById('eventsContainer').appendChild(div);
         }
 
         function addCustomTextBox() {
-            const container = document.getElementById('customNotesContainer');
             const div = document.createElement('div');
             div.className = 'event-box-item custom-note-item';
             div.innerHTML = `
                 <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
-                <div class="form-group">
-                    <label>शीर्षक (शायरी / बाल मनुहार):</label>
-                    <input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार">
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>संदेश लिखें:</label>
-                    <textarea class="custom-note-text" rows="2" placeholder="मैटर..."></textarea>
-                </div>
+                <div class="form-group"><label>शीर्षक:</label><input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>संदेश:</label><textarea class="custom-note-text" rows="2"></textarea></div>
             `;
-            container.appendChild(div);
+            document.getElementById('customNotesContainer').appendChild(div);
         }
 
-        // Order Now दबाने पर डेटा पैक करके सीधे payment.html पर भेजना
-        function processOrderNow() {
+        // मास्टर सबमिट फ़ंक्शन (तीनों सेवाओं के लिए)
+        function processUniversalOrder() {
             const fullName = document.getElementById('custFullName').value;
             const mobile = document.getElementById('custMobile').value;
             const address = document.getElementById('custFullAddress').value;
-            const cardName = document.getElementById('cardCategory').value;
-            const cardModel = document.getElementById('selectedCardModelStored').value;
-            
-            let cardImage = document.getElementById('selectedCardImageStored').value;
-            if (!cardImage || cardImage.includes('placehold.co')) {
-                const previewSrc = document.getElementById('previewCardImage').src;
-                if (previewSrc && !previewSrc.includes('placehold.co')) cardImage = previewSrc;
+            const advance = parseFloat(document.getElementById('universalAdvanceInput').value) || 0;
+            const balance = Math.max(0, calculatedGrandTotal - advance);
+
+            let orderTitle = "";
+            let orderModel = "";
+            let orderNotes = "";
+            let groom = "-", groomF = "-", groomA = "-";
+            let bride = "-", brideF = "-", brideA = "-";
+            let cardImg = "";
+            let finalQty = 1;
+
+            if (currentActiveCategory === 'wedding') {
+                orderTitle = document.getElementById('cardCategory').value || "शादी कार्ड";
+                orderModel = document.getElementById('previewCardModel').innerText;
+                cardImg = document.getElementById('previewCardImage').src;
+                finalQty = parseInt(document.getElementById('cardQty').value) || 100;
+                groom = document.getElementById('groomName').value;
+                groomF = document.getElementById('groomFather').value;
+                groomA = document.getElementById('groomAddress').value;
+                bride = document.getElementById('brideName').value;
+                brideF = document.getElementById('brideFather').value;
+                brideA = document.getElementById('brideAddress').value;
+                
+                let notes = [];
+                document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
+                    notes.push(`${el.querySelector('.custom-note-title').value}: ${el.querySelector('.custom-note-text').value}`);
+                });
+                orderNotes = notes.join('\n');
+
+            } else if (currentActiveCategory === 'banner') {
+                const w = document.getElementById('bannerWidth').value;
+                const h = document.getElementById('bannerHeight').value;
+                finalQty = parseInt(document.getElementById('bannerQty').value) || 1;
+                orderTitle = `फ्लेक्स बैनर (${w}x${h} फ़ीट)`;
+                orderModel = document.getElementById('bannerQuality').options[document.getElementById('bannerQuality').selectedIndex].text;
+                orderNotes = `मुख्य शीर्षक: ${document.getElementById('bannerHeading').value}\nमैटर: ${document.getElementById('bannerSubDetails').value}\nप्रोपराइटर: ${document.getElementById('bannerProprietor').value}\nसंपर्क: ${document.getElementById('bannerContactPhones').value}`;
+
+            } else if (currentActiveCategory === 'visiting') {
+                const boxes = document.getElementById('visitingQuantity').value;
+                finalQty = parseInt(boxes) * 1000;
+                orderTitle = "विज़िटिंग कार्ड (" + document.getElementById('visitingSide').value + ")";
+                orderModel = document.getElementById('visitingCardType').options[document.getElementById('visitingCardType').selectedIndex].text;
+                orderNotes = `शॉप: ${document.getElementById('visitingShopName').value}\nनाम: ${document.getElementById('visitingPersonName').value}\nसर्विसेज: ${document.getElementById('visitingServices').value}\nपता: ${document.getElementById('visitingPrintAddress').value}\nईमेल/वेब: ${document.getElementById('visitingEmailWeb').value}`;
             }
 
-            const qty = parseInt(document.getElementById('cardQty').value) || 0;
-            const rate = parseFloat(document.getElementById('cardRate').value) || 0;
-            const total = qty * rate;
-            const advance = parseFloat(document.getElementById('advancePaidInput').value) || 0;
-            const balance = Math.max(0, total - advance);
-
-            const groom = document.getElementById('groomName').value;
-            const groomFather = document.getElementById('groomFather').value;
-            const groomAddress = document.getElementById('groomAddress').value;
-
-            const bride = document.getElementById('brideName').value;
-            const brideFather = document.getElementById('brideFather').value;
-            const brideAddress = document.getElementById('brideAddress').value;
-
-            const vineet = document.getElementById('vineetNames').value;
-            const darshan = document.getElementById('darshanNames').value;
-
-            let eventsArr = [];
-            document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
-                const title = el.querySelector('.event-title').value;
-                const date = el.querySelector('.event-date').value;
-                const time = el.querySelector('.event-time').value;
-                if (title) eventsArr.push(`${title}: ${date} (${time})`);
-            });
-
-            let customNotesText = "";
-            document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
-                const t = el.querySelector('.custom-note-title').value.trim();
-                const m = el.querySelector('.custom-note-text').value.trim();
-                if (t || m) customNotesText += `${t || 'मैटर'}: ${m}\n`;
-            });
-
-            let userIdentifier = mobile;
-            const storedUser = localStorage.getItem('dp_current_user');
-            if (storedUser) {
-                try {
-                    const u = JSON.parse(storedUser);
-                    userIdentifier = u.mobile || u.phone || mobile;
-                } catch (e) {}
-            }
-
-            const nestedOrderData = {
+            const payload = {
                 id: Date.now(),
                 customer_name: fullName,
-                customer_mobile: mobile,
-                card_title: cardName,
-                card_model: cardModel,
-                card_image: cardImage,
-                qty: qty,
-                quantity: qty,
-                total_amount: total,
-                advance_paid: advance,
-                balance_amount: balance,
-                groom_name: groom,
-                groom_father: groomFather,
-                groom_address: groomAddress,
-                bride_name: bride,
-                bride_father: brideFather,
-                bride_address: brideAddress,
-                events: eventsArr,
-                custom_notes: customNotesText,
-                rsvp: vineet,
-                from_family: darshan,
-                created_at: new Date().toISOString()
-            };
-
-            const fullPayload = {
-                id: nestedOrderData.id,
-                user_id: userIdentifier,
                 mobile: mobile,
                 phone: mobile,
-                customer_name: fullName,
                 address: address,
-                card_name: cardName,
-                card_title: cardName,
-                card_model: cardModel,
-                model: cardModel,
-                card_image: cardImage,
-                image_url: cardImage,
-                photo: cardImage,
-                image: cardImage,
-                quantity: qty,
-                rate: rate,
-                total_amount: total,
+                card_name: orderTitle,
+                card_title: orderTitle,
+                card_model: orderModel,
+                quantity: finalQty,
+                total_amount: calculatedGrandTotal,
                 advance_paid: advance,
-                advance_amount: advance,
                 balance_amount: balance,
+                card_image: cardImg,
                 groom_name: groom,
-                groom_father: groomFather,
-                groom_address: groomAddress,
+                groom_father: groomF,
+                groom_address: groomA,
                 bride_name: bride,
-                bride_father: brideFather,
-                bride_address: brideAddress,
-                events: eventsArr.join(' | '),
-                custom_notes: customNotesText,
-                vineet: vineet,
-                darshanabhilashi: darshan,
-                order_data: nestedOrderData,
-                status: 'pending',
+                bride_father: brideF,
+                bride_address: brideA,
+                custom_notes: orderNotes,
+                status: 'Pending',
                 created_at: new Date().toISOString()
             };
 
-            // अस्थायी रूप से डेटा सेव करके पेमेंट पेज पर रीडायरेक्ट करें
-            localStorage.setItem('dp_temp_order', JSON.stringify(fullPayload));
+            localStorage.setItem('dp_temp_order', JSON.stringify(payload));
             window.location.href = "payment.html";
+        }
+
+        // पॉलिसी मोडल फंक्शन्स
+        const policyContents = {
+            terms: `<p>1. <b>कस्टम प्रिंटिंग:</b> शादी कार्ड, बैनर एवं विज़िटिंग कार्ड का कार्य ग्राहक द्वारा दिए गए मैटर के आधार पर होता है।</p><p>2. <b>प्रूफ चेकिंग:</b> छपाई से पहले स्पेलिंग व मोबाइल नंबर की जांच ग्राहक को स्वयं करनी होगी।</p>`,
+            privacy: `<p>1. आपका फोन नंबर और शादी/व्यापारिक मैटर केवल प्रिंटिंग और डिलीवरी के लिए सुरक्षित रखा जाता है।</p>`,
+            refund: `<p>1. प्लेट बनने या प्रिंटिंग शुरू होने के बाद कस्टमाइज्ड मैटर रद्द नहीं होता।</p><p>2. प्रिंटिंग शुरू होने से पहले कैंसिल करने पर डिजाइनिंग शुल्क काटकर शेष राशि रिफंड होगी।</p>`,
+            contact: `<p><b>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</b><br>ईदगाह मोड़, करमाटांड़, जामताड़ा<br>मो: 9304509464</p>`
+        };
+
+        function openPolicyModal(type) {
+            document.getElementById('policyModalBody').innerHTML = policyContents[type] || "";
+            document.getElementById('policyModalOverlay').style.display = 'flex';
+        }
+        function closePolicyModal() {
+            document.getElementById('policyModalOverlay').style.display = 'none';
         }
     </script>
 </body>
