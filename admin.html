@@ -462,13 +462,12 @@
                     in_stock: inStock
                 };
 
-                let saved = false;
                 if (supabaseClient) {
                     const tables = ['cards_catalog', 'catalog', 'cards'];
                     for (const tbl of tables) {
                         try {
                             const { error } = await supabaseClient.from(tbl).insert([newCard]);
-                            if (!error) { saved = true; break; }
+                            if (!error) break;
                         } catch (err) {}
                     }
                 }
@@ -553,7 +552,6 @@
             loadCatalogStock();
         }
 
-        // 2. LOAD ORDERS
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
@@ -584,7 +582,7 @@
                     rawList = [...local1, ...local2, ...local3];
                     const seen = new Set();
                     rawList = rawList.filter(item => {
-                        const id = item.id || item.created_at;
+                        const id = String(item.id || item.created_at);
                         if (!id || seen.has(id)) return false;
                         seen.add(id);
                         return true;
@@ -612,7 +610,7 @@
                 const balance = parseFloat(item.balance_amount !== undefined ? item.balance_amount : (total - advance));
 
                 return {
-                    id: item.id || nested.id || Date.now(),
+                    id: item.id,
                     created_at: item.created_at || nested.created_at || new Date().toISOString(),
                     customer_name: item.customer_name || nested.customer_name || 'ग्राहक',
                     customer_mobile: item.mobile || item.phone || nested.customer_mobile || nested.mobile || '-',
@@ -654,7 +652,7 @@
                 if (ord.status === 'Ready' || ord.status === 'Finished') statusClass = 'status-ready';
 
                 return `
-                    <tr>
+                    <tr id="order-row-${ord.id}">
                         <td>${dt}</td>
                         <td style="text-align:left;">
                             <div style="display:flex; align-items:center; gap:6px;">
@@ -679,7 +677,7 @@
                             <div style="color:red; font-size:11px;">बाकी: ₹${ord.balance_amount}</div>
                         </td>
                         <td>
-                            <span class="status-badge ${statusClass}">${ord.status}</span><br>
+                            <span class="status-badge ${statusClass}" id="badge-${ord.id}">${ord.status}</span><br>
                             <select class="status-select-box" onchange="updateOrderStatus('${ord.id}', this.value)">
                                 <option value="Pending" ${ord.status === 'Pending' ? 'selected' : ''}>Pending</option>
                                 <option value="In Process" ${ord.status === 'In Process' ? 'selected' : ''}>In Process</option>
@@ -701,14 +699,71 @@
             }).join('');
         }
 
-        // 3. LOAD REGISTERED CUSTOMERS
+        async function updateOrderStatus(orderId, newStatus) {
+            const badge = document.getElementById(`badge-${orderId}`);
+            if (badge) {
+                badge.innerText = newStatus;
+                badge.className = 'status-badge ' + (newStatus === 'Ready' ? 'status-ready' : (newStatus === 'In Process' ? 'status-process' : 'status-pending'));
+            }
+
+            if (supabaseClient) {
+                try {
+                    let idVal = isNaN(orderId) ? orderId : Number(orderId);
+                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', idVal);
+                } catch (e) {
+                    console.error("Supabase Exception:", e);
+                }
+            }
+
+            const storageKeys = ['my_orders_list', 'dp_all_orders', 'dp_user_orders'];
+            storageKeys.forEach(key => {
+                try {
+                    let list = JSON.parse(localStorage.getItem(key) || '[]');
+                    list.forEach(o => {
+                        if (String(o.id) === String(orderId)) {
+                            o.status = newStatus;
+                            if (o.order_data) {
+                                o.order_data.status = newStatus;
+                                o.order_data.order_status = newStatus;
+                            }
+                        }
+                    });
+                    localStorage.setItem(key, JSON.stringify(list));
+                } catch (e) {}
+            });
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
+
+            const row = document.getElementById(`order-row-${orderId}`);
+            if (row) row.remove();
+
+            if (supabaseClient) {
+                try {
+                    let idVal = isNaN(orderId) ? orderId : Number(orderId);
+                    await supabaseClient.from('orders').delete().eq('id', idVal);
+                } catch (e) {
+                    console.error("Supabase Delete Exception:", e);
+                }
+            }
+
+            const storageKeys = ['my_orders_list', 'dp_all_orders', 'dp_user_orders'];
+            storageKeys.forEach(key => {
+                try {
+                    let list = JSON.parse(localStorage.getItem(key) || '[]');
+                    list = list.filter(o => String(o.id) !== String(orderId));
+                    localStorage.setItem(key, JSON.stringify(list));
+                } catch (e) {}
+            });
+        }
+
         async function loadRegisteredCustomers() {
             const tbody = document.getElementById('customersTableBody');
             if (!tbody) return;
             tbody.innerHTML = '<tr><td colspan="6" style="padding:15px; color:#64748b;">ग्राहक लिस्ट लोड हो रही है...</td></tr>';
 
             let customers = [];
-
             if (supabaseClient) {
                 const userTables = ['users', 'customers', 'profiles', 'clients'];
                 for (const tbl of userTables) {
@@ -744,9 +799,7 @@
             if (customers.length === 0) {
                 try {
                     const localU = JSON.parse(localStorage.getItem('dp_all_users') || '[]');
-                    if (Array.isArray(localU) && localU.length > 0) {
-                        customers = localU;
-                    }
+                    if (Array.isArray(localU) && localU.length > 0) customers = localU;
                 } catch (e) {}
             }
 
@@ -760,7 +813,6 @@
                 const dt = u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN', {
                     day: 'numeric', month: 'short', year: 'numeric'
                 }) : '-';
-
                 const name = u.name || u.customer_name || u.full_name || 'ग्राहक';
                 const phone = u.mobile || u.phone || u.customer_mobile || '-';
                 const addr = u.address || u.email || '-';
@@ -796,80 +848,6 @@
             });
         }
 
-        // स्टेटस बदलने का फंक्शन
-        async function updateOrderStatus(orderId, newStatus) {
-            // 1. Supabase में अपडेट करें
-            if (supabaseClient) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('orders')
-                        .update({ status: newStatus })
-                        .eq('id', orderId);
-
-                    if (error) {
-                        console.warn("Supabase Status Update Error:", error.message);
-                    }
-                } catch (e) {
-                    console.error("Supabase Exception:", e);
-                }
-            }
-
-            // 2. LocalStorage के सभी बैकअप में अपडेट करें
-            const storageKeys = ['my_orders_list', 'dp_all_orders', 'dp_user_orders'];
-            storageKeys.forEach(key => {
-                try {
-                    let list = JSON.parse(localStorage.getItem(key) || '[]');
-                    list.forEach(o => {
-                        if (String(o.id) === String(orderId)) {
-                            o.status = newStatus;
-                            if (o.order_data) {
-                                o.order_data.status = newStatus;
-                                o.order_data.order_status = newStatus;
-                            }
-                        }
-                    });
-                    localStorage.setItem(key, JSON.stringify(list));
-                } catch (e) {}
-            });
-
-            // 3. तालिका रीफ्रेश करें
-            loadAdminOrders();
-        }
-
-        // डिलीट करने का फंक्शन
-        async function deleteOrder(orderId) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
-
-            // 1. Supabase से डिलीट करें
-            if (supabaseClient) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('orders')
-                        .delete()
-                        .eq('id', orderId);
-
-                    if (error) {
-                        console.warn("Supabase Delete Error:", error.message);
-                    }
-                } catch (e) {
-                    console.error("Supabase Delete Exception:", e);
-                }
-            }
-
-            // 2. LocalStorage बैकअप से हटाएं
-            const storageKeys = ['my_orders_list', 'dp_all_orders', 'dp_user_orders'];
-            storageKeys.forEach(key => {
-                try {
-                    let list = JSON.parse(localStorage.getItem(key) || '[]');
-                    list = list.filter(o => String(o.id) !== String(orderId));
-                    localStorage.setItem(key, JSON.stringify(list));
-                } catch (e) {}
-            });
-
-            // 3. तालिका रीफ्रेश करें
-            loadAdminOrders();
-        }
-
         function viewOrderReceiptModal(index) {
             const ord = globalOrdersCache[index];
             if (!ord) return;
@@ -895,10 +873,7 @@
 
             const printArea = document.getElementById('printableReceiptArea');
             const dt = new Date(ord.created_at).toLocaleDateString('hi-IN');
-
-            const cardImgHtml = ord.card_image 
-                ? `<img src="${ord.card_image}" alt="Card Sample" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">` 
-                : `<div style="width:75px; height:75px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>`;
+            const cardImgHtml = ord.card_image ? `<img src="${ord.card_image}" alt="Card Sample" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">` : `<div style="width:75px; height:75px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>`;
 
             printArea.innerHTML = `
                 <div class="receipt-header">
@@ -972,6 +947,3 @@
             document.body.innerHTML = originalContent;
             location.reload();
         }
-    </script>
-</body>
-</html>
