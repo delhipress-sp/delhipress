@@ -346,7 +346,17 @@
                 }
             } catch (e) {}
 
-            fetchedOrdersList = rawOrders;
+            const userPhoneRaw = user ? String(user.mobile || user.customer_mobile || user.phone || '') : '';
+            const cleanUserPhone = userPhoneRaw.replace(/[^0-9]/g, '').slice(-10);
+
+            if (cleanUserPhone.length === 10) {
+                fetchedOrdersList = rawOrders.filter(ord => {
+                    const ordPhone = String(ord.mobile || ord.phone || ord.customer_mobile || '').replace(/[^0-9]/g, '').slice(-10);
+                    return ordPhone === cleanUserPhone;
+                });
+            } else {
+                fetchedOrdersList = rawOrders;
+            }
 
             if (fetchedOrdersList.length === 0) {
                 container.innerHTML = `
@@ -366,11 +376,11 @@
                 const balance = Math.max(0, total - advance);
                 const status = ord.status || 'Pending';
 
-                let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ${status}</span>`;
-                if (status === 'Processing') statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> Processing</span>`;
-                if (status === 'Ready') statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> Ready</span>`;
+                let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> प्राप्त हुआ (${status})</span>`;
+                if (status === 'Processing') statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है (${status})</span>`;
+                if (status === 'Ready') statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (${status})</span>`;
 
-                const cardImg = ord.card_image || ord.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+                const cardImg = ord.card_image || ord.image_url || ord.photo || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
 
                 return `
                     <div class="order-card">
@@ -379,27 +389,27 @@
                                 <img src="${cardImg}" class="order-card-img" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">
                                 <div>
                                     <h4>${ord.card_title || ord.card_name || 'शादी कार्ड'} ${ord.card_model ? '(' + ord.card_model + ')' : ''}</h4>
-                                    <span>दिनांक: ${dt}</span>
+                                    <span>दिनांक: ${dt} | आईडी: #${ord.id || ''}</span>
                                 </div>
                             </div>
                             <div>${statusBadge}</div>
                         </div>
 
                         <div class="order-details-grid">
-                            <div class="detail-item"><b>मात्रा</b>${ord.quantity || 100} पीस</div>
-                            <div class="detail-item"><b>कुल राशि</b>₹${total}</div>
+                            <div class="detail-item"><b>मात्रा (Quantity)</b>${ord.quantity || ord.qty || 100} पीस</div>
+                            <div class="detail-item"><b>कुल बिल राशि</b>₹${total}</div>
                             <div class="detail-item"><b>जमा एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
                             <div class="detail-item"><b>बाकी बकाया</b><span style="color:red; font-weight:bold;">₹${balance}</span></div>
                         </div>
 
                         <div class="couples-summary">
-                            <b>मैटर:</b> वर: ${ord.groom_name || '-'} संग वधू: ${ord.bride_name || '-'}
+                            <b>मैटर सारांश:</b> वर: <b style="color:var(--primary);">${ord.groom_name || '-'}</b> संग वधू: <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
                         </div>
 
                         <div class="order-card-footer">
-                            <div class="balance-info">बाकी: <b>₹${balance}</b></div>
+                            <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
-                                <i class="fa-solid fa-file-invoice"></i> रसीद देखें / डाउनलोड
+                                <i class="fa-solid fa-file-invoice"></i> रसीद एवं पूरा मैटर देखें
                             </button>
                         </div>
                     </div>
@@ -410,48 +420,118 @@
         function viewCustomerReceipt(index) {
             const ord = fetchedOrdersList[index];
             if (!ord) return;
+
             const total = parseFloat(ord.total_amount || 0);
             const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0);
             const balance = Math.max(0, total - advance);
-            const img = ord.card_image || ord.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+            const img = ord.card_image || ord.image_url || ord.photo || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+            const status = ord.status || 'Pending';
+
+            let statusLabel = 'ऑर्डर प्राप्त हुआ (Pending)';
+            let statusColor = '#b91c1c';
+            if (status === 'Processing') { statusLabel = 'छपाई जारी है (Processing)'; statusColor = '#d35400'; }
+            if (status === 'Ready') { statusLabel = 'कार्ड तैयार है (Ready)'; statusColor = '#27ae60'; }
+
+            let eventsHtml = '';
+            if (ord.events) {
+                if (Array.isArray(ord.events) && ord.events.length > 0) {
+                    eventsHtml = ord.events.map(ev => `<div class="receipt-row"><span>${ev.title || 'कार्यक्रम'}:</span> <b>${ev.date || ''} (${ev.time || 'सायं'})</b></div>`).join('');
+                } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
+                    eventsHtml = `<div class="receipt-row"><span>कार्यक्रम:</span> <b>${ord.events}</b></div>`;
+                }
+            }
+
+            const customNotes = ord.custom_notes || ord.notes || 'कोई अतिरिक्त शायरी या मैटर नहीं';
+            const rsvp = ord.rsvp || ord.vineet || '-';
+            const fromFamily = ord.from_family || ord.darshanabhilashi || '-';
 
             document.getElementById('printableReceiptArea').innerHTML = `
                 <div class="receipt-header">
-                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़, करमाटांड़, जामताड़ा | मो: 9304509464</p>
-                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; font-size:12px;">रसीद</h4>
+                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा (झारखंड) | मो: 9304509464</p>
+                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:3px 12px; border-radius:3px; font-size:12px;">ग्राहक ऑर्डर पावती एवं शादी मैटर रसीद</h4>
                 </div>
+
+                <div class="receipt-section-title">१. कार्ड एवं वर्तमान स्थिति</div>
                 <div class="card-preview-box">
-                    <img src="${img}">
+                    <img src="${img}" alt="Card" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">
                     <div>
-                        <div style="font-size:14px; font-weight:bold;">${ord.card_title || ord.card_name || 'शादी कार्ड'}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल: ${ord.card_model || '-'}</div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || ord.card_name || 'शादी कार्ड'}</div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || ord.model || '-'}</b></div>
+                        <div style="font-size:12px; color:#64748b;">कार्ड की वर्तमान स्थिति: <b style="color:${statusColor};">${statusLabel}</b></div>
                     </div>
                 </div>
-                <div class="receipt-section-title">ग्राहक विवरण</div>
-                <div class="receipt-row"><span>नाम:</span> <b>${ord.customer_name || '-'}</b></div>
-                <div class="receipt-row"><span>मोबाइल:</span> <b>${ord.mobile || ord.phone || '-'}</b></div>
-                <div class="receipt-section-title">वर-वधू</div>
-                <div class="receipt-row"><span>वर:</span> <b>${ord.groom_name || '-'}</b></div>
-                <div class="receipt-row"><span>वधू:</span> <b>${ord.bride_name || '-'}</b></div>
-                <div class="receipt-section-title">भुगतान</div>
-                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
-                <div class="receipt-row"><span>एडवांस:</span> <b style="color:green;">₹${advance}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
+
+                <div class="receipt-section-title">२. ऑर्डर एवं ग्राहक विवरण</div>
+                <div class="receipt-row"><span>आर्डर आईडी:</span> <b>#${ord.id || '-'}</b></div>
+                <div class="receipt-row"><span>तारीख:</span> <span>${ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN') : 'हाल ही में'}</span></div>
+                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name || ord.name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile || ord.mobile || ord.phone || '-'}</b></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${ord.address || ord.customer_address || '-'}</b></div>
+
+                <div class="receipt-section-title">३. शादी मैटर विवरण (दूल्हा-दुल्हन)</div>
+                <div class="receipt-row"><span>वर (दूल्हा):</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
+                <div class="receipt-row"><span>पिता (वर):</span> <span>${ord.groom_father || '-'}</span></div>
+                <div class="receipt-row"><span>पता (वर):</span> <span>${ord.groom_address || '-'}</span></div>
+                <div class="receipt-row"><span>वधू (दुल्हन):</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
+                <div class="receipt-row"><span>पिता (वधू):</span> <span>${ord.bride_father || '-'}</span></div>
+                <div class="receipt-row"><span>पता (वधू):</span> <span>${ord.bride_address || '-'}</span></div>
+
+                <div class="receipt-section-title">४. वैवाहिक कार्यक्रम, शायरी व निमंत्रक</div>
+                ${eventsHtml || '<div class="receipt-row"><span>शुभ विवाह कार्यक्रम:</span> <span>विवरण उपलब्ध नहीं</span></div>'}
+                <div style="font-size:12px; background:#f8fafc; padding:8px; border:1px solid #eee; white-space:pre-wrap; margin:6px 0; border-radius:4px;"><b>शायरी / अतिरिक्त मैटर:</b><br>${customNotes}</div>
+                <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${rsvp}</span></div>
+                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${fromFamily}</span></div>
+
+                <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
+                <div class="receipt-row"><span>कुल कार्ड मात्रा:</span> <b>${ord.quantity || ord.qty || 100} पीस</b></div>
+                <div class="receipt-row"><span>कुल बिल राशि:</span> <b>₹${total}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${advance}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया राशि:</span> <b style="color:red;">₹${balance}</b></div>
+                <div class="receipt-row"><span>UTR / Trans ID:</span> <b>${ord.txn_id || ord.utr_number || 'Cash/Online'}</b></div>
             `;
+
             document.getElementById('userReceiptModal').style.display = 'flex';
         }
 
-        function closeReceiptModal() { document.getElementById('userReceiptModal').style.display = 'none'; }
-        function downloadReceiptPDF() {
-            html2pdf().from(document.getElementById('printableReceiptArea')).save('Receipt.pdf');
+        function closeReceiptModal() { 
+            document.getElementById('userReceiptModal').style.display = 'none'; 
         }
-        function printReceiptDirect() { window.print(); }
+
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            const opt = {
+                margin:       6,
+                filename:     'DelhiPress_Customer_Receipt.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function printReceiptDirect() { 
+            const printContent = document.getElementById('printableReceiptArea').innerHTML;
+            const win = window.open('', '', 'height=750,width=750');
+            win.document.write('<html><head><title>प्रिंट रसीद - दिल्ली प्रेस</title>');
+            win.document.write('<style>body{font-family:sans-serif; padding:15px;} .receipt-row{display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px; border-bottom:1px dotted #ccc; padding-bottom:3px;} .receipt-section-title{background:#f0f0f0; padding:5px; font-weight:bold; margin:10px 0 6px 0; font-size:13px;} .card-preview-box{display:flex; gap:15px; align-items:center; margin-bottom:10px;} img{width:65px; height:65px; object-fit:cover; border-radius:4px;}</style>');
+            win.document.write('</head><body>');
+            win.document.write(printContent);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.focus();
+            setTimeout(() => { win.print(); win.close(); }, 500);
+        }
+
         function logoutCustomer() {
             localStorage.removeItem('dp_current_user');
             localStorage.removeItem('dp_logged_in_user');
             window.location.replace("index.html");
         }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchCustomerOrders();
+        });
     </script>
 </body>
 </html>
