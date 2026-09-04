@@ -178,7 +178,8 @@
         } catch (e) {}
 
         let globalOrdersCache = [];
-        let activeCatalogTable = 'cards_catalog';
+        // चूंकि आपकी टेबल का नाम 'catalog' है, इसे यहाँ प्राथमिकता दी गई है
+        let activeCatalogTable = 'catalog';
 
         window.addEventListener('DOMContentLoaded', () => {
             const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_logged') === 'true';
@@ -232,7 +233,7 @@
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody || !supabaseClient) return;
 
-            const tables = ['cards_catalog', 'catalog', 'cards'];
+            const tables = ['catalog', 'cards_catalog', 'cards'];
             let cards = [];
             for (const tbl of tables) {
                 try {
@@ -380,7 +381,7 @@
         async function loadRegisteredCustomers() {
             const tbody = document.getElementById('customersTableBody');
             if (!tbody || !supabaseClient) return;
-            const { data } = awaitsupabaseClient.from('users').select('*');
+            const { data } = await supabaseClient.from('users').select('*');
             if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">कोई पंजीकृत ग्राहक नहीं।</td></tr>'; return; }
 
             tbody.innerHTML = data.map((u, i) => `
