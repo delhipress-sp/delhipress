@@ -2,27 +2,35 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>मेरे ऑर्डर्स - दिल्ली प्रेस</title>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background: #0d1322; color: #fff; font-family: 'Mukta', sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .order-card { background: #fff; color: #333; padding: 16px; border-radius: 10px; margin-bottom: 14px; }
+        .container { max-width: 850px; margin: 0 auto; }
+        .order-card { background: rgba(255, 255, 255, 0.95); color: #333; padding: 18px; border-radius: 14px; margin-bottom: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-refresh { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>आपके ऑर्डर्स</h2>
-        <div id="ordersContainer">लोड हो रहा है...</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>आपके द्वारा दिए गए ऑर्डर्स</h2>
+            <button onclick="fetchCustomerOrders()" class="btn-refresh">रिफ्रेश</button>
+        </div>
+        <div id="ordersContainer">ऑर्डर्स लोड हो रहे हैं...</div>
     </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        let supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabaseClient = null;
+        try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) {}
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', () => { fetchCustomerOrders(); });
+
+        async function fetchCustomerOrders() {
             const container = document.getElementById('ordersContainer');
             let orders = [];
 
@@ -33,26 +41,27 @@
                 } catch (e) {}
             }
 
-            if (orders.length === 0) {
-                try {
-                    orders = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                } catch (e) {}
-            }
+            try {
+                const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                localList.forEach(lo => {
+                    if (!orders.some(o => String(o.id) === String(lo.id))) orders.push(lo);
+                });
+            } catch (e) {}
 
             if (orders.length === 0) {
-                container.innerHTML = "<p>कोई ऑर्डर नहीं मिला।</p>";
+                container.innerHTML = "<p>अभी तक कोई ऑर्डर नहीं मिला।</p>";
                 return;
             }
 
             container.innerHTML = orders.map(o => `
                 <div class="order-card">
-                    <h3>${o.card_title || 'शादी कार्ड'} (ID: #${o.id})</h3>
-                    <p>ग्राहक: <b>${o.customer_name}</b> | मोबाइल: ${o.mobile}</p>
-                    <p>वर: ${o.groom_name} | वधू: ${o.bride_name}</p>
-                    <p>कुल: ₹${o.total_amount} | एडवांस: ₹${o.advance_paid} | स्टेटस: <b>${o.status || 'Pending'}</b></p>
+                    <h4>${o.card_title || 'शादी कार्ड'} (ID: #${o.id})</h4>
+                    <p><b>ग्राहक:</b> ${o.customer_name} | <b>मोबाइल:</b> ${o.mobile}</p>
+                    <p><b>वर:</b> ${o.groom_name || '-'} | <b>वधू:</b> ${o.bride_name || '-'}</p>
+                    <p><b>कुल:</b> ₹${o.total_amount} | <b>एडवांस:</b> ₹${o.advance_paid} | <b>स्टेटस:</b> <span style="color:red;">${o.status || 'Pending'}</span></p>
                 </div>
             `).join('');
-        });
+        }
     </script>
 </body>
 </html>
