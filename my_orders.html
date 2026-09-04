@@ -2,66 +2,757 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>मेरे ऑर्डर्स - दिल्ली प्रेस</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>मेरे ऑर्डर्स (My Orders) - दिल्ली प्रेस</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
-        body { background: #0d1322; color: #fff; font-family: 'Mukta', sans-serif; padding: 20px; }
-        .container { max-width: 850px; margin: 0 auto; }
-        .order-card { background: rgba(255, 255, 255, 0.95); color: #333; padding: 18px; border-radius: 14px; margin-bottom: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .btn-refresh { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        :root {
+            --primary: #e63946;
+            --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+            --secondary: #f77f00;
+            --dark: #0f172a;
+            --green: #10b981;
+            --blue: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: #0d1322;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            line-height: 1.5;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 18px;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo-box {
+            width: 42px; height: 42px; border-radius: 50%;
+            border: 2px solid var(--primary); display: flex;
+            align-items: center; justify-content: center; overflow: hidden;
+            background: #fff; box-shadow: 0 0 12px rgba(230, 57, 70, 0.4);
+        }
+        .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-lang-toggle {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+            transition: all 0.2s ease;
+        }
+        .btn-lang-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+        }
+
+        .btn-nav {
+            text-decoration: none; color: #f8fafc; font-weight: 700; font-size: 13px;
+            padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08); display: inline-flex; align-items: center; gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-nav:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .container { max-width: 850px; margin: 20px auto; padding: 0 14px; }
+
+        .user-welcome-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+            box-shadow: var(--card-shadow);
+        }
+        .user-info h3 { font-size: 18px; color: var(--dark); font-weight: 800; }
+        .user-info p { font-size: 13px; color: #64748b; font-weight: 600; }
+
+        .section-bar-title {
+            font-size: 18px; color: #ffffff; margin: 0; font-weight: 800;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .btn-refresh {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff; padding: 6px 12px; border-radius: 20px; font-size: 12px;
+            cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-refresh:hover { background: rgba(255, 255, 255, 0.25); }
+
+        .order-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px; margin-bottom: 18px; padding: 18px;
+            box-shadow: var(--card-shadow); transition: transform 0.2s ease;
+        }
+        .order-card:hover { transform: translateY(-2px); }
+
+        .order-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px dashed #cbd5e1; padding-bottom: 12px; margin-bottom: 14px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .order-id-date { display: flex; align-items: center; gap: 12px; }
+        .order-card-img {
+            width: 58px; height: 58px; object-fit: cover; border-radius: 10px; border: 1px solid #cbd5e1;
+            background: #f1f5f9; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .order-id-date h4 { font-size: 16px; color: var(--primary); margin: 0; font-weight: 800; }
+        .order-id-date span { font-size: 12px; color: #64748b; font-weight: 600; }
+
+        .badge-status {
+            padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .badge-pending { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-process { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-ready { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+        .order-details-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px; font-size: 13px; margin-bottom: 14px;
+        }
+        .detail-item { background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .detail-item b { color: #64748b; display: block; font-size: 11px; font-weight: 700; margin-bottom: 2px; }
+
+        .couples-summary {
+            background: #ffffff; border-left: 4px solid var(--secondary);
+            padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 14px;
+            border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;
+        }
+
+        .order-card-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid #f1f5f9; padding-top: 12px; flex-wrap: wrap; gap: 10px;
+        }
+        .balance-info { font-size: 13px; font-weight: 600; color: #475569; }
+        .balance-info b { color: #b91c1c; font-size: 15px; }
+
+        .btn-view-receipt {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 8px 16px;
+            font-size: 12px; font-weight: 800; border-radius: 20px; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: 0.2s;
+        }
+        .btn-view-receipt:hover { transform: translateY(-1px); }
+
+        .empty-orders {
+            background: var(--glass-bg); border: 2px dashed #cbd5e1; border-radius: 16px;
+            padding: 45px 20px; text-align: center; color: #64748b; box-shadow: var(--card-shadow);
+        }
+        .empty-orders i { font-size: 45px; color: #94a3b8; margin-bottom: 14px; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px); display: none; justify-content: center;
+            align-items: center; z-index: 9999; padding: 15px;
+        }
+        .modal-content {
+            background: white; width: 100%; max-width: 650px; max-height: 90vh;
+            border-radius: 14px; overflow-y: auto; padding: 22px; position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+        }
+        .receipt-container {
+            border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; background: #fff;
+        }
+        .receipt-header {
+            text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 14px;
+        }
+        .receipt-row {
+            display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 4px;
+        }
+        .receipt-section-title {
+            background: #f8fafc; padding: 5px 10px; font-weight: 800; color: var(--primary); margin: 12px 0 8px 0; border-left: 3px solid var(--primary); font-size: 13px;
+        }
+        .card-preview-box {
+            display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 6px;
+        }
+        .card-preview-box img {
+            width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1;
+            background: #e2e8f0; flex-shrink: 0;
+        }
+
+        .main-footer {
+            background: rgba(15, 23, 42, 0.92); color: #cbd5e1; padding: 35px 16px 25px;
+            margin-top: 45px; font-size: 13px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .footer-grid {
+            max-width: 850px; margin: 0 auto; display: grid;
+            grid-template-columns: 1.2fr 1fr; gap: 20px;
+        }
+        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 12px; font-weight: 700; }
+        .footer-col p { margin-bottom: 7px; font-size: 13px; color: #94a3b8; }
+        .footer-col p i { color: #facc15; width: 18px; }
+        
+        .footer-bottom {
+            max-width: 850px; margin: 25px auto 0; padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between;
+            align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
+        }
+        .footer-admin-link {
+            color: #64748b; text-decoration: none; font-size: 11px;
+            display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+            border-radius: 4px; border: 1px solid #334155; transition: 0.2s;
+        }
+        .footer-admin-link:hover { color: #facc15; border-color: #facc15; }
+
+        .mobile-bottom-bar {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 0; z-index: 1001; justify-content: space-around;
+        }
+        .mobile-bottom-bar a {
+            background: none; border: none; color: #cbd5e1; text-decoration: none;
+            text-align: center; font-size: 11px; font-weight: 600;
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+        }
+        .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .mobile-bottom-bar { display: flex; }
+            .footer-grid { grid-template-columns: 1fr; gap: 15px; }
+            .footer-bottom { justify-content: center; text-align: center; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2>आपके द्वारा दिए गए ऑर्डर्स</h2>
-            <button onclick="fetchCustomerOrders()" class="btn-refresh">रिफ्रेश</button>
+
+    <nav class="navbar">
+        <a class="nav-brand" href="index.html">
+            <div class="nav-logo-box">
+                <i class="fa-solid fa-print" style="color:var(--primary); font-size:20px;"></i>
+            </div>
+            <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
+        </a>
+        <div class="nav-actions">
+            <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
+                <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
+            </button>
+            <a href="order.html" class="btn-nav" style="color:#ffffff; background:var(--primary-gradient); border:none;"><i class="fa-solid fa-plus"></i> <span data-i18n="btn_new_order">नया ऑर्डर</span></a>
+            <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> <span data-i18n="nav_home">मुख्य मेन्यू</span></a>
         </div>
-        <div id="ordersContainer">ऑर्डर्स लोड हो रहे हैं...</div>
+    </nav>
+
+    <div class="container">
+        
+        <div class="user-welcome-card" id="userCardBlock">
+            <div class="user-info">
+                <h3 id="userDisplayName" data-i18n="loading_text">लोड हो रहा है...</h3>
+                <p id="userDisplayPhone" data-i18n="verifying_text">विवरण जाँचा जा रहा है...</p>
+            </div>
+            <button id="logoutBtn" onclick="logoutCustomer()" class="btn-nav" style="color:#b91c1c; border-color:#fca5a5; background:#fff;">
+                <i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="btn_logout">लॉगआउट</span>
+            </button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 class="section-bar-title">
+                <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> <span data-i18n="orders_heading">आपके द्वारा दिए गए ऑर्डर्स</span>
+            </h3>
+            <button onclick="fetchCustomerOrders()" class="btn-refresh">
+                <i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="btn_refresh">रिफ्रेश</span>
+            </button>
+        </div>
+
+        <div id="ordersContainer">
+            <div style="text-align: center; padding: 35px; font-weight: bold; color: #94a3b8;">
+                <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br><span data-i18n="orders_loading">ऑर्डर्स लोड हो रहे हैं...</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="userReceiptModal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="color:var(--primary); font-size:18px; font-weight:800;" data-i18n="receipt_modal_title">शादी कार्ड ऑर्डर एवं मैटर रसीद</h3>
+                <button type="button" onclick="closeReceiptModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:32px; height:32px; cursor:pointer; font-weight:bold; font-size:16px;">&times;</button>
+            </div>
+            
+            <div id="printableReceiptArea" class="receipt-container"></div>
+
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-download"></i> <span data-i18n="btn_pdf_download">PDF डाउनलोड</span>
+                </button>
+                <button type="button" onclick="printReceiptDirect()" style="flex:1; padding:11px; background:var(--dark); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-print"></i> <span data-i18n="btn_print">प्रिंट निकालें</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4 data-i18n="brand_full">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> <span data-i18n="footer_addr">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</span></p>
+                <p><i class="fa-solid fa-phone"></i> 9304509464</p>
+            </div>
+            <div class="footer-col">
+                <h4 data-i18n="services_header">सेवाएं</h4>
+                <p data-i18n="services_list">शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span data-i18n="copyright_text">&copy; 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित.</span>
+            <a href="admin.html" class="footer-admin-link">
+                <i class="fa-solid fa-lock"></i> <span data-i18n="footer_admin">एडमिन लॉगिन</span>
+            </a>
+        </div>
+    </footer>
+
+    <div class="mobile-bottom-bar">
+        <a href="index.html"><i class="fa-solid fa-house"></i><span data-i18n="nav_home">होम</span></a>
+        <a href="order.html"><i class="fa-solid fa-file-pen"></i><span data-i18n="btn_new_order">ऑर्डर फॉर्म</span></a>
+        <a href="my_orders.html" style="color:var(--primary);"><i class="fa-solid fa-box-archive"></i><span data-i18n="nav_my_orders">मेरे ऑर्डर्स</span></a>
+        <a href="https://wa.me/919304509464"><i class="fa-brands fa-whatsapp" style="color:var(--green);"></i><span data-i18n="btn_contact">संपर्क</span></a>
     </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        
         let supabaseClient = null;
-        try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) {}
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {}
 
-        window.addEventListener('DOMContentLoaded', () => { fetchCustomerOrders(); });
+        let currentUser = null;
+        let fetchedOrdersList = [];
+        let currentLang = 'hi';
+
+        const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='11' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card</text></svg>";
+
+        const translations = {
+            hi: {
+                lang_toggle: "English",
+                brand_name: "दिल्ली प्रेस",
+                btn_new_order: "नया ऑर्डर",
+                nav_home: "मुख्य मेन्यू",
+                nav_my_orders: "मेरे ऑर्डर्स",
+                nav_cart: "कार्ट",
+                btn_contact: "संपर्क",
+                loading_text: "लोड हो रहा है...",
+                verifying_text: "विवरण जाँचा जा रहा है...",
+                guest_user: "अतिथि ग्राहक",
+                recent_orders_view: "हालिया दर्ज ऑर्डर देखे जा रहे हैं",
+                honored_customer: "सम्मानित ग्राहक",
+                btn_logout: "लॉगआउट",
+                orders_heading: "आपके द्वारा दिए गए ऑर्डर्स",
+                btn_refresh: "रिफ्रेश",
+                orders_loading: "ऑर्डर्स लोड हो रहे हैं...",
+                no_orders_title: "अभी तक कोई ऑर्डर नहीं मिला!",
+                btn_order_now: "अभी नया ऑर्डर करें",
+                status_pending: "प्राप्त हुआ (Pending)",
+                status_processing: "छपाई जारी है (Processing)",
+                status_ready: "कार्ड तैयार है (Ready)",
+                lbl_qty: "मात्रा (Quantity)",
+                lbl_pcs: "पीस",
+                lbl_total: "कुल बिल राशि",
+                lbl_advance: "जमा एडवांस",
+                lbl_balance: "बाकी बकाया",
+                lbl_summary_prefix: "मैटर सारांश:",
+                lbl_groom_side: "वर:",
+                lbl_bride_side: "संग वधू:",
+                lbl_bal_due: "बाकी बकाया राशि:",
+                btn_view_receipt: "रसीद एवं पूरा मैटर देखें",
+                receipt_modal_title: "शादी कार्ड ऑर्डर एवं मैटर रसीद",
+                btn_pdf_download: "PDF डाउनलोड",
+                btn_print: "प्रिंट निकालें",
+                brand_full: "दिल्ली प्रेस (सज्जाद प्रिंटर्स)",
+                footer_addr: "ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352",
+                services_header: "सेवाएं",
+                services_list: "शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं",
+                copyright_text: "© 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित.",
+                footer_admin: "एडमिन लॉगिन",
+                receipt_tag: "ग्राहक ऑर्डर पावती एवं शादी मैटर रसीद",
+                rec_sec1: "१. कार्ड एवं वर्तमान स्थिति",
+                rec_sec2: "२. ऑर्डर एवं ग्राहक विवरण",
+                rec_sec3: "३. शादी मैटर विवरण (दूल्हा-दुल्हन)",
+                rec_sec4: "४. वैवाहिक कार्यक्रम, शायरी व निमंत्रक",
+                rec_sec5: "५. बिल एवं भुगतान विवरण"
+            },
+            en: {
+                lang_toggle: "हिन्दी",
+                brand_name: "Delhi Press",
+                btn_new_order: "New Order",
+                nav_home: "Main Menu",
+                nav_my_orders: "My Orders",
+                nav_cart: "Cart",
+                btn_contact: "Contact",
+                loading_text: "Loading...",
+                verifying_text: "Verifying details...",
+                guest_user: "Guest Customer",
+                recent_orders_view: "Showing recent registered orders",
+                honored_customer: "Valued Customer",
+                btn_logout: "Logout",
+                orders_heading: "Your Submitted Orders",
+                btn_refresh: "Refresh",
+                orders_loading: "Loading orders...",
+                no_orders_title: "No orders found yet!",
+                btn_order_now: "Place New Order Now",
+                status_pending: "Received (Pending)",
+                status_processing: "Printing in Process",
+                status_ready: "Card Ready",
+                lbl_qty: "Quantity",
+                lbl_pcs: "pcs",
+                lbl_total: "Total Bill",
+                lbl_advance: "Advance Paid",
+                lbl_balance: "Balance Due",
+                lbl_summary_prefix: "Matter Summary:",
+                lbl_groom_side: "Groom:",
+                lbl_bride_side: "Weds Bride:",
+                lbl_bal_due: "Balance Due Amount:",
+                btn_view_receipt: "View Full Matter & Receipt",
+                receipt_modal_title: "Wedding Card Order & Matter Receipt",
+                btn_pdf_download: "Download PDF",
+                btn_print: "Print Receipt",
+                brand_full: "Delhi Press (Sajad Printers)",
+                footer_addr: "Eidgah More (Chhaitar More), Karmatar, Jamtara, Jharkhand - 815352",
+                services_header: "Services",
+                services_list: "Wedding Cards | Flex Banners | Visiting Cards | Bill Books | Online Services",
+                copyright_text: "© 2026 Delhi Press. All rights reserved.",
+                footer_admin: "Admin Login",
+                receipt_tag: "Customer Order Receipt & Wedding Matter",
+                rec_sec1: "1. Card & Current Status",
+                rec_sec2: "2. Order & Customer Details",
+                rec_sec3: "3. Wedding Matter (Bride & Groom)",
+                rec_sec4: "4. Functions, Quotes & RSVP",
+                rec_sec5: "5. Billing & Payment Details"
+            }
+        };
+
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const count = cart.length;
+                const navBadge = document.getElementById('navCartBadge');
+                const mobBadge = document.getElementById('mobileCartBadge');
+                if (navBadge) navBadge.innerText = count;
+                if (mobBadge) mobBadge.innerText = count;
+            } catch (e) {}
+        }
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'hi') ? 'en' : 'hi';
+            document.getElementById('langBtnLabel').innerText = translations[currentLang].lang_toggle;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerText = translations[currentLang][key];
+                }
+            });
+
+            checkCustomerAuth();
+            renderOrdersUI();
+        }
+
+        function checkCustomerAuth() {
+            let userData = null;
+            try {
+                const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+                if (userJson) {
+                    userData = typeof userJson === 'string' ? JSON.parse(userJson) : userJson;
+                }
+            } catch (e) {
+                userData = null;
+            }
+
+            const nameEl = document.getElementById('userDisplayName');
+            const phoneEl = document.getElementById('userDisplayPhone');
+            const logoutEl = document.getElementById('logoutBtn');
+
+            if (!userData) {
+                if (nameEl) nameEl.innerText = translations[currentLang].guest_user;
+                if (phoneEl) phoneEl.innerText = translations[currentLang].recent_orders_view;
+                if (logoutEl) logoutEl.style.display = "none";
+                currentUser = null;
+                return null;
+            }
+
+            if (logoutEl) logoutEl.style.display = "inline-flex";
+            if (nameEl) nameEl.innerText = userData.name || userData.customer_name || translations[currentLang].honored_customer;
+            if (phoneEl) phoneEl.innerText = userData.mobile || userData.customer_mobile || userData.phone || '';
+            
+            currentUser = userData;
+            return userData;
+        }
 
         async function fetchCustomerOrders() {
             const container = document.getElementById('ordersContainer');
-            let orders = [];
+            if (!container) return;
+
+            const user = checkCustomerAuth();
+            let rawOrders = [];
 
             if (supabaseClient) {
                 try {
-                    const { data } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
-                    if (data) orders = data;
-                } catch (e) {}
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
+                    const fetchPromise = supabaseClient.from('orders').select('*');
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    if (res && res.data && res.data.length > 0) rawOrders = res.data;
+                } catch (err) {
+                    console.warn("Supabase orders fetch timed out / failed:", err);
+                }
             }
 
             try {
                 const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localList.forEach(lo => {
-                    if (!orders.some(o => String(o.id) === String(lo.id))) orders.push(lo);
+                    if (!rawOrders.some(o => String(o.id) === String(lo.id))) {
+                        rawOrders.push(lo);
+                    }
                 });
+
+                const tempOrd = localStorage.getItem('dp_temp_order');
+                if (tempOrd) {
+                    const parsed = JSON.parse(tempOrd);
+                    if (!rawOrders.some(o => String(o.id) === String(parsed.id))) {
+                        rawOrders.unshift(parsed);
+                    }
+                }
             } catch (e) {}
 
-            if (orders.length === 0) {
-                container.innerHTML = "<p>अभी तक कोई ऑर्डर नहीं मिला।</p>";
+            rawOrders.sort((a, b) => {
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
+                return timeB - timeA;
+            });
+
+            fetchedOrdersList = rawOrders;
+            renderOrdersUI();
+        }
+
+        function renderOrdersUI() {
+            const container = document.getElementById('ordersContainer');
+            if (!container) return;
+
+            if (fetchedOrdersList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-orders">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <h4>${translations[currentLang].no_orders_title}</h4>
+                        <a href="order.html" class="btn-nav" style="margin-top: 16px; background: var(--primary-gradient); color: white; border: none; padding: 10px 20px; border-radius:25px;">${translations[currentLang].btn_order_now}</a>
+                    </div>
+                `;
                 return;
             }
 
-            container.innerHTML = orders.map(o => `
-                <div class="order-card">
-                    <h4>${o.card_title || 'शादी कार्ड'} (ID: #${o.id})</h4>
-                    <p><b>ग्राहक:</b> ${o.customer_name} | <b>मोबाइल:</b> ${o.mobile}</p>
-                    <p><b>वर:</b> ${o.groom_name || '-'} | <b>वधू:</b> ${o.bride_name || '-'}</p>
-                    <p><b>कुल:</b> ₹${o.total_amount} | <b>एडवांस:</b> ₹${o.advance_paid} | <b>स्टेटस:</b> <span style="color:red;">${o.status || 'Pending'}</span></p>
-                </div>
-            `).join('');
+            container.innerHTML = fetchedOrdersList.map((ord, index) => {
+                const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString(currentLang === 'hi' ? 'hi-IN' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent';
+                const total = parseFloat(ord.total_amount || 0);
+                const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0);
+                const balance = Math.max(0, total - advance);
+                const status = ord.status || 'Pending';
+
+                let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ${translations[currentLang].status_pending}</span>`;
+                if (status === 'Processing') statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> ${translations[currentLang].status_processing}</span>`;
+                if (status === 'Ready') statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> ${translations[currentLang].status_ready}</span>`;
+
+                const cardImg = ord.card_image || ord.image_url || ord.photo || safeCardPlaceholder;
+
+                return `
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div class="order-id-date">
+                                <img src="${cardImg}" class="order-card-img" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                                <div>
+                                    <h4>${ord.card_title || ord.card_name || 'शादी कार्ड'} ${ord.card_model ? '(' + ord.card_model + ')' : ''}</h4>
+                                    <span>ID: #${ord.id || ''} | ${dt}</span>
+                                </div>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+
+                        <div class="order-details-grid">
+                            <div class="detail-item"><b>${translations[currentLang].lbl_qty}</b>${ord.quantity || ord.qty || 100} ${translations[currentLang].lbl_pcs}</div>
+                            <div class="detail-item"><b>${translations[currentLang].lbl_total}</b>₹${total}</div>
+                            <div class="detail-item"><b>${translations[currentLang].lbl_advance}</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
+                            <div class="detail-item"><b>${translations[currentLang].lbl_balance}</b><span style="color:red; font-weight:bold;">₹${balance}</span></div>
+                        </div>
+
+                        <div class="couples-summary">
+                            <b>${translations[currentLang].lbl_summary_prefix}</b> ${translations[currentLang].lbl_groom_side} <b style="color:var(--primary);">${ord.groom_name || '-'}</b> ${translations[currentLang].lbl_bride_side} <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
+                        </div>
+
+                        <div class="order-card-footer">
+                            <div class="balance-info">${translations[currentLang].lbl_bal_due} <b>₹${balance}</b></div>
+                            <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
+                                <i class="fa-solid fa-file-invoice"></i> ${translations[currentLang].btn_view_receipt}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
+
+        function viewCustomerReceipt(index) {
+            const ord = fetchedOrdersList[index];
+            if (!ord) return;
+
+            const total = parseFloat(ord.total_amount || 0);
+            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0);
+            const balance = Math.max(0, total - advance);
+            const img = ord.card_image || ord.image_url || ord.photo || safeCardPlaceholder;
+            const status = ord.status || 'Pending';
+
+            let statusLabel = translations[currentLang].status_pending;
+            let statusColor = '#b91c1c';
+            if (status === 'Processing') { statusLabel = translations[currentLang].status_processing; statusColor = '#d35400'; }
+            if (status === 'Ready') { statusLabel = translations[currentLang].status_ready; statusColor = '#27ae60'; }
+
+            let eventsHtml = '';
+            const rawEvents = ord.events || ord.wedding_events || ord.order_data?.events;
+            if (rawEvents) {
+                if (Array.isArray(rawEvents) && rawEvents.length > 0) {
+                    eventsHtml = rawEvents.map(ev => `<div class="receipt-row"><span>${ev.title || 'कार्यक्रम'}:</span> <b>${ev.date || ''} (${ev.time || 'समय अनुसार'})</b></div>`).join('');
+                } else if (typeof rawEvents === 'string' && rawEvents.trim() !== '') {
+                    eventsHtml = `<div class="receipt-row"><span>कार्यक्रम:</span> <b>${rawEvents}</b></div>`;
+                }
+            }
+            if (!eventsHtml) {
+                eventsHtml = `<div class="receipt-row"><span>कार्यक्रम विवरण:</span> <b>निर्धारित तिथि व समय</b></div>`;
+            }
+
+            const customNotes = ord.custom_notes || ord.notes || ord.order_data?.custom_notes || 'कोई अतिरिक्त मैटर नहीं';
+            const rsvp = ord.rsvp || ord.vineet || ord.order_data?.rsvp || '-';
+            const fromFamily = ord.from_family || ord.darshanabhilashi || ord.order_data?.from_family || '-';
+            const txnId = ord.txn_id || ord.utr_number || ord.order_data?.txn_id || 'Cash / Counter';
+
+            let receiptPicHtml = '';
+            const receiptImg = ord.payment_receipt || ord.receipt_image || ord.order_data?.payment_receipt;
+            if (receiptImg && receiptImg.trim() !== '') {
+                receiptPicHtml = `<div style="margin-top:10px; text-align:center;"><b>भुगतान रसीद / स्क्रीनशॉट:</b><br><img src="${receiptImg}" style="max-width:200px; max-height:200px; border-radius:6px; border:1px solid #ccc; margin-top:6px;"></div>`;
+            }
+
+            document.getElementById('printableReceiptArea').innerHTML = `
+                <div class="receipt-header">
+                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा (झारखंड) | मो: 9304509464</p>
+                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:3px 12px; border-radius:3px; font-size:12px;">${translations[currentLang].receipt_tag}</h4>
+                </div>
+
+                <div class="receipt-section-title">${translations[currentLang].rec_sec1}</div>
+                <div class="card-preview-box">
+                    <img src="${img}" alt="Card" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                    <div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || ord.card_name || 'शादी कार्ड'}</div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || ord.model || '-'}</b></div>
+                        <div style="font-size:12px; color:#64748b;">स्थिति: <b style="color:${statusColor};">${statusLabel}</b></div>
+                    </div>
+                </div>
+
+                <div class="receipt-section-title">${translations[currentLang].rec_sec2}</div>
+                <div class="receipt-row"><span>आर्डर ID:</span> <b>#${ord.id || '-'}</b></div>
+                <div class="receipt-row"><span>तारीख:</span> <span>${ord.created_at ? new Date(ord.created_at).toLocaleDateString(currentLang === 'hi' ? 'hi-IN' : 'en-US') : 'हाल ही में'}</span></div>
+                <div class="receipt-row"><span>ग्राहक:</span> <b>${ord.customer_name || ord.name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल:</span> <b>${ord.customer_mobile || ord.mobile || ord.phone || '-'}</b></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${ord.address || ord.customer_address || '-'}</b></div>
+
+                <div class="receipt-section-title">${translations[currentLang].rec_sec3}</div>
+                <div class="receipt-row"><span>वर (दूल्हा):</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
+                <div class="receipt-row"><span>पिता (वर):</span> <span>${ord.groom_father || '-'}</span></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता (वर):</span> <span>${ord.groom_address || '-'}</span></div>
+                <div class="receipt-row"><span>वधू (दुल्हन):</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
+                <div class="receipt-row"><span>पिता (वधू):</span> <span>${ord.bride_father || '-'}</span></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता (वधू):</span> <span>${ord.bride_address || '-'}</span></div>
+
+                <div class="receipt-section-title">${translations[currentLang].rec_sec4}</div>
+                ${eventsHtml}
+                <div style="font-size:12px; background:#f8fafc; padding:8px; border:1px solid #eee; white-space:pre-wrap; margin:6px 0; border-radius:4px;"><b>शायरी / अतिरिक्त मैटर:</b><br>${customNotes}</div>
+                <div class="receipt-row"><span>आर.एस.वी.पी (निवेदक):</span> <span>${rsvp}</span></div>
+                <div class="receipt-row"><span>दर्शनाभिलाषी:</span> <span>${fromFamily}</span></div>
+
+                <div class="receipt-section-title">${translations[currentLang].rec_sec5}</div>
+                <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${ord.quantity || ord.qty || 100} पीस</b></div>
+                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
+                <div class="receipt-row"><span>एडवांस जमा:</span> <b style="color:green;">₹${advance}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
+                <div class="receipt-row"><span>UTR / ट्रांजेक्शन ID:</span> <b>${txnId}</b></div>
+                ${receiptPicHtml}
+            `;
+
+            document.getElementById('userReceiptModal').style.display = 'flex';
+        }
+
+        function closeReceiptModal() { 
+            document.getElementById('userReceiptModal').style.display = 'none'; 
+        }
+
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            const opt = {
+                margin:       6,
+                filename:     'DelhiPress_Receipt.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function printReceiptDirect() { 
+            const printContent = document.getElementById('printableReceiptArea').innerHTML;
+            const win = window.open('', '', 'height=750,width=750');
+            win.document.write('<html><head><title>Print Receipt</title>');
+            win.document.write('<style>body{font-family:sans-serif; padding:15px;} .receipt-row{display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px; border-bottom:1px dotted #ccc; padding-bottom:3px;} .receipt-section-title{background:#f0f0f0; padding:5px; font-weight:bold; margin:10px 0 6px 0; font-size:13px;} .card-preview-box{display:flex; gap:15px; align-items:center; margin-bottom:10px;} img{width:65px; height:65px; object-fit:cover; border-radius:4px;}</style>');
+            win.document.write('</head><body>');
+            win.document.write(printContent);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.focus();
+            setTimeout(() => { win.print(); win.close(); }, 500);
+        }
+
+        function logoutCustomer() {
+            localStorage.removeItem('dp_current_user');
+            localStorage.removeItem('dp_logged_in_user');
+            window.location.replace("index.html");
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateCartBadges();
+            fetchCustomerOrders();
+        });
     </script>
 </body>
 </html>
