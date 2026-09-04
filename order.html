@@ -23,7 +23,6 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* Modern Digital Dynamic Mesh Background */
         body {
             background-color: #0d1322;
             background-image: 
@@ -61,7 +60,6 @@
         }
         .btn-nav:hover { background: rgba(255, 255, 255, 0.2); }
 
-        /* Modern Language Switcher Button (Top Right) */
         .btn-lang-toggle {
             background: linear-gradient(135deg, #2563eb, #3b82f6);
             color: #ffffff;
@@ -94,7 +92,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
-        /* Digital Category Switcher Container */
         .category-switcher-container {
             background: rgba(15, 23, 42, 0.65);
             backdrop-filter: blur(12px);
@@ -113,7 +110,6 @@
             box-shadow: 0 6px 20px rgba(230, 57, 70, 0.45);
         }
 
-        /* Glassmorphism Main Form Card */
         .form-wrapper {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -263,11 +259,10 @@
 
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
-            <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.src='https://via.placeholder.com/40'">
+            <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 40 40\'><rect width=\'40\' height=\'40\' fill=\'%23e63946\'/><text x=\'50%\' y=\'55%\' font-size=\'12\' fill=\'%23fff\' text-anchor=\'middle\' dominant-baseline=\'middle\'>DP</text></svg>';">
             <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
-            <!-- Top Right Language Switcher -->
             <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
                 <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
             </button>
@@ -277,7 +272,6 @@
 
     <div class="container">
         
-        <!-- Category Switcher Bar -->
         <div class="category-switcher-container">
             <button type="button" class="cat-slider-btn active" id="btnTabWedding" onclick="switchOrderCategory('wedding')">
                 <i class="fa-solid fa-heart"></i> <span data-i18n="tab_wedding">शादी कार्ड ऑर्डर</span>
@@ -300,7 +294,6 @@
 
             <form id="masterOrderForm" onsubmit="event.preventDefault(); processUniversalOrder();">
                 
-                <!-- Common Customer Details -->
                 <div class="form-block" style="border-left-color: var(--blue);">
                     <h4><i class="fa-solid fa-user-tag"></i> <span data-i18n="cust_header">ग्राहक का विवरण (Customer Details)</span></h4>
                     <div class="row-2">
@@ -327,7 +320,7 @@
                             <a href="index.html#showcaseSection" style="color:var(--primary); font-size:12px; text-decoration:underline;" data-i18n="view_catalog">कैटलॉग देखें</a>
                         </h4>
                         <div class="card-preview-body">
-                            <img id="previewCardImage" class="card-preview-thumb" src="https://placehold.co/90x90?text=Card+Photo" alt="Card Preview">
+                            <img id="previewCardImage" class="card-preview-thumb" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'><rect width='90' height='90' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='11' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Photo</text></svg>" alt="Card Preview" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'90\' height=\'90\' viewBox=\'0 0 90 90\'><rect width=\'90\' height=\'90\' fill=\'%23f1f5f9\'/><text x=\'50%\' y=\'50%\' font-size=\'11\' fill=\'%2394a3b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Card Photo</text></svg>';">
                             <div class="card-preview-info">
                                 <h3 id="previewCardName" data-i18n="choose_card">कार्ड चुनें</h3>
                                 <p id="previewCardModel">मॉडल / कोड: --</p>
@@ -337,7 +330,7 @@
                         <div class="card-picker-box">
                             <label style="font-size:12px; color:#e63946;" data-i18n="or_choose_other">या कैटलॉग से कोई अन्य कार्ड चुनें:</label>
                             <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
-                                <option value="">-- कैटलॉग कार्ड लोड हो रहे हैं... --</option>
+                                <option value="">-- कैटलॉग लोड हो रहा है... --</option>
                             </select>
                         </div>
                     </div>
@@ -559,7 +552,6 @@
                     </div>
                 </div>
 
-                <!-- Total Bill & Advance Summary -->
                 <div class="total-bill-box">
                     <span data-i18n="lbl_total_bill">कुल बिल राशि:</span>
                     <span id="universalTotalDisplay">₹0</span>
@@ -580,7 +572,6 @@
                     </div>
                 </div>
 
-                <!-- Terms Checkbox -->
                 <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-top: 18px; display: flex; align-items: flex-start; gap: 10px;">
                     <input type="checkbox" id="termsConditionCheck" required style="width: 20px; height: 20px; margin-top: 2px; cursor: pointer; flex-shrink: 0;">
                     <label for="termsConditionCheck" style="font-size: 13px; color: #334155; font-weight: 600; line-height: 1.5; cursor: pointer; margin-bottom: 0;">
@@ -653,7 +644,6 @@
         let calculatedGrandTotal = 0;
         let currentLang = 'hi';
 
-        /* Complete Bilingual Dictionary */
         const translations = {
             hi: {
                 lang_toggle: "English",
@@ -836,7 +826,6 @@
                 }
             });
 
-            // Refresh dynamic titles
             switchOrderCategory(currentActiveCategory);
         }
 
@@ -945,11 +934,24 @@
 
         async function fetchAndFillCatalogDropdown() {
             const dropdown = document.getElementById('directCardSelect');
-            if (!supabaseClient) return;
+            if (!dropdown) return;
+
+            if (!supabaseClient) {
+                dropdown.innerHTML = '<option value="">-- कैटलॉग उपलब्ध नहीं है --</option>';
+                return;
+            }
+
             const tablesToCheck = ['catalog', 'cards_catalog', 'cards'];
+            let fetched = false;
+
             for (const tbl of tablesToCheck) {
                 try {
-                    const { data } = await supabaseClient.from(tbl).select('*');
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
+                    const fetchPromise = supabaseClient.from(tbl).select('*');
+                    
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    const data = res.data;
+
                     if (data && data.length > 0) {
                         globalCatalogCards = data;
                         dropdown.innerHTML = '<option value="">-- कैटलॉग से दूसरा कार्ड चुनें --</option>';
@@ -959,9 +961,16 @@
                             opt.textContent = `${item.name || item.title || 'शादी कार्ड'} (${item.model || item.code || ''}) - ₹${item.rate || item.price || 0}/पीस`;
                             dropdown.appendChild(opt);
                         });
+                        fetched = true;
                         break;
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.warn(`Table ${tbl} fetch failed/timed out:`, e);
+                }
+            }
+
+            if (!fetched) {
+                dropdown.innerHTML = '<option value="">-- कोई कार्ड उपलब्ध नहीं --</option>';
             }
         }
 
@@ -981,7 +990,7 @@
             if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null") {
                 imgElem.src = imgUrl;
             } else {
-                imgElem.src = "https://placehold.co/90x90?text=Card+Photo";
+                imgElem.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'><rect width='90' height='90' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='11' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Photo</text></svg>";
             }
 
             document.getElementById('previewCardName').innerText = name;
