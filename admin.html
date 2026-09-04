@@ -268,7 +268,7 @@
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
         try {
@@ -332,35 +332,21 @@
             });
         }
 
-        /* 1. लोड ग्राहक ऑर्डर्स (Supabase + LocalStorage Fail-Safe Sync) */
+        /* 1. लोड ग्राहक ऑर्डर्स (Unified LocalStorage & Supabase Master Sync) */
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
 
-            tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; color:#64748b;">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; color:#64748b;">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
             let orders = [];
 
-            // Supabase से फ़ेच करें
-            if (supabaseClient) {
-                try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
-                    const fetchPromise = supabaseClient.from('orders').select('*');
-                    const res = await Promise.race([fetchPromise, timeoutPromise]);
-                    if (res && res.data && res.data.length > 0) {
-                        orders = res.data;
-                    }
-                } catch (e) {
-                    console.warn("Supabase fetch order warn:", e);
-                }
-            }
-
-            // LocalStorage और Temporary Orders को हमेशा मिला कर दिखाएं ताकि डेटा कभी मिस न हो
+            // 1. सबसे पहले लोकल स्टोरेज से सभी ऑर्डर्स लोड करें (ताकि नया ऑर्डर तुरंत दिखे)
             try {
                 const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localList.forEach(lo => {
                     if (!orders.some(o => String(o.id) === String(lo.id))) {
-                        orders.unshift(lo);
+                        orders.push(lo);
                     }
                 });
 
@@ -373,7 +359,25 @@
                 }
             } catch (err) {}
 
-            // नया ऑर्डर सबसे ऊपर दिखाने के लिए सॉर्ट करें
+            // 2. इसके बाद Supabase से डेटा लेकर लोकल में भी मर्ज करें
+            if (supabaseClient) {
+                try {
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
+                    const fetchPromise = supabaseClient.from('orders').select('*');
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    if (res && res.data && res.data.length > 0) {
+                        res.data.forEach(dbOrd => {
+                            if (!orders.some(o => String(o.id) === String(dbOrd.id))) {
+                                orders.push(dbOrd);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Supabase fetch order warn:", e);
+                }
+            }
+
+            // नए ऑर्डर को हमेशा सबसे ऊपर दिखाने के लिए सॉर्ट करें
             orders.sort((a, b) => {
                 const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
                 const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
