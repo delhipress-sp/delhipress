@@ -52,6 +52,35 @@
         .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
 
         .nav-actions { display: flex; align-items: center; gap: 10px; }
+
+        /* Cart Nav Button */
+        .btn-cart-nav {
+            position: relative;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-cart-nav:hover { background: rgba(255, 255, 255, 0.2); }
+        .cart-badge-count {
+            background: var(--primary);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
         .btn-nav {
             text-decoration: none; color: #f8fafc; font-weight: 700; font-size: 13px;
             padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
@@ -140,12 +169,25 @@
             border-radius: 8px; border: 1px solid #e2e8f0; background-color: #f8fafc;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
+        .card-preview-info { flex: 1; }
         .card-preview-info h3 { font-size: 17px; color: var(--dark); margin-bottom: 3px; font-weight: 700; }
         .card-preview-info p { font-size: 13px; color: #64748b; margin-bottom: 3px; }
         .card-preview-info .rate-tag { font-size: 15px; font-weight: 800; color: var(--green); }
+        
         .card-picker-box {
             margin-top: 12px; padding-top: 10px; border-top: 1px dashed #fed7aa;
+            display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: flex-end;
         }
+        .card-picker-left { flex: 1; min-width: 220px; }
+
+        .btn-add-to-cart-form {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white; border: none; padding: 9px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+            transition: 0.2s;
+        }
+        .btn-add-to-cart-form:hover { transform: translateY(-1px); }
 
         .form-block {
             background: #f8fafc; padding: 16px; border-radius: 10px;
@@ -248,7 +290,7 @@
             align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
         }
 
-        /* Mobile Bottom Bar Matching index.html & my_orders.html */
+        /* Mobile Bottom Bar */
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: rgba(15, 23, 42, 0.95);
@@ -260,6 +302,7 @@
             background: none; border: none; color: #cbd5e1; text-decoration: none;
             text-align: center; font-size: 11px; font-weight: 600;
             display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+            position: relative;
         }
         .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
 
@@ -279,6 +322,13 @@
             <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
+            <!-- कार्ट बटन (Navbar) -->
+            <a href="cart.html" class="btn-cart-nav" title="कार्ट देखें">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span data-i18n="nav_cart">कार्ट</span>
+                <span class="cart-badge-count" id="navCartBadge">0</span>
+            </a>
+
             <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
                 <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
             </button>
@@ -344,10 +394,15 @@
                             </div>
                         </div>
                         <div class="card-picker-box">
-                            <label style="font-size:12px; color:#e63946;" data-i18n="or_choose_other">या कैटलॉग से कोई अन्य कार्ड चुनें:</label>
-                            <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
-                                <option value="">-- कैटलॉग लोड हो रहा है... --</option>
-                            </select>
+                            <div class="card-picker-left">
+                                <label style="font-size:12px; color:#e63946;" data-i18n="or_choose_other">या कैटलॉग से कोई अन्य कार्ड चुनें:</label>
+                                <select id="directCardSelect" onchange="onCatalogSelectChange(this.value)">
+                                    <option value="">-- कैटलॉग लोड हो रहा है... --</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn-add-to-cart-form" onclick="addSelectedCardToCart()">
+                                <i class="fa-solid fa-cart-plus"></i> <span data-i18n="btn_add_cart">यह कार्ड कार्ट में जोड़ें</span>
+                            </button>
                         </div>
                     </div>
 
@@ -603,11 +658,16 @@
         </div>
     </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
+    <!-- Mobile Bottom Navigation Bar (Cart Included) -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span data-i18n="call_us">कॉल करें</span></a>
         <a href="index.html#showcaseSection"><i class="fa-solid fa-images"></i><span data-i18n="tab_catalog">कैटलॉग</span></a>
-        <a href="order.html" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span data-i18n="tab_order">ऑर्डर</span></a>
+        <a href="cart.html">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span data-i18n="nav_cart">कार्ट</span>
+            <span class="cart-badge-count" id="mobileCartBadge" style="position:absolute; top:2px; right:20%;">0</span>
+        </a>
+        <a href="order.html" style="color:var(--primary);"><i class="fa-solid fa-file-pen"></i><span data-i18n="tab_order">ऑर्डर</span></a>
         <a href="my_orders.html"><i class="fa-solid fa-box-archive"></i><span data-i18n="tab_my_orders">मेरे ऑर्डर्स</span></a>
     </div>
 
@@ -667,6 +727,7 @@
         let globalCatalogCards = [];
         let calculatedGrandTotal = 0;
         let currentLang = 'hi';
+        let currentLoadedCard = null;
 
         const translations = {
             hi: {
@@ -677,6 +738,7 @@
                 tab_catalog: "कैटलॉग",
                 tab_order: "ऑर्डर",
                 tab_my_orders: "मेरे ऑर्डर्स",
+                nav_cart: "कार्ट",
                 tab_wedding: "शादी कार्ड ऑर्डर",
                 tab_banner: "फ्लेक्स बैनर",
                 tab_visiting: "विज़िटिंग कार्ड",
@@ -692,6 +754,8 @@
                 view_catalog: "कैटलॉग देखें",
                 choose_card: "कार्ड चुनें",
                 or_choose_other: "या कैटलॉग से कोई अन्य कार्ड चुनें:",
+                btn_add_cart: "यह कार्ड कार्ट में जोड़ें",
+                cart_added_alert: "कार्ड कार्ट में सुरक्षित जोड़ दिया गया है!",
                 sec1_title: "१. कार्ड कैटगरी, रेट एवं संख्या",
                 lbl_card_model: "कार्ड मॉडल / नाम:",
                 lbl_rate: "प्रति पीस रेट (₹):",
@@ -765,6 +829,7 @@
                 tab_catalog: "Catalog",
                 tab_order: "Order",
                 tab_my_orders: "My Orders",
+                nav_cart: "Cart",
                 tab_wedding: "Wedding Card",
                 tab_banner: "Flex Banner",
                 tab_visiting: "Visiting Card",
@@ -780,6 +845,8 @@
                 view_catalog: "View Catalog",
                 choose_card: "Select Card",
                 or_choose_other: "Or pick another card from catalog:",
+                btn_add_cart: "Add This Card to Cart",
+                cart_added_alert: "Card added to cart successfully!",
                 sec1_title: "1. Card Category, Rate & Quantity",
                 lbl_card_model: "Card Model / Title:",
                 lbl_rate: "Rate per Piece (₹):",
@@ -846,6 +913,55 @@
                 footer_admin: "Admin"
             }
         };
+
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const count = cart.length;
+                const navBadge = document.getElementById('navCartBadge');
+                const mobBadge = document.getElementById('mobileCartBadge');
+                if (navBadge) navBadge.innerText = count;
+                if (mobBadge) mobBadge.innerText = count;
+            } catch (e) {}
+        }
+
+        function addSelectedCardToCart() {
+            const qty = parseInt(document.getElementById('cardQty').value) || 100;
+            let cardObj = currentLoadedCard;
+
+            if (!cardObj) {
+                const storedSelected = localStorage.getItem('order_selected_card');
+                if (storedSelected) {
+                    try { cardObj = JSON.parse(storedSelected); } catch (e) {}
+                }
+            }
+
+            const title = cardObj?.name || document.getElementById('cardCategory').value || 'शादी कार्ड';
+            const model = cardObj?.model || '';
+            const rate = parseFloat(document.getElementById('cardRate').value) || (cardObj?.rate || 0);
+            const image = cardObj?.image || document.getElementById('previewCardImage').src || '';
+            const id = cardObj?.id || Date.now();
+
+            try {
+                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const existing = cart.find(item => String(item.id) === String(id));
+                if (existing) {
+                    existing.quantity = (existing.quantity || 100) + qty;
+                } else {
+                    cart.push({
+                        id: id,
+                        name: title,
+                        model: model,
+                        rate: rate,
+                        image: image,
+                        quantity: qty
+                    });
+                }
+                localStorage.setItem('dp_cart_items', JSON.stringify(cart));
+                updateCartBadges();
+                alert(translations[currentLang].cart_added_alert);
+            } catch (e) {}
+        }
 
         function toggleLanguage() {
             currentLang = (currentLang === 'hi') ? 'en' : 'hi';
@@ -929,6 +1045,7 @@
         });
 
         window.addEventListener('DOMContentLoaded', async () => {
+            updateCartBadges();
             const currentUser = localStorage.getItem('dp_current_user');
             if (currentUser) {
                 try {
@@ -1013,6 +1130,7 @@
         }
 
         function applyCardDetails(card) {
+            currentLoadedCard = card;
             const imgUrl = card.image || card.image_url || card.photo || '';
             const name = card.name || card.title || 'शादी कार्ड';
             const model = card.model || card.code || '';
