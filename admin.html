@@ -183,15 +183,27 @@
         window.addEventListener('DOMContentLoaded', () => {
             const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_logged') === 'true';
             if (isAuth) showDashboard();
+
+            const pinInput = document.getElementById('adminPin');
+            if (pinInput) {
+                pinInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') verifyAdminPin();
+                });
+            }
         });
 
         function verifyAdminPin() {
             const entered = document.getElementById('adminPin').value.trim();
-            if (["1234", "9304", "815352", localStorage.getItem('dp_custom_admin_pin')].includes(entered)) {
+            const savedCustomPin = localStorage.getItem('dp_custom_admin_pin');
+            const validPins = [savedCustomPin, "1234", "9304", "815352"].filter(Boolean);
+
+            if (validPins.includes(entered)) {
                 sessionStorage.setItem('dp_admin_auth', 'true');
+                localStorage.setItem('dp_admin_logged', 'true');
                 showDashboard();
             } else {
-                alert("गलत पिन!");
+                alert("गलत सुरक्षा पिन! कृपया सही पिन दर्ज करें।");
+                document.getElementById('adminPin').value = "";
             }
         }
 
@@ -218,7 +230,7 @@
 
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
-            if (!supabaseClient) return;
+            if (!tbody || !supabaseClient) return;
 
             const tables = ['cards_catalog', 'catalog', 'cards'];
             let cards = [];
@@ -306,6 +318,7 @@
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
+            if (!tbody) return;
             let orders = [];
             if (supabaseClient) {
                 try {
@@ -332,4 +345,83 @@
                         <td><b>${o.card_title || o.card_name || 'शादी कार्ड'}</b></td>
                         <td>${o.customer_name || ''}<br>📞 ${o.mobile || o.phone || ''}</td>
                         <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                    
+                        <td>कुल: ₹${o.total_amount || 0}<br>बाकी: ₹${o.balance_amount || 0}</td>
+                        <td>
+                            <span class="status-badge status-pending">${status}</span><br>
+                            <select class="status-select-box" onchange="updateOrderStatus('${o.id}', this.value)">
+                                <option value="Pending" ${status==='Pending'?'selected':''}>Pending</option>
+                                <option value="Processing" ${status==='Processing'?'selected':''}>Processing</option>
+                                <option value="Ready" ${status==='Ready'?'selected':''}>Ready</option>
+                            </select>
+                        </td>
+                        <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')"><i class="fa-solid fa-receipt"></i> रसीद</button></td>
+                        <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function updateOrderStatus(id, newStatus) {
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
+                } catch (e) {}
+            }
+            loadAdminOrders();
+        }
+
+        async function deleteAdminOrder(id) {
+            if (confirm("आर्डर हटाएं?") && supabaseClient) {
+                await supabaseClient.from('orders').delete().eq('id', id);
+                loadAdminOrders();
+            }
+        }
+
+        async function loadRegisteredCustomers() {
+            const tbody = document.getElementById('customersTableBody');
+            if (!tbody || !supabaseClient) return;
+            const { data } = awaitsupabaseClient.from('users').select('*');
+            if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">कोई पंजीकृत ग्राहक नहीं।</td></tr>'; return; }
+
+            tbody.innerHTML = data.map((u, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td><b>${u.name || u.customer_name || ''}</b></td>
+                    <td>${u.mobile || u.phone || ''}</td>
+                    <td>${u.address || ''}</td>
+                    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN') : '-'}</td>
+                    <td><button class="btn-del" onclick="deleteCustomerUser('${u.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteCustomerUser(id) {
+            if (confirm("ग्राहक हटाएं?") && supabaseClient) {
+                await supabaseClient.from('users').delete().eq('id', id);
+                loadRegisteredCustomers();
+            }
+        }
+
+        function openOrderReceiptModal(id) {
+            const order = globalOrdersCache.find(o => String(o.id) === String(id));
+            if (!order) return;
+            const img = order.card_image || order.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+            document.getElementById('printableReceiptArea').innerHTML = `
+                <div class="receipt-header"><h2>दिल्ली प्रेस रसीद</h2></div>
+                <div class="receipt-row"><span>ग्राहक:</span><b>${order.customer_name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल:</span><b>${order.mobile || order.phone || '-'}</b></div>
+                <div class="card-preview-box"><img src="${img}"><div><h4>${order.card_title || order.card_name || 'शादी कार्ड'}</h4></div></div>
+                <div class="receipt-row"><span>कुल राशि:</span><b>₹${order.total_amount || 0}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया:</span><b>₹${order.balance_amount || 0}</b></div>
+            `;
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
+        function downloadReceiptPDF() {
+            html2pdf().from(document.getElementById('printableReceiptArea')).save('Receipt.pdf');
+        }
+        function printReceiptDirect() { window.print(); }
+    </script>
+</body>
+</html>
