@@ -268,7 +268,7 @@
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
         try {
@@ -332,7 +332,7 @@
             });
         }
 
-        /* 1. लोड ग्राहक ऑर्डर्स (Unified LocalStorage & Supabase Master Sync) */
+        /* 1. लोड ग्राहक ऑर्डर्स (Master Sync) */
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
@@ -341,7 +341,19 @@
 
             let orders = [];
 
-            // 1. सबसे पहले लोकल स्टोरेज से सभी ऑर्डर्स लोड करें (ताकि नया ऑर्डर तुरंत दिखे)
+            // Supabase से डेटा लाएँ
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('orders').select('*');
+                    if (data && data.length > 0) {
+                        orders = data;
+                    }
+                } catch (e) {
+                    console.warn("Supabase fetch order warn:", e);
+                }
+            }
+
+            // LocalStorage से भी ऑर्डर्स को मर्ज करें
             try {
                 const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localList.forEach(lo => {
@@ -359,25 +371,6 @@
                 }
             } catch (err) {}
 
-            // 2. इसके बाद Supabase से डेटा लेकर लोकल में भी मर्ज करें
-            if (supabaseClient) {
-                try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
-                    const fetchPromise = supabaseClient.from('orders').select('*');
-                    const res = await Promise.race([fetchPromise, timeoutPromise]);
-                    if (res && res.data && res.data.length > 0) {
-                        res.data.forEach(dbOrd => {
-                            if (!orders.some(o => String(o.id) === String(dbOrd.id))) {
-                                orders.push(dbOrd);
-                            }
-                        });
-                    }
-                } catch (e) {
-                    console.warn("Supabase fetch order warn:", e);
-                }
-            }
-
-            // नए ऑर्डर को हमेशा सबसे ऊपर दिखाने के लिए सॉर्ट करें
             orders.sort((a, b) => {
                 const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
                 const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
@@ -469,27 +462,36 @@
             }
         }
 
+        /* 3. आर्डर हटाना (Delete Order - Local + Supabase) */
         async function deleteAdminOrder(id) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
+            if (!confirm("क्या आप वाकई इस ऑर्डर को हमेशा के लिए हटाना चाहते हैं?")) return;
 
+            // ग्लोबल कैशे से हटाएं
             globalOrdersCache = globalOrdersCache.filter(o => String(o.id) !== String(id));
             
+            // लोकल स्टोरेज से हटाएं
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localOrders = localOrders.filter(o => String(o.id) !== String(id));
                 localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
                 localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
+                localStorage.removeItem('dp_temp_order');
             } catch (e) {}
 
+            // Supabase डेटाबेस से हटाएं
             if (supabaseClient) {
                 try {
                     await supabaseClient.from('orders').delete().eq('id', id);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("Supabase delete warning:", e);
+                }
             }
+
+            // टेबल को दोबारा लोड करें ताकि डिलीट हुआ आर्डर तुरंत गायब हो जाए
             loadAdminOrders();
         }
 
-        /* 3. रसीद और पूरा मैटर दिखाना */
+        /* 4. रसीद और पूरा मैटर दिखाना */
         function openOrderReceiptModal(id) {
             const order = globalOrdersCache.find(o => String(o.id) === String(id));
             if (!order) return;
@@ -595,7 +597,7 @@
             setTimeout(() => { win.print(); win.close(); }, 500);
         }
 
-        /* 4. कैटलॉग प्रबंधन */
+        /* 5. कैटलॉग प्रबंधन */
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody || !supabaseClient) return;
@@ -684,7 +686,7 @@
             }
         }
 
-        /* 5. पंजीकृत ग्राहक */
+        /* 6. पंजीकृत ग्राहक */
         async function loadRegisteredCustomers() {
             const tbody = document.getElementById('customersTableBody');
             if (!tbody || !supabaseClient) return;
