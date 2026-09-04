@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>मेरे ऑर्डर्स (My Orders) - दिल्ली प्रेस</title>
+    <title>एडमिन पैनल - दिल्ली प्रेस</title>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,263 +14,145 @@
             --primary: #c0392b;
             --secondary: #d35400;
             --dark: #1e272e;
+            --light: #fdfbf7;
             --green: #27ae60;
             --blue: #2980b9;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; }
-        body { background-color: #f4f6f9; color: #333; line-height: 1.5; padding-bottom: 80px; }
+        body { background-color: #f4f6f9; color: #333; line-height: 1.5; padding: 15px; padding-bottom: 50px; }
 
-        .navbar {
-            background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        .top-nav-bar {
+            max-width: 1200px; margin: 0 auto 12px auto;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 20px; position: sticky; top: 0; z-index: 1000;
+            background: #fff; padding: 10px 16px; border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; }
-        .nav-logo-box {
-            width: 38px; height: 38px; border-radius: 50%;
-            border: 2px solid var(--primary); display: flex;
-            align-items: center; justify-content: center; overflow: hidden;
-            background: #fff;
-        }
-        .nav-logo-img { width: 100%; height: 100%; object-fit: cover; }
-        .nav-brand h2 { color: var(--primary); font-size: 20px; }
-        .nav-actions { display: flex; align-items: center; gap: 8px; }
-        .btn-nav {
-            text-decoration: none; color: #1e293b; font-weight: 700; font-size: 13px;
-            padding: 6px 12px; border-radius: 4px; border: 1px solid #cbd5e1;
-            background: #f8fafc; display: inline-flex; align-items: center; gap: 5px;
-            cursor: pointer;
-        }
+        .top-nav-bar a { text-decoration: none; color: #1e293b; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
 
-        .container { max-width: 850px; margin: 15px auto; padding: 0 12px; }
+        .admin-card { background: #fff; max-width: 1200px; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 20px; }
 
-        .user-welcome-card {
-            background: #fff; border: 1px solid #cbd5e1; border-radius: 8px;
-            padding: 14px 16px; margin-bottom: 15px; display: flex;
-            justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-        }
-        .user-info h3 { font-size: 17px; color: var(--dark); }
-        .user-info p { font-size: 13px; color: #64748b; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #475569; }
+        input, select, textarea { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; outline: none; background: #fff; }
 
-        .order-card {
-            background: #fff; border: 1px solid #cbd5e1; border-radius: 8px;
-            margin-bottom: 16px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-        }
-        .order-card-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 12px;
-            flex-wrap: wrap; gap: 8px;
-        }
-        .order-id-date { display: flex; align-items: center; gap: 10px; }
-        .order-card-img {
-            width: 52px; height: 52px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
-            background: #f1f5f9; flex-shrink: 0;
-        }
-        .order-id-date h4 { font-size: 15px; color: var(--primary); margin: 0; }
-        .order-id-date span { font-size: 12px; color: #64748b; }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
+        .admin-table th, .admin-table td { border: 1px solid #cbd5e1; padding: 8px 6px; text-align: center; vertical-align: middle; }
+        .admin-table th { background: #f1f5f9; color: #1e293b; font-weight: bold; }
 
-        .badge-status {
-            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
-            display: inline-flex; align-items: center; gap: 5px;
-        }
-        .badge-pending { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-        .badge-process { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .badge-ready { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .btn-del { background: #ef4444; color: white; border: none; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-view { background: var(--blue); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; }
 
-        .order-details-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px; font-size: 13px; margin-bottom: 12px;
-        }
-        .detail-item { background: #f8fafc; padding: 8px 10px; border-radius: 5px; }
-        .detail-item b { color: #475569; display: block; font-size: 11px; }
+        .status-badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 4px; }
+        .status-pending { background: #fee2e2; color: #b91c1c; }
+        .status-process { background: #fef3c7; color: #92400e; }
+        .status-ready { background: #dcfce7; color: #15803d; }
 
-        .couples-summary {
-            background: #fdfaf6; border-left: 3px solid var(--secondary);
-            padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px;
-        }
+        .status-select-box { padding: 5px 8px; font-size: 12px; font-weight: bold; border-radius: 4px; border: 1px solid #cbd5e1; background: #fff; }
 
-        .order-card-footer {
-            display: flex; justify-content: space-between; align-items: center;
-            border-top: 1px solid #f1f5f9; padding-top: 10px; flex-wrap: wrap; gap: 8px;
-        }
-        .balance-info { font-size: 13px; }
-        .balance-info b { color: #b91c1c; }
+        .stock-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: bold; }
+        .in-stock { background: #dcfce7; color: #15803d; }
+        .out-stock { background: #fee2e2; color: #b91c1c; }
 
-        .btn-view-receipt {
-            background: var(--blue); color: white; border: none; padding: 6px 12px;
-            font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 5px;
-        }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 130px; padding: 10px; background: #e2e8f0; color: #334155; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .tab-btn.active { background: var(--primary); color: white; }
 
-        .empty-orders {
-            background: #fff; border: 1px dashed #cbd5e1; border-radius: 8px;
-            padding: 40px 20px; text-align: center; color: #64748b;
-        }
-        .empty-orders i { font-size: 40px; color: #94a3b8; margin-bottom: 10px; }
+        .btn-home-action { background: #f1f5f9; color: #1e293b; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid #cbd5e1; }
 
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); display: none; justify-content: center;
-            align-items: center; z-index: 9999; padding: 15px;
-        }
-        .modal-content {
-            background: white; width: 100%; max-width: 650px; max-height: 90vh;
-            border-radius: 8px; overflow-y: auto; padding: 20px; position: relative;
-        }
-        .receipt-container {
-            border: 2px dashed #cbd5e1; padding: 18px; border-radius: 6px; background: #fff;
-        }
-        .receipt-header {
-            text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 12px;
-        }
-        .receipt-row {
-            display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 3px;
-        }
-        .receipt-section-title {
-            background: #f8fafc; padding: 4px 8px; font-weight: bold; color: var(--primary); margin: 10px 0 6px 0; border-left: 3px solid var(--primary); font-size: 13px;
-        }
-        .card-preview-box {
-            display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 6px;
-        }
-        .card-preview-box img {
-            width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;
-            background: #e2e8f0; flex-shrink: 0;
-        }
-
-        .main-footer {
-            background: var(--dark); color: #cbd5e1; padding: 30px 15px 20px;
-            margin-top: 40px; font-size: 13px;
-        }
-        .footer-grid {
-            max-width: 850px; margin: 0 auto; display: grid;
-            grid-template-columns: 1.2fr 1fr; gap: 20px;
-        }
-        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 10px; }
-        .footer-col p { margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
-        .footer-col p i { color: #f1c40f; width: 18px; }
-        
-        .footer-bottom {
-            max-width: 850px; margin: 20px auto 0; padding-top: 15px;
-            border-top: 1px solid #334155; display: flex; justify-content: space-between;
-            align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
-        }
-        .footer-admin-link {
-            color: #64748b; text-decoration: none; font-size: 11px;
-            display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;
-            border-radius: 4px; border: 1px solid #334155; transition: 0.2s;
-        }
-        .footer-admin-link:hover { color: #f1c40f; border-color: #f1c40f; }
-
-        .mobile-bottom-bar {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #fff; border-top: 1px solid #cbd5e1;
-            padding: 6px 0; z-index: 1001; justify-content: space-around;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-        .mobile-bottom-bar a {
-            background: none; border: none; color: var(--dark); text-decoration: none;
-            text-align: center; font-size: 11px; font-weight: 600;
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
-        }
-        .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
-
-        @media (max-width: 768px) {
-            .mobile-bottom-bar { display: flex; }
-            .footer-grid { grid-template-columns: 1fr; gap: 15px; }
-            .footer-bottom { justify-content: center; text-align: center; }
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); display: none; justify-content: center; align-items: center; z-index: 9999; padding: 15px; }
+        .modal-content { background: white; width: 100%; max-width: 650px; max-height: 90vh; border-radius: 8px; overflow-y: auto; padding: 20px; position: relative; }
+        .receipt-container { border: 2px dashed #cbd5e1; padding: 18px; border-radius: 6px; background: #fff; }
+        .receipt-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 12px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 3px; }
+        .receipt-section-title { background: #f8fafc; padding: 4px 8px; font-weight: bold; color: var(--primary); margin: 10px 0 6px 0; border-left: 3px solid var(--primary); font-size: 13px; }
+        .card-preview-box { display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 6px; }
+        .card-preview-box img { width: 75px; height: 75px; object-fit: cover; border-radius: 6px; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <a class="nav-brand" href="index.html">
-            <div class="nav-logo-box">
-                <i class="fa-solid fa-print" style="color:var(--primary); font-size:18px;"></i>
-            </div>
-            <h2>दिल्ली प्रेस</h2>
-        </a>
-        <div class="nav-actions">
-            <a href="order.html" class="btn-nav" style="color:var(--primary);"><i class="fa-solid fa-plus"></i> नया ऑर्डर</a>
-            <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> मुख्य मेन्यू</a>
+    <div class="top-nav-bar">
+        <a href="index.html" style="font-size: 16px; color: var(--primary);"><i class="fa-solid fa-print"></i> <b>दिल्ली प्रेस (होम पेज)</b></a>
+        <div style="display: flex; gap: 8px;">
+            <a href="index.html" class="btn-home-action"><i class="fa-solid fa-house"></i> होम पेज</a>
+            <a href="order.html" class="btn-home-action"><i class="fa-solid fa-file-pen"></i> नया ऑर्डर</a>
+            <a href="my_orders.html" class="btn-home-action"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स पेज</a>
         </div>
-    </nav>
-
-    <div class="container">
-        
-        <div class="user-welcome-card" id="userCardBlock">
-            <div class="user-info">
-                <h3 id="userDisplayName">लोड हो रहा है...</h3>
-                <p id="userDisplayPhone">विवरण जाँचा जा रहा है...</p>
-            </div>
-            <button id="logoutBtn" onclick="logoutCustomer()" class="btn-nav" style="color:#b91c1c; border-color:#fca5a5;">
-                <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट
-            </button>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="font-size: 18px; color: var(--dark); margin:0;">
-                <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> आपके द्वारा दिए गए ऑर्डर्स
-            </h3>
-            <button onclick="fetchCustomerOrders()" style="background:none; border:1px solid #cbd5e1; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer;">
-                <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश
-            </button>
-        </div>
-
-        <div id="ordersContainer">
-            <div style="text-align: center; padding: 30px; font-weight: bold; color: #64748b;">
-                <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...
-            </div>
-        </div>
-
     </div>
 
-    <div class="modal-overlay" id="userReceiptModal">
+    <div class="admin-card">
+        <div id="adminPinSection" style="max-width: 380px; margin: 40px auto; text-align: center;">
+            <div style="font-size: 42px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-user-shield"></i></div>
+            <h3 style="color: var(--dark); margin-bottom: 14px;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
+            <div class="form-group" style="text-align: left;">
+                <label>एडमिन सुरक्षा पिन:</label>
+                <input type="password" id="adminPin" placeholder="सुरक्षा पिन दर्ज करें" autocomplete="current-password" readonly onfocus="this.removeAttribute('readonly');">
+            </div>
+            <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 10px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 12px;">
+                प्रवेश करें
+            </button>
+        </div>
+
+        <div id="adminDashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 14px;">
+                <h2 style="color: var(--primary); font-size: 20px;">दिल्ली प्रेस - एडमिन डैशबोर्ड</h2>
+                <button type="button" onclick="handleAdminLogout()" style="background: #e2e8f0; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">लॉगआउट</button>
+            </div>
+
+            <div class="nav-tabs">
+                <button type="button" class="tab-btn active" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
+                <button type="button" class="tab-btn" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स</button>
+                <button type="button" class="tab-btn" id="tabBtnCustomers" onclick="switchAdminTab('customers')"><i class="fa-solid fa-users"></i> पंजीकृत ग्राहक</button>
+            </div>
+
+            <div id="tabCatalogSection">
+                <div style="background: #fdfaf6; border: 1px solid #fed7aa; padding: 14px; border-radius: 6px; margin-bottom: 15px;">
+                    <h4 style="color: var(--secondary); margin-bottom: 10px;">+ नया कार्ड मॉडल कैटलॉग में जोड़ें</h4>
+                    <form id="newCardForm" onsubmit="handleAddNewCatalogCard(event)">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>कार्ड का नाम:</label><input type="text" id="admCardName" required></div>
+                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>मॉडल:</label><input type="text" id="admCardModel" required></div>
+                            <div class="form-group" style="width: 110px;"><label>रेट (₹):</label><input type="number" id="admCardRate" step="any" required></div>
+                            <div class="form-group" style="flex: 1; min-width: 160px;"><label>फोटो:</label><input type="file" id="admCardFile" accept="image/*" required></div>
+                        </div>
+                        <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
+                    </form>
+                </div>
+                <table class="admin-table">
+                    <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>रेट</th><th>स्टॉक</th><th>बदलाव</th><th>हटाएं</th></tr></thead>
+                    <tbody id="catalogTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="tabOrdersSection" style="display: none;">
+                <table class="admin-table">
+                    <thead><tr><th>दिनांक</th><th>कार्ड</th><th>ग्राहक</th><th>वर-वधू</th><th>बिल/एडवांस/बाकी</th><th>स्टेटस</th><th>रसीद</th><th>हटाएं</th></tr></thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="tabCustomersSection" style="display: none;">
+                <table class="admin-table">
+                    <thead><tr><th>क्र.सं.</th><th>नाम</th><th>मोबाइल</th><th>पता</th><th>दिनांक</th><th>हटाएं</th></tr></thead>
+                    <tbody id="customersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="orderModal">
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h3 style="color:var(--primary); font-size:17px;">शादी कार्ड ऑर्डर एवं मैटर रसीद</h3>
-                <button type="button" onclick="closeReceiptModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:bold;">&times;</button>
+                <h3 style="color:var(--primary); font-size:18px;">शादी मैटर एवं प्रिंट रसीद</h3>
+                <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:bold;">&times;</button>
             </div>
-            
             <div id="printableReceiptArea" class="receipt-container"></div>
-
             <div style="display:flex; gap:10px; margin-top:15px;">
-                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-download"></i> PDF डाउनलोड
-                </button>
-                <button type="button" onclick="printReceiptDirect()" style="flex:1; padding:10px; background:var(--dark); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-print"></i> प्रिंट निकालें
-                </button>
+                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-download"></i> PDF डाउनलोड</button>
+                <button type="button" onclick="printReceiptDirect()" style="flex:1; padding:10px; background:var(--dark); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-print"></i> प्रिंट</button>
             </div>
         </div>
-    </div>
-
-    <footer class="main-footer">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
-                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</p>
-                <p><i class="fa-solid fa-phone"></i> 9304509464</p>
-            </div>
-            <div class="footer-col">
-                <h4>सेवाएं</h4>
-                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>&copy; 2026 दिल्ली प्रेस. सर्वाधिकार सुरक्षित.</span>
-            <a href="admin.html" class="footer-admin-link">
-                <i class="fa-solid fa-lock"></i> एडमिन लॉगिन
-            </a>
-        </div>
-    </footer>
-
-    <div class="mobile-bottom-bar">
-        <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
-        <a href="order.html"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर फॉर्म</span></a>
-        <a href="my_orders.html" style="color:var(--primary);"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
-        <a href="https://wa.me/919304509464"><i class="fa-brands fa-whatsapp" style="color:var(--green);"></i><span>संपर्क</span></a>
     </div>
 
     <script>
@@ -284,119 +166,201 @@
             }
         } catch (e) {}
 
-        let currentUser = null;
-        let fetchedOrdersList = [];
+        let globalOrdersCache = [];
+        let activeCatalogTable = 'cards_catalog';
 
-        function checkCustomerAuth() {
-            let userData = null;
-            try {
-                const userJson = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
-                if (userJson) {
-                    userData = typeof userJson === 'string' ? JSON.parse(userJson) : userJson;
-                }
-            } catch (e) {
-                userData = null;
+        window.addEventListener('DOMContentLoaded', () => {
+            const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_logged') === 'true';
+            if (isAuth) showDashboard();
+        });
+
+        function verifyAdminPin() {
+            const entered = document.getElementById('adminPin').value.trim();
+            if (["1234", "9304", "815352", localStorage.getItem('dp_custom_admin_pin')].includes(entered)) {
+                sessionStorage.setItem('dp_admin_auth', 'true');
+                showDashboard();
+            } else {
+                alert("गलत पिन!");
             }
-
-            const nameEl = document.getElementById('userDisplayName');
-            const phoneEl = document.getElementById('userDisplayPhone');
-            const logoutEl = document.getElementById('logoutBtn');
-
-            if (!userData) {
-                if (nameEl) nameEl.innerText = "अतिथि ग्राहक";
-                if (phoneEl) phoneEl.innerText = "हालिया दर्ज ऑर्डर देखे जा रहे हैं";
-                if (logoutEl) logoutEl.style.display = "none";
-                currentUser = null;
-                return null;
-            }
-
-            if (logoutEl) logoutEl.style.display = "inline-flex";
-            if (nameEl) nameEl.innerText = userData.name || userData.customer_name || "सम्मानित ग्राहक";
-            if (phoneEl) phoneEl.innerText = userData.mobile || userData.customer_mobile || userData.phone || '';
-            
-            currentUser = userData;
-            return userData;
         }
 
-        async function fetchCustomerOrders() {
-            const container = document.getElementById('ordersContainer');
-            if (!container) return;
+        function handleAdminLogout() {
+            sessionStorage.removeItem('dp_admin_auth');
+            localStorage.removeItem('dp_admin_logged');
+            location.reload();
+        }
 
-            const user = checkCustomerAuth();
-            let rawOrders = [];
+        function showDashboard() {
+            document.getElementById('adminPinSection').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            loadCatalogStock();
+            loadAdminOrders();
+            loadRegisteredCustomers();
+        }
 
+        function switchAdminTab(tab) {
+            ['Catalog', 'Orders', 'Customers'].forEach(t => {
+                document.getElementById(`tab${t}Section`).style.display = (t.toLowerCase() === tab) ? 'block' : 'none';
+                document.getElementById(`tabBtn${t}`).classList.toggle('active', t.toLowerCase() === tab);
+            });
+        }
+
+        async function loadCatalogStock() {
+            const tbody = document.getElementById('catalogTableBody');
+            if (!supabaseClient) return;
+
+            const tables = ['cards_catalog', 'catalog', 'cards'];
+            let cards = [];
+            for (const tbl of tables) {
+                try {
+                    const { data } = await supabaseClient.from(tbl).select('*');
+                    if (data && data.length > 0) {
+                        cards = data;
+                        activeCatalogTable = tbl;
+                        break;
+                    }
+                } catch (e) {}
+            }
+
+            if (cards.length === 0) { tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड नहीं मिला।</td></tr>'; return; }
+            
+            tbody.innerHTML = cards.map(c => {
+                const img = c.image || c.image_url || c.photo || '';
+                const isStock = c.in_stock !== false;
+                return `
+                    <tr>
+                        <td><img src="${img}" style="width:40px;height:40px;object-fit:cover;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'"></td>
+                        <td><b>${c.name || c.title || ''}</b></td>
+                        <td>${c.model || c.code || ''}</td>
+                        <td>₹${c.rate || c.price || 0}</td>
+                        <td><span class="stock-badge ${isStock ? 'in-stock' : 'out-stock'}">${isStock ? 'उपलब्ध' : 'समाप्त'}</span></td>
+                        <td><button class="btn-stock-toggle ${isStock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${!isStock})">${isStock ? 'Out करें' : 'In करें'}</button></td>
+                        <td><button class="btn-del" onclick="deleteCatalogCard(${c.id})"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function handleAddNewCatalogCard(e) {
+            e.preventDefault();
+            const name = document.getElementById('admCardName').value;
+            const model = document.getElementById('admCardModel').value;
+            const rate = parseFloat(document.getElementById('admCardRate').value);
+            const file = document.getElementById('admCardFile').files[0];
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                if (supabaseClient) {
+                    await supabaseClient.from(activeCatalogTable).insert([{ name, model, rate, in_stock: true, image: evt.target.result }]);
+                }
+                alert("नया कार्ड जुड़ गया!");
+                loadCatalogStock();
+            };
+            if (file) reader.readAsDataURL(file);
+        }
+
+        async function toggleCardStock(id, newStatus) {
+            if (supabaseClient) {
+                await supabaseClient.from(activeCatalogTable).update({ in_stock: newStatus }).eq('id', id);
+                loadCatalogStock();
+            }
+        }
+
+        async function deleteCatalogCard(id) {
+            if (confirm("हटाएं?") && supabaseClient) {
+                await supabaseClient.from(activeCatalogTable).delete().eq('id', id);
+                loadCatalogStock();
+            }
+        }
+
+        async function loadAdminOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            let orders = [];
             if (supabaseClient) {
                 try {
                     const { data } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
-                    if (data && data.length > 0) rawOrders = data;
-                } catch (err) {}
+                    if (data) orders = data;
+                } catch (e) {}
             }
-
-            if (rawOrders.length === 0) {
-                try {
-                    rawOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                } catch (e) { rawOrders = []; }
-            }
-
             try {
                 const local = localStorage.getItem('dp_temp_order');
                 if (local) {
                     const parsed = JSON.parse(local);
-                    if (!rawOrders.some(o => String(o.id) === String(parsed.id))) rawOrders.unshift(parsed);
+                    if (!orders.some(o => String(o.id) === String(parsed.id))) orders.unshift(parsed);
                 }
             } catch (e) {}
 
-            fetchedOrdersList = rawOrders;
+            globalOrdersCache = orders;
+            if (orders.length === 0) { tbody.innerHTML = '<tr><td colspan="8">कोई आर्डर नहीं।</td></tr>'; return; }
 
-            if (fetchedOrdersList.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-orders">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
-                        <a href="order.html" class="btn-nav" style="margin-top: 15px; background: var(--primary); color: white; border: none;">अभी नया ऑर्डर करें</a>
-                    </div>
-                `;
-                return;
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</td>
+                    <td><b>${o.card_title || o.card_name || 'शादी कार्ड'}</b></td>
+                    <td>${o.customer_name || ''}<br>${o.mobile || o.phone || ''}</td>
+                    <td>${o.groom_name || '-'} संग ${o.bride_name || '-'}</td>
+                    <td>कुल: ₹${o.total_amount || 0}<br>बाकी: ₹${o.balance_amount || 0}</td>
+                    <td><span class="status-badge status-pending">${o.status || 'Pending'}</span></td>
+                    <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')"><i class="fa-solid fa-receipt"></i> रसीद</button></td>
+                    <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteAdminOrder(id) {
+            if (confirm("आर्डर हटाएं?") && supabaseClient) {
+                await supabaseClient.from('orders').delete().eq('id', id);
+                loadAdminOrders();
             }
+        }
 
-            container.innerHTML = fetchedOrdersList.map((ord, index) => {
-                const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'हाल ही में';
-                const total = parseFloat(ord.total_amount || 0);
-                const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0);
-                const balance = Math.max(0, total - advance);
-                const status = ord.status || 'Pending';
+        async function loadRegisteredCustomers() {
+            const tbody = document.getElementById('customersTableBody');
+            if (!supabaseClient) return;
+            const { data } = await supabaseClient.from('users').select('*');
+            if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">कोई ग्राहक नहीं।</td></tr>'; return; }
 
-                let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> ${status}</span>`;
-                if (status === 'Processing') statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> Processing</span>`;
-                if (status === 'Ready') statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> Ready</span>`;
+            tbody.innerHTML = data.map((u, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td><b>${u.name || u.customer_name || ''}</b></td>
+                    <td>${u.mobile || u.phone || ''}</td>
+                    <td>${u.address || ''}</td>
+                    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN') : '-'}</td>
+                    <td><button class="btn-del" onclick="deleteCustomerUser('${u.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
 
-                const cardImg = ord.card_image || ord.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+        async function deleteCustomerUser(id) {
+            if (confirm("ग्राहक हटाएं?") && supabaseClient) {
+                await supabaseClient.from('users').delete().eq('id', id);
+                loadRegisteredCustomers();
+            }
+        }
 
-                return `
-                    <div class="order-card">
-                        <div class="order-card-header">
-                            <div class="order-id-date">
-                                <img src="${cardImg}" class="order-card-img" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">
-                                <div>
-                                    <h4>${ord.card_title || ord.card_name || 'शादी कार्ड'} ${ord.card_model ? '(' + ord.card_model + ')' : ''}</h4>
-                                    <span>दिनांक: ${dt}</span>
-                                </div>
-                            </div>
-                            <div>${statusBadge}</div>
-                        </div>
+        function openOrderReceiptModal(id) {
+            const order = globalOrdersCache.find(o => String(o.id) === String(id));
+            if (!order) return;
+            const img = order.card_image || order.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+            document.getElementById('printableReceiptArea').innerHTML = `
+                <div class="receipt-header"><h2>दिल्ली प्रेस रसीद</h2></div>
+                <div class="receipt-row"><span>ग्राहक:</span><b>${order.customer_name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल:</span><b>${order.mobile || order.phone || '-'}</b></div>
+                <div class="card-preview-box"><img src="${img}"><div><h4>${order.card_title || order.card_name || 'शादी कार्ड'}</h4></div></div>
+                <div class="receipt-row"><span>कुल राशि:</span><b>₹${order.total_amount || 0}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया:</span><b>₹${order.balance_amount || 0}</b></div>
+            `;
+            document.getElementById('orderModal').style.display = 'flex';
+        }
 
-                        <div class="order-details-grid">
-                            <div class="detail-item"><b>मात्रा</b>${ord.quantity || 100} पीस</div>
-                            <div class="detail-item"><b>कुल राशि</b>₹${total}</div>
-                            <div class="detail-item"><b>जमा एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
-                            <div class="detail-item"><b>बाकी बकाया</b><span style="color:red; font-weight:bold;">₹${balance}</span></div>
-                        </div>
-
-                        <div class="couples-summary">
-                            <b>मैटर:</b> वर: ${ord.groom_name || '-'} संग वधू: ${ord.bride_name || '-'}
-                        </div>
-
-                        <div class="order-card-footer">
-                            <div class="balance-info">बाकी: <b>₹${balance}</b></div>
-                            <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
-                                
+        function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
+        function downloadReceiptPDF() {
+            html2pdf().from(document.getElementById('printableReceiptArea')).save('Receipt.pdf');
+        }
+        function printReceiptDirect() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
