@@ -58,6 +58,35 @@
         .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
 
         .nav-actions { display: flex; align-items: center; gap: 10px; }
+
+        /* Cart Nav Button */
+        .btn-cart-nav {
+            position: relative;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-cart-nav:hover { background: rgba(255, 255, 255, 0.2); }
+        .cart-badge-count {
+            background: var(--primary);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
         .btn-lang-toggle {
             background: linear-gradient(135deg, #2563eb, #3b82f6);
             color: #ffffff;
@@ -172,6 +201,13 @@
             <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
+            <!-- कार्ट बटन (Navbar) -->
+            <a href="cart.html" class="btn-cart-nav" title="कार्ट देखें">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span data-i18n="nav_cart">कार्ट</span>
+                <span class="cart-badge-count" id="navCartBadge">0</span>
+            </a>
+
             <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
                 <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
             </button>
@@ -275,6 +311,7 @@
             hi: {
                 lang_toggle: "English",
                 brand_name: "दिल्ली प्रेस",
+                nav_cart: "कार्ट",
                 btn_back_form: "फॉर्म पर वापस जाएं",
                 pay_header: "ऑर्डर भुगतान एवं कन्फर्मेशन",
                 lbl_total: "कुल बिल राशि:",
@@ -298,6 +335,7 @@
             en: {
                 lang_toggle: "हिन्दी",
                 brand_name: "Delhi Press",
+                nav_cart: "Cart",
                 btn_back_form: "Back to Form",
                 pay_header: "Order Payment & Confirmation",
                 lbl_total: "Total Bill Amount:",
@@ -320,6 +358,14 @@
             }
         };
 
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const badge = document.getElementById('navCartBadge');
+                if (badge) badge.innerText = cart.length;
+            } catch (e) {}
+        }
+
         function toggleLanguage() {
             currentLang = (currentLang === 'hi') ? 'en' : 'hi';
             document.getElementById('langBtnLabel').innerText = translations[currentLang].lang_toggle;
@@ -333,6 +379,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            updateCartBadges();
             const temp = localStorage.getItem('dp_temp_order');
             if (!temp) {
                 alert(translations[currentLang].alert_no_data);
@@ -394,7 +441,6 @@
                 }
                 txnId = txnInput;
 
-                // Read uploaded receipt file if present
                 const fileInput = document.getElementById('paymentReceiptFile');
                 if (fileInput.files && fileInput.files[0]) {
                     try {
@@ -408,26 +454,53 @@
                 }
             }
 
-            pendingOrderData.txn_id = txnId;
-            pendingOrderData.utr_number = txnId;
-            pendingOrderData.payment_mode = isUpi ? 'Online (UPI / Cashfree)' : 'Cash on Delivery';
-            pendingOrderData.payment_receipt = receiptFileDataUrl;
+            // Supabase टेबल के अनुरूप साफ़ ऑब्जेक्ट
+            const cleanOrderPayload = {
+                customer_name: pendingOrderData.customer_name || pendingOrderData.name || '',
+                mobile: pendingOrderData.mobile || pendingOrderData.phone || '',
+                address: pendingOrderData.address || '',
+                card_title: pendingOrderData.card_title || pendingOrderData.card_name || 'शादी कार्ड',
+                card_model: pendingOrderData.card_model || pendingOrderData.model || '',
+                card_image: pendingOrderData.card_image || '',
+                quantity: parseInt(pendingOrderData.quantity || pendingOrderData.qty || 100),
+                total_amount: parseFloat(pendingOrderData.total_amount || 0),
+                advance_paid: parseFloat(pendingOrderData.advance_paid || pendingOrderData.advance_amount || 0),
+                balance_amount: parseFloat(pendingOrderData.balance_amount || 0),
+                groom_name: pendingOrderData.groom_name || '-',
+                groom_father: pendingOrderData.groom_father || '-',
+                groom_address: pendingOrderData.groom_address || '-',
+                bride_name: pendingOrderData.bride_name || '-',
+                bride_father: pendingOrderData.bride_father || '-',
+                bride_address: pendingOrderData.bride_address || '-',
+                custom_notes: pendingOrderData.custom_notes || '',
+                status: 'Pending',
+                txn_id: txnId,
+                utr_number: txnId,
+                payment_mode: isUpi ? 'Online (UPI / Cashfree)' : 'Cash on Delivery',
+                payment_receipt: receiptFileDataUrl,
+                created_at: new Date().toISOString()
+            };
 
-            // 1. Supabase में सेव करें (With Timeout safety)
+            let savedRecord = cleanOrderPayload;
+
+            // 1. Supabase में सेव करें (Timeout के साथ)
             if (supabaseClient) {
                 try {
                     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
-                    const insertPromise = supabaseClient.from('orders').insert([pendingOrderData]).select();
-                    await Promise.race([insertPromise, timeoutPromise]);
+                    const insertPromise = supabaseClient.from('orders').insert([cleanOrderPayload]).select();
+                    const res = await Promise.race([insertPromise, timeoutPromise]);
+                    if (res && res.data && res.data[0]) {
+                        savedRecord = res.data[0];
+                    }
                 } catch (err) {
                     console.warn("Supabase save warn / timeout:", err);
                 }
             }
 
-            // 2. लोकल स्टोरेज में सेव करें
+            // 2. लोकल स्टोरेज में सिंक करें
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                localOrders.unshift(pendingOrderData);
+                localOrders.unshift(savedRecord);
                 localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
                 localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
                 localStorage.removeItem('dp_temp_order');
