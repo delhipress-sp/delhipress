@@ -116,7 +116,7 @@
             display: none; justify-content: center; align-items: center; z-index: 9999; padding: 15px;
         }
         .modal-content {
-            background: white; width: 100%; max-width: 720px; max-height: 92vh;
+            background: white; width: 100%; max-width: 700px; max-height: 92vh;
             border-radius: 14px; overflow-y: auto; padding: 22px; position: relative;
             box-shadow: 0 20px 40px rgba(0,0,0,0.35);
         }
@@ -164,7 +164,7 @@
                 </button>
             </div>
 
-            <!-- TAB BUTTONS: 1. Left (Orders), 2. Center (Catalog), 3. Right (Customers) -->
+            <!-- TAB BUTTONS -->
             <div class="nav-tabs">
                 <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')">
                     <i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स
@@ -332,7 +332,7 @@
             });
         }
 
-        /* 1. लोड ग्राहक ऑर्डर्स (Direct Fetch without brittle query sorting) */
+        /* 1. लोड ग्राहक ऑर्डर्स (Supabase + LocalStorage Fail-Safe Sync) */
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
@@ -341,33 +341,44 @@
 
             let orders = [];
 
+            // Supabase से फ़ेच करें
             if (supabaseClient) {
                 try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 4000));
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
                     const fetchPromise = supabaseClient.from('orders').select('*');
-
                     const res = await Promise.race([fetchPromise, timeoutPromise]);
                     if (res && res.data && res.data.length > 0) {
                         orders = res.data;
-                        // Client-side Sort (Newest first)
-                        orders.sort((a, b) => {
-                            const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
-                            const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
-                            return timeB - timeA;
-                        });
                     }
                 } catch (e) {
                     console.warn("Supabase fetch order warn:", e);
                 }
             }
 
-            // यदि डेटाबेस खाली या ऑफ़लाइन है, तो लोकल स्टोरेज चेक करें
-            if (orders.length === 0) {
-                try {
-                    const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                    orders = localList;
-                } catch (err) {}
-            }
+            // LocalStorage और Temporary Orders को हमेशा मिला कर दिखाएं ताकि डेटा कभी मिस न हो
+            try {
+                const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                localList.forEach(lo => {
+                    if (!orders.some(o => String(o.id) === String(lo.id))) {
+                        orders.unshift(lo);
+                    }
+                });
+
+                const tempOrd = localStorage.getItem('dp_temp_order');
+                if (tempOrd) {
+                    const parsed = JSON.parse(tempOrd);
+                    if (!orders.some(o => String(o.id) === String(parsed.id))) {
+                        orders.unshift(parsed);
+                    }
+                }
+            } catch (err) {}
+
+            // नया ऑर्डर सबसे ऊपर दिखाने के लिए सॉर्ट करें
+            orders.sort((a, b) => {
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
+                return timeB - timeA;
+            });
 
             globalOrdersCache = orders;
 
