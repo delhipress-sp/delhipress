@@ -366,6 +366,7 @@
 
         let globalOrdersCache = [];
         let globalCustomersCache = [];
+        let activeCatalogTable = 'cards_catalog';
 
         window.addEventListener('DOMContentLoaded', () => {
             const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_logged') === 'true';
@@ -470,9 +471,10 @@
                 const tables = ['cards_catalog', 'catalog', 'cards'];
                 for (const tbl of tables) {
                     try {
-                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
-                        if (!error && data && data.length > 0) {
+                        const { data, error } = await supabaseClient.from(tbl).select('*');
+                        if (!error && data) {
                             cards = data;
+                            activeCatalogTable = tbl;
                             break;
                         }
                     } catch (e) {}
@@ -535,13 +537,9 @@
         async function saveCardToSupabase(newCard) {
             const btn = document.getElementById('addCardSubmitBtn');
             if (supabaseClient) {
-                const tables = ['cards_catalog', 'catalog', 'cards'];
-                for (const tbl of tables) {
-                    try {
-                        const { error } = await supabaseClient.from(tbl).insert([newCard]);
-                        if (!error) break;
-                    } catch (err) {}
-                }
+                try {
+                    await supabaseClient.from(activeCatalogTable).insert([newCard]);
+                } catch (err) {}
             }
             
             document.getElementById('newCardForm').reset();
@@ -553,12 +551,9 @@
 
         async function toggleCardStock(id, newStatus) {
             if (supabaseClient) {
-                const tables = ['cards_catalog', 'catalog', 'cards'];
-                for (const tbl of tables) {
-                    try {
-                        await supabaseClient.from(tbl).update({ in_stock: newStatus }).eq('id', id);
-                    } catch (e) {}
-                }
+                try {
+                    await supabaseClient.from(activeCatalogTable).update({ in_stock: newStatus }).eq('id', id);
+                } catch (e) {}
             }
             loadCatalogStock();
         }
@@ -566,12 +561,9 @@
         async function deleteCatalogCard(id) {
             if (!confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) return;
             if (supabaseClient) {
-                const tables = ['cards_catalog', 'catalog', 'cards'];
-                for (const tbl of tables) {
-                    try {
-                        await supabaseClient.from(tbl).delete().eq('id', id);
-                    } catch (e) {}
-                }
+                try {
+                    await supabaseClient.from(activeCatalogTable).delete().eq('id', id);
+                } catch (e) {}
             }
             loadCatalogStock();
         }
@@ -584,8 +576,8 @@
             let orders = [];
             if (supabaseClient) {
                 try {
-                    const { data } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
-                    if (data && data.length > 0) orders = data;
+                    const { data } = await supabaseClient.from('orders').select('*');
+                    if (data) orders = data;
                 } catch (e) {}
             }
 
@@ -663,8 +655,8 @@
             let customers = [];
             if (supabaseClient) {
                 try {
-                    const { data } = await supabaseClient.from('users').select('*').order('id', { ascending: false });
-                    if (data && data.length > 0) customers = data;
+                    const { data } = await supabaseClient.from('users').select('*');
+                    if (data) customers = data;
                 } catch (e) {}
             }
 
