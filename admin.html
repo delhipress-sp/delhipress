@@ -576,17 +576,23 @@
             let orders = [];
             if (supabaseClient) {
                 try {
-                    const { data } = await supabaseClient.from('orders').select('*');
-                    if (data) orders = data;
+                    const { data, error } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
+                    if (!error && data) {
+                        orders = data;
+                    }
                 } catch (e) {}
             }
 
-            if (orders.length === 0) {
-                try {
-                    const local = JSON.parse(localStorage.getItem('dp_temp_order'));
-                    if (local) orders.push(local);
-                } catch (e) {}
-            }
+            try {
+                const localTemp = localStorage.getItem('dp_temp_order');
+                if (localTemp) {
+                    const parsedTemp = JSON.parse(localTemp);
+                    const exists = orders.some(o => String(o.id) === String(parsedTemp.id));
+                    if (!exists) {
+                        orders.unshift(parsedTemp);
+                    }
+                }
+            } catch (e) {}
 
             globalOrdersCache = orders;
 
@@ -608,7 +614,7 @@
                         <td style="font-weight:bold; color:var(--primary);">${o.card_title || o.card_name || 'शादी कार्ड'}</td>
                         <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.phone || '-'}<br><span style="font-size:10px; color:#64748b;">${o.address || ''}</span></td>
                         <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                        <td>कुल: ₹${o.total_amount || 0}<br>एडवांस: ₹${o.advance_paid || 0}<br><span style="color:#b91c1c; font-weight:bold;">बाकी: ₹${o.balance_amount || 0}</span></td>
+                        <td>कुल: ₹${o.total_amount || 0}<br>एडवांस: ₹${o.advance_paid || o.advance_amount || 0}<br><span style="color:#b91c1c; font-weight:bold;">बाकी: ₹${o.balance_amount || 0}</span></td>
                         <td>
                             <span class="status-badge ${badgeClass}">${status}</span><br>
                             <select class="status-select-box" onchange="updateOrderStatus('${o.id}', this.value)">
