@@ -4,221 +4,292 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>दिल्ली प्रेस (सज्जाद प्रिंटर्स) - जामताड़ा</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --primary: #c0392b;
-            --secondary: #d35400;
-            --dark: #1e272e;
+            --primary: #e63946;
+            --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+            --secondary: #f77f00;
+            --dark: #0f172a;
             --light: #fdfbf7;
-            --green: #27ae60;
-            --blue: #2980b9;
-            --warn-bg: #fff3cd;
-            --warn-border: #ffeeba;
-            --warn-text: #856404;
+            --green: #10b981;
+            --blue: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #f4f6f9; color: #333; line-height: 1.5; padding-bottom: 75px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: #0d1322;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            line-height: 1.5;
+            padding-bottom: 75px;
+            min-height: 100vh;
+        }
 
         .top-bar {
-            background: var(--dark); color: #fff; padding: 6px 15px;
-            display: flex; justify-content: space-between; align-items: center; font-size: 13px;
+            background: rgba(15, 23, 42, 0.95);
+            color: #cbd5e1;
+            padding: 7px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .top-bar a { color: #f1c40f; text-decoration: none; margin-left: 10px; font-weight: bold; }
+        .top-bar a { color: #facc15; text-decoration: none; margin-left: 10px; font-weight: bold; }
 
         .navbar {
-            background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 16px;
+            padding: 10px 18px;
         }
         .nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; text-decoration: none; }
         .nav-logo-box {
-            width: 46px; height: 46px; border-radius: 50%;
+            width: 44px; height: 44px; border-radius: 50%;
             background: #fff; border: 2px solid var(--primary);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 0 12px rgba(230, 57, 70, 0.4);
             display: flex; align-items: center; justify-content: center;
             overflow: hidden; flex-shrink: 0;
         }
         .nav-logo-img { width: 100%; height: 100%; object-fit: cover; }
-        .nav-logo-fallback { color: var(--primary); font-size: 20px; }
-        .nav-brand-text h2 { color: var(--primary); font-size: 19px; line-height: 1.1; font-weight: 700; }
-        .nav-brand-text p { font-size: 11px; color: #64748b; margin: 0; }
+        .nav-brand-text h2 { color: #ffffff; font-size: 19px; line-height: 1.1; font-weight: 800; letter-spacing: 0.5px; }
+        .nav-brand-text p { font-size: 11px; color: #94a3b8; margin: 0; }
 
-        .nav-menu { display: flex; list-style: none; align-items: center; gap: 10px; }
+        .nav-right-cluster { display: flex; align-items: center; gap: 10px; }
+
+        .btn-lang-toggle {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+            transition: all 0.2s ease;
+        }
+        .btn-lang-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+        }
+
+        .nav-menu { display: flex; list-style: none; align-items: center; gap: 8px; }
         .nav-menu a {
-            text-decoration: none; color: #333; font-weight: 600; font-size: 14px;
-            padding: 6px 10px; border-radius: 4px; transition: 0.2s;
+            text-decoration: none; color: #f8fafc; font-weight: 600; font-size: 13px;
+            padding: 6px 10px; border-radius: 6px; transition: 0.2s;
         }
         .nav-menu a:hover { color: var(--primary); }
         
         .btn-login {
-            background: var(--primary); color: white !important;
-            padding: 6px 14px !important; border-radius: 20px; cursor: pointer;
+            background: var(--primary-gradient); color: white !important;
+            padding: 7px 16px !important; border-radius: 20px; cursor: pointer;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
-            font-size: 13px; font-weight: 700;
+            font-size: 13px; font-weight: 700; box-shadow: 0 4px 14px rgba(230, 57, 70, 0.35);
         }
 
         .user-logged-box { display: none; align-items: center; gap: 8px; }
         
         .btn-my-orders {
-            background: var(--blue); color: white !important;
-            padding: 6px 14px !important; border-radius: 20px; font-size: 13px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white !important;
+            padding: 7px 16px !important; border-radius: 20px; font-size: 13px;
             display: inline-flex; align-items: center; gap: 6px; font-weight: 700;
-            text-decoration: none;
+            text-decoration: none; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
         }
 
-        .container { max-width: 900px; margin: 15px auto; padding: 0 12px; }
+        .container { max-width: 900px; margin: 20px auto; padding: 0 14px; }
 
         .notice-banner {
-            background: var(--warn-bg); border: 1px solid var(--warn-border);
-            color: var(--warn-text); padding: 10px 14px; border-radius: 6px;
-            font-size: 13px; font-weight: 700; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 8px;
+            background: rgba(254, 243, 199, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #92400e; padding: 12px 16px; border-radius: 12px;
+            font-size: 13px; font-weight: 700; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         .order-btn-card {
-            background: #fff; border: 2px dashed var(--secondary);
-            border-radius: 10px; padding: 18px 15px; margin-bottom: 20px;
-            text-align: center; box-shadow: 0 4px 12px rgba(211, 84, 0, 0.08);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px dashed var(--secondary);
+            border-radius: 16px; padding: 22px 18px; margin-bottom: 24px;
+            text-align: center; box-shadow: var(--card-shadow);
         }
-        .order-btn-card h3 { font-size: 17px; color: var(--dark); margin-bottom: 6px; }
-        .order-btn-card p { font-size: 13px; color: #64748b; margin-bottom: 12px; }
+        .order-btn-card h3 { font-size: 18px; color: var(--dark); margin-bottom: 6px; font-weight: 800; }
+        .order-btn-card p { font-size: 13px; color: #64748b; margin-bottom: 14px; }
         .btn-main-order {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            background: var(--green); color: white; padding: 12px 26px;
-            font-size: 15px; font-weight: bold; text-decoration: none; border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: 0.2s;
+            background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 13px 28px;
+            font-size: 15px; font-weight: 800; text-decoration: none; border-radius: 30px;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); transition: 0.2s;
             cursor: pointer;
         }
+        .btn-main-order:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); }
 
         .showcase-box {
-            background: #fff; padding: 15px; border-radius: 8px;
-            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 20px; border-radius: 16px;
+            margin-bottom: 24px; box-shadow: var(--card-shadow);
+        }
+        .showcase-header-title {
+            color: var(--dark); font-size: 18px; font-weight: 800;
+            border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;
         }
         .gallery-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px; margin-top: 12px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+            gap: 14px; margin-top: 14px;
         }
         .card-sample {
-            border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;
-            background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;
+            background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             display: flex; flex-direction: column; justify-content: space-between;
+            transition: all 0.25s ease;
+        }
+        .card-sample:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
         .card-sample .img-box {
             position: relative; overflow: hidden; cursor: pointer; background: #f8fafc;
-            height: 150px; display: flex; align-items: center; justify-content: center;
+            height: 155px; display: flex; align-items: center; justify-content: center;
         }
         .card-sample .img-box img {
             width: 100%; height: 100%; object-fit: cover; display: block;
             transition: transform 0.3s ease;
         }
-        .card-sample .img-box:hover img { transform: scale(1.05); }
+        .card-sample .img-box:hover img { transform: scale(1.06); }
         .card-sample .zoom-hint {
-            position: absolute; bottom: 6px; right: 6px;
-            background: rgba(0, 0, 0, 0.65); color: #fff;
-            padding: 3px 7px; border-radius: 4px; font-size: 11px;
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(15, 23, 42, 0.75); color: #fff;
+            padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
             pointer-events: none; display: flex; align-items: center; gap: 4px;
         }
 
-        .card-info { padding: 10px; text-align: center; }
-        .card-info h4 { font-size: 14px; color: #2d3748; margin-bottom: 2px; }
+        .card-info { padding: 12px; text-align: center; }
+        .card-info h4 { font-size: 15px; color: #1e293b; margin-bottom: 2px; font-weight: 700; }
         .card-info .model-text { font-size: 12px; color: #64748b; margin-bottom: 4px; font-weight: 600; }
-        .card-price-tag { color: var(--primary); font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .card-price-tag { color: var(--primary); font-weight: 800; font-size: 15px; margin-bottom: 6px; }
         .stock-badge {
-            display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: bold;
+            display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: 700;
         }
-        .in-stock { background: #dcfce7; color: #15803d; }
-        .out-stock { background: #fee2e2; color: #b91c1c; }
+        .in-stock { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .out-stock { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
         
         .btn-select-card {
             display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; padding: 8px; background: var(--blue);
-            color: white !important; border: none; font-size: 13px; font-weight: 600;
-            border-radius: 4px; cursor: pointer; margin-top: 8px; text-decoration: none;
-            transition: 0.2s;
+            width: 100%; padding: 9px; background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white !important; border: none; font-size: 13px; font-weight: 700;
+            border-radius: 8px; cursor: pointer; margin-top: 10px; text-decoration: none;
+            transition: 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
         .btn-select-card:hover { background: #1d6fa5; }
 
         .info-card {
-            background: #fff; border-radius: 8px; padding: 18px;
-            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 22px;
+            margin-bottom: 24px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--glass-border);
         }
         .info-card-header {
             display: flex; align-items: center; gap: 8px;
-            color: var(--primary); font-size: 17px; font-weight: 700;
-            border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px;
+            color: var(--primary); font-size: 18px; font-weight: 800;
+            border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px;
         }
 
         .terms-list { list-style: none; padding-left: 0; }
         .terms-list li {
-            position: relative; padding-left: 24px; margin-bottom: 8px;
+            position: relative; padding-left: 24px; margin-bottom: 10px;
             font-size: 13px; color: #475569; line-height: 1.6;
         }
         .terms-list li i {
-            position: absolute; left: 0; top: 3px; color: var(--secondary); font-size: 14px;
+            position: absolute; left: 0; top: 4px; color: var(--secondary); font-size: 14px;
         }
 
         .map-wrapper {
             position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
-            border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 10px;
+            border-radius: 12px; border: 1px solid #cbd5e1; margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
         .map-wrapper iframe {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
         }
 
         .main-footer {
-            background: var(--dark); color: #cbd5e1; padding: 30px 15px 20px;
-            margin-top: 30px; font-size: 13px;
+            background: rgba(15, 23, 42, 0.92); color: #cbd5e1; padding: 35px 16px 25px;
+            margin-top: 40px; font-size: 13px; border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
         .footer-grid {
             max-width: 900px; margin: 0 auto; display: grid;
             grid-template-columns: 1.2fr 1fr; gap: 20px;
         }
-        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 10px; }
-        .footer-col p { margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
-        .footer-col p i { color: #f1c40f; width: 18px; }
+        .footer-col h4 { color: #f8fafc; font-size: 15px; margin-bottom: 12px; font-weight: 700; }
+        .footer-col p { margin-bottom: 7px; font-size: 13px; color: #94a3b8; }
+        .footer-col p i { color: #facc15; width: 18px; }
         
         .footer-bottom {
-            max-width: 900px; margin: 20px auto 0; padding-top: 15px;
-            border-top: 1px solid #334155; display: flex; justify-content: space-between;
+            max-width: 900px; margin: 25px auto 0; padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between;
             align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
         }
 
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #fff; border-top: 1px solid #cbd5e1;
-            padding: 6px 0; z-index: 1001; justify-content: space-around;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 0; z-index: 1001; justify-content: space-around;
         }
         .mobile-bottom-bar a {
-            background: none; border: none; color: var(--dark); text-decoration: none;
+            background: none; border: none; color: #cbd5e1; text-decoration: none;
             text-align: center; font-size: 11px; font-weight: 600;
-            display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
         }
         .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
 
         .zoom-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.92); z-index: 9999;
+            background: rgba(15, 23, 42, 0.95); z-index: 9999;
             flex-direction: column; justify-content: space-between; align-items: center;
             user-select: none;
         }
         .zoom-modal.active { display: flex; }
 
         .zoom-header {
-            width: 100%; padding: 12px 20px; display: flex;
+            width: 100%; padding: 14px 20px; display: flex;
             justify-content: space-between; align-items: center;
             color: #fff; z-index: 10;
         }
         .zoom-title { font-size: 16px; font-weight: 700; }
         .btn-zoom-close {
-            background: #e74c3c; color: white; border: none;
+            background: #ef4444; color: white; border: none;
             width: 38px; height: 38px; border-radius: 50%;
             font-size: 18px; cursor: pointer; display: flex;
             align-items: center; justify-content: center;
@@ -232,7 +303,7 @@
         .zoom-img {
             max-width: 90%; max-height: 80vh; object-fit: contain;
             transition: transform 0.15s ease-out; cursor: grab;
-            border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         }
         .zoom-img:active { cursor: grabbing; }
 
@@ -241,24 +312,25 @@
             align-items: center; justify-content: center; z-index: 10;
         }
         .zoom-btn {
-            background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25);
             width: 44px; height: 44px; border-radius: 50%; font-size: 16px;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
             transition: 0.2s;
         }
         .zoom-btn:hover { background: var(--primary); }
         .zoom-select-btn {
-            background: var(--green); color: white; border: none;
-            padding: 10px 20px; border-radius: 25px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;
+            padding: 10px 22px; border-radius: 25px; font-weight: bold;
             font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
 
         @media (max-width: 768px) {
             .navbar .nav-menu { display: none; }
             .mobile-bottom-bar { display: flex; }
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .card-sample .img-box { height: 120px; }
-            .showcase-box { padding: 10px; }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .card-sample .img-box { height: 125px; }
+            .showcase-box { padding: 14px; }
             .footer-grid { grid-template-columns: 1fr; gap: 15px; }
             .footer-bottom { justify-content: center; text-align: center; }
         }
@@ -268,90 +340,96 @@
 
     <div class="top-bar">
         <span><i class="fa-solid fa-phone"></i> 9304509464 | mdsajadans@gmail.com</span>
-        <div><a href="tel:9304509464"><i class="fa-solid fa-phone"></i> कॉल करें</a></div>
+        <div><a href="tel:9304509464"><i class="fa-solid fa-phone"></i> <span data-i18n="call_us">कॉल करें</span></a></div>
     </div>
 
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
             <div class="nav-logo-box">
-                <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <i class="fa-solid fa-print nav-logo-fallback" style="display: none;"></i>
+                <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\' viewBox=\'0 0 44 44\'><rect width=\'44\' height=\'44\' fill=\'%23e63946\'/><text x=\'50%\' y=\'55%\' font-size=\'13\' fill=\'%23fff\' text-anchor=\'middle\' dominant-baseline=\'middle\'>DP</text></svg>';">
             </div>
             <div class="nav-brand-text">
-                <h2>दिल्ली प्रेस</h2>
-                <p>सज्जाद प्रिंटर्स (Design • Print • Quality)</p>
+                <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
+                <p data-i18n="brand_tagline">सज्जाद प्रिंटर्स (Design • Print • Quality)</p>
             </div>
         </a>
-        <ul class="nav-menu">
-            <li><a href="#showcaseSection">कैटलॉग</a></li>
-            <li><a href="#aboutSection">हमारे बारे में</a></li>
-            <li><a href="#mapSection">शॉप लोकेशन</a></li>
-            <li><a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" style="color:var(--primary); font-weight:bold;">ऑर्डर फॉर्म</a></li>
-            
-            <li id="authNavContainer" style="display: block;">
-                <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> लॉगिन</a>
-            </li>
 
-            <li class="user-logged-box" id="userLoggedBox" style="display: none;">
-                <a href="my_orders.html" class="btn-my-orders">
-                    <i class="fa-solid fa-box-archive"></i> मेरे ऑर्डर्स
-                </a>
-            </li>
-        </ul>
+        <div class="nav-right-cluster">
+            <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
+                <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
+            </button>
+
+            <ul class="nav-menu">
+                <li><a href="#showcaseSection" data-i18n="nav_catalog">कैटलॉग</a></li>
+                <li><a href="#aboutSection" data-i18n="nav_about">हमारे बारे में</a></li>
+                <li><a href="#mapSection" data-i18n="nav_location">शॉप लोकेशन</a></li>
+                <li><a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" style="color:var(--primary); font-weight:bold;" data-i18n="nav_order">ऑर्डर फॉर्म</a></li>
+                
+                <li id="authNavContainer" style="display: block;">
+                    <a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> <span data-i18n="nav_login">लॉगिन</span></a>
+                </li>
+
+                <li class="user-logged-box" id="userLoggedBox" style="display: none;">
+                    <a href="my_orders.html" class="btn-my-orders">
+                        <i class="fa-solid fa-box-archive"></i> <span data-i18n="nav_my_orders">मेरे ऑर्डर्स</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
     </nav>
 
     <div class="container">
         
         <div class="notice-banner">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size: 16px;"></i>
-            <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px;"></i>
+            <span data-i18n="notice_text">नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
         </div>
 
         <div class="order-btn-card">
-            <h3>शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
-            <p>यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।</p>
+            <h3 data-i18n="promo_title">शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
+            <p data-i18n="promo_desc">यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।</p>
             <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" class="btn-main-order">
-                <i class="fa-solid fa-file-signature"></i> शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें
+                <i class="fa-solid fa-file-signature"></i> <span data-i18n="btn_open_form">शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें</span>
             </a>
         </div>
 
         <div class="showcase-box" id="showcaseSection">
-            <h3 style="color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 4px; font-size: 16px;">
+            <h3 class="showcase-header-title" data-i18n="catalog_title">
                 शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग
             </h3>
-            <p style="font-size:12px; color:#666; margin-top:2px;">(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)</p>
+            <p style="font-size:12px; color:#64748b; margin-top:4px;" data-i18n="zoom_hint_text">(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)</p>
             <div class="gallery-grid" id="catalogContainer">
-                <p style="grid-column: 1/-1; text-align:center; padding: 15px; color:#64748b;">कैटलॉग लोड हो रहा है...</p>
+                <p style="grid-column: 1/-1; text-align:center; padding: 15px; color:#64748b;" data-i18n="loading_catalog">कैटलॉग लोड हो रहा है...</p>
             </div>
         </div>
 
         <div class="info-card" id="aboutSection">
             <div class="info-card-header">
-                <i class="fa-solid fa-circle-info"></i> हमारे बारे में (About Delhi Press)
+                <i class="fa-solid fa-circle-info"></i> <span data-i18n="about_title">हमारे बारे में (About Delhi Press)</span>
             </div>
-            <p style="font-size: 14px; color: #475569; line-height: 1.7; margin-bottom: 10px;">
+            <p style="font-size: 14px; color: #475569; line-height: 1.7; margin-bottom: 10px;" data-i18n="about_desc">
                 <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।
             </p>
         </div>
 
         <div class="info-card" id="termsSection">
             <div class="info-card-header">
-                <i class="fa-solid fa-file-contract"></i> नियम एवं शर्तें (Terms & Conditions)
+                <i class="fa-solid fa-file-contract"></i> <span data-i18n="terms_title">नियम एवं शर्तें (Terms & Conditions)</span>
             </div>
             <ul class="terms-list">
-                <li><i class="fa-solid fa-circle-check"></i> <strong>मैटर प्रूफ-रीडिंग:</strong> फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।</li>
-                <li><i class="fa-solid fa-circle-check"></i> <strong>एडवांस भुगतान:</strong> काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।</li>
+                <li><i class="fa-solid fa-circle-check"></i> <strong data-i18n="t_rule1_b">मैटर प्रूफ-रीडिंग:</strong> <span data-i18n="t_rule1_txt">फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।</span></li>
+                <li><i class="fa-solid fa-circle-check"></i> <strong data-i18n="t_rule2_b">एडवांस भुगतान:</strong> <span data-i18n="t_rule2_txt">काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।</span></li>
             </ul>
         </div>
 
         <div class="info-card" id="mapSection">
             <div class="info-card-header">
-                <i class="fa-solid fa-location-dot"></i> शॉप लोकेशन एवं संपर्क (Visit Our Press)
+                <i class="fa-solid fa-location-dot"></i> <span data-i18n="location_title">शॉप लोकेशन एवं संपर्क (Visit Our Press)</span>
             </div>
             <div>
                 <p style="font-size: 14px; color: #475569;">
                     <i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> 
-                    <strong>पता:</strong> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464
+                    <strong data-i18n="address_lbl">पता:</strong> <span data-i18n="address_val">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464</span>
                 </p>
             </div>
             <div class="map-wrapper">
@@ -363,7 +441,7 @@
 
     <div id="imageZoomModal" class="zoom-modal">
         <div class="zoom-header">
-            <div class="zoom-title" id="zoomModalTitle">कार्ड विवरण</div>
+            <div class="zoom-title" id="zoomModalTitle" data-i18n="card_details_title">कार्ड विवरण</div>
             <button type="button" class="btn-zoom-close" onclick="closeZoomModal()">&times;</button>
         </div>
         
@@ -376,42 +454,53 @@
             <button type="button" class="zoom-btn" onclick="applyZoom(-0.25)" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
             <button type="button" class="zoom-btn" onclick="resetZoom()" title="सामान्य आकार"><i class="fa-solid fa-rotate-left"></i></button>
             <button type="button" id="zoomOrderBtn" class="zoom-select-btn" onclick="redirectToOrderFromZoom()">
-                <i class="fa-solid fa-pen-to-square"></i> यह कार्ड ऑर्डर करें
+                <i class="fa-solid fa-pen-to-square"></i> <span data-i18n="btn_order_this">यह कार्ड ऑर्डर करें</span>
             </button>
         </div>
     </div>
 
     <div class="mobile-bottom-bar">
-        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
-        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span>ऑर्डर करें</span></a>
-        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user" id="mobileAuthIcon"></i><span id="mobileAuthText">लॉगिन</span></a>
+        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span data-i18n="call_us">कॉल करें</span></a>
+        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span data-i18n="nav_catalog">कैटलॉग</span></a>
+        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span data-i18n="nav_order">ऑर्डर करें</span></a>
+        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user" id="mobileAuthIcon"></i><span id="mobileAuthText" data-i18n="nav_login">लॉगिन</span></a>
     </div>
 
     <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
-                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
-                <p><i class="fa-solid fa-location-dot"></i> ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</p>
+                <h4 data-i18n="brand_full">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> <span data-i18n="address_val">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</span></p>
                 <p><i class="fa-solid fa-phone"></i> 9304509464</p>
                 <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
             </div>
             <div class="footer-col">
-                <h4>सेवाएं</h4>
-                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+                <h4 data-i18n="services_header">सेवाएं</h4>
+                <p data-i18n="services_list">शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
             </div>
         </div>
-        <div style="text-align: center; margin-top: 15px; font-size: 13px; color: #94a3b8;">
+        <div style="text-align: center; margin-top: 20px; font-size: 13px; color: #94a3b8;">
             <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Terms & Conditions</a> |
             <a href="javascript:void(0)" onclick="openPolicyModal('privacy')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Privacy Policy</a> |
             <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Refund Policy</a> |
             <a href="javascript:void(0)" onclick="openPolicyModal('contact')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Contact Us</a>
         </div>
         <div class="footer-bottom">
-            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
-            <a href="admin.html" style="color:#64748b; text-decoration:none;"><i class="fa-solid fa-lock"></i> एडमिन</a>
+            <span data-i18n="copyright_text">© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+            <a href="admin.html" style="color:#64748b; text-decoration:none;"><i class="fa-solid fa-lock"></i> <span data-i18n="footer_admin">एडमिन</span></a>
         </div>
     </footer>
+
+    <!-- Policy Modal Overlay -->
+    <div id="policyModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 99999; justify-content: center; align-items: center; padding: 15px;">
+        <div style="background: #fff; width: 100%; max-width: 650px; max-height: 85vh; border-radius: 12px; overflow-y: auto; padding: 22px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+                <h3 id="policyModalTitle" style="color: #c0392b; font-size: 18px; margin: 0;">पॉलिसी विवरण</h3>
+                <button type="button" onclick="closePolicyModal()" style="border: none; background: #e2e8f0; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; font-weight: bold;">&times;</button>
+            </div>
+            <div id="policyModalBody" style="font-size: 14px; color: #334155; line-height: 1.6;"></div>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
@@ -427,6 +516,115 @@
         let globalCards = [];
         let currentZoomCard = null;
         let currentScale = 1;
+        let currentLang = 'hi';
+
+        const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='185' height='155' viewBox='0 0 185 155'><rect width='185' height='155' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='12' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Image</text></svg>";
+
+        /* Bilingual Translations Dictionary */
+        const translations = {
+            hi: {
+                lang_toggle: "English",
+                call_us: "कॉल करें",
+                brand_name: "दिल्ली प्रेस",
+                brand_tagline: "सज्जाद प्रिंटर्स (Design • Print • Quality)",
+                nav_catalog: "कैटलॉग",
+                nav_about: "हमारे बारे में",
+                nav_location: "शॉप लोकेशन",
+                nav_order: "ऑर्डर फॉर्म",
+                nav_login: "लॉगिन",
+                nav_my_orders: "मेरे ऑर्डर्स",
+                notice_text: "नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।",
+                promo_title: "शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?",
+                promo_desc: "यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।",
+                btn_open_form: "शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें",
+                catalog_title: "शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग",
+                zoom_hint_text: "(बड़ा देखने व ज़ूम करने के लिए फ़ोटो पर क्लिक करें)",
+                loading_catalog: "कैटलॉग लोड हो रहा है...",
+                no_cards: "वर्तमान में कोई कार्ड उपलब्ध नहीं है।",
+                db_error: "डेटाबेस कनेक्ट नहीं हो पाया।",
+                in_stock_txt: "उपलब्ध (In Stock)",
+                out_stock_txt: "स्टॉक समाप्त (Out)",
+                btn_select: "यह कार्ड चुनें",
+                zoom_hint_btn: "बड़ा देखें",
+                about_title: "हमारे बारे में (About Delhi Press)",
+                about_desc: "दिल्ली प्रेस (सज्जाद प्रिंटर्स) जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।",
+                terms_title: "नियम एवं शर्तें (Terms & Conditions)",
+                t_rule1_b: "मैटर प्रूफ-रीडिंग:",
+                t_rule1_txt: "फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।",
+                t_rule2_b: "एडवांस भुगतान:",
+                t_rule2_txt: "काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।",
+                location_title: "शॉप लोकेशन एवं संपर्क (Visit Our Press)",
+                address_lbl: "पता:",
+                address_val: "ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464",
+                card_details_title: "कार्ड विवरण",
+                btn_order_this: "यह कार्ड ऑर्डर करें",
+                brand_full: "दिल्ली प्रेस (सज्जाद प्रिंटर्स)",
+                services_header: "सेवाएं",
+                services_list: "शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं",
+                copyright_text: "© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।",
+                footer_admin: "एडमिन",
+                login_alert: "ऑर्डर करने के लिए कृपया पहले लॉगिन करें।"
+            },
+            en: {
+                lang_toggle: "हिन्दी",
+                call_us: "Call Us",
+                brand_name: "Delhi Press",
+                brand_tagline: "Sajad Printers (Design • Print • Quality)",
+                nav_catalog: "Catalog",
+                nav_about: "About Us",
+                nav_location: "Shop Location",
+                nav_order: "Order Form",
+                nav_login: "Login",
+                nav_my_orders: "My Orders",
+                notice_text: "Note: Please verify the full matter thoroughly before printing; corrections cannot be made later.",
+                promo_title: "Looking to print Wedding Cards, Flex Banners, or Visiting Cards?",
+                promo_desc: "Click here to fill out the online wedding card form and submit your matter directly.",
+                btn_open_form: "Open Wedding Card / Order Form",
+                catalog_title: "Wedding Cards, Flex & Visiting Card Catalog",
+                zoom_hint_text: "(Click on any photo to view enlarged and zoom)",
+                loading_catalog: "Loading catalog...",
+                no_cards: "No cards currently available.",
+                db_error: "Database connection failed.",
+                in_stock_txt: "Available (In Stock)",
+                out_stock_txt: "Out of Stock",
+                btn_select: "Select This Card",
+                zoom_hint_btn: "View Larger",
+                about_title: "About Us (About Delhi Press)",
+                about_desc: "Delhi Press (Sajad Printers) is a trusted and reputed digital printing firm located in Karmatar, Jamtara. We are committed to premium quality, creative design, and timely delivery.",
+                terms_title: "Terms & Conditions",
+                t_rule1_b: "Matter Proof-Reading:",
+                t_rule1_txt: "After final customer approval, any spelling, name, or date mistakes will be the customer's responsibility.",
+                t_rule2_b: "Advance Payment:",
+                t_rule2_txt: "A minimum of 50% advance deposit is mandatory to start print production.",
+                location_title: "Shop Location & Contact (Visit Our Press)",
+                address_lbl: "Address:",
+                address_val: "Eidgah More (Chhaitar More), Karmatar, Jamtara, Jharkhand - 815352 | Mob: 9304509464",
+                card_details_title: "Card Details",
+                btn_order_this: "Order This Card",
+                brand_full: "Delhi Press (Sajad Printers)",
+                services_header: "Our Services",
+                services_list: "Wedding Cards | Flex Banners | Visiting Cards | Bill Books | Online Services",
+                copyright_text: "© 2026 Delhi Press (Sajad Printers). All rights reserved.",
+                footer_admin: "Admin",
+                login_alert: "Please login first to place an order."
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'hi') ? 'en' : 'hi';
+            document.getElementById('langBtnLabel').innerText = translations[currentLang].lang_toggle;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerText = translations[currentLang][key];
+                }
+            });
+
+            if (globalCards.length > 0) {
+                renderCatalogCards(globalCards);
+            }
+        }
 
         function isUserLoggedIn() {
             return !!(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user'));
@@ -434,7 +632,7 @@
 
         function checkLoginBeforeOrder() {
             if (!isUserLoggedIn()) {
-                alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
+                alert(translations[currentLang].login_alert);
                 window.location.href = "login.html";
                 return;
             }
@@ -458,14 +656,14 @@
                 if (loggedBox) loggedBox.style.display = 'flex';
                 if (mobLink) {
                     mobLink.href = 'my_orders.html';
-                    if (mobText) mobText.textContent = 'ऑर्डर्स';
+                    if (mobText) mobText.textContent = translations[currentLang].nav_my_orders;
                 }
             } else {
                 if (authNav) authNav.style.display = 'block';
                 if (loggedBox) loggedBox.style.display = 'none';
                 if (mobLink) {
                     mobLink.href = 'login.html';
-                    if (mobText) mobText.textContent = 'लॉगिन';
+                    if (mobText) mobText.textContent = translations[currentLang].nav_login;
                 }
             }
         }
@@ -473,7 +671,7 @@
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
             if (!supabaseClient) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#ef4444;">${translations[currentLang].db_error}</p>`;
                 return;
             }
 
@@ -482,46 +680,58 @@
 
             for (const tbl of tables) {
                 try {
-                    const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
+                    const fetchPromise = supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                    
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    const data = res.data;
+
                     if (data && data.length > 0) {
                         fetchedData = data;
                         break;
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.warn(`Catalog load failed/timeout on ${tbl}:`, e);
+                }
             }
 
             if (!fetchedData || fetchedData.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#64748b;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>';
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94a3b8;">${translations[currentLang].no_cards}</p>`;
                 return;
             }
 
             globalCards = fetchedData;
+            renderCatalogCards(fetchedData);
+        }
+
+        function renderCatalogCards(cards) {
+            const container = document.getElementById('catalogContainer');
             container.innerHTML = '';
 
-            fetchedData.forEach((card, index) => {
-                const name = card.name || card.title || 'शादी कार्ड';
+            cards.forEach((card, index) => {
+                const name = card.name || card.title || (currentLang === 'hi' ? 'शादी कार्ड' : 'Wedding Card');
                 const model = card.model || card.code || '';
                 const rate = card.rate || card.price || 0;
-                const img = card.image || card.image_url || card.photo || 'https://placehold.co/180x150?text=Card';
+                const img = card.image || card.image_url || card.photo || safeCardPlaceholder;
                 const inStock = card.in_stock !== false;
                 const stockBadge = inStock 
-                    ? `<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>` 
-                    : `<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>`;
+                    ? `<span class="stock-badge in-stock">${translations[currentLang].in_stock_txt}</span>` 
+                    : `<span class="stock-badge out-stock">${translations[currentLang].out_stock_txt}</span>`;
 
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'card-sample';
                 cardDiv.innerHTML = `
                     <div class="img-box" onclick="openZoomModal(${index})">
-                        <img src="${img}" alt="${name}" onerror="this.src='https://placehold.co/180x150?text=Card'">
-                        <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</div>
+                        <img src="${img}" alt="${name}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                        <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> ${translations[currentLang].zoom_hint_btn}</div>
                     </div>
                     <div class="card-info">
                         <h4>${name}</h4>
                         <div class="model-text">${model}</div>
-                        <div class="card-price-tag">₹${rate} / पीस</div>
+                        <div class="card-price-tag">₹${rate} / ${currentLang === 'hi' ? 'पीस' : 'pc'}</div>
                         <div style="margin-bottom: 6px;">${stockBadge}</div>
                         <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
-                            <i class="fa-solid fa-check"></i> यह कार्ड चुनें
+                            <i class="fa-solid fa-check"></i> ${translations[currentLang].btn_select}
                         </button>
                     </div>
                 `;
@@ -531,7 +741,7 @@
 
         function selectCardForOrder(cardIndex) {
             if (!isUserLoggedIn()) {
-                alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
+                alert(translations[currentLang].login_alert);
                 window.location.href = "login.html";
                 return;
             }
@@ -542,7 +752,7 @@
             localStorage.removeItem('order_selected_card');
             const cardData = {
                 id: card.id || '',
-                name: card.name || card.title || 'शादी कार्ड',
+                name: card.name || card.title || (currentLang === 'hi' ? 'शादी कार्ड' : 'Wedding Card'),
                 model: card.model || card.code || '',
                 rate: parseFloat(card.rate || card.price) || 0,
                 image: card.image || card.image_url || card.photo || ''
@@ -562,9 +772,9 @@
             const img = document.getElementById('zoomModalImg');
             const title = document.getElementById('zoomModalTitle');
 
-            img.src = card.image || card.image_url || card.photo || 'https://placehold.co/400x300?text=Card';
+            img.src = card.image || card.image_url || card.photo || safeCardPlaceholder;
             img.style.transform = `scale(1)`;
-            title.innerText = `${card.name || 'शादी कार्ड'} ${card.model ? '(' + card.model + ')' : ''}`;
+            title.innerText = `${card.name || (currentLang === 'hi' ? 'शादी कार्ड' : 'Wedding Card')} ${card.model ? '(' + card.model + ')' : ''}`;
 
             modal.classList.add('active');
         }
@@ -591,16 +801,6 @@
             }
         }
     </script>
-
-    <div id="policyModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center; padding: 15px;">
-        <div style="background: #fff; width: 100%; max-width: 650px; max-height: 85vh; border-radius: 8px; overflow-y: auto; padding: 22px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
-                <h3 id="policyModalTitle" style="color: #c0392b; font-size: 18px; margin: 0;">पॉलिसी विवरण</h3>
-                <button type="button" onclick="closePolicyModal()" style="border: none; background: #e2e8f0; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; font-weight: bold;">&times;</button>
-            </div>
-            <div id="policyModalBody" style="font-size: 14px; color: #334155; line-height: 1.6;"></div>
-        </div>
-    </div>
 
     <script>
         const policyContents = {
