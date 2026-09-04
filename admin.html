@@ -91,7 +91,6 @@
         .btn-stock-in { background: #10b981; }
         .btn-stock-out { background: #f77f00; }
 
-        /* Left-Center-Right Layout for Tabs */
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn {
             flex: 1; min-width: 140px; padding: 12px 14px; background: #e2e8f0;
@@ -185,7 +184,7 @@
             <div id="tabOrdersSection">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h4 style="color:#1e293b; font-weight:800; font-size:16px;">सभी प्राप्त ग्राहक ऑर्डर्स</h4>
-                    <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">
+                    <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">
                         <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश करें
                     </button>
                 </div>
@@ -320,7 +319,7 @@
         function showDashboard() {
             document.getElementById('adminPinSection').style.display = 'none';
             document.getElementById('adminDashboard').style.display = 'block';
-            switchAdminTab('orders'); // डिफ़ॉल्ट रूप से ग्राहक ऑर्डर्स पहले खुलेगा
+            switchAdminTab('orders');
             loadAdminOrders();
             loadCatalogStock();
             loadRegisteredCustomers();
@@ -336,28 +335,36 @@
             });
         }
 
-        /* 1. लोड ग्राहक ऑर्डर्स (Robust Fetch from Supabase + LocalStorage) */
+        /* 1. लोड ग्राहक ऑर्डर्स (Supabase + LocalStorage Fail-Safe Sync) */
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
 
+            tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; color:#64748b;">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+
             let orders = [];
 
-            // 1. Supabase से फेच करें
+            // Supabase से फ़ेच करें (सुरक्षित टाइमआउट के साथ)
             if (supabaseClient) {
                 try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
-                    const fetchPromise = supabaseClient.from('orders').select('*').order('id', { ascending: false });
-                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
+                    let queryPromise = supabaseClient.from('orders').select('*');
+                    
+                    // sorting without crashing if column name differs
+                    try {
+                        queryPromise = queryPromise.order('id', { ascending: false });
+                    } catch (e) {}
+
+                    const res = await Promise.race([queryPromise, timeoutPromise]);
                     if (res && res.data && res.data.length > 0) {
                         orders = res.data;
                     }
                 } catch (e) {
-                    console.warn("Supabase order load warning:", e);
+                    console.warn("Supabase fetch order warn:", e);
                 }
             }
 
-            // 2. लोकल स्टोरेज के ऑर्डर्स को सिंक करें (ताकि कोई भी ऑर्डर मिस न हो)
+            // LocalStorage ऑर्डर्स को सिंक करें
             try {
                 const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localList.forEach(lo => {
@@ -392,10 +399,11 @@
                 const total = parseFloat(o.total_amount || 0);
                 const advance = parseFloat(o.advance_paid || o.advance_amount || 0);
                 const balance = Math.max(0, total - advance);
+                const safeOrderId = String(o.id || '');
 
                 return `
                     <tr>
-                        <td><b>#${o.id || ''}</b><br><span style="color:#64748b; font-size:11px;">${dt}</span></td>
+                        <td><b>#${safeOrderId}</b><br><span style="color:#64748b; font-size:11px;">${dt}</span></td>
                         <td>
                             <b>${o.card_title || o.card_name || 'शादी कार्ड'}</b>
                             <br><span style="color:#64748b; font-size:11px;">मात्रा: ${o.quantity || o.qty || 100} पीस</span>
@@ -414,23 +422,23 @@
                             बाकी: <b style="color:red;">₹${balance}</b>
                         </td>
                         <td>
-                            <span class="status-badge ${badgeClass}" id="badge_${o.id}">${status}</span><br>
-                            <select class="status-select-box" onchange="updateOrderStatus('${o.id}', this.value)">
+                            <span class="status-badge ${badgeClass}" id="badge_${safeOrderId}">${status}</span><br>
+                            <select class="status-select-box" onchange="updateOrderStatus('${safeOrderId}', this.value)">
                                 <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
                                 <option value="Processing" ${status === 'Processing' ? 'selected' : ''}>Processing</option>
                                 <option value="Ready" ${status === 'Ready' ? 'selected' : ''}>Ready</option>
                             </select>
                         </td>
-                        <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')"><i class="fa-solid fa-receipt"></i> रसीद</button></td>
-                        <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                        <td><button class="btn-view" onclick="openOrderReceiptModal('${safeOrderId}')"><i class="fa-solid fa-receipt"></i> रसीद</button></td>
+                        <td><button class="btn-del" onclick="deleteAdminOrder('${safeOrderId}')"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
                 `;
             }).join('');
         }
 
-        /* 2. अपडेट आर्डर स्टेटस (Instant Local + Supabase sync) */
+        /* 2. अपडेट आर्डर स्टेटस (Instant Local, UI + Supabase sync) */
         async function updateOrderStatus(id, newStatus) {
-            // UI और लोकल कैश को तुरंत अपडेट करें
+            // UI और मेमोरी कैशे को तुरंत अपडेट करें
             const target = globalOrdersCache.find(o => String(o.id) === String(id));
             if (target) {
                 target.status = newStatus;
@@ -441,7 +449,7 @@
                 }
             }
 
-            // लोकल स्टोरेज में स्टेटस सिंक करें
+            // LocalStorage में स्टेटस सुरक्षित करें
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 const lo = localOrders.find(o => String(o.id) === String(id));
@@ -452,7 +460,7 @@
                 }
             } catch (e) {}
 
-            // Supabase में अपडेट करें
+            // Supabase डेटाबेस में अपडेट करें
             if (supabaseClient) {
                 try {
                     const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
@@ -519,7 +527,7 @@
 
             let receiptPicHtml = '';
             if (order.payment_receipt) {
-                receiptPicHtml = `<div style="margin-top:8px;"><b>भुगतान रसीद / स्क्रीनशॉट:</b><br><img src="${order.payment_receipt}" style="max-width:180px; max-height:180px; border-radius:6px; border:1px solid #ccc; margin-top:4px;"></div>`;
+                receiptPicHtml = `<div style="margin-top:8px;"><b>भुगतान रसीद / स्क्रीनशॉट:</b><br><img src="${order.payment_receipt}" style="max-width:200px; max-height:200px; border-radius:6px; border:1px solid #ccc; margin-top:4px;"></div>`;
             }
 
             area.innerHTML = `
