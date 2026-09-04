@@ -2,97 +2,714 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>एडमिन पैनल - दिल्ली प्रेस</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
-        body { background: #0d1322; color: #fff; font-family: 'Mukta', sans-serif; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: #fff; color: #333; padding: 20px; border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: center; font-size: 13px; }
-        th { background: #f8fafc; }
-        .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        :root {
+            --primary: #e63946;
+            --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+            --secondary: #f77f00;
+            --dark: #0f172a;
+            --light: #fdfbf7;
+            --green: #10b981;
+            --blue: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.94);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; }
+        
+        body {
+            background-color: #0d1322;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            line-height: 1.5;
+            padding: 15px;
+            padding-bottom: 60px;
+            min-height: 100vh;
+        }
+
+        .top-nav-bar {
+            max-width: 1250px; margin: 0 auto 16px auto;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(14px);
+            padding: 12px 18px; border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .top-nav-bar a { text-decoration: none; color: #ffffff; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+
+        .admin-card {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            max-width: 1250px; margin: 0 auto; border-radius: 16px;
+            box-shadow: var(--card-shadow); padding: 22px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 4px; color: #334155; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+
+        .admin-table-wrapper { width: 100%; overflow-x: auto; margin-top: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 850px; }
+        .admin-table th, .admin-table td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: center; vertical-align: middle; }
+        .admin-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 13px; }
+
+        .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.2s; }
+        .btn-del:hover { background: #dc2626; }
+        
+        .btn-view {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none;
+            padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px;
+            font-weight: bold; display: inline-flex; align-items: center; gap: 5px;
+        }
+
+        .status-badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 15px; font-weight: 800; margin-bottom: 5px; }
+        .status-pending { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .status-process { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .status-ready { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+        .status-select-box { padding: 6px 8px; font-size: 12px; font-weight: 700; border-radius: 6px; border: 1.5px solid #cbd5e1; background: #fff; cursor: pointer; }
+
+        .stock-badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: bold; }
+        .in-stock { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .out-stock { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        .btn-stock-toggle { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
+        .btn-stock-in { background: #10b981; }
+        .btn-stock-out { background: #f77f00; }
+
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn {
+            flex: 1; min-width: 140px; padding: 12px 14px; background: #e2e8f0;
+            color: #334155; border: none; border-radius: 10px; font-weight: 800;
+            cursor: pointer; font-size: 13px; transition: all 0.25s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .tab-btn.active {
+            background: var(--primary-gradient); color: white;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.35);
+        }
+
+        .btn-home-action {
+            background: rgba(255, 255, 255, 0.1); color: #ffffff !important; text-decoration: none;
+            padding: 7px 14px; border-radius: 20px; font-weight: bold; font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2); transition: 0.2s;
+        }
+        .btn-home-action:hover { background: rgba(255, 255, 255, 0.25); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
+            display: none; justify-content: center; align-items: center; z-index: 9999; padding: 15px;
+        }
+        .modal-content {
+            background: white; width: 100%; max-width: 700px; max-height: 92vh;
+            border-radius: 14px; overflow-y: auto; padding: 22px; position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+        }
+        .receipt-container { border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; background: #fff; }
+        .receipt-header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 14px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 4px; }
+        .receipt-section-title { background: #f8fafc; padding: 5px 10px; font-weight: 800; color: var(--primary); margin: 12px 0 8px 0; border-left: 3px solid var(--primary); font-size: 13px; }
+        .card-preview-box { display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 6px; }
+        .card-preview-box img { width: 75px; height: 75px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>दिल्ली प्रेस - एडमिन डैशबोर्ड</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID / दिनांक</th>
-                    <th>ग्राहक विवरण</th>
-                    <th>कार्ड का नाम</th>
-                    <th>राशि (कुल / एडवांस)</th>
-                    <th>स्टेटस</th>
-                    <th>हटाएं</th>
-                </tr>
-            </thead>
-            <tbody id="adminOrdersBody">
-                <tr><td colspan="6">ऑर्डर्स लोड हो रहे हैं...</td></tr>
-            </tbody>
-        </table>
+
+    <div class="top-nav-bar">
+        <a href="index.html" style="font-size: 16px; color: #fff; font-weight:800;">
+            <i class="fa-solid fa-print" style="color:var(--primary);"></i> <b>दिल्ली प्रेस एडमिन</b>
+        </a>
+        <div style="display: flex; gap: 8px;">
+            <a href="index.html" class="btn-home-action"><i class="fa-solid fa-house"></i> होम पेज</a>
+            <a href="order.html" class="btn-home-action"><i class="fa-solid fa-file-pen"></i> नया ऑर्डर</a>
+            <a href="my_orders.html" class="btn-home-action"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स पेज</a>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <!-- Admin PIN Section -->
+        <div id="adminPinSection" style="max-width: 380px; margin: 50px auto; text-align: center;">
+            <div style="font-size: 46px; color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i></div>
+            <h3 style="color: var(--dark); margin-bottom: 16px; font-weight:800;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
+            <div class="form-group" style="text-align: left;">
+                <label>एडमिन सुरक्षा पिन:</label>
+                <input type="password" id="adminPin" placeholder="सुरक्षा पिन दर्ज करें" autocomplete="current-password" readonly onfocus="this.removeAttribute('readonly');">
+            </div>
+            <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 6px;">
+                प्रवेश करें
+            </button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="adminDashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 16px;">
+                <h2 style="color: var(--primary); font-size: 22px; font-weight:800;">दिल्ली प्रेस - एडमिन डैशबोर्ड</h2>
+                <button type="button" onclick="handleAdminLogout()" style="background: #e2e8f0; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                    <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट
+                </button>
+            </div>
+
+            <!-- TAB BUTTONS -->
+            <div class="nav-tabs">
+                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')">
+                    <i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स
+                </button>
+                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')">
+                    <i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक
+                </button>
+                <button type="button" class="tab-btn" id="tabBtnCustomers" onclick="switchAdminTab('customers')">
+                    <i class="fa-solid fa-users"></i> पंजीकृत ग्राहक
+                </button>
+            </div>
+
+            <!-- SECTION 1: ग्राहक ऑर्डर्स (LEFT TAB) -->
+            <div id="tabOrdersSection">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4 style="color:#1e293b; font-weight:800; font-size:16px;">सभी प्राप्त ग्राहक ऑर्डर्स</h4>
+                    <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">
+                        <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश करें
+                    </button>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>दिनांक / ID</th>
+                                <th>कार्ड / प्रकार</th>
+                                <th>ग्राहक विवरण</th>
+                                <th>वर-वधू का नाम</th>
+                                <th>बिल / एडवांस / बाकी</th>
+                                <th>प्रिंटिंग स्टेटस</th>
+                                <th>रसीद</th>
+                                <th>हटाएं</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr><td colspan="8">ऑर्डर्स लोड हो रहे हैं...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION 2: कैटलॉग व स्टॉक (CENTER TAB) -->
+            <div id="tabCatalogSection" style="display: none;">
+                <div style="background: #fdfaf6; border: 1px solid #fed7aa; padding: 16px; border-radius: 10px; margin-bottom: 18px;">
+                    <h4 style="color: var(--secondary); margin-bottom: 12px; font-weight:800;">+ नया कार्ड मॉडल कैटलॉग में जोड़ें</h4>
+                    <form id="newCardForm" onsubmit="handleAddNewCatalogCard(event)">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>कार्ड का नाम:</label><input type="text" id="admCardName" required></div>
+                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>मॉडल:</label><input type="text" id="admCardModel" required></div>
+                            <div class="form-group" style="width: 110px;"><label>रेट (₹):</label><input type="number" id="admCardRate" step="any" required></div>
+                            <div class="form-group" style="width: 140px;">
+                                <label>स्टॉक स्थिति:</label>
+                                <select id="admCardStock">
+                                    <option value="true">उपलब्ध (In Stock)</option>
+                                    <option value="false">स्टॉक समाप्त (Out)</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 160px;"><label>फोटो:</label><input type="file" id="admCardFile" accept="image/*" required></div>
+                        </div>
+                        <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
+                    </form>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>रेट</th><th>स्टॉक स्थिति</th><th>स्टॉक बदलें</th><th>हटाएं</th></tr></thead>
+                        <tbody id="catalogTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION 3: पंजीकृत ग्राहक (RIGHT TAB) -->
+            <div id="tabCustomersSection" style="display: none;">
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead><tr><th>क्र.सं.</th><th>नाम</th><th>मोबाइल</th><th>पता</th><th>दिनांक</th><th>हटाएं</th></tr></thead>
+                        <tbody id="customersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt & Print Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="color:var(--primary); font-size:18px; font-weight:800;">शादी मैटर एवं प्रिंट रसीद</h3>
+                <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold; font-size:16px;">&times;</button>
+            </div>
+            <div id="printableReceiptArea" class="receipt-container"></div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                    <i class="fa-solid fa-download"></i> PDF डाउनलोड
+                </button>
+                <button type="button" onclick="printReceiptDirect()" style="flex:1; padding:11px; background:var(--dark); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                    <i class="fa-solid fa-print"></i> प्रिंट निकालें
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        
         let supabaseClient = null;
-        try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) {}
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {}
 
-        window.addEventListener('DOMContentLoaded', () => { loadAdminOrders(); });
+        let globalOrdersCache = [];
+        let activeCatalogTable = 'catalog';
 
+        window.addEventListener('DOMContentLoaded', () => {
+            const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_logged') === 'true';
+            if (isAuth) showDashboard();
+
+            const pinInput = document.getElementById('adminPin');
+            if (pinInput) {
+                pinInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') verifyAdminPin();
+                });
+            }
+        });
+
+        function verifyAdminPin() {
+            const entered = document.getElementById('adminPin').value.trim();
+            const savedCustomPin = localStorage.getItem('dp_custom_admin_pin');
+            const validPins = [savedCustomPin, "1234", "9304", "815352"].filter(Boolean);
+
+            if (validPins.includes(entered)) {
+                sessionStorage.setItem('dp_admin_auth', 'true');
+                localStorage.setItem('dp_admin_logged', 'true');
+                showDashboard();
+            } else {
+                alert("गलत सुरक्षा पिन! कृपया सही पिन दर्ज करें।");
+                document.getElementById('adminPin').value = "";
+            }
+        }
+
+        function handleAdminLogout() {
+            sessionStorage.removeItem('dp_admin_auth');
+            localStorage.removeItem('dp_admin_logged');
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById('adminPinSection').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            switchAdminTab('orders');
+            loadAdminOrders();
+            loadCatalogStock();
+            loadRegisteredCustomers();
+        }
+
+        function switchAdminTab(tab) {
+            ['orders', 'catalog', 'customers'].forEach(t => {
+                const cap = t.charAt(0).toUpperCase() + t.slice(1);
+                const section = document.getElementById(`tab${cap}Section`);
+                const btn = document.getElementById(`tabBtn${cap}`);
+                if (section) section.style.display = (t === tab) ? 'block' : 'none';
+                if (btn) btn.classList.toggle('active', t === tab);
+            });
+        }
+
+        /* 1. लोड ग्राहक ऑर्डर्स (Unified LocalStorage & Supabase Master Sync) */
         async function loadAdminOrders() {
-            const tbody = document.getElementById('adminOrdersBody');
+            const tbody = document.getElementById('ordersTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; color:#64748b;">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+
             let orders = [];
 
-            if (supabaseClient) {
-                try {
-                    const { data } = await supabaseClient.from('orders').select('*');
-                    if (data) orders = data;
-                } catch (e) {}
-            }
-
+            // 1. सबसे पहले लोकल स्टोरेज से सभी ऑर्डर्स लोड करें (ताकि नया ऑर्डर तुरंत दिखे)
             try {
                 const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localList.forEach(lo => {
-                    if (!orders.some(o => String(o.id) === String(lo.id))) orders.push(lo);
+                    if (!orders.some(o => String(o.id) === String(lo.id))) {
+                        orders.push(lo);
+                    }
                 });
-            } catch (e) {}
+
+                const tempOrd = localStorage.getItem('dp_temp_order');
+                if (tempOrd) {
+                    const parsed = JSON.parse(tempOrd);
+                    if (!orders.some(o => String(o.id) === String(parsed.id))) {
+                        orders.unshift(parsed);
+                    }
+                }
+            } catch (err) {}
+
+            // 2. इसके बाद Supabase से डेटा लेकर लोकल में भी मर्ज करें
+            if (supabaseClient) {
+                try {
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
+                    const fetchPromise = supabaseClient.from('orders').select('*');
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    if (res && res.data && res.data.length > 0) {
+                        res.data.forEach(dbOrd => {
+                            if (!orders.some(o => String(o.id) === String(dbOrd.id))) {
+                                orders.push(dbOrd);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Supabase fetch order warn:", e);
+                }
+            }
+
+            // नए ऑर्डर को हमेशा सबसे ऊपर दिखाने के लिए सॉर्ट करें
+            orders.sort((a, b) => {
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
+                return timeB - timeA;
+            });
+
+            globalOrdersCache = orders;
 
             if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">कोई ऑर्डर नहीं मिला।</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="padding:20px; color:#64748b;">वर्तमान में कोई ग्राहक ऑर्डर नहीं मिला।</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = orders.map(o => `
+            tbody.innerHTML = orders.map(o => {
+                const status = o.status || 'Pending';
+                let badgeClass = 'status-pending';
+                if (status === 'Processing') badgeClass = 'status-process';
+                if (status === 'Ready') badgeClass = 'status-ready';
+
+                const dt = o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : 'हाल ही में';
+                const total = parseFloat(o.total_amount || 0);
+                const advance = parseFloat(o.advance_paid || o.advance_amount || 0);
+                const balance = Math.max(0, total - advance);
+                const safeOrderId = String(o.id || '');
+
+                return `
+                    <tr>
+                        <td><b>#${safeOrderId}</b><br><span style="color:#64748b; font-size:11px;">${dt}</span></td>
+                        <td>
+                            <b>${o.card_title || o.card_name || 'शादी कार्ड'}</b>
+                            <br><span style="color:#64748b; font-size:11px;">मात्रा: ${o.quantity || o.qty || 100} पीस</span>
+                        </td>
+                        <td>
+                            <b>${o.customer_name || o.name || '-'}</b><br>
+                            📞 <a href="tel:${o.mobile || o.phone || ''}" style="color:var(--blue); font-weight:bold; text-decoration:none;">${o.mobile || o.phone || '-'}</a>
+                        </td>
+                        <td>
+                            वर: <b style="color:var(--primary);">${o.groom_name || '-'}</b><br>
+                            वधू: <b style="color:var(--secondary);">${o.bride_name || '-'}</b>
+                        </td>
+                        <td>
+                            कुल: ₹${total}<br>
+                            एडवांस: <b style="color:green;">₹${advance}</b><br>
+                            बाकी: <b style="color:red;">₹${balance}</b>
+                        </td>
+                        <td>
+                            <span class="status-badge ${badgeClass}" id="badge_${safeOrderId}">${status}</span><br>
+                            <select class="status-select-box" onchange="updateOrderStatus('${safeOrderId}', this.value)">
+                                <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Processing" ${status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Ready" ${status === 'Ready' ? 'selected' : ''}>Ready</option>
+                            </select>
+                        </td>
+                        <td><button class="btn-view" onclick="openOrderReceiptModal('${safeOrderId}')"><i class="fa-solid fa-receipt"></i> रसीद</button></td>
+                        <td><button class="btn-del" onclick="deleteAdminOrder('${safeOrderId}')"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /* 2. अपडेट आर्डर स्टेटस */
+        async function updateOrderStatus(id, newStatus) {
+            const target = globalOrdersCache.find(o => String(o.id) === String(id));
+            if (target) {
+                target.status = newStatus;
+                const badge = document.getElementById(`badge_${id}`);
+                if (badge) {
+                    badge.innerText = newStatus;
+                    badge.className = `status-badge ${newStatus === 'Processing' ? 'status-process' : (newStatus === 'Ready' ? 'status-ready' : 'status-pending')}`;
+                }
+            }
+
+            try {
+                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                const lo = localOrders.find(o => String(o.id) === String(id));
+                if (lo) {
+                    lo.status = newStatus;
+                    localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+                    localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
+                }
+            } catch (e) {}
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
+                } catch (e) {
+                    console.error("Network error on status update:", e);
+                }
+            }
+        }
+
+        async function deleteAdminOrder(id) {
+            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
+
+            globalOrdersCache = globalOrdersCache.filter(o => String(o.id) !== String(id));
+            
+            try {
+                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                localOrders = localOrders.filter(o => String(o.id) !== String(id));
+                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
+            } catch (e) {}
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').delete().eq('id', id);
+                } catch (e) {}
+            }
+            loadAdminOrders();
+        }
+
+        /* 3. रसीद और पूरा मैटर दिखाना */
+        function openOrderReceiptModal(id) {
+            const order = globalOrdersCache.find(o => String(o.id) === String(id));
+            if (!order) return;
+
+            const area = document.getElementById('printableReceiptArea');
+            const img = order.card_image || order.image_url || order.photo || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
+
+            const customerName = order.customer_name || order.name || '-';
+            const customerMobile = order.mobile || order.phone || order.customer_mobile || '-';
+            const customerAddress = order.address || order.customer_address || '-';
+            
+            const cardTitle = order.card_title || order.card_name || 'शादी कार्ड';
+            const cardModel = order.card_model || order.model || '-';
+            const qty = order.quantity || order.qty || 100;
+
+            const groomName = order.groom_name || '-';
+            const groomFather = order.groom_father || '-';
+            const groomAddress = order.groom_address || '-';
+            const brideName = order.bride_name || '-';
+            const brideFather = order.bride_father || '-';
+            const brideAddress = order.bride_address || '-';
+
+            const customNotes = order.custom_notes || order.notes || 'कोई अतिरिक्त मैटर या शायरी नहीं';
+            const rsvp = order.rsvp || order.vineet || '-';
+            const fromFamily = order.from_family || order.darshanabhilashi || '-';
+
+            const totalAmt = parseFloat(order.total_amount || 0);
+            const advPaid = parseFloat(order.advance_paid || order.advance_amount || 0);
+            const balAmt = Math.max(0, totalAmt - advPaid);
+            const txnId = order.txn_id || order.utr_number || 'Cash / Counter';
+
+            let receiptPicHtml = '';
+            if (order.payment_receipt) {
+                receiptPicHtml = `<div style="margin-top:8px;"><b>भुगतान रसीद / स्क्रीनशॉट:</b><br><img src="${order.payment_receipt}" style="max-width:200px; max-height:200px; border-radius:6px; border:1px solid #ccc; margin-top:4px;"></div>`;
+            }
+
+            area.innerHTML = `
+                <div class="receipt-header">
+                    <h2 style="color: var(--primary); font-size: 18px; margin:0;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                    <p style="font-size: 11px; color: #555; margin:0;">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा (झारखंड) | मो: 9304509464</p>
+                    <h4 style="font-size: 12px; background: #eee; margin-top: 6px; padding: 4px; display:inline-block; border-radius:3px;">ऑर्डर एवं सम्पूर्ण शादी मैटर रसीद</h4>
+                </div>
+
+                <div class="receipt-row"><span><b>आर्डर ID:</b> #${order.id || ''}</span><span><b>दिनांक:</b> ${order.created_at ? new Date(order.created_at).toLocaleDateString('hi-IN') : 'हाल ही में'}</span></div>
+                <div class="receipt-row"><span><b>ग्राहक नाम:</b> ${customerName}</span><span><b>मोबाइल:</b> ${customerMobile}</span></div>
+                <div class="receipt-row" style="flex-direction: column;"><span><b>पता:</b> ${customerAddress}</span></div>
+
+                <div class="receipt-section-title">१. कार्ड एवं मुद्रण विवरण</div>
+                <div class="card-preview-box">
+                    <img src="${img}" alt="Card" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">
+                    <div>
+                        <h4 style="font-size: 14px; color: var(--dark); margin-bottom:2px;">${cardTitle}</h4>
+                        <p style="font-size: 12px; color: #555;">मॉडल / स्पेसिफिकेशन: <b>${cardModel}</b></p>
+                        <p style="font-size: 12px; font-weight: bold; color: var(--green);">कुल संख्या: ${qty} पीस</p>
+                    </div>
+                </div>
+
+                <div class="receipt-section-title">२. दूल्हा-दुल्हन का सम्पूर्ण विवरण</div>
+                <div class="receipt-row"><span><b>वर (दूल्हा):</b> ${groomName}</span><span><b>पिता:</b> ${groomFather}</span></div>
+                <div class="receipt-row" style="flex-direction: column;"><span><b>वर का पता:</b> ${groomAddress}</span></div>
+                <div class="receipt-row"><span><b>वधू (दुल्हन):</b> ${brideName}</span><span><b>पिता:</b> ${brideFather}</span></div>
+                <div class="receipt-row" style="flex-direction: column;"><span><b>वधू का पता:</b> ${brideAddress}</span></div>
+
+                <div class="receipt-section-title">३. शायरी / कार्यक्रम / विशेष विवरण</div>
+                <div style="font-size: 12px; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; white-space: pre-wrap; margin-bottom: 8px; border-radius:4px;">${customNotes}</div>
+                <div class="receipt-row"><span><b>विनीत / निवेदक:</b> ${rsvp}</span><span><b>दर्शनाभिलाषी:</b> ${fromFamily}</span></div>
+
+                <div class="receipt-section-title">४. बिल, एडवांस एवं भुगतान विवरण</div>
+                <div class="receipt-row"><span>कुल बिल राशि:</span><b>₹${totalAmt}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस राशि:</span><b style="color:var(--green);">₹${advPaid}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया राशि:</span><b style="color:#b91c1c;">₹${balAmt}</b></div>
+                <div class="receipt-row"><span>UTR / Transaction ID:</span><b>${txnId}</b></div>
+                ${receiptPicHtml}
+            `;
+
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
+        
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            const opt = {
+                margin:        6,
+                filename:      'DelhiPress_Order_Receipt.pdf',
+                image:         { type: 'jpeg', quality: 0.98 },
+                html2canvas:   { scale: 2, useCORS: true },
+                jsPDF:         { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function printReceiptDirect() { 
+            const printContent = document.getElementById('printableReceiptArea').innerHTML;
+            const win = window.open('', '', 'height=750,width=750');
+            win.document.write('<html><head><title>Print Receipt</title>');
+            win.document.write('<style>body{font-family:sans-serif; padding:15px;} .receipt-row{display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px; border-bottom:1px dotted #ccc; padding-bottom:3px;} .receipt-section-title{background:#f0f0f0; padding:4px; font-weight:bold; margin:10px 0 6px 0; font-size:13px;} .card-preview-box{display:flex; gap:15px; align-items:center;} img{width:60px; height:60px; object-fit:cover;}</style>');
+            win.document.write('</head><body>');
+            win.document.write(printContent);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.focus();
+            setTimeout(() => { win.print(); win.close(); }, 500);
+        }
+
+        /* 4. कैटलॉग प्रबंधन */
+        async function loadCatalogStock() {
+            const tbody = document.getElementById('catalogTableBody');
+            if (!tbody || !supabaseClient) return;
+
+            const tables = ['catalog', 'cards_catalog', 'cards'];
+            let cards = [];
+            for (const tbl of tables) {
+                try {
+                    const { data } = await supabaseClient.from(tbl).select('*');
+                    if (data && data.length > 0) {
+                        cards = data;
+                        activeCatalogTable = tbl;
+                        break;
+                    }
+                } catch (e) {}
+            }
+
+            if (cards.length === 0) { tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड नहीं मिला।</td></tr>'; return; }
+            
+            tbody.innerHTML = cards.map(c => {
+                const img = c.image || c.image_url || c.photo || '';
+                const isStock = c.in_stock !== false;
+                return `
+                    <tr>
+                        <td><img src="${img}" style="width:45px;height:45px;object-fit:cover;border-radius:4px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'"></td>
+                        <td><b>${c.name || c.title || ''}</b></td>
+                        <td>${c.model || c.code || ''}</td>
+                        <td style="color:var(--primary); font-weight:bold;">₹${c.rate || c.price || 0}</td>
+                        <td><span class="stock-badge ${isStock ? 'in-stock' : 'out-stock'}">${isStock ? 'उपलब्ध' : 'समाप्त'}</span></td>
+                        <td><button class="btn-stock-toggle ${isStock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${!isStock})">${isStock ? 'Out करें' : 'In करें'}</button></td>
+                        <td><button class="btn-del" onclick="deleteCatalogCard(${c.id})"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function handleAddNewCatalogCard(e) {
+            e.preventDefault();
+            const btn = document.getElementById('addCardSubmitBtn');
+            btn.innerText = "अपलोड हो रहा है...";
+            btn.disabled = true;
+
+            const name = document.getElementById('admCardName').value.trim();
+            const model = document.getElementById('admCardModel').value.trim();
+            const rate = parseFloat(document.getElementById('admCardRate').value) || 0;
+            const in_stock = document.getElementById('admCardStock').value === 'true';
+            const file = document.getElementById('admCardFile').files[0];
+
+            let imageUrl = "https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ";
+
+            const saveRecord = async (imgUrl) => {
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from(activeCatalogTable).insert([{ name, model, rate, in_stock, image: imgUrl }]);
+                    } catch (err) {}
+                }
+                document.getElementById('newCardForm').reset();
+                btn.innerText = "+ सुरक्षित करें";
+                btn.disabled = false;
+                alert("नया कार्ड कैटलॉग में सफलतापूर्वक जोड़ दिया गया है!");
+                loadCatalogStock();
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(evt) {
+                    await saveRecord(evt.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await saveRecord(imageUrl);
+            }
+        }
+
+        async function toggleCardStock(id, newStatus) {
+            if (supabaseClient) {
+                await supabaseClient.from(activeCatalogTable).update({ in_stock: newStatus }).eq('id', id);
+                loadCatalogStock();
+            }
+        }
+
+        async function deleteCatalogCard(id) {
+            if (confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?") && supabaseClient) {
+                await supabaseClient.from(activeCatalogTable).delete().eq('id', id);
+                loadCatalogStock();
+            }
+        }
+
+        /* 5. पंजीकृत ग्राहक */
+        async function loadRegisteredCustomers() {
+            const tbody = document.getElementById('customersTableBody');
+            if (!tbody || !supabaseClient) return;
+            const { data } = await supabaseClient.from('users').select('*');
+            if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">कोई पंजीकृत ग्राहक नहीं।</td></tr>'; return; }
+
+            tbody.innerHTML = data.map((u, i) => `
                 <tr>
-                    <td>#${o.id}</td>
-                    <td><b>${o.customer_name}</b><br>${o.mobile}</td>
-                    <td>${o.card_title || 'शादी कार्ड'}</td>
-                    <td>कुल: ₹${o.total_amount}<br>एडवांस: ₹${o.advance_paid}</td>
-                    <td><b>${o.status || 'Pending'}</b></td>
-                    <td><button class="btn-del" onclick="deleteOrder('${o.id}')">हटाएं</button></td>
+                    <td>${i+1}</td>
+                    <td><b>${u.name || u.customer_name || ''}</b></td>
+                    <td>${u.mobile || u.phone || ''}</td>
+                    <td>${u.address || ''}</td>
+                    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN') : '-'}</td>
+                    <td><button class="btn-del" onclick="deleteCustomerUser('${u.id}')"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>
             `).join('');
         }
 
-        async function deleteOrder(id) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
-
-            if (supabaseClient) {
-                try { await supabaseClient.from('orders').delete().eq('id', id); } catch (e) {}
+        async function deleteCustomerUser(id) {
+            if (confirm("ग्राहक हटाएं?") && supabaseClient) {
+                await supabaseClient.from('users').delete().eq('id', id);
+                loadRegisteredCustomers();
             }
-
-            try {
-                let local = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                local = local.filter(o => String(o.id) !== String(id));
-                localStorage.setItem('my_orders_list', JSON.stringify(local));
-            } catch (e) {}
-
-            loadAdminOrders();
         }
     </script>
 </body>
 </html>
+```[cite: 11]
