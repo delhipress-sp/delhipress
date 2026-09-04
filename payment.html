@@ -2,59 +2,192 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>भुगतान - दिल्ली प्रेस</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>भुगतान (Payment) - दिल्ली प्रेस</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        body { background: #0d1322; color: #1e293b; font-family: 'Mukta', sans-serif; padding: 20px; }
-        .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 12px; }
-        .btn { width: 100%; padding: 14px; background: #10b981; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+        :root {
+            --primary: #e63946;
+            --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+            --secondary: #f77f00;
+            --dark: #0f172a;
+            --green: #10b981;
+            --blue: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: #0d1322;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed; color: #1e293b; line-height: 1.5; padding-bottom: 75px; min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo-box { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
+        .nav-logo-img { width: 100%; height: 100%; object-fit: cover; }
+        .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; }
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-cart-nav { position: relative; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 7px 14px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+        .cart-badge-count { background: var(--primary); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px; }
+        .btn-lang-toggle { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.3); padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; cursor: pointer; }
+        .btn-nav { text-decoration: none; color: #f8fafc; font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 20px; background: rgba(255, 255, 255, 0.08); }
+        .container { max-width: 680px; margin: 24px auto; padding: 0 14px; }
+        .payment-wrapper { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 24px; border-radius: 16px; box-shadow: var(--card-shadow); }
+        .section-header { color: var(--dark); font-size: 22px; text-align: center; margin-bottom: 20px; font-weight: 800; }
+        .bill-summary-box { background: linear-gradient(135deg, #fef08a 0%, #fef9c3 100%); border: 1px solid #facc15; padding: 16px; border-radius: 12px; margin-bottom: 22px; font-size: 15px; color: #854d0e; }
+        .bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
+        .payment-option-card { border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 16px; margin-bottom: 16px; background: #ffffff; cursor: pointer; }
+        .payment-option-card.selected { border-color: var(--green); background: #f0fdf4; }
+        .payment-option-header { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 15px; color: var(--dark); }
+        .payment-details-body { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #cbd5e1; display: none; }
+        .payment-option-card.selected .payment-details-body { display: block; }
+        .qr-wrapper { background: #ffffff; border: 1.5px solid #e2e8f0; display: inline-block; padding: 12px; border-radius: 12px; margin: 10px 0; }
+        .qr-wrapper img { width: 170px; height: 170px; display: block; margin: 0 auto; border-radius: 6px; }
+        .form-group { margin-bottom: 14px; text-align: left; }
+        label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; color: #334155; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 11px 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #ffffff; }
+        .btn-submit-order { width: 100%; padding: 16px; background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 17px; font-weight: 800; border: none; border-radius: 10px; cursor: pointer; margin-top: 24px; }
+        .btn-upi-app, .btn-cashfree { padding: 9px 18px; border-radius: 20px; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; margin: 6px 4px; }
+        .btn-upi-app { background: #2563eb; color: white !important; }
+        .btn-cashfree { background: #0f172a; color: #38bdf8 !important; border: 1px solid #38bdf8; }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <a class="nav-brand" href="index.html">
+            <div class="nav-logo-box"><img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img"></div>
+            <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
+        </a>
+        <div class="nav-actions">
+            <a href="cart.html" class="btn-cart-nav"><i class="fa-solid fa-cart-shopping"></i> <span data-i18n="nav_cart">कार्ट</span> <span class="cart-badge-count" id="navCartBadge">0</span></a>
+            <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()"><i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span></button>
+            <a href="order.html" class="btn-nav"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="btn_back_form">फॉर्म पर वापस जाएं</span></a>
+        </div>
+    </nav>
+
     <div class="container">
-        <h2>भुगतान कन्फर्मेशन</h2>
-        <p>कुल राशि: <b id="lblTotal">₹0</b></p>
-        <p>एडवांस: <b id="lblAdvance">₹0</b></p>
-        <button class="btn" onclick="finalizeAndSubmitOrder()">ऑर्डर सबमिट करें</button>
+        <div class="payment-wrapper">
+            <div class="section-header" data-i18n="pay_header">ऑर्डर भुगतान एवं कन्फर्मेशन</div>
+            <div class="bill-summary-box">
+                <div class="bill-row"><span data-i18n="lbl_total">कुल बिल राशि:</span> <b id="lblTotal">₹0</b></div>
+                <div class="bill-row"><span data-i18n="lbl_advance">एडवांस जमा राशि:</span> <b style="color:var(--green);" id="lblAdvance">₹0</b></div>
+                <div class="bill-row" style="border-top:1px dashed #facc15; padding-top:8px; margin-top:8px;">
+                    <span data-i18n="lbl_balance">बाकी बकाया राशि:</span> <b style="color:var(--primary);" id="lblBalance">₹0</b>
+                </div>
+            </div>
+
+            <div class="payment-option-card selected" id="cardUpi" onclick="selectPaymentMode('upi')">
+                <div class="payment-option-header">
+                    <input type="radio" name="payMode" id="radioUpi" value="upi" checked>
+                    <label for="radioUpi" style="cursor:pointer; margin-bottom:0;" data-i18n="opt_online_title">ऑनलाइन भुगतान (UPI QR / Apps / Cashfree)</label>
+                </div>
+                <div class="payment-details-body">
+                    <p style="font-size:13px; color:#475569; margin-bottom:6px; text-align:center;">दुकान की स्थायी UPI ID: <b>9304509464@okbizaxis</b></p>
+                    <div style="text-align:center;">
+                        <div class="qr-wrapper">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi%3A%2F%2Fpay%3Fpa%3D9304509464%40okbizaxis%26pn%3DDelhiPress" alt="Static UPI QR">
+                        </div>
+                        <p style="font-size:11px; color:#64748b; margin-bottom:10px;">किसी भी UPI ऐप से स्कैन करके भुगतान करें</p>
+                        <div>
+                            <a href="#" id="directUpiAppBtn" class="btn-upi-app"><i class="fa-solid fa-mobile-screen"></i> सीधे UPI ऐप से पे करें</a>
+                            <a href="javascript:void(0)" onclick="openCashfree()" class="btn-cashfree"><i class="fa-solid fa-credit-card"></i> Cashfree गेटवे</a>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label data-i18n="lbl_utr">भुगतान संदर्भ संख्या (UTR / Transaction ID / Ref No):</label>
+                        <input type="text" id="txnIdInput" placeholder="उदा: 4123XXXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="lbl_receipt_upload">भुगतान रसीद / स्क्रीनशॉट अपलोड करें (वैकल्पिक):</label>
+                        <input type="file" id="paymentReceiptFile" accept="image/*">
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-option-card" id="cardCod" onclick="selectPaymentMode('cod')">
+                <div class="payment-option-header">
+                    <input type="radio" name="payMode" id="radioCod" value="cod">
+                    <label for="radioCod" style="cursor:pointer; margin-bottom:0;" data-i18n="opt_cod_title">Cash on Delivery / दुकान पर नकद भुगतान</label>
+                </div>
+                <div class="payment-details-body">
+                    <p style="font-size:13px; color:#64748b; line-height:1.6;">आप शादी कार्ड का प्रूफ चेक करते समय दुकान पर आकर नकद एडवांस जमा कर सकते हैं।</p>
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit-order" onclick="finalizeAndSubmitOrder()">
+                <i class="fa-solid fa-circle-check"></i> भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें
+            </button>
+        </div>
     </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        let supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabaseClient = null;
+        try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) {}
+
         let pendingOrderData = null;
+        let currentLang = 'hi';
 
         window.addEventListener('DOMContentLoaded', () => {
             const temp = localStorage.getItem('dp_temp_order');
-            if (!temp) { window.location.href = "order.html"; return; }
-            pendingOrderData = JSON.parse(temp);
-            document.getElementById('lblTotal').innerText = `₹${pendingOrderData.total_amount || 0}`;
-            document.getElementById('lblAdvance').innerText = `₹${pendingOrderData.advance_paid || 0}`;
+            if (!temp) { alert("कोई ऑर्डर डेटा नहीं मिला!"); window.location.href = "order.html"; return; }
+            try {
+                pendingOrderData = JSON.parse(temp);
+                document.getElementById('lblTotal').innerText = `₹${pendingOrderData.total_amount || 0}`;
+                document.getElementById('lblAdvance').innerText = `₹${pendingOrderData.advance_paid || 0}`;
+                document.getElementById('lblBalance').innerText = `₹${pendingOrderData.balance_amount || 0}`;
+                document.getElementById('directUpiAppBtn').href = `upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&am=${pendingOrderData.advance_paid || 0}`;
+            } catch (e) {}
         });
+
+        function selectPaymentMode(mode) {
+            document.getElementById('radioUpi').checked = (mode === 'upi');
+            document.getElementById('radioCod').checked = (mode === 'cod');
+            document.getElementById('cardUpi').classList.toggle('selected', mode === 'upi');
+            document.getElementById('cardCod').classList.toggle('selected', mode === 'cod');
+        }
 
         async function finalizeAndSubmitOrder() {
             if (!pendingOrderData) return;
+            const isUpi = document.getElementById('radioUpi').checked;
+            let txnId = isUpi ? document.getElementById('txnIdInput').value.trim() : "COD (दुकान पर नकद)";
+            if (isUpi && !txnId) { alert("कृपया UTR / Transaction ID दर्ज करें।"); return; }
+
+            const payload = {
+                ...pendingOrderData,
+                status: 'Pending',
+                txn_id: txnId,
+                payment_mode: isUpi ? 'Online' : 'Cash on Delivery',
+                created_at: new Date().toISOString()
+            };
 
             if (supabaseClient) {
-                try {
-                    await supabaseClient.from('orders').insert([pendingOrderData]);
-                } catch (e) {
-                    console.error("DB insert error:", e);
-                }
+                try { await supabaseClient.from('orders').insert([payload]); } catch (e) {}
             }
 
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                localOrders.unshift(pendingOrderData);
+                localOrders.unshift(payload);
                 localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
                 localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
                 localStorage.removeItem('dp_temp_order');
             } catch (e) {}
 
-            alert("ऑर्डर सफलतापूर्वक सबमिट हो गया है!");
+            alert("आपका ऑर्डर सफलतापूर्वक सबमिट हो गया है!");
             window.location.href = "my_orders.html";
         }
     </script>
