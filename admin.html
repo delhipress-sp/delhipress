@@ -43,7 +43,7 @@
         label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #475569; }
         input, select, textarea {
             width: 100%; padding: 9px; border: 1px solid #cbd5e1;
-            border-radius: 4px; font-size: 14px; outline: none;
+            border-radius: 4px; font-size: 14px; outline: none; background: #fff;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
@@ -157,7 +157,7 @@
             <h3 style="color: var(--dark); margin-bottom: 14px;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
                 <label>एडमिन सुरक्षा पिन:</label>
-                <input type="password" id="adminPin" placeholder="सुरक्षा पिन दर्ज करें (एडमिन अपना पिन डालें)" autocomplete="off">
+                <input type="password" id="adminPin" placeholder="सुरक्षा पिन दर्ज करें" autocomplete="current-password" readonly onfocus="this.removeAttribute('readonly');">
             </div>
             <button type="button" id="btnAdminLogin" onclick="verifyAdminPin()" style="width: 100%; padding: 10px; background: var(--dark); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 12px;">
                 प्रवेश करें
@@ -185,6 +185,19 @@
                     </a>
                     <button type="button" onclick="handleAdminLogout()" style="background: #e2e8f0; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">
                         लॉगआउट
+                    </button>
+                </div>
+            </div>
+
+            <!-- पिन बदलने का बॉक्स -->
+            <div style="background: #fdfaf6; border: 1px solid #fed7aa; padding: 14px; border-radius: 6px; margin-bottom: 15px;">
+                <h4 style="color: var(--secondary); margin-bottom: 10px;"><i class="fa-solid fa-key"></i> एडमिन सुरक्षा पिन बदलें</h4>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="password" id="newAdminPinInput" placeholder="नया 4 या 6 अंकों का पिन दर्ज करें" autocomplete="off">
+                    </div>
+                    <button type="button" onclick="saveNewAdminPin()" style="padding: 9px 20px; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                        पिन अपडेट करें
                     </button>
                 </div>
             </div>
@@ -375,7 +388,10 @@
             if (!pinInput) return;
 
             const entered = pinInput.value.trim();
-            if (entered === "1234" || entered === "9304" || entered === "815352") {
+            const savedCustomPin = localStorage.getItem('dp_custom_admin_pin');
+            const validPins = [savedCustomPin, "1234", "9304", "815352"].filter(Boolean);
+
+            if (validPins.includes(entered)) {
                 try {
                     sessionStorage.setItem('dp_admin_auth', 'true');
                     localStorage.setItem('dp_admin_logged', 'true');
@@ -388,123 +404,59 @@
             }
         }
 
-        function showDashboard() {
-            const pinSec = document.getElementById('adminPinSection');
-            const dashSec = document.getElementById('adminDashboard');
-
-            if (pinSec) pinSec.style.display = 'none';
-            if (dashSec) dashSec.style.display = 'block';
-            
-            loadCatalogStock();
+        function saveNewAdminPin() {
+            const newPin = document.getElementById('newAdminPinInput').value.trim();
+            if (!newPin || newPin.length < 4) {
+                alert("कृपया कम से कम 4 अंकों का वैध पिन दर्ज करें!");
+                return;
+            }
+            try {
+                localStorage.setItem('dp_custom_admin_pin', newPin);
+                alert("सुरक्षा पिन सफलतापूर्वक बदल दिया गया है! अगली बार नए पिन से लॉगिन करें।");
+                document.getElementById('newAdminPinInput').value = "";
+            } catch (e) {
+                alert("पिन सेव करने में त्रुटि हुई।");
+            }
         }
 
         function handleAdminLogout() {
-            try {
-                sessionStorage.removeItem('dp_admin_auth');
-                localStorage.removeItem('dp_admin_logged');
-            } catch (e) {}
-            location.reload();
+            sessionStorage.removeItem('dp_admin_auth');
+            localStorage.removeItem('dp_admin_logged');
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('adminPinSection').style.display = 'block';
+            const pin = document.getElementById('adminPin');
+            if(pin) pin.value = '';
         }
 
-        function switchAdminTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        function showDashboard() {
+            document.getElementById('adminPinSection').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            loadCatalogStock();
+            loadAdminOrders();
+            loadRegisteredCustomers();
+        }
+
+        function switchAdminTab(tabName) {
             document.getElementById('tabCatalogSection').style.display = 'none';
             document.getElementById('tabOrdersSection').style.display = 'none';
             document.getElementById('tabCustomersSection').style.display = 'none';
 
-            if (tab === 'catalog') {
-                document.getElementById('tabBtnCatalog').classList.add('active');
+            document.getElementById('tabBtnCatalog').classList.remove('active');
+            document.getElementById('tabBtnOrders').classList.remove('active');
+            document.getElementById('tabBtnCustomers').classList.remove('active');
+
+            if (tabName === 'catalog') {
                 document.getElementById('tabCatalogSection').style.display = 'block';
+                document.getElementById('tabBtnCatalog').classList.add('active');
                 loadCatalogStock();
-            } else if (tab === 'orders') {
-                document.getElementById('tabBtnOrders').classList.add('active');
+            } else if (tabName === 'orders') {
                 document.getElementById('tabOrdersSection').style.display = 'block';
+                document.getElementById('tabBtnOrders').classList.add('active');
                 loadAdminOrders();
-            } else if (tab === 'customers') {
-                document.getElementById('tabBtnCustomers').classList.add('active');
+            } else if (tabName === 'customers') {
                 document.getElementById('tabCustomersSection').style.display = 'block';
+                document.getElementById('tabBtnCustomers').classList.add('active');
                 loadRegisteredCustomers();
-            }
-        }
-
-        function convertImageToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const maxWidth = 700;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > maxWidth) {
-                            height = Math.round((height * maxWidth) / width);
-                            width = maxWidth;
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.8));
-                    };
-                    img.onerror = () => reject(new Error("Image Load Error"));
-                };
-                reader.onerror = (error) => reject(error);
-            });
-        }
-
-        async function handleAddNewCatalogCard(e) {
-            e.preventDefault();
-            const btn = document.getElementById('addCardSubmitBtn');
-            btn.disabled = true;
-            btn.innerText = "सुरक्षित हो रहा है...";
-
-            try {
-                const name = document.getElementById('admCardName').value.trim();
-                const model = document.getElementById('admCardModel').value.trim();
-                const rate = parseFloat(document.getElementById('admCardRate').value) || 0;
-                const inStock = document.getElementById('admCardStock').value === "true";
-                const file = document.getElementById('admCardFile').files[0];
-
-                let base64 = "";
-                if (file) {
-                    base64 = await convertImageToBase64(file);
-                }
-
-                const newCard = {
-                    name: name,
-                    title: name,
-                    model: model,
-                    code: model,
-                    rate: rate,
-                    price: rate,
-                    image: base64,
-                    image_url: base64,
-                    photo: base64,
-                    in_stock: inStock
-                };
-
-                if (supabaseClient) {
-                    const tables = ['cards_catalog', 'catalog', 'cards'];
-                    for (const tbl of tables) {
-                        try {
-                            const { error } = await supabaseClient.from(tbl).insert([newCard]);
-                            if (!error) break;
-                        } catch (err) {}
-                    }
-                }
-
-                alert("नया कार्ड सफलतापूर्वक कैटलॉग में जोड़ दिया गया!");
-                document.getElementById('newCardForm').reset();
-                loadCatalogStock();
-            } catch (err) {
-                alert("कार्ड जोड़ने में समस्या: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "+ स्टॉक में सुरक्षित करें";
             }
         }
 
@@ -553,24 +505,71 @@
             }).join('');
         }
 
-        async function toggleCardStock(cardId, newStatus) {
-            if (!supabaseClient) return;
-            const tables = ['cards_catalog', 'catalog', 'cards'];
-            for (const tbl of tables) {
-                try {
-                    await supabaseClient.from(tbl).update({ in_stock: newStatus }).eq('id', cardId);
-                } catch (e) {}
+        async function handleAddNewCatalogCard(e) {
+            e.preventDefault();
+            const btn = document.getElementById('addCardSubmitBtn');
+            btn.innerText = "अपलोड हो रहा है...";
+            btn.disabled = true;
+
+            const name = document.getElementById('admCardName').value.trim();
+            const model = document.getElementById('admCardModel').value.trim();
+            const rate = parseFloat(document.getElementById('admCardRate').value) || 0;
+            const in_stock = document.getElementById('admCardStock').value === 'true';
+            const fileInput = document.getElementById('admCardFile');
+
+            let imageUrl = "https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ";
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(uploadEvent) {
+                    imageUrl = uploadEvent.target.result;
+                    await saveCardToSupabase({ name, model, rate, in_stock, image: imageUrl });
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await saveCardToSupabase({ name, model, rate, in_stock, image: imageUrl });
+            }
+        }
+
+        async function saveCardToSupabase(newCard) {
+            const btn = document.getElementById('addCardSubmitBtn');
+            if (supabaseClient) {
+                const tables = ['cards_catalog', 'catalog', 'cards'];
+                for (const tbl of tables) {
+                    try {
+                        const { error } = await supabaseClient.from(tbl).insert([newCard]);
+                        if (!error) break;
+                    } catch (err) {}
+                }
+            }
+            
+            document.getElementById('newCardForm').reset();
+            btn.innerText = "+ स्टॉक में सुरक्षित करें";
+            btn.disabled = false;
+            alert("नया कार्ड कैटलॉग में सफलतापूर्वक जोड़ दिया गया है!");
+            loadCatalogStock();
+        }
+
+        async function toggleCardStock(id, newStatus) {
+            if (supabaseClient) {
+                const tables = ['cards_catalog', 'catalog', 'cards'];
+                for (const tbl of tables) {
+                    try {
+                        await supabaseClient.from(tbl).update({ in_stock: newStatus }).eq('id', id);
+                    } catch (e) {}
+                }
             }
             loadCatalogStock();
         }
 
-        async function deleteCatalogCard(cardId) {
+        async function deleteCatalogCard(id) {
             if (!confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) return;
             if (supabaseClient) {
                 const tables = ['cards_catalog', 'catalog', 'cards'];
                 for (const tbl of tables) {
                     try {
-                        await supabaseClient.from(tbl).delete().eq('id', cardId);
+                        await supabaseClient.from(tbl).delete().eq('id', id);
                     } catch (e) {}
                 }
             }
@@ -582,205 +581,78 @@
             if (!tbody) return;
             tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; color:#64748b;">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
-            let rawList = [];
-
+            let orders = [];
             if (supabaseClient) {
                 try {
-                    const { data, error } = await supabaseClient
-                        .from('orders')
-                        .select('*')
-                        .order('id', { ascending: false });
-
-                    if (!error && data && Array.isArray(data) && data.length > 0) {
-                        rawList = data;
-                    }
-                } catch (e) {
-                    console.warn("Supabase fetch error:", e);
-                }
+                    const { data } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
+                    if (data && data.length > 0) orders = data;
+                } catch (e) {}
             }
 
-            if (rawList.length === 0) {
+            if (orders.length === 0) {
                 try {
-                    const local1 = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                    const local2 = JSON.parse(localStorage.getItem('dp_all_orders') || '[]');
-                    const local3 = JSON.parse(localStorage.getItem('dp_user_orders') || '[]');
-                    rawList = [...local1, ...local2, ...local3];
-                    const seen = new Set();
-                    rawList = rawList.filter(item => {
-                        const id = String(item.id || item.created_at);
-                        if (!id || seen.has(id)) return false;
-                        seen.add(id);
-                        return true;
-                    });
-                } catch (e) {
-                    rawList = [];
-                }
+                    const local = JSON.parse(localStorage.getItem('dp_temp_order'));
+                    if (local) orders.push(local);
+                } catch (e) {}
             }
 
-            if (rawList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="padding:20px; color:#64748b;">वर्तमान में कोई ग्राहक ऑर्डर प्राप्त नहीं हुआ है।</td></tr>';
+            globalOrdersCache = orders;
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; color:#64748b;">कोई नया आर्डर नहीं मिला।</td></tr>';
                 return;
             }
 
-            globalOrdersCache = rawList.map(item => {
-                const nested = item.order_data || {};
-                
-                let detectedImage = item.card_image || item.photo || item.image || item.image_url || nested.card_image || nested.photo || nested.image || '';
-                if (detectedImage && (detectedImage.includes('placehold.co') || detectedImage === 'null' || detectedImage === 'undefined')) {
-                    detectedImage = '';
-                }
-
-                const total = parseFloat(item.total_amount || nested.total_amount || 0);
-                const advance = parseFloat(item.advance_paid || item.advance_amount || nested.advance_paid || 0);
-                const balance = parseFloat(item.balance_amount !== undefined ? item.balance_amount : (total - advance));
-
-                return {
-                    id: item.id,
-                    created_at: item.created_at || nested.created_at || new Date().toISOString(),
-                    customer_name: item.customer_name || nested.customer_name || 'ग्राहक',
-                    customer_mobile: item.mobile || item.phone || nested.customer_mobile || nested.mobile || '-',
-                    address: item.address || nested.address || '-',
-                    card_title: item.card_name || item.card_title || nested.card_title || nested.card_name || 'शादी कार्ड',
-                    card_model: item.card_model || item.model || nested.card_model || '',
-                    card_image: detectedImage,
-                    quantity: item.quantity || nested.qty || nested.quantity || 100,
-                    rate: item.rate || nested.rate || 0,
-                    total_amount: total,
-                    advance_paid: advance,
-                    balance_amount: Math.max(0, balance),
-                    utr_number: item.txn_id || item.utr_number || nested.utr_number || nested.txn_id || 'COD/Pending',
-                    groom_name: item.groom_name || nested.groom_name || '-',
-                    groom_father: item.groom_father || nested.groom_father || '-',
-                    groom_address: item.groom_address || nested.groom_address || '-',
-                    bride_name: item.bride_name || nested.bride_name || '-',
-                    bride_father: item.bride_father || nested.bride_father || '-',
-                    bride_address: item.bride_address || nested.bride_address || '-',
-                    events: item.events || nested.events || [],
-                    custom_notes: item.custom_notes || nested.custom_notes || '',
-                    rsvp: item.vineet || nested.rsvp || '-',
-                    from_family: item.darshanabhilashi || nested.from_family || '-',
-                    status: item.status || nested.status || nested.order_status || 'Pending'
-                };
-            });
-
-            tbody.innerHTML = globalOrdersCache.map((ord, idx) => {
-                const dt = new Date(ord.created_at).toLocaleDateString('hi-IN', {
-                    day: 'numeric', month: 'short', year: 'numeric'
-                });
-
-                const imgHtml = ord.card_image 
-                    ? `<img src="${ord.card_image}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">`
-                    : `<div style="width:40px; height:40px; background:#e2e8f0; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;">No Img</div>`;
-
-                let statusClass = 'status-pending';
-                if (ord.status === 'In Process' || ord.status === 'Process') statusClass = 'status-process';
-                if (ord.status === 'Ready' || ord.status === 'Finished') statusClass = 'status-ready';
+            tbody.innerHTML = orders.map(o => {
+                const dateStr = o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : 'हाल ही में';
+                const status = o.status || 'Pending';
+                let badgeClass = 'status-pending';
+                if (status === 'Processing') badgeClass = 'status-process';
+                if (status === 'Ready') badgeClass = 'status-ready';
 
                 return `
-                    <tr id="order-row-${ord.id}">
-                        <td>${dt}</td>
-                        <td style="text-align:left;">
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                ${imgHtml}
-                                <div>
-                                    <b>${ord.card_title}</b>
-                                    <div style="font-size:11px; color:#64748b;">${ord.card_model} (${ord.quantity} पीस)</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td style="text-align:left;">
-                            <b>${ord.customer_name}</b>
-                            <div style="font-size:11px; color:#475569;"><i class="fa-solid fa-phone"></i> ${ord.customer_mobile}</div>
-                        </td>
-                        <td style="text-align:left;">
-                            <div>वर: <b>${ord.groom_name}</b></div>
-                            <div>वधू: <b>${ord.bride_name}</b></div>
-                        </td>
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td style="font-weight:bold; color:var(--primary);">${o.card_title || o.card_name || 'शादी कार्ड'}</td>
+                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.phone || '-'}<br><span style="font-size:10px; color:#64748b;">${o.address || ''}</span></td>
+                        <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
+                        <td>कुल: ₹${o.total_amount || 0}<br>एडवांस: ₹${o.advance_paid || 0}<br><span style="color:#b91c1c; font-weight:bold;">बाकी: ₹${o.balance_amount || 0}</span></td>
                         <td>
-                            <div>कुल: <b>₹${ord.total_amount}</b></div>
-                            <div style="color:green; font-size:11px;">जमा: ₹${ord.advance_paid}</div>
-                            <div style="color:red; font-size:11px;">बाकी: ₹${ord.balance_amount}</div>
-                        </td>
-                        <td>
-                            <span class="status-badge ${statusClass}" id="badge-${ord.id}">${ord.status}</span><br>
-                            <select class="status-select-box" onchange="updateOrderStatus('${ord.id}', this.value)">
-                                <option value="Pending" ${ord.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="In Process" ${ord.status === 'In Process' ? 'selected' : ''}>In Process</option>
-                                <option value="Ready" ${ord.status === 'Ready' ? 'selected' : ''}>Ready</option>
+                            <span class="status-badge ${badgeClass}">${status}</span><br>
+                            <select class="status-select-box" onchange="updateOrderStatus('${o.id}', this.value)">
+                                <option value="Pending" ${status==='Pending'?'selected':''}>Pending</option>
+                                <option value="Processing" ${status==='Processing'?'selected':''}>Processing</option>
+                                <option value="Ready" ${status==='Ready'?'selected':''}>Ready</option>
                             </select>
                         </td>
                         <td>
-                            <button type="button" class="btn-view" onclick="viewOrderReceiptModal(${idx})">
-                                <i class="fa-solid fa-file-lines"></i> मैटर / रसीद
+                            <button type="button" class="btn-view" onclick="openOrderReceiptModal('${o.id}')">
+                                <i class="fa-solid fa-receipt"></i> रसीद देखें
                             </button>
                         </td>
-                        <td>
-                            <button type="button" class="btn-del" onclick="deleteOrder('${ord.id}')">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
+                        <td><button type="button" class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
                 `;
             }).join('');
         }
 
-        async function updateOrderStatus(orderId, newStatus) {
-            const badge = document.getElementById(`badge-${orderId}`);
-            if (badge) {
-                badge.innerText = newStatus;
-                badge.className = 'status-badge ' + (newStatus === 'Ready' ? 'status-ready' : (newStatus === 'In Process' ? 'status-process' : 'status-pending'));
-            }
-
+        async function updateOrderStatus(id, newStatus) {
             if (supabaseClient) {
                 try {
-                    let idVal = isNaN(orderId) ? orderId : Number(orderId);
-                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', idVal);
-                } catch (e) {
-                    console.error("Supabase Exception:", e);
-                }
-            }
-
-            const storageKeys = ['my_orders_list', 'dp_all_orders', 'dp_user_orders'];
-            storageKeys.forEach(key => {
-                try {
-                    let list = JSON.parse(localStorage.getItem(key) || '[]');
-                    list.forEach(o => {
-                        if (String(o.id) === String(orderId)) {
-                            o.status = newStatus;
-                            if (o.order_data) {
-                                o.order_data.status = newStatus;
-                                o.order_data.order_status = newStatus;
-                            }
-                        }
-                    });
-                    localStorage.setItem(key, JSON.stringify(list));
+                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
                 } catch (e) {}
-            });
+            }
+            loadAdminOrders();
         }
 
-        async function deleteOrder(orderId) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
-
-            const row = document.getElementById(`order-row-${orderId}`);
-            if (row) row.remove();
-
+        async function deleteAdminOrder(id) {
+            if (!confirm("क्या आप वाकई इस आर्डर को हटाना चाहते हैं?")) return;
             if (supabaseClient) {
                 try {
-                    let idVal = isNaN(orderId) ? orderId : Number(orderId);
-                    await supabaseClient.from('orders').delete().eq('id', idVal);
-                } catch (e) {
-                    console.error("Supabase Delete Exception:", e);
-                }
-            }
-
-            const storageKeys = ['my_orders_list', 'dp_all_orders', 'dp_user_orders'];
-            storageKeys.forEach(key => {
-                try {
-                    let list = JSON.parse(localStorage.getItem(key) || '[]');
-                    list = list.filter(o => String(o.id) !== String(orderId));
-                    localStorage.setItem(key, JSON.stringify(list));
+                    await supabaseClient.from('orders').delete().eq('id', id);
                 } catch (e) {}
-            });
+            }
+            loadAdminOrders();
         }
 
         async function loadRegisteredCustomers() {
@@ -790,159 +662,80 @@
 
             let customers = [];
             if (supabaseClient) {
-                const userTables = ['users', 'customers', 'profiles', 'clients'];
-                for (const tbl of userTables) {
-                    try {
-                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
-                        if (!error && data && data.length > 0) {
-                            customers = data;
-                            break;
-                        }
-                    } catch (e) {}
-                }
-            }
-
-            if (customers.length === 0) {
-                if (globalOrdersCache.length === 0) {
-                    await loadAdminOrders();
-                }
-                const map = new Map();
-                globalOrdersCache.forEach(o => {
-                    const phone = (o.customer_mobile || '').replace(/\D/g, '').slice(-10);
-                    if (phone && !map.has(phone)) {
-                        map.set(phone, {
-                            name: o.customer_name || 'ग्राहक',
-                            mobile: phone,
-                            address: o.address || '-',
-                            created_at: o.created_at
-                        });
-                    }
-                });
-                customers = Array.from(map.values());
-            }
-
-            if (customers.length === 0) {
                 try {
-                    const localU = JSON.parse(localStorage.getItem('dp_all_users') || '[]');
-                    if (Array.isArray(localU) && localU.length > 0) customers = localU;
+                    const { data } = await supabaseClient.from('users').select('*').order('id', { ascending: false });
+                    if (data && data.length > 0) customers = data;
                 } catch (e) {}
             }
 
+            globalCustomersCache = customers;
+
             if (customers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; color:#64748b;">कोई पंजीकृत ग्राहक नहीं मिला।</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:15px; color:#64748b;">कोई पंजीकृत ग्राहक नहीं मिला।</td></tr>';
                 return;
             }
 
-            globalCustomersCache = customers;
-            tbody.innerHTML = customers.map((u, i) => {
-                const dt = u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN', {
-                    day: 'numeric', month: 'short', year: 'numeric'
-                }) : '-';
-                const name = u.name || u.customer_name || u.full_name || 'ग्राहक';
-                const phone = u.mobile || u.phone || u.customer_mobile || '-';
-                const addr = u.address || u.email || '-';
-
-                return `
-                    <tr>
-                        <td><b>${i + 1}</b></td>
-                        <td style="font-weight:bold; color:var(--dark); text-align:left;">${name}</td>
-                        <td style="color:var(--primary); font-weight:bold;">${phone}</td>
-                        <td style="text-align:left;">${addr}</td>
-                        <td>${dt}</td>
-                        <td>
-                            <button type="button" class="btn-view" onclick="filterOrdersByCustomer('${phone}')">
-                                <i class="fa-solid fa-eye"></i> ऑर्डर्स देखें
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            tbody.innerHTML = customers.map((u, idx) => `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td style="font-weight:bold;">${u.name || u.customer_name || '-'}</td>
+                    <td>${u.mobile || u.phone || '-'}</td>
+                    <td>${u.email || u.address || '-'}</td>
+                    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN') : '-'}</td>
+                    <td><button type="button" class="btn-del" onclick="deleteCustomerUser('${u.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('');
         }
 
-        function filterOrdersByCustomer(phone) {
-            switchAdminTab('orders');
-            const clean = String(phone).replace(/\D/g, '').slice(-10);
-            const rows = document.querySelectorAll('#ordersTableBody tr');
-            rows.forEach(r => {
-                if (r.innerText.includes(clean)) {
-                    r.style.display = '';
-                    r.style.background = '#fef9c3';
-                } else {
-                    r.style.display = 'none';
-                }
-            });
+        async function deleteCustomerUser(id) {
+            if (!confirm("क्या आप इस ग्राहक को सूची से हटाना चाहते हैं?")) return;
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('users').delete().eq('id', id);
+                } catch (e) {}
+            }
+            loadRegisteredCustomers();
         }
 
-        function viewOrderReceiptModal(index) {
-            const ord = globalOrdersCache[index];
-            if (!ord) return;
+        function openOrderReceiptModal(id) {
+            const order = globalOrdersCache.find(o => String(o.id) === String(id));
+            if (!order) return;
 
-            let eventsHtml = '';
-            if (ord.events) {
-                if (Array.isArray(ord.events) && ord.events.length > 0) {
-                    ord.events.forEach(ev => {
-                        eventsHtml += `<div class="receipt-row"><span>${ev.title || 'कार्यक्रम'}:</span> <b>${ev.date || ''} (${ev.time || 'सायं'})</b></div>`;
-                    });
-                } else if (typeof ord.events === 'string' && ord.events.trim() !== '') {
-                    eventsHtml = `<div class="receipt-row"><span>कार्यक्रम:</span> <b>${ord.events}</b></div>`;
-                }
-            }
+            const area = document.getElementById('printableReceiptArea');
+            const img = order.card_image || order.image_url || 'https://placehold.co/90x90?text=Card';
 
-            let customNotesHtml = '';
-            if (ord.custom_notes && typeof ord.custom_notes === 'string' && ord.custom_notes.trim() !== '') {
-                customNotesHtml = `
-                    <div class="receipt-section-title">शायरी / बाल मनुहार / अन्य मैटर</div>
-                    <div style="font-size:12px; background:#f8fafc; padding:8px; border-radius:4px; white-space:pre-line; border:1px solid #e2e8f0;">${ord.custom_notes}</div>
-                `;
-            }
-
-            const printArea = document.getElementById('printableReceiptArea');
-            const dt = new Date(ord.created_at).toLocaleDateString('hi-IN');
-            const cardImgHtml = ord.card_image ? `<img src="${ord.card_image}" alt="Card Sample" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'">` : `<div style="width:75px; height:75px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:10px;">नो इमेज</div>`;
-
-            printArea.innerHTML = `
+            area.innerHTML = `
                 <div class="receipt-header">
-                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा | मो: 9304509464</p>
-                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:2px 10px; border-radius:3px; font-size:12px;">शादी मैटर एवं प्रिंटिंग आदेश पत्र</h4>
+                    <h2 style="color: var(--primary); font-size: 18px;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
+                    <p style="font-size: 11px; color: #555;">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा (झारखंड) | मो: 9304509464</p>
+                    <h4 style="font-size: 13px; background: #eee; margin-top: 6px; padding: 2px;">ऑर्डर एवं मैटर रसीद</h4>
                 </div>
 
-                <div class="receipt-section-title">१. कार्ड विवरण</div>
+                <div class="receipt-row"><span><b>आर्डर आईडी:</b> #${order.id}</span><span><b>दिनांक:</b> ${order.created_at ? new Date(order.created_at).toLocaleDateString('hi-IN') : '-'}</span></div>
+                <div class="receipt-row"><span><b>ग्राहक नाम:</b> ${order.customer_name || '-'}</span><span><b>मोबाइल:</b> ${order.mobile || order.phone || '-'}</span></div>
+                <div class="receipt-row" style="flex-direction: column;"><span><b>पता:</b> ${order.address || '-'}</span></div>
+
+                <div class="receipt-section-title">कार्ड एवं मुद्रण विवरण</div>
                 <div class="card-preview-box">
-                    ${cardImgHtml}
+                    <img src="${img}" alt="Card">
                     <div>
-                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title}</div>
-                        ${ord.card_model ? `<div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model}</b></div>` : ''}
-                        <div style="font-size:12px; color:#64748b;">वर्तमान स्टेटस: <b style="color:var(--primary);">${ord.status}</b></div>
+                        <h4 style="font-size: 14px; color: var(--dark);">${order.card_title || order.card_name || 'शादी कार्ड'}</h4>
+                        <p style="font-size: 12px; color: #555;">${order.card_model || order.model || ''}</p>
+                        <p style="font-size: 12px; font-weight: bold; color: var(--green);">मात्रा: ${order.quantity || order.qty || 1} पीस</p>
                     </div>
                 </div>
 
-                <div class="receipt-section-title">२. ग्राहक विवरण</div>
-                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${ord.customer_name}</b></div>
-                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${ord.customer_mobile}</b></div>
-                <div class="receipt-row"><span>ग्राहक का पता:</span> <span>${ord.address}</span></div>
-                <div class="receipt-row"><span>तारीख:</span> <span>${dt}</span></div>
+                <div class="receipt-section-title">दूल्हा-दुल्हन विवरण</div>
+                <div class="receipt-row"><span><b>वर (दूल्हा):</b> ${order.groom_name || '-'} (पिता: ${order.groom_father || '-'})</span></div>
+                <div class="receipt-row"><span><b>वधू (दुल्हन):</b> ${order.bride_name || '-'} (पिता: ${order.bride_father || '-'})</span></div>
 
-                <div class="receipt-section-title">३. शादी मैटर विवरण</div>
-                <div class="receipt-row"><span>दूल्हा का नाम:</span> <b style="color:var(--primary);">${ord.groom_name}</b></div>
-                <div class="receipt-row"><span>दूल्हे के पिता:</span> <span>${ord.groom_father}</span></div>
-                <div class="receipt-row"><span>दूल्हे का पता:</span> <span>${ord.groom_address}</span></div>
-                <div class="receipt-row"><span>दुल्हन का नाम:</span> <b style="color:var(--secondary);">${ord.bride_name}</b></div>
-                <div class="receipt-row"><span>दुल्हन के पिता:</span> <span>${ord.bride_father}</span></div>
-                <div class="receipt-row"><span>दुल्हन का पता:</span> <span>${ord.bride_address}</span></div>
+                <div class="receipt-section-title">अन्य मैटर / शायरी / कार्यक्रम</div>
+                <div style="font-size: 12px; background: #fafafa; padding: 6px; border: 1px solid #eee; white-space: pre-wrap; margin-bottom: 8px;">${order.custom_notes || 'कोई अतिरिक्त मैटर नहीं'}</div>
 
-                <div class="receipt-section-title">४. वैवाहिक कार्यक्रम</div>
-                ${eventsHtml || '<div class="receipt-row"><span>कार्यक्रम:</span> <span>-</span></div>'}
-                ${customNotesHtml}
-                <div class="receipt-row"><span>आर.एस.वी.पी (RSVP):</span> <span>${ord.rsvp}</span></div>
-                <div class="receipt-row"><span>दर्शनाभिलाषी / विनीत:</span> <span>${ord.from_family}</span></div>
-
-                <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
-                <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${ord.quantity} पीस</b></div>
-                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${ord.total_amount}</b></div>
-                <div class="receipt-row"><span>जमा एडवांस:</span> <b style="color:green;">₹${ord.advance_paid}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${ord.balance_amount}</b></div>
-                <div class="receipt-row"><span>भुगतान UTR / Txn ID:</span> <b>${ord.utr_number}</b></div>
+                <div class="receipt-section-title">भुगतान विवरण</div>
+                <div class="receipt-row"><span>कुल बिल राशि:</span><b>₹${order.total_amount || 0}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस:</span><b style="color:var(--green);">₹${order.advance_paid || order.advance_amount || 0}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया:</span><b style="color:#b91c1c;">₹${order.balance_amount || 0}</b></div>
             `;
 
             document.getElementById('orderModal').style.display = 'flex';
@@ -955,22 +748,26 @@
         function downloadReceiptPDF() {
             const element = document.getElementById('printableReceiptArea');
             const opt = {
-                margin:       8,
-                filename:     'Delhi_Press_Order_Slip.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin:        5,
+                filename:      'DelhiPress_Order_Receipt.pdf',
+                image:         { type: 'jpeg', quality: 0.98 },
+                html2canvas:   { scale: 2 },
+                jsPDF:         { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+            html2pdf().from(element).set(opt).save();
         }
 
         function printReceiptDirect() {
-            const printContent = document.getElementById('printableReceiptArea').innerHTML;
-            const originalContent = document.body.innerHTML;
-            document.body.innerHTML = `<div style="padding:20px; max-width:650px; margin:auto;">${printContent}</div>`;
-            window.print();
-            document.body.innerHTML = originalContent;
-            location.reload();
+            const content = document.getElementById('printableReceiptArea').innerHTML;
+            const win = window.open('', '', 'height=700,width=700');
+            win.document.write('<html><head><title>Print Receipt</title>');
+            win.document.write('<style>body{font-family:sans-serif; padding:15px;} .receipt-row{display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px; border-bottom:1px dotted #ccc; padding-bottom:3px;} .receipt-section-title{background:#f0f0f0; padding:4px; font-weight:bold; margin:10px 0 6px 0; font-size:13px;} .card-preview-box{display:flex; gap:15px; align-items:center;} img{width:60px; height:60px; object-fit:cover;}</style>');
+            win.document.write('</head><body>');
+            win.document.write(content);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.focus();
+            setTimeout(() => { win.print(); win.close(); }, 500);
         }
     </script>
 </body>
