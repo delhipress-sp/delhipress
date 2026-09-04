@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>शॉपिंग कार्ट - दिल्ली प्रेस</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #e63946;
+            --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+            --secondary: #f77f00;
+            --dark: #0f172a;
+            --light: #fdfbf7;
+            --green: #10b981;
+            --blue: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.94);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: #0d1322;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            line-height: 1.5;
+            padding-bottom: 75px;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 18px;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo-box {
+            width: 42px; height: 42px; border-radius: 50%;
+            border: 2px solid var(--primary); display: flex;
+            align-items: center; justify-content: center; overflow: hidden;
+            background: #fff; box-shadow: 0 0 12px rgba(230, 57, 70, 0.4);
+        }
+        .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+
+        .btn-nav {
+            text-decoration: none; color: #f8fafc; font-weight: 700; font-size: 13px;
+            padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08); display: inline-flex; align-items: center; gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-nav:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .container { max-width: 800px; margin: 24px auto; padding: 0 14px; }
+
+        .cart-wrapper {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 24px; border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+        .section-header {
+            color: var(--dark); font-size: 22px; text-align: center;
+            margin-bottom: 20px; font-weight: 800; letter-spacing: -0.3px;
+            border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;
+        }
+
+        .cart-item-card {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 14px; margin-bottom: 14px; display: flex; align-items: center;
+            justify-content: space-between; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            flex-wrap: wrap;
+        }
+        .cart-item-left { display: flex; align-items: center; gap: 12px; }
+        .cart-item-thumb {
+            width: 70px; height: 70px; object-fit: cover; border-radius: 8px;
+            border: 1px solid #cbd5e1; background: #f8fafc; flex-shrink: 0;
+        }
+        .cart-item-info h4 { font-size: 16px; color: var(--dark); font-weight: 800; margin-bottom: 2px; }
+        .cart-item-info p { font-size: 13px; color: #64748b; margin-bottom: 2px; }
+        .cart-item-info .price-line { font-size: 14px; font-weight: 700; color: var(--primary); }
+
+        .qty-control-box {
+            display: flex; align-items: center; gap: 8px; background: #f8fafc;
+            border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 20px;
+        }
+        .btn-qty {
+            background: #e2e8f0; border: none; width: 26px; height: 26px;
+            border-radius: 50%; font-weight: bold; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; font-size: 14px;
+        }
+        .qty-val { font-weight: 800; font-size: 14px; min-width: 40px; text-align: center; }
+
+        .cart-item-right { display: flex; align-items: center; gap: 12px; }
+        .item-total-price { font-size: 16px; font-weight: 800; color: #15803d; }
+        .btn-del-item {
+            background: #fee2e2; color: #b91c1c; border: none;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .btn-del-item:hover { background: #ef4444; color: #fff; }
+
+        .cart-bill-box {
+            background: linear-gradient(135deg, #fef08a 0%, #fef9c3 100%);
+            border: 1px solid #facc15; padding: 16px; border-radius: 12px;
+            margin-top: 20px; font-size: 16px; color: #854d0e; font-weight: 800;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .btn-proceed-order {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #10b981, #059669);
+            color: white; font-size: 17px; font-weight: 800; border: none; border-radius: 10px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 18px; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); text-decoration: none;
+        }
+
+        .empty-cart-state {
+            text-align: center; padding: 45px 20px; color: #64748b;
+        }
+        .empty-cart-state i { font-size: 48px; color: #94a3b8; margin-bottom: 14px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a class="nav-brand" href="index.html">
+            <div class="nav-logo-box">
+                <i class="fa-solid fa-print" style="color:var(--primary); font-size:20px;"></i>
+            </div>
+            <h2>दिल्ली प्रेस</h2>
+        </a>
+        <div>
+            <a href="index.html" class="btn-nav"><i class="fa-solid fa-arrow-left"></i> कैटलॉग पर वापस जाएं</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="cart-wrapper">
+            <div class="section-header">
+                <i class="fa-solid fa-cart-shopping" style="color:var(--primary);"></i> आपका शॉपिंग कार्ट
+            </div>
+
+            <div id="cartItemsContainer"></div>
+
+            <div class="cart-bill-box" id="cartBillBox" style="display:none;">
+                <span>कुल अनुमानित बिल:</span>
+                <span id="cartGrandTotal">₹0</span>
+            </div>
+
+            <button type="button" class="btn-proceed-order" id="btnProceedOrder" style="display:none;" onclick="proceedSelectedToOrder()">
+                <i class="fa-solid fa-file-pen"></i> इस कार्ड का मैटर भरें व ऑर्डर करें
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='70' height='70' viewBox='0 0 70 70'><rect width='70' height='70' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='10' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card</text></svg>";
+
+        function loadCartUI() {
+            const container = document.getElementById('cartItemsContainer');
+            const billBox = document.getElementById('cartBillBox');
+            const proceedBtn = document.getElementById('btnProceedOrder');
+
+            let cart = [];
+            try {
+                cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+            } catch (e) { cart = []; }
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart-state">
+                        <i class="fa-solid fa-cart-arrow-down"></i>
+                        <h3>आपका कार्ट अभी खाली है!</h3>
+                        <p style="font-size:13px; margin: 8px 0 16px 0;">कैटलॉग से अपनी पसंद का शादी कार्ड कार्ट में जोड़ें।</p>
+                        <a href="index.html#showcaseSection" class="btn-nav" style="background:var(--primary-gradient); color:#fff; border:none; padding:10px 20px;">कैटलॉग देखें</a>
+                    </div>
+                `;
+                billBox.style.display = 'none';
+                proceedBtn.style.display = 'none';
+                return;
+            }
+
+            billBox.style.display = 'flex';
+            proceedBtn.style.display = 'flex';
+
+            let grandTotal = 0;
+
+            container.innerHTML = cart.map((item, idx) => {
+                const qty = item.quantity || 100;
+                const rate = item.rate || 0;
+                const itemTotal = qty * rate;
+                grandTotal += itemTotal;
+                const img = item.image || safeCardPlaceholder;
+
+                return `
+                    <div class="cart-item-card">
+                        <div class="cart-item-left">
+                            <img src="${img}" class="cart-item-thumb" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                            <div class="cart-item-info">
+                                <h4>${item.name || 'शादी कार्ड'}</h4>
+                                <p>मॉडल: ${item.model || '-'}</p>
+                                <div class="price-line">₹${rate} / पीस</div>
+                            </div>
+                        </div>
+
+                        <div class="qty-control-box">
+                            <button type="button" class="btn-qty" onclick="changeQty(${idx}, -50)">-</button>
+                            <span class="qty-val">${qty}</span>
+                            <button type="button" class="btn-qty" onclick="changeQty(${idx}, 50)">+</button>
+                        </div>
+
+                        <div class="cart-item-right">
+                            <div class="item-total-price">₹${itemTotal}</div>
+                            <button type="button" class="btn-del-item" onclick="removeCartItem(${idx})" title="हटाएं">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('cartGrandTotal').innerText = `₹${grandTotal.toLocaleString('en-IN')}`;
+        }
+
+        function changeQty(index, delta) {
+            try {
+                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                if (cart[index]) {
+                    cart[index].quantity = Math.max(50, (cart[index].quantity || 100) + delta);
+                    localStorage.setItem('dp_cart_items', JSON.stringify(cart));
+                    loadCartUI();
+                }
+            } catch (e) {}
+        }
+
+        function removeCartItem(index) {
+            try {
+                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                cart.splice(index, 1);
+                localStorage.setItem('dp_cart_items', JSON.stringify(cart));
+                loadCartUI();
+            } catch (e) {}
+        }
+
+        function proceedSelectedToOrder() {
+            try {
+                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                if (cart.length === 0) return;
+                
+                // पहले कार्ड का डेटा ऑर्डर फॉर्म में ऑटो-फिल के लिए भेजें
+                const firstItem = cart[0];
+                const cardData = {
+                    id: firstItem.id || '',
+                    name: firstItem.name || 'शादी कार्ड',
+                    model: firstItem.model || '',
+                    rate: firstItem.rate || 0,
+                    image: firstItem.image || ''
+                };
+                localStorage.setItem('order_selected_card', JSON.stringify(cardData));
+                window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
+            } catch (e) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', loadCartUI);
+    </script>
+</body>
+</html>
