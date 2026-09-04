@@ -116,7 +116,7 @@
             display: none; justify-content: center; align-items: center; z-index: 9999; padding: 15px;
         }
         .modal-content {
-            background: white; width: 100%; max-width: 700px; max-height: 92vh;
+            background: white; width: 100%; max-width: 720px; max-height: 92vh;
             border-radius: 14px; overflow-y: auto; padding: 22px; position: relative;
             box-shadow: 0 20px 40px rgba(0,0,0,0.35);
         }
@@ -166,15 +166,12 @@
 
             <!-- TAB BUTTONS: 1. Left (Orders), 2. Center (Catalog), 3. Right (Customers) -->
             <div class="nav-tabs">
-                <!-- 1. LEFT: ग्राहक ऑर्डर्स -->
                 <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')">
                     <i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स
                 </button>
-                <!-- 2. CENTER: कैटलॉग व स्टॉक -->
                 <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')">
                     <i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक
                 </button>
-                <!-- 3. RIGHT: पंजीकृत ग्राहक -->
                 <button type="button" class="tab-btn" id="tabBtnCustomers" onclick="switchAdminTab('customers')">
                     <i class="fa-solid fa-users"></i> पंजीकृत ग्राहक
                 </button>
@@ -335,7 +332,7 @@
             });
         }
 
-        /* 1. लोड ग्राहक ऑर्डर्स (Supabase + LocalStorage Fail-Safe Sync) */
+        /* 1. लोड ग्राहक ऑर्डर्स (Direct Fetch without brittle query sorting) */
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
@@ -344,43 +341,33 @@
 
             let orders = [];
 
-            // Supabase से फ़ेच करें (सुरक्षित टाइमआउट के साथ)
             if (supabaseClient) {
                 try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
-                    let queryPromise = supabaseClient.from('orders').select('*');
-                    
-                    // sorting without crashing if column name differs
-                    try {
-                        queryPromise = queryPromise.order('id', { ascending: false });
-                    } catch (e) {}
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 4000));
+                    const fetchPromise = supabaseClient.from('orders').select('*');
 
-                    const res = await Promise.race([queryPromise, timeoutPromise]);
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
                     if (res && res.data && res.data.length > 0) {
                         orders = res.data;
+                        // Client-side Sort (Newest first)
+                        orders.sort((a, b) => {
+                            const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
+                            const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
+                            return timeB - timeA;
+                        });
                     }
                 } catch (e) {
                     console.warn("Supabase fetch order warn:", e);
                 }
             }
 
-            // LocalStorage ऑर्डर्स को सिंक करें
-            try {
-                const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                localList.forEach(lo => {
-                    if (!orders.some(o => String(o.id) === String(lo.id))) {
-                        orders.unshift(lo);
-                    }
-                });
-
-                const tempOrd = localStorage.getItem('dp_temp_order');
-                if (tempOrd) {
-                    const parsed = JSON.parse(tempOrd);
-                    if (!orders.some(o => String(o.id) === String(parsed.id))) {
-                        orders.unshift(parsed);
-                    }
-                }
-            } catch (err) {}
+            // यदि डेटाबेस खाली या ऑफ़लाइन है, तो लोकल स्टोरेज चेक करें
+            if (orders.length === 0) {
+                try {
+                    const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
+                    orders = localList;
+                } catch (err) {}
+            }
 
             globalOrdersCache = orders;
 
@@ -436,9 +423,8 @@
             }).join('');
         }
 
-        /* 2. अपडेट आर्डर स्टेटस (Instant Local, UI + Supabase sync) */
+        /* 2. अपडेट आर्डर स्टेटस */
         async function updateOrderStatus(id, newStatus) {
-            // UI और मेमोरी कैशे को तुरंत अपडेट करें
             const target = globalOrdersCache.find(o => String(o.id) === String(id));
             if (target) {
                 target.status = newStatus;
@@ -449,7 +435,6 @@
                 }
             }
 
-            // LocalStorage में स्टेटस सुरक्षित करें
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 const lo = localOrders.find(o => String(o.id) === String(id));
@@ -460,13 +445,9 @@
                 }
             } catch (e) {}
 
-            // Supabase डेटाबेस में अपडेट करें
             if (supabaseClient) {
                 try {
-                    const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
-                    if (error) {
-                        console.warn("Supabase Status update error:", error);
-                    }
+                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
                 } catch (e) {
                     console.error("Network error on status update:", e);
                 }
