@@ -472,7 +472,10 @@
 
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
-            if (!supabaseClient) return;
+            if (!supabaseClient) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
+                return;
+            }
 
             const tables = ['cards_catalog', 'catalog', 'cards'];
             let fetchedData = null;
