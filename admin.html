@@ -54,6 +54,10 @@
         .in-stock { background: #dcfce7; color: #15803d; }
         .out-stock { background: #fee2e2; color: #b91c1c; }
 
+        .btn-stock-toggle { border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
+        .btn-stock-in { background: #27ae60; }
+        .btn-stock-out { background: #d35400; }
+
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .tab-btn { flex: 1; min-width: 130px; padding: 10px; background: #e2e8f0; color: #334155; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
         .tab-btn.active { background: var(--primary); color: white; }
@@ -114,20 +118,27 @@
                             <div class="form-group" style="flex: 1; min-width: 150px;"><label>कार्ड का नाम:</label><input type="text" id="admCardName" required></div>
                             <div class="form-group" style="flex: 1; min-width: 150px;"><label>मॉडल:</label><input type="text" id="admCardModel" required></div>
                             <div class="form-group" style="width: 110px;"><label>रेट (₹):</label><input type="number" id="admCardRate" step="any" required></div>
+                            <div class="form-group" style="width: 130px;">
+                                <label>स्टॉक स्थिति:</label>
+                                <select id="admCardStock">
+                                    <option value="true">उपलब्ध (In Stock)</option>
+                                    <option value="false">स्टॉक समाप्त (Out)</option>
+                                </select>
+                            </div>
                             <div class="form-group" style="flex: 1; min-width: 160px;"><label>फोटो:</label><input type="file" id="admCardFile" accept="image/*" required></div>
                         </div>
                         <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
                     </form>
                 </div>
                 <table class="admin-table">
-                    <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>रेट</th><th>स्टॉक</th><th>बदलाव</th><th>हटाएं</th></tr></thead>
+                    <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>रेट</th><th>स्टॉक स्थिति</th><th>स्टॉक बदलें</th><th>हटाएं</th></tr></thead>
                     <tbody id="catalogTableBody"></tbody>
                 </table>
             </div>
 
             <div id="tabOrdersSection" style="display: none;">
                 <table class="admin-table">
-                    <thead><tr><th>दिनांक</th><th>कार्ड</th><th>ग्राहक</th><th>वर-वधू</th><th>बिल/एडवांस/बाकी</th><th>स्टेटस</th><th>रसीद</th><th>हटाएं</th></tr></thead>
+                    <thead><tr><th>दिनांक</th><th>कार्ड</th><th>ग्राहक</th><th>वर-वधू</th><th>बिल/एडवांस/बाकी</th><th>प्रिंटिंग स्टेटस</th><th>रसीद</th><th>हटाएं</th></tr></thead>
                     <tbody id="ordersTableBody"></tbody>
                 </table>
             </div>
@@ -229,10 +240,10 @@
                 const isStock = c.in_stock !== false;
                 return `
                     <tr>
-                        <td><img src="${img}" style="width:40px;height:40px;object-fit:cover;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'"></td>
+                        <td><img src="${img}" style="width:45px;height:45px;object-fit:cover;border-radius:4px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'"></td>
                         <td><b>${c.name || c.title || ''}</b></td>
                         <td>${c.model || c.code || ''}</td>
-                        <td>₹${c.rate || c.price || 0}</td>
+                        <td style="color:var(--primary); font-weight:bold;">₹${c.rate || c.price || 0}</td>
                         <td><span class="stock-badge ${isStock ? 'in-stock' : 'out-stock'}">${isStock ? 'उपलब्ध' : 'समाप्त'}</span></td>
                         <td><button class="btn-stock-toggle ${isStock ? 'btn-stock-out' : 'btn-stock-in'}" onclick="toggleCardStock(${c.id}, ${!isStock})">${isStock ? 'Out करें' : 'In करें'}</button></td>
                         <td><button class="btn-del" onclick="deleteCatalogCard(${c.id})"><i class="fa-solid fa-trash"></i></button></td>
@@ -243,20 +254,40 @@
 
         async function handleAddNewCatalogCard(e) {
             e.preventDefault();
-            const name = document.getElementById('admCardName').value;
-            const model = document.getElementById('admCardModel').value;
-            const rate = parseFloat(document.getElementById('admCardRate').value);
+            const btn = document.getElementById('addCardSubmitBtn');
+            btn.innerText = "अपलोड हो रहा है...";
+            btn.disabled = true;
+
+            const name = document.getElementById('admCardName').value.trim();
+            const model = document.getElementById('admCardModel').value.trim();
+            const rate = parseFloat(document.getElementById('admCardRate').value) || 0;
+            const in_stock = document.getElementById('admCardStock').value === 'true';
             const file = document.getElementById('admCardFile').files[0];
 
-            const reader = new FileReader();
-            reader.onload = async function(evt) {
+            let imageUrl = "https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ";
+
+            const saveRecord = async (imgUrl) => {
                 if (supabaseClient) {
-                    await supabaseClient.from(activeCatalogTable).insert([{ name, model, rate, in_stock: true, image: evt.target.result }]);
+                    try {
+                        await supabaseClient.from(activeCatalogTable).insert([{ name, model, rate, in_stock, image: imgUrl }]);
+                    } catch (err) {}
                 }
-                alert("नया कार्ड जुड़ गया!");
+                document.getElementById('newCardForm').reset();
+                btn.innerText = "+ सुरक्षित करें";
+                btn.disabled = false;
+                alert("नया कार्ड कैटलॉग में सफलतापूर्वक जोड़ दिया गया है!");
                 loadCatalogStock();
             };
-            if (file) reader.readAsDataURL(file);
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(evt) {
+                    await saveRecord(evt.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await saveRecord(imageUrl);
+            }
         }
 
         async function toggleCardStock(id, newStatus) {
@@ -267,7 +298,7 @@
         }
 
         async function deleteCatalogCard(id) {
-            if (confirm("हटाएं?") && supabaseClient) {
+            if (confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?") && supabaseClient) {
                 await supabaseClient.from(activeCatalogTable).delete().eq('id', id);
                 loadCatalogStock();
             }
@@ -291,76 +322,14 @@
             } catch (e) {}
 
             globalOrdersCache = orders;
-            if (orders.length === 0) { tbody.innerHTML = '<tr><td colspan="8">कोई आर्डर नहीं।</td></tr>'; return; }
+            if (orders.length === 0) { tbody.innerHTML = '<tr><td colspan="8">कोई आर्डर नहीं मिला।</td></tr>'; return; }
 
-            tbody.innerHTML = orders.map(o => `
-                <tr>
-                    <td>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</td>
-                    <td><b>${o.card_title || o.card_name || 'शादी कार्ड'}</b></td>
-                    <td>${o.customer_name || ''}<br>${o.mobile || o.phone || ''}</td>
-                    <td>${o.groom_name || '-'} संग ${o.bride_name || '-'}</td>
-                    <td>कुल: ₹${o.total_amount || 0}<br>बाकी: ₹${o.balance_amount || 0}</td>
-                    <td><span class="status-badge status-pending">${o.status || 'Pending'}</span></td>
-                    <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')"><i class="fa-solid fa-receipt"></i> रसीद</button></td>
-                    <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `).join('');
-        }
-
-        async function deleteAdminOrder(id) {
-            if (confirm("आर्डर हटाएं?") && supabaseClient) {
-                await supabaseClient.from('orders').delete().eq('id', id);
-                loadAdminOrders();
-            }
-        }
-
-        async function loadRegisteredCustomers() {
-            const tbody = document.getElementById('customersTableBody');
-            if (!supabaseClient) return;
-            const { data } = await supabaseClient.from('users').select('*');
-            if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">कोई ग्राहक नहीं।</td></tr>'; return; }
-
-            tbody.innerHTML = data.map((u, i) => `
-                <tr>
-                    <td>${i+1}</td>
-                    <td><b>${u.name || u.customer_name || ''}</b></td>
-                    <td>${u.mobile || u.phone || ''}</td>
-                    <td>${u.address || ''}</td>
-                    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('hi-IN') : '-'}</td>
-                    <td><button class="btn-del" onclick="deleteCustomerUser('${u.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `).join('');
-        }
-
-        async function deleteCustomerUser(id) {
-            if (confirm("ग्राहक हटाएं?") && supabaseClient) {
-                await supabaseClient.from('users').delete().eq('id', id);
-                loadRegisteredCustomers();
-            }
-        }
-
-        function openOrderReceiptModal(id) {
-            const order = globalOrdersCache.find(o => String(o.id) === String(id));
-            if (!order) return;
-            const img = order.card_image || order.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';
-            document.getElementById('printableReceiptArea').innerHTML = `
-                <div class="receipt-header"><h2>दिल्ली प्रेस रसीद</h2></div>
-                <div class="receipt-row"><span>ग्राहक:</span><b>${order.customer_name || '-'}</b></div>
-                <div class="receipt-row"><span>मोबाइल:</span><b>${order.mobile || order.phone || '-'}</b></div>
-                <div class="card-preview-box"><img src="${img}"><div><h4>${order.card_title || order.card_name || 'शादी कार्ड'}</h4></div></div>
-                <div class="receipt-row"><span>कुल राशि:</span><b>₹${order.total_amount || 0}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया:</span><b>₹${order.balance_amount || 0}</b></div>
-            `;
-            document.getElementById('orderModal').style.display = 'flex';
-        }
-
-        function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
-        function downloadReceiptPDF() {
-            html2pdf().from(document.getElementById('printableReceiptArea')).save('Receipt.pdf');
-        }
-        function printReceiptDirect() {
-            window.print();
-        }
-    </script>
-</body>
-</html>
+            tbody.innerHTML = orders.map(o => {
+                const status = o.status || 'Pending';
+                return `
+                    <tr>
+                        <td>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</td>
+                        <td><b>${o.card_title || o.card_name || 'शादी कार्ड'}</b></td>
+                        <td>${o.customer_name || ''}<br>📞 ${o.mobile || o.phone || ''}</td>
+                        <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
+                    
