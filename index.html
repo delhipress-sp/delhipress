@@ -94,6 +94,34 @@
             box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
         }
 
+        /* Cart Icon Button */
+        .btn-cart-nav {
+            position: relative;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-cart-nav:hover { background: rgba(255, 255, 255, 0.2); }
+        .cart-badge-count {
+            background: var(--primary);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
         .nav-menu { display: flex; list-style: none; align-items: center; gap: 8px; }
         .nav-menu a {
             text-decoration: none; color: #f8fafc; font-weight: 600; font-size: 13px;
@@ -201,14 +229,23 @@
         .in-stock { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .out-stock { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
         
+        .card-actions-row { display: flex; gap: 6px; margin-top: 10px; }
         .btn-select-card {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; padding: 9px; background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white !important; border: none; font-size: 13px; font-weight: 700;
-            border-radius: 8px; cursor: pointer; margin-top: 10px; text-decoration: none;
-            transition: 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            flex: 1.5; display: flex; align-items: center; justify-content: center; gap: 5px;
+            padding: 8px 6px; background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white !important; border: none; font-size: 12px; font-weight: 700;
+            border-radius: 8px; cursor: pointer; text-decoration: none;
+            transition: 0.2s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
         }
         .btn-select-card:hover { background: #1d6fa5; }
+
+        .btn-add-cart-single {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 8px 6px; background: #f1f5f9; border: 1px solid #cbd5e1;
+            color: #1e293b; font-size: 12px; font-weight: 700; border-radius: 8px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-add-cart-single:hover { background: #e2e8f0; border-color: #94a3b8; }
 
         .info-card {
             background: var(--glass-bg);
@@ -271,6 +308,7 @@
             background: none; border: none; color: #cbd5e1; text-decoration: none;
             text-align: center; font-size: 11px; font-weight: 600;
             display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+            position: relative;
         }
         .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
 
@@ -308,20 +346,20 @@
         .zoom-img:active { cursor: grabbing; }
 
         .zoom-controls {
-            padding: 14px 20px; display: flex; gap: 12px;
-            align-items: center; justify-content: center; z-index: 10;
+            padding: 14px 20px; display: flex; gap: 10px;
+            align-items: center; justify-content: center; z-index: 10; flex-wrap: wrap;
         }
         .zoom-btn {
             background: rgba(255, 255, 255, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25);
-            width: 44px; height: 44px; border-radius: 50%; font-size: 16px;
+            width: 42px; height: 42px; border-radius: 50%; font-size: 16px;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
             transition: 0.2s;
         }
         .zoom-btn:hover { background: var(--primary); }
         .zoom-select-btn {
             background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;
-            padding: 10px 22px; border-radius: 25px; font-weight: bold;
-            font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
+            padding: 10px 20px; border-radius: 25px; font-weight: bold;
+            font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
 
@@ -355,6 +393,14 @@
         </a>
 
         <div class="nav-right-cluster">
+            <!-- कार्ट बटन (Navbar) -->
+            <a href="cart.html" class="btn-cart-nav" title="कार्ट देखें">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span data-i18n="nav_cart">कार्ट</span>
+                <span class="cart-badge-count" id="navCartBadge">0</span>
+            </a>
+
+            <!-- भाषा टॉगल -->
             <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
                 <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
             </button>
@@ -453,16 +499,25 @@
             <button type="button" class="zoom-btn" onclick="applyZoom(0.25)" title="ज़ूम इन"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
             <button type="button" class="zoom-btn" onclick="applyZoom(-0.25)" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
             <button type="button" class="zoom-btn" onclick="resetZoom()" title="सामान्य आकार"><i class="fa-solid fa-rotate-left"></i></button>
+            <button type="button" class="zoom-select-btn" onclick="addCurrentZoomToCart()" style="background:#2563eb;">
+                <i class="fa-solid fa-cart-plus"></i> <span data-i18n="btn_add_cart">कार्ट में जोड़ें</span>
+            </button>
             <button type="button" id="zoomOrderBtn" class="zoom-select-btn" onclick="redirectToOrderFromZoom()">
                 <i class="fa-solid fa-pen-to-square"></i> <span data-i18n="btn_order_this">यह कार्ड ऑर्डर करें</span>
             </button>
         </div>
     </div>
 
+    <!-- मोबाइल बॉटम बार (कार्ट विकल्प सहित) -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span data-i18n="call_us">कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span data-i18n="nav_catalog">कैटलॉग</span></a>
-        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" style="color:var(--primary);"><i class="fa-solid fa-cart-shopping"></i><span data-i18n="nav_order">ऑर्डर करें</span></a>
+        <a href="cart.html">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span data-i18n="nav_cart">कार्ट</span>
+            <span class="cart-badge-count" id="mobileCartBadge" style="position:absolute; top:2px; right:20%;">0</span>
+        </a>
+        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" style="color:var(--primary);"><i class="fa-solid fa-file-pen"></i><span data-i18n="nav_order">ऑर्डर</span></a>
         <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user" id="mobileAuthIcon"></i><span id="mobileAuthText" data-i18n="nav_login">लॉगिन</span></a>
     </div>
 
@@ -520,7 +575,6 @@
 
         const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='185' height='155' viewBox='0 0 185 155'><rect width='185' height='155' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='12' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Image</text></svg>";
 
-        /* Bilingual Translations Dictionary */
         const translations = {
             hi: {
                 lang_toggle: "English",
@@ -531,6 +585,7 @@
                 nav_about: "हमारे बारे में",
                 nav_location: "शॉप लोकेशन",
                 nav_order: "ऑर्डर फॉर्म",
+                nav_cart: "कार्ट",
                 nav_login: "लॉगिन",
                 nav_my_orders: "मेरे ऑर्डर्स",
                 notice_text: "नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।",
@@ -544,7 +599,8 @@
                 db_error: "डेटाबेस कनेक्ट नहीं हो पाया।",
                 in_stock_txt: "उपलब्ध (In Stock)",
                 out_stock_txt: "स्टॉक समाप्त (Out)",
-                btn_select: "यह कार्ड चुनें",
+                btn_select: "ऑर्डर करें",
+                btn_add_cart: "कार्ट में जोड़ें",
                 zoom_hint_btn: "बड़ा देखें",
                 about_title: "हमारे बारे में (About Delhi Press)",
                 about_desc: "दिल्ली प्रेस (सज्जाद प्रिंटर्स) जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।",
@@ -563,7 +619,8 @@
                 services_list: "शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं",
                 copyright_text: "© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।",
                 footer_admin: "एडमिन",
-                login_alert: "ऑर्डर करने के लिए कृपया पहले लॉगिन करें।"
+                login_alert: "ऑर्डर करने के लिए कृपया पहले लॉगिन करें।",
+                cart_added_alert: "कार्ड कार्ट में सुरक्षित जोड़ दिया गया है!"
             },
             en: {
                 lang_toggle: "हिन्दी",
@@ -574,6 +631,7 @@
                 nav_about: "About Us",
                 nav_location: "Shop Location",
                 nav_order: "Order Form",
+                nav_cart: "Cart",
                 nav_login: "Login",
                 nav_my_orders: "My Orders",
                 notice_text: "Note: Please verify the full matter thoroughly before printing; corrections cannot be made later.",
@@ -587,7 +645,8 @@
                 db_error: "Database connection failed.",
                 in_stock_txt: "Available (In Stock)",
                 out_stock_txt: "Out of Stock",
-                btn_select: "Select This Card",
+                btn_select: "Order Now",
+                btn_add_cart: "Add to Cart",
                 zoom_hint_btn: "View Larger",
                 about_title: "About Us (About Delhi Press)",
                 about_desc: "Delhi Press (Sajad Printers) is a trusted and reputed digital printing firm located in Karmatar, Jamtara. We are committed to premium quality, creative design, and timely delivery.",
@@ -606,7 +665,8 @@
                 services_list: "Wedding Cards | Flex Banners | Visiting Cards | Bill Books | Online Services",
                 copyright_text: "© 2026 Delhi Press (Sajad Printers). All rights reserved.",
                 footer_admin: "Admin",
-                login_alert: "Please login first to place an order."
+                login_alert: "Please login first to place an order.",
+                cart_added_alert: "Card added to cart successfully!"
             }
         };
 
@@ -639,8 +699,54 @@
             window.location.href = "order.html";
         }
 
+        /* Cart Badge Management */
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const count = cart.length;
+                const navBadge = document.getElementById('navCartBadge');
+                const mobBadge = document.getElementById('mobileCartBadge');
+                if (navBadge) navBadge.innerText = count;
+                if (mobBadge) mobBadge.innerText = count;
+            } catch (e) {}
+        }
+
+        function addToCart(index) {
+            const card = globalCards[index];
+            if (!card) return;
+
+            try {
+                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const existing = cart.find(item => String(item.id) === String(card.id));
+                if (existing) {
+                    existing.quantity = (existing.quantity || 100) + 100;
+                } else {
+                    cart.push({
+                        id: card.id || Date.now(),
+                        name: card.name || card.title || 'शादी कार्ड',
+                        model: card.model || card.code || '',
+                        rate: parseFloat(card.rate || card.price) || 0,
+                        image: card.image || card.image_url || card.photo || '',
+                        quantity: 100
+                    });
+                }
+                localStorage.setItem('dp_cart_items', JSON.stringify(cart));
+                updateCartBadges();
+                alert(translations[currentLang].cart_added_alert);
+            } catch (e) {}
+        }
+
+        function addCurrentZoomToCart() {
+            if (!currentZoomCard) return;
+            const index = globalCards.indexOf(currentZoomCard);
+            if (index !== -1) {
+                addToCart(index);
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
             checkUserAuthUI();
+            updateCartBadges();
             await loadCatalog();
         });
 
@@ -730,9 +836,14 @@
                         <div class="model-text">${model}</div>
                         <div class="card-price-tag">₹${rate} / ${currentLang === 'hi' ? 'पीस' : 'pc'}</div>
                         <div style="margin-bottom: 6px;">${stockBadge}</div>
-                        <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
-                            <i class="fa-solid fa-check"></i> ${translations[currentLang].btn_select}
-                        </button>
+                        <div class="card-actions-row">
+                            <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
+                                <i class="fa-solid fa-bolt"></i> ${translations[currentLang].btn_select}
+                            </button>
+                            <button type="button" class="btn-add-cart-single" onclick="addToCart(${index})" title="कार्ट में जोड़ें">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(cardDiv);
