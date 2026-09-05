@@ -191,7 +191,7 @@
     <div class="modal-overlay" id="orderModal">
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h3 style="color:var(--primary); font-size:18px; font-weight:800;">ऑर्डर एवं सम्पूर्ण मैटर रसीद</h3>
+                <h3 style="color:var(--primary); font-size:18px; font-weight:800;">ऑर्डर एवं सम्पूर्ण शादी मैटर रसीद</h3>
                 <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
             </div>
             <div id="printableReceiptArea" class="receipt-container"></div>
@@ -204,7 +204,7 @@
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
         try {
@@ -330,23 +330,55 @@
             const o = globalOrdersCache.find(x => String(x.id) === String(id));
             if (!o) return;
 
+            // Payment Receipt / Screenshot Image Preview
+            let receiptPicHtml = '';
+            if (o.payment_receipt && o.payment_receipt.trim() !== '') {
+                receiptPicHtml = `
+                    <div style="margin-top:14px; padding:10px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; text-align:center;">
+                        <div style="font-weight:bold; color:#1e293b; margin-bottom:6px; font-size:13px;">
+                            <i class="fa-solid fa-image" style="color:var(--primary);"></i> ग्राहक द्वारा भेजी गई भुगतान रसीद / स्क्रीनशॉट:
+                        </div>
+                        <a href="${o.payment_receipt}" target="_blank" title="बड़ा देखने के लिए क्लिक करें">
+                            <img src="${o.payment_receipt}" style="max-width:100%; max-height:280px; border-radius:6px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.1); display:inline-block; margin-top:4px;">
+                        </a>
+                        <p style="font-size:11px; color:#64748b; margin-top:4px;">(फ़ोटो को पूरा बड़ा देखने के लिए उस पर क्लिक करें)</p>
+                    </div>
+                `;
+            } else {
+                receiptPicHtml = `
+                    <div style="margin-top:10px; font-size:12px; color:#64748b; font-style:italic;">
+                        कोई रसीद संलग्न नहीं है (COD या बिना स्क्रीनशॉट का भुगतान)।
+                    </div>
+                `;
+            }
+
             document.getElementById('printableReceiptArea').innerHTML = `
                 <div class="receipt-header">
                     <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; margin:0;">ईदगाह मोड़, करमाटांड़, जामताड़ा | 9304509464</p>
+                    <p style="font-size:11px; margin:0;">ईदगाह मोड़, करमाटांड़, जामताड़ा | मो: 9304509464</p>
                 </div>
-                <div class="receipt-row"><span>ऑर्डर ID:</span><b>#${o.id}</b></div>
-                <div class="receipt-row"><span>ग्राहक:</span><b>${o.customer_name || '-'} (${o.mobile || '-'})</b></div>
-                <div class="receipt-row"><span>पता:</span><b>${o.address || '-'}</b></div>
-                <div class="receipt-section-title">शादी मैटर</div>
-                <div class="receipt-row"><span>वर:</span><b>${o.groom_name || '-'} (पिता: ${o.groom_father || '-'})</b></div>
-                <div class="receipt-row"><span>वधू:</span><b>${o.bride_name || '-'} (पिता: ${o.bride_father || '-'})</b></div>
-                <div style="font-size:12px; background:#f8fafc; padding:8px; margin:6px 0; border:1px solid #eee; white-space:pre-wrap;">${o.custom_notes || 'कोई मैटर नहीं'}</div>
-                <div class="receipt-section-title">बिल विवरण</div>
+                <div class="receipt-row"><span><b>ऑर्डर ID:</b></span><b>#${o.id}</b></div>
+                <div class="receipt-row"><span><b>दिनांक:</b></span><span>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : 'हाल ही में'}</span></div>
+                <div class="receipt-row"><span><b>ग्राहक नाम:</b></span><b>${o.customer_name || '-'}</b></div>
+                <div class="receipt-row"><span><b>मोबाइल:</b></span><b>${o.mobile || '-'}</b></div>
+                <div class="receipt-row"><span><b>पता:</b></span><b>${o.address || '-'}</b></div>
+                
+                <div class="receipt-section-title">शादी मैटर विवरण</div>
+                <div class="receipt-row"><span><b>वर (दूल्हा):</b></span><b style="color:var(--primary);">${o.groom_name || '-'} (पिता: ${o.groom_father || '-'})</b></div>
+                <div class="receipt-row"><span><b>वर का पता:</b></span><span>${o.groom_address || '-'}</span></div>
+                <div class="receipt-row"><span><b>वधू (दुल्हन):</b></span><b style="color:var(--secondary);">${o.bride_name || '-'} (पिता: ${o.bride_father || '-'})</b></div>
+                <div class="receipt-row"><span><b>वधू का पता:</b></span><span>${o.bride_address || '-'}</span></div>
+                <div style="font-size:12px; background:#f8fafc; padding:8px; margin:6px 0; border:1px solid #eee; white-space:pre-wrap; border-radius:4px;"><b>विवरण / शायरी / कार्यक्रम:</b><br>${o.custom_notes || 'कोई मैटर नहीं'}</div>
+                
+                <div class="receipt-section-title">बिल एवं भुगतान विवरण</div>
                 <div class="receipt-row"><span>संख्या:</span><b>${o.quantity || 100} पीस</b></div>
-                <div class="receipt-row"><span>कुल बिल:</span><b>₹${o.total_amount || 0}</b></div>
-                <div class="receipt-row"><span>जमा एडवांस:</span><b style="color:green;">₹${o.advance_paid || 0}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया:</span><b style="color:red;">₹${o.balance_amount || 0}</b></div>
+                <div class="receipt-row"><span>कुल बिल राशि:</span><b>₹${o.total_amount || 0}</b></div>
+                <div class="receipt-row"><span>जमा एडवांस राशि:</span><b style="color:green;">₹${o.advance_paid || 0}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया राशि:</span><b style="color:red;">₹${o.balance_amount || 0}</b></div>
+                <div class="receipt-row"><span>भुगतान मोड:</span><b>${o.payment_mode || '-'}</b></div>
+                <div class="receipt-row"><span>UTR / Ref No:</span><b>${o.txn_id || '-'}</b></div>
+                
+                ${receiptPicHtml}
             `;
             document.getElementById('orderModal').style.display = 'flex';
         }
