@@ -58,28 +58,19 @@
         .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
         
         .nav-actions { display: flex; align-items: center; gap: 10px; }
-        .btn-lang-toggle {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 7px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-            transition: all 0.2s ease;
-        }
 
         .btn-nav {
             text-decoration: none; color: #f8fafc; font-weight: 700; font-size: 13px;
             padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.08); display: inline-flex; align-items: center; gap: 6px;
-            transition: 0.2s;
+            transition: 0.2s; cursor: pointer;
         }
+        .btn-nav:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .btn-logout {
+            background: #ef4444; border-color: #f87171; color: white !important;
+        }
+        .btn-logout:hover { background: #dc2626; }
 
         .container { max-width: 850px; margin: 20px auto; padding: 0 14px; }
 
@@ -94,6 +85,7 @@
             cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
             transition: 0.2s;
         }
+        .btn-refresh:hover { background: rgba(255, 255, 255, 0.25); }
 
         .order-card {
             background: var(--glass-bg);
@@ -102,6 +94,7 @@
             border-radius: 16px; margin-bottom: 18px; padding: 18px;
             box-shadow: var(--card-shadow); transition: transform 0.2s ease;
         }
+        .order-card:hover { transform: translateY(-2px); }
 
         .order-card-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -150,6 +143,75 @@
             display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
+        /* Catalog Section at bottom */
+        .bottom-catalog-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 35px;
+            box-shadow: var(--card-shadow);
+        }
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+            margin-top: 15px;
+        }
+        .catalog-item-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .catalog-item-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background: #f8fafc;
+        }
+        .catalog-item-info {
+            padding: 10px;
+            text-align: center;
+        }
+        .catalog-item-info h4 {
+            font-size: 14px;
+            color: #1e293b;
+            margin-bottom: 2px;
+            font-weight: 700;
+        }
+        .catalog-item-info .model-txt {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .catalog-item-info .price-tag {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .btn-order-catalog {
+            width: 100%;
+            padding: 8px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px); display: none; justify-content: center;
@@ -178,6 +240,7 @@
         <div class="nav-actions">
             <a href="order.html" class="btn-nav" style="color:#ffffff; background:var(--primary-gradient); border:none;"><i class="fa-solid fa-plus"></i> नया ऑर्डर</a>
             <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम</a>
+            <button type="button" onclick="logoutCustomer()" class="btn-nav btn-logout"><i class="fa-solid fa-right-from-bracket"></i> लॉगआउट</button>
         </div>
     </nav>
 
@@ -192,15 +255,29 @@
                 <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...
             </div>
         </div>
+
+        <!-- नीचे शादी कार्ड कैटलॉग सेक्शन -->
+        <div class="bottom-catalog-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">
+                <h3 style="color:var(--dark); font-size:18px; font-weight:800;"><i class="fa-solid fa-images" style="color:var(--primary);"></i> उपलब्ध शादी कार्ड कैटलॉग</h3>
+                <a href="index.html#showcaseSection" style="font-size:12px; color:var(--blue); font-weight:bold; text-decoration:none;">पूरा कैटलॉग देखें &rarr;</a>
+            </div>
+            <div class="catalog-grid" id="bottomCatalogContainer">
+                <p style="grid-column: 1/-1; text-align:center; padding:15px; color:#64748b;">कैटलॉग लोड हो रहा है...</p>
+            </div>
+        </div>
     </div>
 
+    <!-- Receipt Modal -->
     <div class="modal-overlay" id="userReceiptModal">
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
                 <h3 style="color:var(--primary); font-size:18px; font-weight:800;">शादी कार्ड ऑर्डर एवं मैटर रसीद</h3>
                 <button type="button" onclick="closeReceiptModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:32px; height:32px; cursor:pointer; font-weight:bold; font-size:16px;">&times;</button>
             </div>
+            
             <div id="printableReceiptArea" class="receipt-container"></div>
+
             <div style="display:flex; gap:10px; margin-top:16px;">
                 <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
                     <i class="fa-solid fa-download"></i> PDF डाउनलोड
@@ -214,7 +291,7 @@
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
         try {
@@ -222,8 +299,12 @@
         } catch (e) {}
 
         let fetchedOrdersList = [];
+        let catalogCardsList = [];
 
-        window.addEventListener('DOMContentLoaded', fetchCustomerOrders);
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchCustomerOrders();
+            loadBottomCatalog();
+        });
 
         async function fetchCustomerOrders() {
             const container = document.getElementById('ordersContainer');
@@ -231,10 +312,14 @@
 
             if (supabaseClient) {
                 try {
-                    const { data, error } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*')
+                        .order('id', { ascending: false });
+
                     if (data && data.length > 0) rawOrders = data;
                 } catch (err) {
-                    console.warn(err);
+                    console.warn("Supabase fetch order error:", err);
                 }
             }
 
@@ -373,9 +458,81 @@
                 margin: 6,
                 filename: 'DelhiPress_Receipt.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                html2canvas: { scale: 2 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).from(element).save();
+        }
+
+        /* नीचे शादी कार्ड कैटलॉग लोड करना */
+        async function loadBottomCatalog() {
+            const container = document.getElementById('bottomCatalogContainer');
+            if (!container) return;
+
+            let cards = [];
+
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('catalog')
+                        .select('*')
+                        .order('id', { ascending: false });
+
+                    if (data && data.length > 0) cards = data;
+                } catch (e) {
+                    console.warn("Catalog fetch error:", e);
+                }
+            }
+
+            try {
+                const local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
+                local.forEach(lc => {
+                    if (!cards.some(c => String(c.id) === String(lc.id))) cards.push(lc);
+                });
+            } catch (err) {}
+
+            catalogCardsList = cards;
+
+            if (cards.length === 0) {
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding:15px; color:#94a3b8;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+                return;
+            }
+
+            container.innerHTML = cards.map((c, i) => `
+                <div class="catalog-item-card">
+                    <img src="${c.image || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'}" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';">
+                    <div class="catalog-item-info">
+                        <h4>${c.name || 'शादी कार्ड'}</h4>
+                        <div class="model-txt">${c.model ? 'मॉडल: ' + c.model : ''}</div>
+                        <div class="price-tag">₹${c.rate || 0} / पीस</div>
+                        <button type="button" class="btn-order-catalog" onclick="orderFromBottomCatalog(${i})">
+                            <i class="fa-solid fa-cart-shopping"></i> ऑर्डर करें
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function orderFromBottomCatalog(index) {
+            const card = catalogCardsList[index];
+            if (!card) return;
+
+            const cardData = {
+                id: card.id || '',
+                name: card.name || 'शादी कार्ड',
+                model: card.model || '',
+                rate: parseFloat(card.rate) || 0,
+                image: card.image || ''
+            };
+
+            localStorage.setItem('order_selected_card', JSON.stringify(cardData));
+            window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
+        }
+
+        function logoutCustomer() {
+            localStorage.removeItem('dp_current_user');
+            localStorage.removeItem('dp_logged_in_user');
+            alert("आप सफलतापूर्वक लॉगआउट हो गए हैं!");
+            window.location.href = "index.html";
         }
     </script>
 </body>
