@@ -59,7 +59,6 @@
 
         .nav-actions { display: flex; align-items: center; gap: 10px; }
 
-        /* Cart Nav Button */
         .btn-cart-nav {
             position: relative;
             background: rgba(255, 255, 255, 0.08);
@@ -201,7 +200,6 @@
             <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
-            <!-- कार्ट बटन (Navbar) -->
             <a href="cart.html" class="btn-cart-nav" title="कार्ट देखें">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <span data-i18n="nav_cart">कार्ट</span>
@@ -240,7 +238,6 @@
                         <span data-i18n="upi_id_label">दुकान की स्थायी UPI ID:</span> <b>9304509464@okbizaxis</b>
                     </p>
                     
-                    <!-- Static (Non-dynamic) QR Code (Pure Static URL) -->
                     <div style="text-align:center;">
                         <div class="qr-wrapper">
                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi%3A%2F%2Fpay%3Fpa%3D9304509464%40okbizaxis%26pn%3DDelhiPress" alt="Static UPI QR">
@@ -257,13 +254,11 @@
                         </div>
                     </div>
 
-                    <!-- UTR / Transaction ID Input -->
                     <div class="form-group" style="margin-top:16px;">
                         <label data-i18n="lbl_utr">भुगतान संदर्भ संख्या (UTR / Transaction ID / Ref No):</label>
                         <input type="text" id="txnIdInput" placeholder="उदा: 4123XXXXXXXX या Cashfree Order ID">
                     </div>
 
-                    <!-- Receipt / Screenshot Upload Input -->
                     <div class="form-group">
                         <label data-i18n="lbl_receipt_upload">भुगतान रसीद / स्क्रीनशॉट अपलोड करें (वैकल्पिक):</label>
                         <input type="file" id="paymentReceiptFile" accept="image/*">
@@ -286,7 +281,7 @@
                 </div>
             </div>
 
-            <button type="button" class="btn-submit-order" onclick="finalizeAndSubmitOrder()">
+            <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="finalizeAndSubmitOrder()">
                 <i class="fa-solid fa-circle-check"></i> <span data-i18n="btn_submit_order">भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें</span>
             </button>
 
@@ -428,6 +423,10 @@
         async function finalizeAndSubmitOrder() {
             if (!pendingOrderData) return;
 
+            const submitBtn = document.getElementById('btnSubmitOrder');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ऑर्डर सुरक्षित हो रहा है...`;
+
             const isUpi = document.getElementById('radioUpi').checked;
             let txnId = "COD (दुकान पर नकद)";
             let receiptFileDataUrl = "";
@@ -437,6 +436,8 @@
                 if (!txnInput) {
                     alert(translations[currentLang].alert_enter_utr);
                     document.getElementById('txnIdInput').focus();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${translations[currentLang].btn_submit_order}</span>`;
                     return;
                 }
                 txnId = txnInput;
@@ -454,7 +455,6 @@
                 }
             }
 
-            // Supabase टेबल के अनुरूप साफ़ ऑब्जेक्ट
             const cleanOrderPayload = {
                 customer_name: pendingOrderData.customer_name || pendingOrderData.name || '',
                 mobile: pendingOrderData.mobile || pendingOrderData.phone || '',
@@ -483,22 +483,27 @@
 
             let savedRecord = cleanOrderPayload;
 
-            // 1. Supabase में सेव करें (Timeout के साथ)
+            // 1. Supabase में सेव करें (Clean Direct Save)
             if (supabaseClient) {
                 try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
-                    const insertPromise = supabaseClient.from('orders').insert([cleanOrderPayload]).select();
-                    const res = await Promise.race([insertPromise, timeoutPromise]);
-                    if (res && res.data && res.data[0]) {
-                        savedRecord = res.data[0];
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .insert([cleanOrderPayload])
+                        .select();
+
+                    if (error) {
+                        console.error("Supabase insert error:", error);
+                    } else if (data && data[0]) {
+                        savedRecord = data[0];
                     }
                 } catch (err) {
-                    console.warn("Supabase save warn / timeout:", err);
+                    console.warn("Supabase network error:", err);
                 }
             }
 
-            // 2. लोकल स्टोरेज में सिंक करें
+            // 2. लोकल स्टोरेज में सिंक करें (ताकि ऑर्डर कभी मिस न हो)
             try {
+                if (!savedRecord.id) savedRecord.id = Date.now();
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localOrders.unshift(savedRecord);
                 localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
@@ -512,4 +517,3 @@
     </script>
 </body>
 </html>
-```[cite: 11]
