@@ -130,15 +130,15 @@
             </div>
 
             <div class="nav-tabs">
-                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स</button>
+                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)</button>
                 <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
             </div>
 
             <!-- TAB 1: ORDERS -->
             <div id="tabOrdersSection">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h4 style="font-weight:800;">प्राप्त ग्राहक ऑर्डर्स</h4>
-                    <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">रिफ्रेश</button>
+                    <h4 style="font-weight:800;">डेटाबेस से प्राप्त ग्राहक ऑर्डर्स</h4>
+                    <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
                 </div>
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
@@ -248,72 +248,82 @@
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="8">ऑर्डर्स लोड हो रहे हैं...</td></tr>';
-            let orders = [];
+            tbody.innerHTML = '<tr><td colspan="8">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
-            if (supabaseClient) {
-                try {
-                    const { data } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
-                    if (data) orders = data;
-                } catch (e) {}
-            }
-
-            try {
-                const local = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                local.forEach(l => { if (!orders.some(o => String(o.id) === String(l.id))) orders.push(l); });
-            } catch (e) {}
-
-            globalOrdersCache = orders;
-
-            if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8">कोई ऑर्डर नहीं मिला।</td></tr>';
+            if (!supabaseClient) {
+                tbody.innerHTML = '<tr><td colspan="8" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = orders.map(o => `
-                <tr>
-                    <td>#${o.id}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</small></td>
-                    <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
-                    <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || '-'}</td>
-                    <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                    <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || 0}</td>
-                    <td>
-                        <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
-                            <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                            <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
-                            <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready</option>
-                        </select>
-                    </td>
-                    <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')">रसीद</button></td>
-                    <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `).join('');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .select('*')
+                    .order('id', { ascending: false });
+
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                globalOrdersCache = data || [];
+
+                if (globalOrdersCache.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = globalOrdersCache.map(o => `
+                    <tr>
+                        <td>#${o.id}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</small></td>
+                        <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
+                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || '-'}</td>
+                        <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
+                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || 0}</td>
+                        <td>
+                            <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
+                                <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready</option>
+                            </select>
+                        </td>
+                        <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')">रसीद</button></td>
+                        <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
+            }
         }
 
         async function updateOrderStatus(id, newStatus) {
+            if (!supabaseClient) return;
             try {
-                let local = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                local.forEach(o => { if (String(o.id) === String(id)) o.status = newStatus; });
-                localStorage.setItem('my_orders_list', JSON.stringify(local));
-            } catch (e) {}
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ status: newStatus })
+                    .eq('id', Number(id));
 
-            if (supabaseClient) {
-                await supabaseClient.from('orders').update({ status: newStatus }).eq('id', Number(id));
+                if (error) alert("स्टेटस अपडेट नहीं हो सका: " + error.message);
+            } catch (e) {
+                alert("नेटवर्क त्रुटि!");
             }
         }
 
         async function deleteAdminOrder(id) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
+            if (!confirm("क्या आप वाकई इस ऑर्डर को डेटाबेस से हटाना चाहते हैं?")) return;
+            if (!supabaseClient) return;
             try {
-                let local = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                local = local.filter(o => String(o.id) !== String(id));
-                localStorage.setItem('my_orders_list', JSON.stringify(local));
-            } catch (e) {}
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .delete()
+                    .eq('id', Number(id));
 
-            if (supabaseClient) {
-                await supabaseClient.from('orders').delete().eq('id', Number(id));
+                if (error) alert("ऑर्डर डिलीट नहीं हो सका: " + error.message);
+                loadAdminOrders();
+            } catch (e) {
+                alert("नेटवर्क त्रुटि!");
             }
-            loadAdminOrders();
         }
 
         function openOrderReceiptModal(id) {
@@ -350,34 +360,34 @@
 
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
-            tbody.innerHTML = '<tr><td colspan="7">लोड हो रहा है...</td></tr>';
-            let cards = [];
-
-            if (supabaseClient) {
-                try {
-                    const { data } = await supabaseClient.from('catalog').select('*').order('id', { ascending: false });
-                    if (data) cards = data;
-                } catch (e) {}
-            }
+            tbody.innerHTML = '<tr><td colspan="7">कैटलॉग लोड हो रहा है...</td></tr>';
+            if (!supabaseClient) return;
 
             try {
-                const local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
-                local.forEach(l => { if (!cards.some(c => String(c.id) === String(l.id))) cards.push(l); });
-            } catch (e) {}
+                const { data, error } = await supabaseClient
+                    .from('catalog')
+                    .select('*')
+                    .order('id', { ascending: false });
 
-            if (cards.length === 0) { tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड नहीं मिला।</td></tr>'; return; }
+                if (error || !data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7">डेटाबेस में कोई कार्ड नहीं मिला। ऊपर दिए फॉर्म से जोड़ें।</td></tr>';
+                    return;
+                }
 
-            tbody.innerHTML = cards.map(c => `
-                <tr>
-                    <td><img src="${c.image || ''}" style="width:45px;height:45px;object-fit:cover;border-radius:4px;"></td>
-                    <td><b>${c.name}</b></td>
-                    <td>${c.model}</td>
-                    <td>₹${c.rate}</td>
-                    <td><span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
-                    <td><button class="btn-stock-toggle" style="background:${c.in_stock ? '#f77f00' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${!c.in_stock})">${c.in_stock ? 'Out करें' : 'In करें'}</button></td>
-                    <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `).join('');
+                tbody.innerHTML = data.map(c => `
+                    <tr>
+                        <td><img src="${c.image || ''}" style="width:45px;height:45px;object-fit:cover;border-radius:4px;"></td>
+                        <td><b>${c.name}</b></td>
+                        <td>${c.model}</td>
+                        <td>₹${c.rate}</td>
+                        <td><span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
+                        <td><button class="btn-stock-toggle" style="background:${c.in_stock ? '#f77f00' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${!c.in_stock})">${c.in_stock ? 'Out करें' : 'In करें'}</button></td>
+                        <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7">कैटलॉग लोड नहीं हो सका।</td></tr>';
+            }
         }
 
         function compressCardImage(file) {
@@ -419,49 +429,30 @@
             const payload = { name, model, rate, in_stock, image: finalImage, created_at: new Date().toISOString() };
 
             if (supabaseClient) {
-                const { data } = await supabaseClient.from('catalog').insert([payload]).select();
-                if (data && data[0]) payload.id = data[0].id;
+                const { error } = await supabaseClient.from('catalog').insert([payload]);
+                if (error) alert("कार्ड डेटाबेस में सेव नहीं हुआ: " + error.message);
+                else alert("कार्ड डेटाबेस में जुड़ गया!");
             }
-
-            try {
-                let local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
-                if (!payload.id) payload.id = Date.now();
-                local.unshift(payload);
-                localStorage.setItem('dp_local_catalog', JSON.stringify(local));
-            } catch (e) {}
 
             btn.innerText = "+ सुरक्षित करें";
             btn.disabled = false;
             document.getElementById('newCardForm').reset();
-            alert("कार्ड सफलतापूर्वक जुड़ गया!");
             loadCatalogStock();
         }
 
         async function toggleCardStock(id, newStatus) {
-            try {
-                let local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
-                local.forEach(c => { if (String(c.id) === String(id)) c.in_stock = newStatus; });
-                localStorage.setItem('dp_local_catalog', JSON.stringify(local));
-            } catch (e) {}
-
             if (supabaseClient) {
                 await supabaseClient.from('catalog').update({ in_stock: newStatus }).eq('id', Number(id));
+                loadCatalogStock();
             }
-            loadCatalogStock();
         }
 
         async function deleteCatalogCard(id) {
             if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
-            try {
-                let local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
-                local = local.filter(c => String(c.id) !== String(id));
-                localStorage.setItem('dp_local_catalog', JSON.stringify(local));
-            } catch (e) {}
-
             if (supabaseClient) {
                 await supabaseClient.from('catalog').delete().eq('id', Number(id));
+                loadCatalogStock();
             }
-            loadCatalogStock();
         }
     </script>
 </body>
