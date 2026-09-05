@@ -248,7 +248,6 @@
             align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px;
         }
 
-        /* Mobile Bottom Bar Matching index.html & my_orders.html */
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: rgba(15, 23, 42, 0.95);
@@ -968,40 +967,41 @@
             const dropdown = document.getElementById('directCardSelect');
             if (!dropdown) return;
 
-            if (!supabaseClient) {
-                dropdown.innerHTML = '<option value="">-- कैटलॉग उपलब्ध नहीं है --</option>';
-                return;
-            }
-
-            const tablesToCheck = ['catalog', 'cards_catalog', 'cards'];
             let fetched = false;
+            let data = [];
 
-            for (const tbl of tablesToCheck) {
+            if (supabaseClient) {
                 try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
-                    const fetchPromise = supabaseClient.from(tbl).select('*');
-                    
-                    const res = await Promise.race([fetchPromise, timeoutPromise]);
-                    const data = res.data;
-
-                    if (data && data.length > 0) {
-                        globalCatalogCards = data;
-                        dropdown.innerHTML = '<option value="">-- कैटलॉग से दूसरा कार्ड चुनें --</option>';
-                        data.forEach(item => {
-                            const opt = document.createElement('option');
-                            opt.value = item.id;
-                            opt.textContent = `${item.name || item.title || 'शादी कार्ड'} (${item.model || item.code || ''}) - ₹${item.rate || item.price || 0}/पीस`;
-                            dropdown.appendChild(opt);
-                        });
+                    const res = await supabaseClient.from('catalog').select('*').order('id', { ascending: false });
+                    if (res && res.data && res.data.length > 0) {
+                        data = res.data;
                         fetched = true;
-                        break;
                     }
                 } catch (e) {
-                    console.warn(`Table ${tbl} fetch failed/timed out:`, e);
+                    console.warn("Dropdown catalog fetch warn:", e);
                 }
             }
 
-            if (!fetched) {
+            try {
+                const local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
+                local.forEach(lc => {
+                    if (!data.some(c => String(c.id) === String(lc.id))) {
+                        data.push(lc);
+                        fetched = true;
+                    }
+                });
+            } catch (err) {}
+
+            if (fetched && data.length > 0) {
+                globalCatalogCards = data;
+                dropdown.innerHTML = '<option value="">-- कैटलॉग से दूसरा कार्ड चुनें --</option>';
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.textContent = `${item.name || 'शादी कार्ड'} (${item.model || ''}) - ₹${item.rate || 0}/पीस`;
+                    dropdown.appendChild(opt);
+                });
+            } else {
                 dropdown.innerHTML = '<option value="">-- कोई कार्ड उपलब्ध नहीं --</option>';
             }
         }
@@ -1095,19 +1095,32 @@
                 orderModel = document.getElementById('previewCardModel').innerText;
                 cardImg = document.getElementById('previewCardImage').src;
                 finalQty = parseInt(document.getElementById('cardQty').value) || 100;
-                groom = document.getElementById('groomName').value;
-                groomF = document.getElementById('groomFather').value;
-                groomA = document.getElementById('groomAddress').value;
-                bride = document.getElementById('brideName').value;
-                brideF = document.getElementById('brideFather').value;
-                brideA = document.getElementById('brideAddress').value;
+                groom = document.getElementById('groomName').value || '-';
+                groomF = document.getElementById('groomFather').value || '-';
+                groomA = document.getElementById('groomAddress').value || '-';
+                bride = document.getElementById('brideName').value || '-';
+                brideF = document.getElementById('brideFather').value || '-';
+                brideA = document.getElementById('brideAddress').value || '-';
                 
                 let notes = [];
+                document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
+                    const t = el.querySelector('.event-title')?.value;
+                    const d = el.querySelector('.event-date')?.value;
+                    const tm = el.querySelector('.event-time')?.value;
+                    if(t || d || tm) notes.push(`कार्यक्रम: ${t || ''} | तारीख: ${d || ''} | समय: ${tm || ''}`);
+                });
+
                 document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
                     const t = el.querySelector('.custom-note-title').value;
                     const m = el.querySelector('.custom-note-text').value;
                     if(t || m) notes.push(`${t}: ${m}`);
                 });
+
+                const v = document.getElementById('vineetNames').value;
+                const d = document.getElementById('darshanNames').value;
+                if(v) notes.push(`विनीत / निवेदक: ${v}`);
+                if(d) notes.push(`दर्शनाभिलाषी: ${d}`);
+
                 orderNotes = notes.join('\n');
 
             } else if (currentActiveCategory === 'banner') {
@@ -1126,41 +1139,8 @@
                 orderNotes = `शॉप: ${document.getElementById('visitingShopName').value}\nनाम: ${document.getElementById('visitingPersonName').value}\nसर्विसेज: ${document.getElementById('visitingServices').value}\nपता: ${document.getElementById('visitingPrintAddress').value}\nईमेल/वेब: ${document.getElementById('visitingEmailWeb').value}`;
             }
 
-            let userIdentifier = mobile;
-            const storedUser = localStorage.getItem('dp_current_user');
-            if (storedUser) {
-                try {
-                    const u = JSON.parse(storedUser);
-                    userIdentifier = u.mobile || u.phone || mobile;
-                } catch (e) {}
-            }
-
-            const nestedData = {
-                id: Date.now(),
-                customer_name: fullName,
-                customer_mobile: mobile,
-                card_title: orderTitle,
-                card_model: orderModel,
-                card_image: cardImg,
-                qty: finalQty,
-                quantity: finalQty,
-                total_amount: calculatedGrandTotal,
-                advance_paid: advance,
-                balance_amount: balance,
-                groom_name: groom,
-                groom_father: groomF,
-                groom_address: groomA,
-                bride_name: bride,
-                bride_father: brideF,
-                bride_address: brideA,
-                custom_notes: orderNotes,
-                status: 'Pending',
-                created_at: new Date().toISOString()
-            };
-
             const fullPayload = {
-                id: nestedData.id,
-                user_id: userIdentifier,
+                id: Date.now(),
                 mobile: mobile,
                 phone: mobile,
                 customer_name: fullName,
@@ -1168,15 +1148,10 @@
                 card_name: orderTitle,
                 card_title: orderTitle,
                 card_model: orderModel,
-                model: orderModel,
                 card_image: cardImg,
-                image_url: cardImg,
-                photo: cardImg,
-                image: cardImg,
                 quantity: finalQty,
                 total_amount: calculatedGrandTotal,
                 advance_paid: advance,
-                advance_amount: advance,
                 balance_amount: balance,
                 groom_name: groom,
                 groom_father: groomF,
@@ -1185,7 +1160,6 @@
                 bride_father: brideF,
                 bride_address: brideA,
                 custom_notes: orderNotes,
-                order_data: nestedData,
                 status: 'Pending',
                 created_at: new Date().toISOString()
             };
@@ -1211,4 +1185,3 @@
     </script>
 </body>
 </html>
-```[cite: 10]
