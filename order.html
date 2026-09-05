@@ -52,6 +52,35 @@
         .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
 
         .nav-actions { display: flex; align-items: center; gap: 10px; }
+
+        /* Cart Nav Button */
+        .btn-cart-nav {
+            position: relative;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-cart-nav:hover { background: rgba(255, 255, 255, 0.2); }
+        .cart-badge-count {
+            background: var(--primary);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
         .btn-nav {
             text-decoration: none; color: #f8fafc; font-weight: 700; font-size: 13px;
             padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
@@ -198,6 +227,15 @@
             cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
         }
 
+        .couple-pair-unit {
+            background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            padding: 14px; margin-bottom: 14px; position: relative;
+        }
+        .couple-unit-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; font-size: 13px; font-weight: 800; color: #1e293b;
+        }
+
         .weds-divider {
             display: flex; align-items: center; justify-content: center; margin: 12px 0; position: relative;
         }
@@ -278,6 +316,13 @@
             <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
         </a>
         <div class="nav-actions">
+            <!-- कार्ट बटन (Navbar) -->
+            <a href="cart.html" class="btn-cart-nav" title="कार्ट देखें">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span data-i18n="nav_cart">कार्ट</span>
+                <span class="cart-badge-count" id="navCartBadge">0</span>
+            </a>
+
             <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
                 <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
             </button>
@@ -376,22 +421,23 @@
                             </button>
                         </div>
 
+                        <!-- प्राथमिक जोड़ा (Couple 1) -->
                         <div id="coupleContainer">
                             <div class="dynamic-item" id="groomBox">
                                 <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> <span data-i18n="groom_header">वर (दूल्हा) का विवरण</span></h5>
                                 <div class="row-2">
                                     <div class="form-group">
                                         <label data-i18n="lbl_groom_name">वर का नाम:</label>
-                                        <input type="text" id="groomName" placeholder="लड़का का नाम">
+                                        <input type="text" id="groomName" class="main-groom-name" placeholder="लड़का का नाम">
                                     </div>
                                     <div class="form-group">
                                         <label data-i18n="lbl_groom_father">पिता का नाम:</label>
-                                        <input type="text" id="groomFather" placeholder="पिता का नाम">
+                                        <input type="text" id="groomFather" class="main-groom-father" placeholder="पिता का नाम">
                                     </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label data-i18n="lbl_groom_address">वर का पता:</label>
-                                    <input type="text" id="groomAddress" placeholder="ग्राम - ...">
+                                    <input type="text" id="groomAddress" class="main-groom-addr" placeholder="ग्राम - ...">
                                 </div>
                             </div>
 
@@ -402,18 +448,28 @@
                                 <div class="row-2">
                                     <div class="form-group">
                                         <label data-i18n="lbl_bride_name">वधू का नाम:</label>
-                                        <input type="text" id="brideName" placeholder="लड़की का नाम">
+                                        <input type="text" id="brideName" class="main-bride-name" placeholder="लड़की का नाम">
                                     </div>
                                     <div class="form-group">
                                         <label data-i18n="lbl_bride_father">पिता का नाम:</label>
-                                        <input type="text" id="brideFather" placeholder="पिता का नाम">
+                                        <input type="text" id="brideFather" class="main-bride-father" placeholder="पिता का नाम">
                                     </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label data-i18n="lbl_bride_address">वधू का पता:</label>
-                                    <input type="text" id="brideAddress" placeholder="ग्राम - ...">
+                                    <input type="text" id="brideAddress" class="main-bride-addr" placeholder="ग्राम - ...">
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- अतिरिक्त जोड़े के लिए कंटेनर -->
+                        <div id="additionalCouplesContainer" style="margin-top: 14px;"></div>
+
+                        <!-- नया दूल्हा-दुल्हन जोड़ने का बटन -->
+                        <div style="margin-top: 10px;">
+                            <button type="button" class="btn-add-event" onclick="addAnotherCouplePair()" style="background: linear-gradient(135deg, #e63946, #d62828);">
+                                <i class="fa-solid fa-user-plus"></i> <span data-i18n="btn_add_couple">+ अन्य दूल्हा-दुल्हन जोड़ें (Multiple Couples)</span>
+                            </button>
                         </div>
                     </div>
 
@@ -666,12 +722,14 @@
         let globalCatalogCards = [];
         let calculatedGrandTotal = 0;
         let currentLang = 'hi';
+        let coupleCount = 1;
 
         const translations = {
             hi: {
                 lang_toggle: "English",
                 brand_name: "दिल्ली प्रेस",
                 nav_home: "होम पेज",
+                nav_cart: "कार्ट",
                 call_us: "कॉल करें",
                 tab_catalog: "कैटलॉग",
                 tab_order: "ऑर्डर",
@@ -698,6 +756,7 @@
                 sec2_title: "२. दूल्हा-दुल्हन का विवरण",
                 btn_swap_bride: "दुल्हन पक्ष ऊपर करें",
                 btn_swap_groom: "दूल्हा पक्ष ऊपर करें",
+                btn_add_couple: "+ अन्य दूल्हा-दुल्हन जोड़ें (Multiple Couples)",
                 groom_header: "वर (दूल्हा) का विवरण",
                 lbl_groom_name: "वर का नाम:",
                 lbl_groom_father: "पिता का नाम:",
@@ -760,6 +819,7 @@
                 lang_toggle: "हिन्दी",
                 brand_name: "Delhi Press",
                 nav_home: "Home Page",
+                nav_cart: "Cart",
                 call_us: "Call Us",
                 tab_catalog: "Catalog",
                 tab_order: "Order",
@@ -786,6 +846,7 @@
                 sec2_title: "2. Bride & Groom Details",
                 btn_swap_bride: "Move Bride Section Up",
                 btn_swap_groom: "Move Groom Section Up",
+                btn_add_couple: "+ Add Another Couple (Multiple Couples)",
                 groom_header: "Groom Details",
                 lbl_groom_name: "Groom's Name:",
                 lbl_groom_father: "Father's Name:",
@@ -845,6 +906,14 @@
                 footer_admin: "Admin"
             }
         };
+
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const badge = document.getElementById('navCartBadge');
+                if (badge) badge.innerText = cart.length;
+            } catch (e) {}
+        }
 
         function toggleLanguage() {
             currentLang = (currentLang === 'hi') ? 'en' : 'hi';
@@ -928,6 +997,8 @@
         });
 
         window.addEventListener('DOMContentLoaded', async () => {
+            updateCartBadges();
+
             const currentUser = localStorage.getItem('dp_current_user');
             if (currentUser) {
                 try {
@@ -1050,6 +1121,41 @@
             isGroomFirst = !isGroomFirst;
         }
 
+        /* अन्य दूल्हा-दुल्हन जोड़ने का फंक्शन */
+        function addAnotherCouplePair() {
+            coupleCount++;
+            const container = document.getElementById('additionalCouplesContainer');
+            const div = document.createElement('div');
+            div.className = 'couple-pair-unit';
+            div.innerHTML = `
+                <div class="couple-unit-header">
+                    <span style="color:var(--primary); font-weight:800;"><i class="fa-solid fa-heart"></i> अतिरिक्त दूल्हा-दुल्हन (जोड़ा #${coupleCount})</span>
+                    <button type="button" class="btn-remove-event" onclick="this.closest('.couple-pair-unit').remove()" style="position:static;">हटाएं</button>
+                </div>
+                
+                <div class="dynamic-item" style="border-left: 3px solid var(--primary); margin-bottom:10px;">
+                    <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> वर (दूल्हा #${coupleCount})</h5>
+                    <div class="row-2">
+                        <div class="form-group"><label>वर का नाम:</label><input type="text" class="add-groom-name" placeholder="लड़का का नाम"></div>
+                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-groom-father" placeholder="पिता का नाम"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;"><label>वर का पता:</label><input type="text" class="add-groom-addr" placeholder="ग्राम - ..."></div>
+                </div>
+
+                <div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग (Weds)</span></div>
+
+                <div class="dynamic-item" style="border-left: 3px solid var(--secondary); margin-bottom:0;">
+                    <h5 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-person-dress"></i> वधू (दुल्हन #${coupleCount})</h5>
+                    <div class="row-2">
+                        <div class="form-group"><label>वधू का नाम:</label><input type="text" class="add-bride-name" placeholder="लड़की का नाम"></div>
+                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-bride-father" placeholder="पिता का नाम"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;"><label>वधू का पता:</label><input type="text" class="add-bride-addr" placeholder="ग्राम - ..."></div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
         function addEventRow() {
             const div = document.createElement('div');
             div.className = 'event-box-item';
@@ -1085,8 +1191,8 @@
             let orderTitle = "";
             let orderModel = "";
             let orderNotes = "";
-            let groom = "-", groomF = "-", groomA = "-";
-            let bride = "-", brideF = "-", brideA = "-";
+            let mainGroom = "-", mainGroomF = "-", mainGroomA = "-";
+            let mainBride = "-", mainBrideF = "-", mainBrideA = "-";
             let cardImg = "";
             let finalQty = 1;
 
@@ -1095,14 +1201,37 @@
                 orderModel = document.getElementById('previewCardModel').innerText;
                 cardImg = document.getElementById('previewCardImage').src;
                 finalQty = parseInt(document.getElementById('cardQty').value) || 100;
-                groom = document.getElementById('groomName').value || '-';
-                groomF = document.getElementById('groomFather').value || '-';
-                groomA = document.getElementById('groomAddress').value || '-';
-                bride = document.getElementById('brideName').value || '-';
-                brideF = document.getElementById('brideFather').value || '-';
-                brideA = document.getElementById('brideAddress').value || '-';
+                
+                mainGroom = document.getElementById('groomName').value || '-';
+                mainGroomF = document.getElementById('groomFather').value || '-';
+                mainGroomA = document.getElementById('groomAddress').value || '-';
+                mainBride = document.getElementById('brideName').value || '-';
+                mainBrideF = document.getElementById('brideFather').value || '-';
+                mainBrideA = document.getElementById('brideAddress').value || '-';
                 
                 let notes = [];
+
+                // अतिरिक्त जोड़े (Multiple Couples) इकट्ठा करें
+                const additionalUnits = document.querySelectorAll('#additionalCouplesContainer .couple-pair-unit');
+                if (additionalUnits.length > 0) {
+                    notes.push("--- [अतिरिक्त दूल्हा-दुल्हन विवरण] ---");
+                    additionalUnits.forEach((unit, idx) => {
+                        const gn = unit.querySelector('.add-groom-name')?.value || '-';
+                        const gf = unit.querySelector('.add-groom-father')?.value || '-';
+                        const ga = unit.querySelector('.add-groom-addr')?.value || '-';
+                        const bn = unit.querySelector('.add-bride-name')?.value || '-';
+                        const bf = unit.querySelector('.add-bride-father')?.value || '-';
+                        const ba = unit.querySelector('.add-bride-addr')?.value || '-';
+
+                        notes.push(`जोड़ा #${idx + 2}:`);
+                        notes.push(`वर: ${gn} (पिता: ${gf}, पता: ${ga})`);
+                        notes.push(`वधू: ${bn} (पिता: ${bf}, पता: ${ba})`);
+                        notes.push("");
+                    });
+                }
+
+                // कार्यक्रम (Events)
+                notes.push("--- [वैवाहिक कार्यक्रम] ---");
                 document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
                     const t = el.querySelector('.event-title')?.value;
                     const d = el.querySelector('.event-date')?.value;
@@ -1110,12 +1239,14 @@
                     if(t || d || tm) notes.push(`कार्यक्रम: ${t || ''} | तारीख: ${d || ''} | समय: ${tm || ''}`);
                 });
 
+                // शायरी / बाल मनुहार
                 document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
                     const t = el.querySelector('.custom-note-title').value;
                     const m = el.querySelector('.custom-note-text').value;
                     if(t || m) notes.push(`${t}: ${m}`);
                 });
 
+                // RSVP
                 const v = document.getElementById('vineetNames').value;
                 const d = document.getElementById('darshanNames').value;
                 if(v) notes.push(`विनीत / निवेदक: ${v}`);
@@ -1153,12 +1284,12 @@
                 total_amount: calculatedGrandTotal,
                 advance_paid: advance,
                 balance_amount: balance,
-                groom_name: groom,
-                groom_father: groomF,
-                groom_address: groomA,
-                bride_name: bride,
-                bride_father: brideF,
-                bride_address: brideA,
+                groom_name: mainGroom,
+                groom_father: mainGroomF,
+                groom_address: mainGroomA,
+                bride_name: mainBride,
+                bride_father: mainBrideF,
+                bride_address: mainBrideA,
                 custom_notes: orderNotes,
                 status: 'Pending',
                 created_at: new Date().toISOString()
