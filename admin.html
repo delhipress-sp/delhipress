@@ -177,7 +177,7 @@
                 </button>
             </div>
 
-            <!-- SECTION 1: ग्राहक ऑर्डर्स (LEFT TAB) -->
+            <!-- SECTION 1: ग्राहक ऑर्डर्स -->
             <div id="tabOrdersSection">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h4 style="color:#1e293b; font-weight:800; font-size:16px;">सभी प्राप्त ग्राहक ऑर्डर्स</h4>
@@ -206,7 +206,7 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: कैटलॉग व स्टॉक (CENTER TAB) -->
+            <!-- SECTION 2: कैटलॉग व स्टॉक -->
             <div id="tabCatalogSection" style="display: none;">
                 <div style="background: #fdfaf6; border: 1px solid #fed7aa; padding: 16px; border-radius: 10px; margin-bottom: 18px;">
                     <h4 style="color: var(--secondary); margin-bottom: 12px; font-weight:800;">+ नया कार्ड मॉडल कैटलॉग में जोड़ें</h4>
@@ -235,7 +235,7 @@
                 </div>
             </div>
 
-            <!-- SECTION 3: पंजीकृत ग्राहक (RIGHT TAB) -->
+            <!-- SECTION 3: पंजीकृत ग्राहक -->
             <div id="tabCustomersSection" style="display: none;">
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
@@ -278,7 +278,6 @@
         } catch (e) {}
 
         let globalOrdersCache = [];
-        let activeCatalogTable = 'catalog';
 
         window.addEventListener('DOMContentLoaded', () => {
             const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_logged') === 'true';
@@ -332,7 +331,7 @@
             });
         }
 
-        /* 1. लोड ग्राहक ऑर्डर्स (Unified LocalStorage & Supabase Master Sync) */
+        /* 1. लोड ग्राहक ऑर्डर्स */
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
             if (!tbody) return;
@@ -341,7 +340,23 @@
 
             let orders = [];
 
-            // 1. सबसे पहले लोकल स्टोरेज से सभी ऑर्डर्स लोड करें (ताकि नया ऑर्डर तुरंत दिखे)
+            // 1. Supabase से डेटा लेकर आएं
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*')
+                        .order('id', { ascending: false });
+
+                    if (data && data.length > 0) {
+                        orders = data;
+                    }
+                } catch (e) {
+                    console.warn("Supabase fetch order warn:", e);
+                }
+            }
+
+            // 2. लोकल स्टोरेज के साथ सिंक करें (ताकि कोई ऑफलाइन/लोकल ऑर्डर छूटे नहीं)
             try {
                 const localList = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
                 localList.forEach(lo => {
@@ -349,35 +364,9 @@
                         orders.push(lo);
                     }
                 });
-
-                const tempOrd = localStorage.getItem('dp_temp_order');
-                if (tempOrd) {
-                    const parsed = JSON.parse(tempOrd);
-                    if (!orders.some(o => String(o.id) === String(parsed.id))) {
-                        orders.unshift(parsed);
-                    }
-                }
             } catch (err) {}
 
-            // 2. इसके बाद Supabase से डेटा लेकर लोकल में भी मर्ज करें
-            if (supabaseClient) {
-                try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3500));
-                    const fetchPromise = supabaseClient.from('orders').select('*');
-                    const res = await Promise.race([fetchPromise, timeoutPromise]);
-                    if (res && res.data && res.data.length > 0) {
-                        res.data.forEach(dbOrd => {
-                            if (!orders.some(o => String(o.id) === String(dbOrd.id))) {
-                                orders.push(dbOrd);
-                            }
-                        });
-                    }
-                } catch (e) {
-                    console.warn("Supabase fetch order warn:", e);
-                }
-            }
-
-            // नए ऑर्डर को हमेशा सबसे ऊपर दिखाने के लिए सॉर्ट करें
+            // नए ऑर्डर को हमेशा सबसे ऊपर रखें
             orders.sort((a, b) => {
                 const timeA = a.created_at ? new Date(a.created_at).getTime() : (parseInt(a.id) || 0);
                 const timeB = b.created_at ? new Date(b.created_at).getTime() : (parseInt(b.id) || 0);
@@ -438,8 +427,9 @@
             }).join('');
         }
 
-        /* 2. अपडेट आर्डर स्टेटस */
+        /* 2. अपडेट आर्डर स्टेटस (Instant Sync) */
         async function updateOrderStatus(id, newStatus) {
+            // UI और Memory में अपडेट करें
             const target = globalOrdersCache.find(o => String(o.id) === String(id));
             if (target) {
                 target.status = newStatus;
@@ -450,19 +440,30 @@
                 }
             }
 
+            // LocalStorage में अपडेट करें
             try {
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                const lo = localOrders.find(o => String(o.id) === String(id));
-                if (lo) {
-                    lo.status = newStatus;
-                    localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
-                    localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
-                }
+                localOrders.forEach(o => {
+                    if (String(o.id) === String(id)) o.status = newStatus;
+                });
+                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
             } catch (e) {}
 
+            // Supabase Database में अपडेट करें
             if (supabaseClient) {
                 try {
-                    await supabaseClient.from('orders').update({ status: newStatus }).eq('id', id);
+                    let { error } = await supabaseClient
+                        .from('orders')
+                        .update({ status: newStatus })
+                        .eq('id', Number(id));
+
+                    if (error) {
+                        await supabaseClient
+                            .from('orders')
+                            .update({ status: newStatus })
+                            .eq('id', String(id));
+                    }
                 } catch (e) {
                     console.error("Network error on status update:", e);
                 }
@@ -483,7 +484,7 @@
 
             if (supabaseClient) {
                 try {
-                    await supabaseClient.from('orders').delete().eq('id', id);
+                    await supabaseClient.from('orders').delete().eq('id', Number(id));
                 } catch (e) {}
             }
             loadAdminOrders();
@@ -595,23 +596,18 @@
             setTimeout(() => { win.print(); win.close(); }, 500);
         }
 
-        /* 4. कैटलॉग प्रबंधन */
+        /* 4. कैटलॉग प्रबंधन (Direct 'catalog' table sync) */
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody || !supabaseClient) return;
 
-            const tables = ['catalog', 'cards_catalog', 'cards'];
             let cards = [];
-            for (const tbl of tables) {
-                try {
-                    const { data } = await supabaseClient.from(tbl).select('*');
-                    if (data && data.length > 0) {
-                        cards = data;
-                        activeCatalogTable = tbl;
-                        break;
-                    }
-                } catch (e) {}
-            }
+            try {
+                const { data } = await supabaseClient.from('catalog').select('*').order('id', { ascending: false });
+                if (data && data.length > 0) {
+                    cards = data;
+                }
+            } catch (e) {}
 
             if (cards.length === 0) { tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड नहीं मिला।</td></tr>'; return; }
             
@@ -649,8 +645,11 @@
             const saveRecord = async (imgUrl) => {
                 if (supabaseClient) {
                     try {
-                        await supabaseClient.from(activeCatalogTable).insert([{ name, model, rate, in_stock, image: imgUrl }]);
-                    } catch (err) {}
+                        const { error } = await supabaseClient.from('catalog').insert([{ name, model, rate, in_stock, image: imgUrl }]);
+                        if (error) throw error;
+                    } catch (err) {
+                        console.error("Save catalog error:", err);
+                    }
                 }
                 document.getElementById('newCardForm').reset();
                 btn.innerText = "+ सुरक्षित करें";
@@ -672,14 +671,14 @@
 
         async function toggleCardStock(id, newStatus) {
             if (supabaseClient) {
-                await supabaseClient.from(activeCatalogTable).update({ in_stock: newStatus }).eq('id', id);
+                await supabaseClient.from('catalog').update({ in_stock: newStatus }).eq('id', id);
                 loadCatalogStock();
             }
         }
 
         async function deleteCatalogCard(id) {
             if (confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?") && supabaseClient) {
-                await supabaseClient.from(activeCatalogTable).delete().eq('id', id);
+                await supabaseClient.from('catalog').delete().eq('id', id);
                 loadCatalogStock();
             }
         }
@@ -688,7 +687,7 @@
         async function loadRegisteredCustomers() {
             const tbody = document.getElementById('customersTableBody');
             if (!tbody || !supabaseClient) return;
-            const { data } = await supabaseClient.from('users').select('*');
+            const { data } = await supabaseClient.from('users').select('*').order('id', { ascending: false });
             if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">कोई पंजीकृत ग्राहक नहीं।</td></tr>'; return; }
 
             tbody.innerHTML = data.map((u, i) => `
@@ -712,4 +711,3 @@
     </script>
 </body>
 </html>
-```[cite: 11]
