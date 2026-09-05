@@ -94,7 +94,6 @@
             box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
         }
 
-        /* Cart Icon Button */
         .btn-cart-nav {
             position: relative;
             background: rgba(255, 255, 255, 0.08);
@@ -393,14 +392,12 @@
         </a>
 
         <div class="nav-right-cluster">
-            <!-- कार्ट बटन (Navbar) -->
             <a href="cart.html" class="btn-cart-nav" title="कार्ट देखें">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <span data-i18n="nav_cart">कार्ट</span>
                 <span class="cart-badge-count" id="navCartBadge">0</span>
             </a>
 
-            <!-- भाषा टॉगल -->
             <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
                 <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
             </button>
@@ -508,7 +505,7 @@
         </div>
     </div>
 
-    <!-- मोबाइल बॉटम बार (कार्ट विकल्प सहित) -->
+    <!-- मोबाइल बॉटम बार -->
     <div class="mobile-bottom-bar">
         <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span data-i18n="call_us">कॉल करें</span></a>
         <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span data-i18n="nav_catalog">कैटलॉग</span></a>
@@ -559,7 +556,7 @@
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
         try {
@@ -699,7 +696,6 @@
             window.location.href = "order.html";
         }
 
-        /* Cart Badge Management */
         function updateCartBadges() {
             try {
                 const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
@@ -776,38 +772,39 @@
 
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
-            if (!supabaseClient) {
-                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#ef4444;">${translations[currentLang].db_error}</p>`;
-                return;
-            }
+            let cards = [];
 
-            const tables = ['catalog', 'cards_catalog', 'cards'];
-            let fetchedData = null;
-
-            for (const tbl of tables) {
+            if (supabaseClient) {
                 try {
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
-                    const fetchPromise = supabaseClient.from(tbl).select('*').order('id', { ascending: false });
-                    
-                    const res = await Promise.race([fetchPromise, timeoutPromise]);
-                    const data = res.data;
+                    const { data, error } = await supabaseClient
+                        .from('catalog')
+                        .select('*')
+                        .order('id', { ascending: false });
 
                     if (data && data.length > 0) {
-                        fetchedData = data;
-                        break;
+                        cards = data;
                     }
                 } catch (e) {
-                    console.warn(`Catalog load failed/timeout on ${tbl}:`, e);
+                    console.warn("Catalog fetch warn:", e);
                 }
             }
 
-            if (!fetchedData || fetchedData.length === 0) {
+            try {
+                const local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
+                local.forEach(lc => {
+                    if (!cards.some(c => String(c.id) === String(lc.id))) {
+                        cards.push(lc);
+                    }
+                });
+            } catch (err) {}
+
+            if (cards.length === 0) {
                 container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94a3b8;">${translations[currentLang].no_cards}</p>`;
                 return;
             }
 
-            globalCards = fetchedData;
-            renderCatalogCards(fetchedData);
+            globalCards = cards;
+            renderCatalogCards(cards);
         }
 
         function renderCatalogCards(cards) {
