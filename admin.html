@@ -340,7 +340,6 @@
                 }
 
                 tbody.innerHTML = globalOrdersCache.map(o => {
-                    // ग्राहक सुधार बटन का लॉजिक (3D चमकने वाला अलार्म)
                     let correctionBtn = '<span style="color:#94a3b8; font-size:11px;">कोई सुधार नहीं</span>';
                     
                     if (o.customer_correction || o.customer_correction_file) {
@@ -351,7 +350,6 @@
                                 </button>
                             `;
                         } else {
-                            // जब तक एडमिन रीव्यू नहीं करता, 3D में ब्लिंक/लाइटिंग करेगा
                             correctionBtn = `
                                 <button class="btn-alarm-3d" onclick="openCorrectionModal('${o.id}')">
                                     <i class="fa-solid fa-bell fa-shake"></i> नया सुधार!
@@ -500,19 +498,19 @@
             }
         }
 
-        /* CATALOG FUNCTIONS */
+        /* CATALOG FUNCTIONS (USING 'catalog' TABLE) */
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody || !supabaseClient) return;
             tbody.innerHTML = '<tr><td colspan="7">कैटलॉग लोड हो रहा है...</td></tr>';
             try {
                 const { data, error } = await supabaseClient
-                    .from('cards_catalog')
+                    .from('catalog')
                     .select('*')
                     .order('id', { ascending: false });
 
                 if (error) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="color:red;">${error.message}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
                     return;
                 }
                 if (!data || data.length === 0) {
@@ -522,8 +520,8 @@
 
                 tbody.innerHTML = data.map(c => `
                     <tr>
-                        <td><img src="${c.image_url || ''}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;"></td>
-                        <td><b>${c.name || '-'}</b></td>
+                        <td><img src="${c.image || c.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';"></td>
+                        <td><b>${c.name || c.card_name || '-'}</b></td>
                         <td>${c.model || '-'}</td>
                         <td>₹${c.rate || 0}</td>
                         <td><span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
@@ -546,7 +544,7 @@
             btn.disabled = true;
             btn.innerText = "सुरक्षित हो रहा है...";
 
-            const name = document.getElementById('admCardName').value.trim();
+            const cardTitle = document.getElementById('admCardName').value.trim();
             const model = document.getElementById('admCardModel').value.trim();
             const rate = parseFloat(document.getElementById('admCardRate').value);
             const in_stock = document.getElementById('admCardStock').value === "true";
@@ -565,8 +563,16 @@
                 const base64Img = reader.result;
                 try {
                     const { error } = await supabaseClient
-                        .from('cards_catalog')
-                        .insert([{ name, model, rate, in_stock, image_url: base64Img }]);
+                        .from('catalog')
+                        .insert([{ 
+                            name: cardTitle,
+                            card_name: cardTitle,
+                            model: model, 
+                            rate: rate, 
+                            in_stock: in_stock, 
+                            image: base64Img,
+                            image_url: base64Img 
+                        }]);
 
                     if (error) throw error;
                     alert("नया कार्ड सफलतापूर्वक जोड़ा गया!");
@@ -585,7 +591,7 @@
             if (!supabaseClient) return;
             try {
                 const { error } = await supabaseClient
-                    .from('cards_catalog')
+                    .from('catalog')
                     .update({ in_stock: newStatus })
                     .eq('id', Number(id));
 
@@ -601,7 +607,7 @@
             if (!supabaseClient) return;
             try {
                 const { error } = await supabaseClient
-                    .from('cards_catalog')
+                    .from('catalog')
                     .delete()
                     .eq('id', Number(id));
 
