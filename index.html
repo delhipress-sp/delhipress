@@ -94,6 +94,7 @@
             box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
         }
 
+        /* Cart Icon Button */
         .btn-cart-nav {
             position: relative;
             background: rgba(255, 255, 255, 0.08);
@@ -392,12 +393,14 @@
         </a>
 
         <div class="nav-right-cluster">
+            <!-- कार्ट बटन (Navbar) -->
             <a href="cart.html" class="btn-cart-nav" title="कार्ट देखें">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <span data-i18n="nav_cart">कार्ट</span>
                 <span class="cart-badge-count" id="navCartBadge">0</span>
             </a>
 
+            <!-- भाषा टॉगल -->
             <button type="button" class="btn-lang-toggle" onclick="toggleLanguage()">
                 <i class="fa-solid fa-language"></i> <span id="langBtnLabel">English</span>
             </button>
@@ -424,127 +427,519 @@
     <div class="container">
         
         <div class="notice-banner">
-            <i class="fa-solid fa-circle-info"></i>
-            <span>नोट: हमारे संपर्क के बिना कोई पैसे न दें! एक बार अपना डेटा देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px;"></i>
+            <span data-i18n="notice_text">नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
         </div>
 
         <div class="order-btn-card">
-            <h3>शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
-            <p>सही निर्णय करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और भेजें।</p>
+            <h3 data-i18n="promo_title">शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
+            <p data-i18n="promo_desc">यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।</p>
             <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" class="btn-main-order">
-                <i class="fa-solid fa-file-invoice"></i> शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें
+                <i class="fa-solid fa-file-signature"></i> <span data-i18n="btn_open_form">शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें</span>
             </a>
         </div>
 
-        <!-- कैटलॉग सेक्शन (यह पहले गायब हो गया था) -->
         <div class="showcase-box" id="showcaseSection">
-            <h3 class="showcase-header-title"><i class="fa-solid fa-images"></i> शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग</h3>
-            <p style="font-size:12px; color:#64748b; margin-top:5px;">(कार्ड देखने व चुनने के लिए फोटो पर क्लिक करें)</p>
-            
-            <div class="gallery-grid" id="cardsGrid">
-                <!-- script.js से कार्ड्स यहाँ लोड होते हैं, डिफ़ॉल्ट टेम्पलेट नीचे है -->
-                <div class="card-sample">
-                    <div class="img-box" onclick="openZoomModal('https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ', 'Muslim wedding card', 'MC-101', '₹12.00')">
-                        <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Muslim wedding card" loading="lazy">
-                        <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
-                    </div>
-                    <div class="card-info">
-                        <h4>Muslim wedding card</h4>
-                        <p class="model-text">मॉडल: MC-101</p>
-                        <div class="card-price-tag">₹12.00</div>
-                        <span class="stock-badge in-stock">उपलब्ध है</span>
-                        <div class="card-actions-row">
-                            <a href="javascript:void(0)" onclick="selectCardAndOrder('MC-101', 'Muslim wedding card', 12)" class="btn-select-card">
-                                <i class="fa-solid fa-check"></i> चुनें
-                            </a>
-                            <button type="button" onclick="addToCartDirect('MC-101', 'Muslim wedding card', 12, 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ')" class="btn-add-cart-single">
-                                <i class="fa-solid fa-cart-plus"></i> कार्ट
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <h3 class="showcase-header-title" data-i18n="catalog_title">
+                शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग
+            </h3>
+            <p style="font-size:12px; color:#64748b; margin-top:4px;" data-i18n="zoom_hint_text">(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)</p>
+            <div class="gallery-grid" id="catalogContainer">
+                <p style="grid-column: 1/-1; text-align:center; padding: 15px; color:#64748b;" data-i18n="loading_catalog">कैटलॉग लोड हो रहा है...</p>
             </div>
         </div>
 
-        <!-- नियम व शर्तें -->
         <div class="info-card" id="aboutSection">
             <div class="info-card-header">
-                <i class="fa-solid fa-file-contract"></i> महत्वपूर्ण नियम एवं शर्तें
+                <i class="fa-solid fa-circle-info"></i> <span data-i18n="about_title">हमारे बारे में (About Delhi Press)</span>
+            </div>
+            <p style="font-size: 14px; color: #475569; line-height: 1.7; margin-bottom: 10px;" data-i18n="about_desc">
+                <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।
+            </p>
+        </div>
+
+        <div class="info-card" id="termsSection">
+            <div class="info-card-header">
+                <i class="fa-solid fa-file-contract"></i> <span data-i18n="terms_title">नियम एवं शर्तें (Terms & Conditions)</span>
             </div>
             <ul class="terms-list">
-                <li><i class="fa-solid fa-circle-check"></i> कार्ड की छपाई शुरू होने से पहले प्रूफ अच्छी तरह जांच लें। प्रूफ ओके होने के बाद किसी भी गलती की जिम्मेदारी ग्राहक की होगी।</li>
-                <li><i class="fa-solid fa-circle-check"></i> ऑर्डर कन्फर्म करने के लिए 50% एडवांस पेमेंट आवश्यक है। शेष राशि डिलीवरी के समय देय होगी।</li>
-                <li><i class="fa-solid fa-circle-check"></i> डिलीवरी का सामान्य समय प्रूफ कन्फर्म होने के 3 से 5 कार्यदिवस का होता है।</li>
-                <li><i class="fa-solid fa-circle-check"></i> किसी भी तरह के बदलाव के लिए तत्काल संपर्क करें। छपाई के बाद बदलाव संभव नहीं होगा।</li>
+                <li><i class="fa-solid fa-circle-check"></i> <strong data-i18n="t_rule1_b">मैटर प्रूफ-रीडिंग:</strong> <span data-i18n="t_rule1_txt">फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।</span></li>
+                <li><i class="fa-solid fa-circle-check"></i> <strong data-i18n="t_rule2_b">एडवांस भुगतान:</strong> <span data-i18n="t_rule2_txt">काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।</span></li>
             </ul>
         </div>
 
-        <!-- मैप व पता -->
         <div class="info-card" id="mapSection">
             <div class="info-card-header">
-                <i class="fa-solid fa-location-dot"></i> दुकान का पता व लोकेशन
+                <i class="fa-solid fa-location-dot"></i> <span data-i18n="location_title">शॉप लोकेशन एवं संपर्क (Visit Our Press)</span>
             </div>
-            <p style="font-size:13px; color:#475569; margin-bottom:10px;">
-                <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong><br>
-                जामताड़ा, झारखंड - 815351<br>
-                मोबाइल: +91 9304509464
-            </p>
+            <div>
+                <p style="font-size: 14px; color: #475569;">
+                    <i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> 
+                    <strong data-i18n="address_lbl">पता:</strong> <span data-i18n="address_val">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464</span>
+                </p>
+            </div>
             <div class="map-wrapper">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3648.567848906969!2d86.8000!3d23.9600!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDU3JzM2LjAiTiA4NsKwNDgnMDAuMCJF!5e0!3m2!1sen!2sin!4v1600000000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
+                <iframe src="https://maps.google.com/maps?q=Eidgah+More+Karmatar+Jamtara+815352&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
 
     </div>
 
-    <!-- ज़ूम व्यू मॉडल -->
-    <div class="zoom-modal" id="zoomModal">
+    <div id="imageZoomModal" class="zoom-modal">
         <div class="zoom-header">
-            <div class="zoom-title" id="zoomModalTitle">कार्ड विवरण</div>
-            <button class="btn-zoom-close" onclick="closeZoomModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="zoom-title" id="zoomModalTitle" data-i18n="card_details_title">कार्ड विवरण</div>
+            <button type="button" class="btn-zoom-close" onclick="closeZoomModal()">&times;</button>
         </div>
-        <div class="zoom-body" id="zoomModalBody">
-            <img src="" alt="Zoom Preview" class="zoom-img" id="zoomModalImg">
+        
+        <div class="zoom-body" id="zoomBody">
+            <img id="zoomModalImg" class="zoom-img" src="" alt="Zoom Image">
         </div>
+
         <div class="zoom-controls">
-            <button class="zoom-btn" onclick="zoomIn()"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-            <button class="zoom-btn" onclick="zoomOut()"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-            <button class="zoom-btn" onclick="resetZoom()"><i class="fa-solid fa-arrows-rotate"></i></button>
-            <button class="zoom-select-btn" id="zoomSelectActionBtn"><i class="fa-solid fa-check"></i> यह कार्ड चुनें</button>
+            <button type="button" class="zoom-btn" onclick="applyZoom(0.25)" title="ज़ूम इन"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button type="button" class="zoom-btn" onclick="applyZoom(-0.25)" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button type="button" class="zoom-btn" onclick="resetZoom()" title="सामान्य आकार"><i class="fa-solid fa-rotate-left"></i></button>
+            <button type="button" class="zoom-select-btn" onclick="addCurrentZoomToCart()" style="background:#2563eb;">
+                <i class="fa-solid fa-cart-plus"></i> <span data-i18n="btn_add_cart">कार्ट में जोड़ें</span>
+            </button>
+            <button type="button" id="zoomOrderBtn" class="zoom-select-btn" onclick="redirectToOrderFromZoom()">
+                <i class="fa-solid fa-pen-to-square"></i> <span data-i18n="btn_order_this">यह कार्ड ऑर्डर करें</span>
+            </button>
         </div>
     </div>
 
-    <!-- मुख्य फुटर -->
+    <!-- मोबाइल बॉटम बार (कार्ट विकल्प सहित) -->
+    <div class="mobile-bottom-bar">
+        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span data-i18n="call_us">कॉल करें</span></a>
+        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span data-i18n="nav_catalog">कैटलॉग</span></a>
+        <a href="cart.html">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span data-i18n="nav_cart">कार्ट</span>
+            <span class="cart-badge-count" id="mobileCartBadge" style="position:absolute; top:2px; right:20%;">0</span>
+        </a>
+        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" style="color:var(--primary);"><i class="fa-solid fa-file-pen"></i><span data-i18n="nav_order">ऑर्डर</span></a>
+        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user" id="mobileAuthIcon"></i><span id="mobileAuthText" data-i18n="nav_login">लॉगिन</span></a>
+    </div>
+
     <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
-                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
-                <p><i class="fa-solid fa-check-double"></i> शादी कार्ड, फ्लेक्स बैनर, विजिटिंग कार्ड एवं डिजिटल प्रिंटिंग।</p>
-                <p><i class="fa-solid fa-location-dot"></i> जामताड़ा, झारखंड</p>
-            </div>
-            <div class="footer-col">
-                <h4>संपर्क सूत्र</h4>
-                <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
+                <h4 data-i18n="brand_full">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-location-dot"></i> <span data-i18n="address_val">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</span></p>
+                <p><i class="fa-solid fa-phone"></i> 9304509464</p>
                 <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
             </div>
+            <div class="footer-col">
+                <h4 data-i18n="services_header">सेवाएं</h4>
+                <p data-i18n="services_list">शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 20px; font-size: 13px; color: #94a3b8;">
+            <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Terms & Conditions</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('privacy')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Privacy Policy</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Refund Policy</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('contact')" style="color: #cbd5e1; margin: 0 8px; text-decoration: underline; cursor: pointer;">Contact Us</a>
         </div>
         <div class="footer-bottom">
-            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+            <span data-i18n="copyright_text">© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+            <a href="admin.html" style="color:#64748b; text-decoration:none;"><i class="fa-solid fa-lock"></i> <span data-i18n="footer_admin">एडमिन</span></a>
         </div>
     </footer>
 
-    <!-- मोबाइल बॉटम बार -->
-    <div class="mobile-bottom-bar">
-        <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
-        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="cart.html"><i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span></a>
-        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर फॉर्म</span></a>
-        <a href="my_orders.html"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
+    <!-- Policy Modal Overlay -->
+    <div id="policyModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 99999; justify-content: center; align-items: center; padding: 15px;">
+        <div style="background: #fff; width: 100%; max-width: 650px; max-height: 85vh; border-radius: 12px; overflow-y: auto; padding: 22px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+                <h3 id="policyModalTitle" style="color: #c0392b; font-size: 18px; margin: 0;">पॉलिसी विवरण</h3>
+                <button type="button" onclick="closePolicyModal()" style="border: none; background: #e2e8f0; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; font-weight: bold;">&times;</button>
+            </div>
+            <div id="policyModalBody" style="font-size: 14px; color: #334155; line-height: 1.6;"></div>
+        </div>
     </div>
 
-    <!-- मुख्य जावास्क्रिप्ट फाइल -->
-    <script src="script.js"></script>
+    <script>
+        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        
+        let supabaseClient = null;
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {}
 
-    <!-- Tidio चैटबॉट कोड -->
+        let globalCards = [];
+        let currentZoomCard = null;
+        let currentScale = 1;
+        let currentLang = 'hi';
+
+        const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='185' height='155' viewBox='0 0 185 155'><rect width='185' height='155' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='12' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Image</text></svg>";
+
+        const translations = {
+            hi: {
+                lang_toggle: "English",
+                call_us: "कॉल करें",
+                brand_name: "दिल्ली प्रेस",
+                brand_tagline: "सज्जाद प्रिंटर्स (Design • Print • Quality)",
+                nav_catalog: "कैटलॉग",
+                nav_about: "हमारे बारे में",
+                nav_location: "शॉप लोकेशन",
+                nav_order: "ऑर्डर फॉर्म",
+                nav_cart: "कार्ट",
+                nav_login: "लॉगिन",
+                nav_my_orders: "मेरे ऑर्डर्स",
+                notice_text: "नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।",
+                promo_title: "शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?",
+                promo_desc: "यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।",
+                btn_open_form: "शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें",
+                catalog_title: "शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग",
+                zoom_hint_text: "(बड़ा देखने व ज़ूम करने के लिए फ़ोटो पर क्लिक करें)",
+                loading_catalog: "कैटलॉग लोड हो रहा है...",
+                no_cards: "वर्तमान में कोई कार्ड उपलब्ध नहीं है।",
+                db_error: "डेटाबेस कनेक्ट नहीं हो पाया।",
+                in_stock_txt: "उपलब्ध (In Stock)",
+                out_stock_txt: "स्टॉक समाप्त (Out)",
+                btn_select: "ऑर्डर करें",
+                btn_add_cart: "कार्ट में जोड़ें",
+                zoom_hint_btn: "बड़ा देखें",
+                about_title: "हमारे बारे में (About Delhi Press)",
+                about_desc: "दिल्ली प्रेस (सज्जाद प्रिंटर्स) जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।",
+                terms_title: "नियम एवं शर्तें (Terms & Conditions)",
+                t_rule1_b: "मैटर प्रूफ-रीडिंग:",
+                t_rule1_txt: "फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।",
+                t_rule2_b: "एडवांस भुगतान:",
+                t_rule2_txt: "काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।",
+                location_title: "शॉप लोकेशन एवं संपर्क (Visit Our Press)",
+                address_lbl: "पता:",
+                address_val: "ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464",
+                card_details_title: "कार्ड विवरण",
+                btn_order_this: "यह कार्ड ऑर्डर करें",
+                brand_full: "दिल्ली प्रेस (सज्जाद प्रिंटर्स)",
+                services_header: "सेवाएं",
+                services_list: "शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं",
+                copyright_text: "© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।",
+                footer_admin: "एडमिन",
+                login_alert: "ऑर्डर करने के लिए कृपया पहले लॉगिन करें।",
+                cart_added_alert: "कार्ड कार्ट में सुरक्षित जोड़ दिया गया है!"
+            },
+            en: {
+                lang_toggle: "हिन्दी",
+                call_us: "Call Us",
+                brand_name: "Delhi Press",
+                brand_tagline: "Sajad Printers (Design • Print • Quality)",
+                nav_catalog: "Catalog",
+                nav_about: "About Us",
+                nav_location: "Shop Location",
+                nav_order: "Order Form",
+                nav_cart: "Cart",
+                nav_login: "Login",
+                nav_my_orders: "My Orders",
+                notice_text: "Note: Please verify the full matter thoroughly before printing; corrections cannot be made later.",
+                promo_title: "Looking to print Wedding Cards, Flex Banners, or Visiting Cards?",
+                promo_desc: "Click here to fill out the online wedding card form and submit your matter directly.",
+                btn_open_form: "Open Wedding Card / Order Form",
+                catalog_title: "Wedding Cards, Flex & Visiting Card Catalog",
+                zoom_hint_text: "(Click on any photo to view enlarged and zoom)",
+                loading_catalog: "Loading catalog...",
+                no_cards: "No cards currently available.",
+                db_error: "Database connection failed.",
+                in_stock_txt: "Available (In Stock)",
+                out_stock_txt: "Out of Stock",
+                btn_select: "Order Now",
+                btn_add_cart: "Add to Cart",
+                zoom_hint_btn: "View Larger",
+                about_title: "About Us (About Delhi Press)",
+                about_desc: "Delhi Press (Sajad Printers) is a trusted and reputed digital printing firm located in Karmatar, Jamtara. We are committed to premium quality, creative design, and timely delivery.",
+                terms_title: "Terms & Conditions",
+                t_rule1_b: "Matter Proof-Reading:",
+                t_rule1_txt: "After final customer approval, any spelling, name, or date mistakes will be the customer's responsibility.",
+                t_rule2_b: "Advance Payment:",
+                t_rule2_txt: "A minimum of 50% advance deposit is mandatory to start print production.",
+                location_title: "Shop Location & Contact (Visit Our Press)",
+                address_lbl: "Address:",
+                address_val: "Eidgah More (Chhaitar More), Karmatar, Jamtara, Jharkhand - 815352 | Mob: 9304509464",
+                card_details_title: "Card Details",
+                btn_order_this: "Order This Card",
+                brand_full: "Delhi Press (Sajad Printers)",
+                services_header: "Our Services",
+                services_list: "Wedding Cards | Flex Banners | Visiting Cards | Bill Books | Online Services",
+                copyright_text: "© 2026 Delhi Press (Sajad Printers). All rights reserved.",
+                footer_admin: "Admin",
+                login_alert: "Please login first to place an order.",
+                cart_added_alert: "Card added to cart successfully!"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'hi') ? 'en' : 'hi';
+            document.getElementById('langBtnLabel').innerText = translations[currentLang].lang_toggle;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerText = translations[currentLang][key];
+                }
+            });
+
+            if (globalCards.length > 0) {
+                renderCatalogCards(globalCards);
+            }
+        }
+
+        function isUserLoggedIn() {
+            return !!(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user'));
+        }
+
+        function checkLoginBeforeOrder() {
+            if (!isUserLoggedIn()) {
+                alert(translations[currentLang].login_alert);
+                window.location.href = "login.html";
+                return;
+            }
+            window.location.href = "order.html";
+        }
+
+        /* Cart Badge Management */
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const count = cart.length;
+                const navBadge = document.getElementById('navCartBadge');
+                const mobBadge = document.getElementById('mobileCartBadge');
+                if (navBadge) navBadge.innerText = count;
+                if (mobBadge) mobBadge.innerText = count;
+            } catch (e) {}
+        }
+
+        function addToCart(index) {
+            const card = globalCards[index];
+            if (!card) return;
+
+            try {
+                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const existing = cart.find(item => String(item.id) === String(card.id));
+                if (existing) {
+                    existing.quantity = (existing.quantity || 100) + 100;
+                } else {
+                    cart.push({
+                        id: card.id || Date.now(),
+                        name: card.name || card.title || 'शादी कार्ड',
+                        model: card.model || card.code || '',
+                        rate: parseFloat(card.rate || card.price) || 0,
+                        image: card.image || card.image_url || card.photo || '',
+                        quantity: 100
+                    });
+                }
+                localStorage.setItem('dp_cart_items', JSON.stringify(cart));
+                updateCartBadges();
+                alert(translations[currentLang].cart_added_alert);
+            } catch (e) {}
+        }
+
+        function addCurrentZoomToCart() {
+            if (!currentZoomCard) return;
+            const index = globalCards.indexOf(currentZoomCard);
+            if (index !== -1) {
+                addToCart(index);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            checkUserAuthUI();
+            updateCartBadges();
+            await loadCatalog();
+        });
+
+        function checkUserAuthUI() {
+            const user = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+            const authNav = document.getElementById('authNavContainer');
+            const loggedBox = document.getElementById('userLoggedBox');
+            const mobLink = document.getElementById('mobileAuthLink');
+            const mobText = document.getElementById('mobileAuthText');
+
+            if (user) {
+                if (authNav) authNav.style.display = 'none';
+                if (loggedBox) loggedBox.style.display = 'flex';
+                if (mobLink) {
+                    mobLink.href = 'my_orders.html';
+                    if (mobText) mobText.textContent = translations[currentLang].nav_my_orders;
+                }
+            } else {
+                if (authNav) authNav.style.display = 'block';
+                if (loggedBox) loggedBox.style.display = 'none';
+                if (mobLink) {
+                    mobLink.href = 'login.html';
+                    if (mobText) mobText.textContent = translations[currentLang].nav_login;
+                }
+            }
+        }
+
+        async function loadCatalog() {
+            const container = document.getElementById('catalogContainer');
+            if (!supabaseClient) {
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#ef4444;">${translations[currentLang].db_error}</p>`;
+                return;
+            }
+
+            const tables = ['catalog', 'cards_catalog', 'cards'];
+            let fetchedData = null;
+
+            for (const tbl of tables) {
+                try {
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
+                    const fetchPromise = supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                    
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    const data = res.data;
+
+                    if (data && data.length > 0) {
+                        fetchedData = data;
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(`Catalog load failed/timeout on ${tbl}:`, e);
+                }
+            }
+
+            if (!fetchedData || fetchedData.length === 0) {
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94a3b8;">${translations[currentLang].no_cards}</p>`;
+                return;
+            }
+
+            globalCards = fetchedData;
+            renderCatalogCards(fetchedData);
+        }
+
+        function renderCatalogCards(cards) {
+            const container = document.getElementById('catalogContainer');
+            container.innerHTML = '';
+
+            cards.forEach((card, index) => {
+                const name = card.name || card.title || (currentLang === 'hi' ? 'शादी कार्ड' : 'Wedding Card');
+                const model = card.model || card.code || '';
+                const rate = card.rate || card.price || 0;
+                const img = card.image || card.image_url || card.photo || safeCardPlaceholder;
+                const inStock = card.in_stock !== false;
+                const stockBadge = inStock 
+                    ? `<span class="stock-badge in-stock">${translations[currentLang].in_stock_txt}</span>` 
+                    : `<span class="stock-badge out-stock">${translations[currentLang].out_stock_txt}</span>`;
+
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-sample';
+                cardDiv.innerHTML = `
+                    <div class="img-box" onclick="openZoomModal(${index})">
+                        <img src="${img}" alt="${name}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                        <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> ${translations[currentLang].zoom_hint_btn}</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>${name}</h4>
+                        <div class="model-text">${model}</div>
+                        <div class="card-price-tag">₹${rate} / ${currentLang === 'hi' ? 'पीस' : 'pc'}</div>
+                        <div style="margin-bottom: 6px;">${stockBadge}</div>
+                        <div class="card-actions-row">
+                            <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
+                                <i class="fa-solid fa-bolt"></i> ${translations[currentLang].btn_select}
+                            </button>
+                            <button type="button" class="btn-add-cart-single" onclick="addToCart(${index})" title="कार्ट में जोड़ें">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(cardDiv);
+            });
+        }
+
+        function selectCardForOrder(cardIndex) {
+            if (!isUserLoggedIn()) {
+                alert(translations[currentLang].login_alert);
+                window.location.href = "login.html";
+                return;
+            }
+
+            const card = globalCards[cardIndex];
+            if (!card) return;
+
+            localStorage.removeItem('order_selected_card');
+            const cardData = {
+                id: card.id || '',
+                name: card.name || card.title || (currentLang === 'hi' ? 'शादी कार्ड' : 'Wedding Card'),
+                model: card.model || card.code || '',
+                rate: parseFloat(card.rate || card.price) || 0,
+                image: card.image || card.image_url || card.photo || ''
+            };
+
+            localStorage.setItem('order_selected_card', JSON.stringify(cardData));
+            window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
+        }
+
+        function openZoomModal(index) {
+            const card = globalCards[index];
+            if (!card) return;
+            currentZoomCard = card;
+            currentScale = 1;
+
+            const modal = document.getElementById('imageZoomModal');
+            const img = document.getElementById('zoomModalImg');
+            const title = document.getElementById('zoomModalTitle');
+
+            img.src = card.image || card.image_url || card.photo || safeCardPlaceholder;
+            img.style.transform = `scale(1)`;
+            title.innerText = `${card.name || (currentLang === 'hi' ? 'शादी कार्ड' : 'Wedding Card')} ${card.model ? '(' + card.model + ')' : ''}`;
+
+            modal.classList.add('active');
+        }
+
+        function closeZoomModal() {
+            document.getElementById('imageZoomModal').classList.remove('active');
+        }
+
+        function applyZoom(delta) {
+            currentScale = Math.min(Math.max(1, currentScale + delta), 3.5);
+            document.getElementById('zoomModalImg').style.transform = `scale(${currentScale})`;
+        }
+
+        function resetZoom() {
+            currentScale = 1;
+            document.getElementById('zoomModalImg').style.transform = `scale(1)`;
+        }
+
+        function redirectToOrderFromZoom() {
+            if (!currentZoomCard) return;
+            const index = globalCards.indexOf(currentZoomCard);
+            if (index !== -1) {
+                selectCardForOrder(index);
+            }
+        }
+    </script>
+
+    <script>
+        const policyContents = {
+            terms: `<h4 style="color:#1e293b; margin-bottom:8px;">नियम व शर्तें (Terms & Conditions)</h4><p>1. <b>कस्टम प्रिंटिंग:</b> दिल्ली प्रेस (सज्जाद प्रिंटर्स) में शादी कार्ड और फ्लेक्स प्रिंटिंग का कार्य ग्राहक द्वारा दिए गए मैटर/प्रूफ के आधार पर किया जाता है।</p>`,
+            privacy: `<h4 style="color:#1e293b; margin-bottom:8px;">गोपनीयता नीति (Privacy Policy)</h4><p>1. <b>व्यक्तिगत डेटा:</b> ऑर्डर प्रोसेस करने के लिए ग्राहक का नाम, मोबाइल नंबर और वैवाहिक विवरण हमारे सुरक्षित सिस्टम में दर्ज किया जाता है।</p>`,
+            refund: `<h4 style="color:#1e293b; margin-bottom:8px;">रिफंड एवं रद्दीकरण नीति (Refund Policy)</h4><p>1. <b>कस्टमाइज्ड प्रिंटिंग:</b> प्लेट बनने और छपाई शुरू होने के बाद ऑर्डर रद्द या रिफंड नहीं किया जाएगा।</p>`,
+            contact: `<h4 style="color:#1e293b; margin-bottom:8px;">संपर्क विवरण (Contact Us)</h4><p><b>पता:</b> ईदगाह मोड़, करमाटांड़, जामताड़ा, झारखंड - 815352<br><b>मो:</b> +91 9304509464</p>`
+        };
+
+        function openPolicyModal(type) {
+            const modal = document.getElementById('policyModalOverlay');
+            const body = document.getElementById('policyModalBody');
+            const title = document.getElementById('policyModalTitle');
+            if (policyContents[type]) {
+                body.innerHTML = policyContents[type];
+                if(type === 'terms') title.innerText = "नियम व शर्तें";
+                if(type === 'privacy') title.innerText = "गोपनीयता नीति";
+                if(type === 'refund') title.innerText = "रिफंड नीति";
+                if(type === 'contact') title.innerText = "संपर्क विवरण";
+                modal.style.display = 'flex';
+            }
+        }
+        function closePolicyModal() {
+            document.getElementById('policyModalOverlay').style.display = 'none';
+        }
+    </script>
+
+    <!-- Tidio लाइव चैटबॉट कोड -->
     <script src="//code.tidio.co/7zgizaqaa7hgsi8ncijezg32buh5lwvn.js" async></script>
 </body>
 </html>
