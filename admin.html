@@ -63,12 +63,13 @@
         input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
 
         .admin-table-wrapper { width: 100%; overflow-x: auto; margin-top: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 950px; }
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 1050px; }
         .admin-table th, .admin-table td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: center; vertical-align: middle; }
         .admin-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 13px; }
 
         .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-view { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-notice { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
 
         .stock-badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: bold; }
         .in-stock { background: #dcfce7; color: #15803d; }
@@ -240,7 +241,8 @@
                                 <th>बिल / एडवांस</th>
                                 <th>स्टेटस बदलें</th>
                                 <th>मैटर अपलोड</th>
-                                <th>ग्राहक स्थिति (अलार्म)</th>
+                                <th>ग्राहक स्थिति</th>
+                                <th>सूचना / देरी कारण</th>
                                 <th>रसीद</th>
                                 <th>हटाएं</th>
                             </tr>
@@ -345,13 +347,42 @@
     <div class="modal-overlay" id="correctionModal">
         <div class="modal-content" style="max-width: 520px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">
-                <h3 style="color:#b91c1c; font-size:17px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार / स्टेटस विवरण</h3>
+                <h3 style="color:#b91c1c; font-size:17px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार / स्थिति विवरण</h3>
                 <button type="button" onclick="closeCorrectionModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
             </div>
             <div id="correctionModalBody" style="font-size: 13px; color:#1e293b; line-height: 1.6;"></div>
             <div style="margin-top: 18px; display: flex; gap: 10px;">
                 <button type="button" id="btnMarkReviewed" style="flex:1; padding: 10px; background: var(--green); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">✓ मैंने देख लिया (अलार्म बंद करें)</button>
                 <button type="button" onclick="closeCorrectionModal()" style="padding: 10px 16px; background: #94a3b8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">बंद करें</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- प्रेस समस्या / सूचना भेजने का मॉडल -->
+    <div class="modal-overlay" id="noticeModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fed7aa; padding-bottom: 8px;">
+                <h3 style="color:#c2410c; font-size:17px; font-weight:800;"><i class="fa-solid fa-bullhorn"></i> ग्राहक को स्थिति / देरी का कारण बताएं</h3>
+                <button type="button" onclick="closeNoticeModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
+            </div>
+
+            <p style="font-size:12px; color:#64748b; margin-bottom:10px;">
+                त्वरित कारण चुनें या नीचे अपनी समस्या लिखकर ग्राहक को भेजें:
+            </p>
+
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                <button type="button" onclick="setQuickNotice('बिजली न रहने के कारण मैटर टाइपिंग में 1 से 2 दिन का समय लग सकता है।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">⚡ बिजली समस्या</button>
+                <button type="button" onclick="setQuickNotice('अत्यधिक ऑर्डर्स की व्यस्तता के कारण आपके कार्ड मैटर में 1 से 2 दिन का समय लग सकता है।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">📦 अत्यधिक ऑर्डर्स</button>
+                <button type="button" onclick="setQuickNotice('इंटरनेट/मशीन में तकनीकी खराबी के कारण काम में थोड़ा विलंब हो रहा है। जल्द तैयार होगा।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">🛠️ तकनीकी समस्या</button>
+            </div>
+
+            <textarea id="adminNoticeInput" rows="3" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; outline:none;" placeholder="यहाँ अपना कारण विस्तार से लिखें..."></textarea>
+
+            <div style="margin-top: 14px; display: flex; gap: 10px;">
+                <button type="button" id="btnSendAdminNotice" style="flex:1; padding: 10px; background: var(--secondary); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                    <i class="fa-solid fa-paper-plane"></i> ग्राहक को सूचना भेजें
+                </button>
+                <button type="button" onclick="closeNoticeModal()" style="padding: 10px 16px; background: #94a3b8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">रद्द करें</button>
             </div>
         </div>
     </div>
@@ -367,6 +398,7 @@
 
         let globalOrdersCache = [];
         let customerChartInstance = null;
+        let currentNoticeOrderId = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('dp_admin_auth') === 'true') showDashboard();
@@ -410,10 +442,10 @@
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="10">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
             if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="10" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
                 return;
             }
 
@@ -424,14 +456,14 @@
                     .order('id', { ascending: false });
 
                 if (error) {
-                    tbody.innerHTML = `<tr><td colspan="10" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
                     return;
                 }
 
                 globalOrdersCache = data || [];
 
                 if (globalOrdersCache.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="10">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="11">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
                     return;
                 }
 
@@ -486,13 +518,82 @@
                             ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" style="color:var(--green); font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-down"></i> मैटर देखें</b></a>` : ''}
                         </td>
                         <td>${correctionBtn}</td>
+                        <td>
+                            <button class="btn-notice" onclick="openNoticeModal('${o.id}')">
+                                <i class="fa-solid fa-message"></i> कारण बताएं
+                            </button>
+                        </td>
                         <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')">रसीद</button></td>
                         <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
                     `;
                 }).join('');
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="10" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
+            }
+        }
+
+        /* कारण व सूचना मोडल फंक्शन्स */
+        function openNoticeModal(orderId) {
+            currentNoticeOrderId = orderId;
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            
+            let existingNotice = '';
+            if (o && o.custom_notes && o.custom_notes.includes('[ADMIN_NOTICE]')) {
+                const parts = o.custom_notes.split('[ADMIN_NOTICE]');
+                existingNotice = parts[1] ? parts[1].trim() : '';
+            }
+
+            document.getElementById('adminNoticeInput').value = existingNotice;
+            document.getElementById('btnSendAdminNotice').onclick = () => saveAdminNotice(orderId);
+            document.getElementById('noticeModal').style.display = 'flex';
+        }
+
+        function closeNoticeModal() {
+            document.getElementById('noticeModal').style.display = 'none';
+        }
+
+        function setQuickNotice(msg) {
+            document.getElementById('adminNoticeInput').value = msg;
+        }
+
+        async function saveAdminNotice(orderId) {
+            const noticeText = document.getElementById('adminNoticeInput').value.trim();
+            if (!noticeText) {
+                alert("कृपया कोई कारण या सूचना लिखें!");
+                return;
+            }
+
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o || !supabaseClient) return;
+
+            const btn = document.getElementById('btnSendAdminNotice');
+            btn.disabled = true;
+            btn.innerText = "भेजा जा रहा है...";
+
+            try {
+                let baseNotes = o.custom_notes || '';
+                if (baseNotes.includes('[ADMIN_NOTICE]')) {
+                    baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
+                }
+
+                const finalNotes = (baseNotes ? baseNotes + "\n\n" : "") + "[ADMIN_NOTICE] " + noticeText;
+
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ custom_notes: finalNotes })
+                    .eq('id', Number(orderId));
+
+                if (error) throw error;
+
+                o.custom_notes = finalNotes;
+                alert("ग्राहक को सूचना सफलतापूर्वक भेज दी गई है!");
+                closeNoticeModal();
+            } catch (err) {
+                alert("सूचना भेजने में त्रुटि: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ग्राहक को सूचना भेजें';
             }
         }
 
@@ -878,6 +979,11 @@
             const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
             if (!o) return;
 
+            let baseNotes = o.custom_notes || '';
+            if (baseNotes.includes('[ADMIN_NOTICE]')) {
+                baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
+            }
+
             const area = document.getElementById('printableReceiptArea');
             area.innerHTML = `
                 <div class="receipt-header">
@@ -901,6 +1007,7 @@
                 <div class="receipt-row"><span>अग्रिम जमा (एडवांस):</span> <b style="color:var(--green);">₹${o.advance_paid || o.advance_amount || 0}</b></div>
                 <div class="receipt-row"><span>शेष बकाया:</span> <b style="color:var(--primary);">₹${(o.total_amount || 0) - (o.advance_paid || o.advance_amount || 0)}</b></div>
                 <div class="receipt-row"><span>ऑर्डर स्टेटस:</span> <b>${o.status || 'Pending'}</b></div>
+                <div class="receipt-row" style="flex-direction:column; margin-top:6px;"><span>विशेष विवरण / शायरी:</span> <b>${baseNotes || 'कोई अतिरिक्त मैटर नहीं'}</b></div>
             `;
 
             document.getElementById('orderModal').style.display = 'flex';
