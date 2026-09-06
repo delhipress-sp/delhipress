@@ -62,7 +62,7 @@
         input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
 
         .admin-table-wrapper { width: 100%; overflow-x: auto; margin-top: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 850px; }
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 950px; }
         .admin-table th, .admin-table td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: center; vertical-align: middle; }
         .admin-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 13px; }
 
@@ -96,6 +96,60 @@
         .receipt-header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 14px; }
         .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 4px; }
         .receipt-section-title { background: #f8fafc; padding: 5px 10px; font-weight: 800; color: var(--primary); margin: 12px 0 8px 0; border-left: 3px solid var(--primary); font-size: 13px; }
+
+        /* 3D LIGHTING & ALARM BLINK ANIMATION */
+        @keyframes alarm3DGlow {
+            0% {
+                transform: perspective(600px) translateZ(0px) scale(1);
+                box-shadow: 0 4px 6px rgba(220, 38, 38, 0.4), 0 0 10px #ff3838, inset 0 1px 1px rgba(255,255,255,0.6);
+            }
+            50% {
+                transform: perspective(600px) translateZ(8px) scale(1.06);
+                box-shadow: 0 8px 20px rgba(239, 68, 68, 0.9), 0 0 25px #ff0000, 0 0 40px #ff7878, inset 0 2px 4px #ffffff;
+                background: linear-gradient(135deg, #ff0000 0%, #b91c1c 100%);
+            }
+            100% {
+                transform: perspective(600px) translateZ(0px) scale(1);
+                box-shadow: 0 4px 6px rgba(220, 38, 38, 0.4), 0 0 10px #ff3838, inset 0 1px 1px rgba(255,255,255,0.6);
+            }
+        }
+
+        .btn-alarm-3d {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: #ffffff !important;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            animation: alarm3DGlow 1.2s infinite ease-in-out;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-alarm-3d:hover {
+            transform: scale(1.08) translateY(-2px);
+        }
+
+        .btn-reviewed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -146,6 +200,7 @@
                                 <th>बिल / एडवांस</th>
                                 <th>स्टेटस बदलें</th>
                                 <th>मैटर अपलोड</th>
+                                <th>ग्राहक सुधार (अलार्म)</th>
                                 <th>रसीद</th>
                                 <th>हटाएं</th>
                             </tr>
@@ -198,6 +253,21 @@
         </div>
     </div>
 
+    <!-- Customer Correction Modal (रिव्यू पॉपअप) -->
+    <div class="modal-overlay" id="correctionModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">
+                <h3 style="color:#b91c1c; font-size:17px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार अनुरोध</h3>
+                <button type="button" onclick="closeCorrectionModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
+            </div>
+            <div id="correctionModalBody" style="font-size: 13px; color:#1e293b; line-height: 1.6;"></div>
+            <div style="margin-top: 18px; display: flex; gap: 10px;">
+                <button type="button" id="btnMarkReviewed" style="flex:1; padding: 10px; background: var(--green); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">✓ मैंने सुधार देख लिया (समीक्षा पूर्ण करें)</button>
+                <button type="button" onclick="closeCorrectionModal()" style="padding: 10px 16px; background: #94a3b8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">बंद करें</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
@@ -244,10 +314,10 @@
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="9">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
             if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="9" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
                 return;
             }
 
@@ -258,24 +328,45 @@
                     .order('id', { ascending: false });
 
                 if (error) {
-                    tbody.innerHTML = `<tr><td colspan="9" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="10" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
                     return;
                 }
 
                 globalOrdersCache = data || [];
 
                 if (globalOrdersCache.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = globalOrdersCache.map(o => `
+                tbody.innerHTML = globalOrdersCache.map(o => {
+                    // ग्राहक सुधार बटन का लॉजिक (3D चमकने वाला अलार्म)
+                    let correctionBtn = '<span style="color:#94a3b8; font-size:11px;">कोई सुधार नहीं</span>';
+                    
+                    if (o.customer_correction || o.customer_correction_file) {
+                        if (o.correction_reviewed === true) {
+                            correctionBtn = `
+                                <button class="btn-reviewed-badge" onclick="openCorrectionModal('${o.id}')">
+                                    <i class="fa-solid fa-check-double" style="color:var(--green);"></i> सुधार देखा गया
+                                </button>
+                            `;
+                        } else {
+                            // जब तक एडमिन रीव्यू नहीं करता, 3D में ब्लिंक/लाइटिंग करेगा
+                            correctionBtn = `
+                                <button class="btn-alarm-3d" onclick="openCorrectionModal('${o.id}')">
+                                    <i class="fa-solid fa-bell fa-shake"></i> नया सुधार!
+                                </button>
+                            `;
+                        }
+                    }
+
+                    return `
                     <tr>
                         <td>#${o.id}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</small></td>
                         <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
-                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || '-'}</td>
+                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}</td>
                         <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || 0}</td>
+                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || o.advance_amount || 0}</td>
                         <td>
                             <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
                                 <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -291,12 +382,62 @@
                             </label>
                             ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" style="color:var(--green); font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-down"></i> मैटर देखें</b></a>` : ''}
                         </td>
+                        <td>${correctionBtn}</td>
                         <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')">रसीद</button></td>
                         <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
-                `).join('');
+                    `;
+                }).join('');
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="9" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
+            }
+        }
+
+        function openCorrectionModal(orderId) {
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o) return;
+
+            const modalBody = document.getElementById('correctionModalBody');
+            modalBody.innerHTML = `
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:12px;">
+                    <div style="margin-bottom:6px;"><strong>ऑर्डर ID:</strong> #${o.id} | <strong>ग्राहक:</strong> ${o.customer_name || '-'} (📞 ${o.mobile || o.customer_phone || '-'})</div>
+                    <div style="margin-bottom:6px;"><strong>लिखा हुआ सुधार:</strong></div>
+                    <div style="background:white; padding:10px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#b91c1c; white-space:pre-wrap;">${o.customer_correction || '(कोई टेक्स्ट विवरण नहीं दिया गया)'}</div>
+                </div>
+                ${o.customer_correction_file ? `
+                    <div style="margin-bottom:14px; text-align:center;">
+                        <a href="${o.customer_correction_file}" target="_blank" download style="display:inline-block; background:var(--blue); color:white; padding:8px 16px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:12px;">
+                            <i class="fa-solid fa-file-arrow-down"></i> संलग्न सुधार फ़ाइल / फोटो देखें
+                        </a>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('btnMarkReviewed').onclick = () => markCorrectionReviewed(o.id);
+            document.getElementById('correctionModal').style.display = 'flex';
+        }
+
+        function closeCorrectionModal() {
+            document.getElementById('correctionModal').style.display = 'none';
+        }
+
+        async function markCorrectionReviewed(orderId) {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ correction_reviewed: true })
+                    .eq('id', Number(orderId));
+
+                if (error) {
+                    alert("अपडेट नहीं हो पाया: " + error.message);
+                } else {
+                    alert("सुधार की समीक्षा पूरी कर ली गई है! अलार्म बंद कर दिया गया है।");
+                    closeCorrectionModal();
+                    loadAdminOrders();
+                }
+            } catch (e) {
+                alert("नेटवर्क त्रुटि: " + e.message);
             }
         }
 
@@ -348,165 +489,175 @@
                     .delete()
                     .eq('id', Number(id));
 
-                if (error) alert("ऑर्डर डिलीट नहीं हो सका: " + error.message);
-                loadAdminOrders();
+                if (error) {
+                    alert("हटाया नहीं जा सका: " + error.message);
+                } else {
+                    alert("ऑर्डर हटा दिया गया!");
+                    loadAdminOrders();
+                }
             } catch (e) {
-                alert("नेटवर्क त्रुटि!");
+                alert("नेटवर्क त्रुटि: " + e.message);
             }
         }
 
-        function openOrderReceiptModal(id) {
-            const o = globalOrdersCache.find(x => String(x.id) === String(id));
-            if (!o) return;
-
-            let receiptPicHtml = '';
-            if (o.payment_receipt && o.payment_receipt.trim() !== '') {
-                receiptPicHtml = `
-                    <div style="margin-top:14px; padding:10px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; text-align:center;">
-                        <div style="font-weight:bold; color:#1e293b; margin-bottom:6px; font-size:13px;">
-                            <i class="fa-solid fa-image" style="color:var(--primary);"></i> ग्राहक द्वारा भेजी गई भुगतान रसीद:
-                        </div>
-                        <a href="${o.payment_receipt}" target="_blank" title="बड़ा देखने के लिए क्लिक करें">
-                            <img src="${o.payment_receipt}" style="max-width:100%; max-height:280px; border-radius:6px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.1); display:inline-block; margin-top:4px;">
-                        </a>
-                    </div>
-                `;
-            }
-
-            document.getElementById('printableReceiptArea').innerHTML = `
-                <div class="receipt-header">
-                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; margin:0;">ईदगाह मोड़, करमाटांड़, जामताड़ा | मो: 9304509464</p>
-                </div>
-                <div class="receipt-row"><span><b>ऑर्डर ID:</b></span><b>#${o.id}</b></div>
-                <div class="receipt-row"><span><b>दिनांक:</b></span><span>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : 'हाल ही में'}</span></div>
-                <div class="receipt-row"><span><b>ग्राहक नाम:</b></span><b>${o.customer_name || '-'}</b></div>
-                <div class="receipt-row"><span><b>मोबाइल:</b></span><b>${o.mobile || '-'}</b></div>
-                <div class="receipt-row"><span><b>पता:</b></span><b>${o.address || '-'}</b></div>
-                
-                <div class="receipt-section-title">शादी मैटर विवरण</div>
-                <div class="receipt-row"><span><b>वर (दूल्हा):</b></span><b style="color:var(--primary);">${o.groom_name || '-'} (पिता: ${o.groom_father || '-'})</b></div>
-                <div class="receipt-row"><span><b>वर का पता:</b></span><span>${o.groom_address || '-'}</b></div>
-                <div class="receipt-row"><span><b>वधू (दुल्हन):</b></span><b style="color:var(--secondary);">${o.bride_name || '-'} (पिता: ${o.bride_father || '-'})</b></div>
-                <div class="receipt-row"><span><b>वधू का पता:</b></span><span>${o.bride_address || '-'}</span></div>
-                <div style="font-size:12px; background:#f8fafc; padding:8px; margin:6px 0; border:1px solid #eee; white-space:pre-wrap; border-radius:4px;"><b>विवरण / शायरी / कार्यक्रम:</b><br>${o.custom_notes || 'कोई मैटर नहीं'}</div>
-                
-                <div class="receipt-section-title">बिल एवं भुगतान विवरण</div>
-                <div class="receipt-row"><span>संख्या:</span><b>${o.quantity || 100} पीस</b></div>
-                <div class="receipt-row"><span>कुल बिल राशि:</span><b>₹${o.total_amount || 0}</b></div>
-                <div class="receipt-row"><span>जमा एडवांस राशि:</span><b style="color:green;">₹${o.advance_paid || 0}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया राशि:</span><b style="color:red;">₹${o.balance_amount || 0}</b></div>
-                <div class="receipt-row"><span>भुगतान मोड:</span><b>${o.payment_mode || '-'}</b></div>
-                <div class="receipt-row"><span>UTR / Ref No:</span><b>${o.txn_id || '-'}</b></div>
-                
-                ${receiptPicHtml}
-            `;
-            document.getElementById('orderModal').style.display = 'flex';
-        }
-
-        function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
-
-        function downloadReceiptPDF() {
-            const element = document.getElementById('printableReceiptArea');
-            html2pdf().set({ margin: 6, filename: 'DelhiPress_Receipt.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
-        }
-
+        /* CATALOG FUNCTIONS */
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
+            if (!tbody || !supabaseClient) return;
             tbody.innerHTML = '<tr><td colspan="7">कैटलॉग लोड हो रहा है...</td></tr>';
-            if (!supabaseClient) return;
-
             try {
                 const { data, error } = await supabaseClient
-                    .from('catalog')
+                    .from('cards_catalog')
                     .select('*')
                     .order('id', { ascending: false });
 
-                if (error || !data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7">डेटाबेस में कोई कार्ड नहीं मिला। ऊपर दिए फॉर्म से जोड़ें।</td></tr>';
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="color:red;">${error.message}</td></tr>`;
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड उपलब्ध नहीं है।</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = data.map(c => `
                     <tr>
-                        <td><img src="${c.image || ''}" style="width:45px;height:45px;object-fit:cover;border-radius:4px;"></td>
-                        <td><b>${c.name}</b></td>
-                        <td>${c.model}</td>
-                        <td>₹${c.rate}</td>
+                        <td><img src="${c.image_url || ''}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;"></td>
+                        <td><b>${c.name || '-'}</b></td>
+                        <td>${c.model || '-'}</td>
+                        <td>₹${c.rate || 0}</td>
                         <td><span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
-                        <td><button class="btn-stock-toggle" style="background:${c.in_stock ? '#f77f00' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${!c.in_stock})">${c.in_stock ? 'Out करें' : 'In करें'}</button></td>
+                        <td>
+                            <button class="btn-stock-toggle" style="background:${c.in_stock ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${!c.in_stock})">
+                                ${c.in_stock ? 'समाप्त करें' : 'उपलब्ध करें'}
+                            </button>
+                        </td>
                         <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
                 `).join('');
-            } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="7">कैटलॉग लोड नहीं हो सका।</td></tr>';
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
             }
-        }
-
-        function compressCardImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let w = img.width, h = img.height;
-                        const maxDim = 800;
-                        if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
-                        else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
-                        canvas.width = w; canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
-                };
-            });
         }
 
         async function handleAddNewCatalogCard(e) {
             e.preventDefault();
             const btn = document.getElementById('addCardSubmitBtn');
-            btn.innerText = "अपलोड हो रहा है...";
             btn.disabled = true;
+            btn.innerText = "सुरक्षित हो रहा है...";
 
             const name = document.getElementById('admCardName').value.trim();
             const model = document.getElementById('admCardModel').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value) || 0;
-            const in_stock = document.getElementById('admCardStock').value === 'true';
+            const rate = parseFloat(document.getElementById('admCardRate').value);
+            const in_stock = document.getElementById('admCardStock').value === "true";
             const file = document.getElementById('admCardFile').files[0];
 
-            let finalImage = "https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ";
-            if (file) finalImage = await compressCardImage(file);
-
-            const payload = { name, model, rate, in_stock, image: finalImage, created_at: new Date().toISOString() };
-
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('catalog').insert([payload]);
-                if (error) alert("कार्ड डेटाबेस में सेव नहीं हुआ: " + error.message);
-                else alert("कार्ड डेटाबेस में जुड़ गया!");
+            if (!file) {
+                alert("कृपया फोटो चुनें!");
+                btn.disabled = false;
+                btn.innerText = "+ सुरक्षित करें";
+                return;
             }
 
-            btn.innerText = "+ सुरक्षित करें";
-            btn.disabled = false;
-            document.getElementById('newCardForm').reset();
-            loadCatalogStock();
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64Img = reader.result;
+                try {
+                    const { error } = await supabaseClient
+                        .from('cards_catalog')
+                        .insert([{ name, model, rate, in_stock, image_url: base64Img }]);
+
+                    if (error) throw error;
+                    alert("नया कार्ड सफलतापूर्वक जोड़ा गया!");
+                    document.getElementById('newCardForm').reset();
+                    loadCatalogStock();
+                } catch (err) {
+                    alert("कार्ड जोड़ने में त्रुटि: " + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = "+ सुरक्षित करें";
+                }
+            };
         }
 
         async function toggleCardStock(id, newStatus) {
-            if (supabaseClient) {
-                await supabaseClient.from('catalog').update({ in_stock: newStatus }).eq('id', Number(id));
-                loadCatalogStock();
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('cards_catalog')
+                    .update({ in_stock: newStatus })
+                    .eq('id', Number(id));
+
+                if (error) alert("स्टॉक स्थिति नहीं बदली: " + error.message);
+                else loadCatalogStock();
+            } catch (e) {
+                alert("नेटवर्क त्रुटि!");
             }
         }
 
         async function deleteCatalogCard(id) {
-            if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
-            if (supabaseClient) {
-                await supabaseClient.from('catalog').delete().eq('id', Number(id));
-                loadCatalogStock();
+            if (!confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) return;
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('cards_catalog')
+                    .delete()
+                    .eq('id', Number(id));
+
+                if (error) alert("हटाया नहीं जा सका: " + error.message);
+                else loadCatalogStock();
+            } catch (e) {
+                alert("नेटवर्क त्रुटि!");
             }
+        }
+
+        /* RECEIPT MODAL FUNCTIONS */
+        function openOrderReceiptModal(orderId) {
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o) return;
+
+            const area = document.getElementById('printableReceiptArea');
+            area.innerHTML = `
+                <div class="receipt-header">
+                    <h2 style="font-size:20px; font-weight:800; color:#e63946;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
+                    <p style="font-size:12px; color:#475569;">शादी कार्ड, विजिटिंग कार्ड, फ्लेक्स बैनर एवं ऑनलाइन प्रिंटिंग सेवा</p>
+                    <p style="font-size:11px; color:#64748b;">ऑर्डर क्रमांक: #${o.id} | दिनांक: ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</p>
+                </div>
+                <div class="receipt-section-title">ग्राहक व ऑर्डर विवरण</div>
+                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${o.customer_name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${o.mobile || o.customer_phone || '-'}</b></div>
+                <div class="receipt-row"><span>कार्ड मॉडल / नाम:</span> <b>${o.card_title || 'शादी कार्ड'}</b></div>
+                <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${o.quantity || 100} पीस</b></div>
+
+                <div class="receipt-section-title">वैवाहिक विवरण (शुभ विवाह)</div>
+                <div class="receipt-row"><span>वर (लड़का):</span> <b>${o.groom_name || '-'}</b></div>
+                <div class="receipt-row"><span>वधू (लड़की):</span> <b>${o.bride_name || '-'}</b></div>
+
+                <div class="receipt-section-title">बिल एवं भुगतान स्थिति</div>
+                <div class="receipt-row"><span>कुल राशि:</span> <b>₹${o.total_amount || 0}</b></div>
+                <div class="receipt-row"><span>अग्रिम जमा (एडवांस):</span> <b style="color:var(--green);">₹${o.advance_paid || o.advance_amount || 0}</b></div>
+                <div class="receipt-row"><span>शेष बकाया:</span> <b style="color:var(--primary);">₹${(o.total_amount || 0) - (o.advance_paid || o.advance_amount || 0)}</b></div>
+                <div class="receipt-row"><span>ऑर्डर स्टेटस:</span> <b>${o.status || 'Pending'}</b></div>
+            `;
+
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            const opt = {
+                margin: 10,
+                filename: `Delhi_Press_Receipt_${Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
