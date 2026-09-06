@@ -17,6 +17,7 @@
             --dark: #0f172a;
             --green: #10b981;
             --blue: #2563eb;
+            --purple: #8b5cf6;
             --glass-bg: rgba(255, 255, 255, 0.92);
             --glass-border: rgba(255, 255, 255, 0.6);
             --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
@@ -120,11 +121,14 @@
         .order-id-date h4 { font-size: 16px; color: var(--primary); margin: 0; font-weight: 800; }
         .order-id-date span { font-size: 12px; color: #64748b; font-weight: 600; }
 
+        /* सभी 5 तरह के स्टेटस बैज */
         .badge-status {
             padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
             display: inline-flex; align-items: center; gap: 6px;
         }
         .badge-pending { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-received { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .badge-typing { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
         .badge-process { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
         .badge-ready { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
 
@@ -390,7 +394,6 @@
             </div>
         </div>
 
-        <!-- नीचे शादी कार्ड कैटलॉग सेक्शन -->
         <div class="bottom-showcase-box">
             <h3 class="showcase-header-title">शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग</h3>
             <div class="gallery-grid" id="bottomCatalogContainer"></div>
@@ -514,6 +517,7 @@
 
             if (!userMobile) return; 
 
+            // Supabase से फ्रेश डेटा प्राप्त करना
             const [ordersRes, catalogRes] = await Promise.allSettled([
                 supabaseClient.from('orders').select('*').eq('mobile', userMobile).order('id', { ascending: false }).limit(20),
                 supabaseClient.from('catalog').select('*').order('id', { ascending: false }).limit(20)
@@ -559,11 +563,19 @@
                 const total = parseFloat(ord.total_amount || 0);
                 const advance = parseFloat(ord.advance_paid || 0);
                 const balance = Math.max(0, total - advance);
-                const status = ord.status || 'Pending';
+                const status = (ord.status || 'Pending').trim();
 
+                // सभी 5 स्टेटस को सही नाम व रंगों के साथ दिखाना
                 let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> प्राप्त हुआ (Pending)</span>`;
-                if (status === 'Processing') statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है</span>`;
-                if (status === 'Ready') statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है</span>`;
+                if (status === 'Received') {
+                    statusBadge = `<span class="badge-status badge-received"><i class="fa-solid fa-handshake"></i> स्वीकार किया गया (Received)</span>`;
+                } else if (status === 'Matter Typing') {
+                    statusBadge = `<span class="badge-status badge-typing"><i class="fa-solid fa-keyboard"></i> मैटर टाइपिंग जारी है</span>`;
+                } else if (status === 'Processing') {
+                    statusBadge = `<span class="badge-status badge-process"><i class="fa-solid fa-gears"></i> छपाई जारी है (Processing)</span>`;
+                } else if (status === 'Ready') {
+                    statusBadge = `<span class="badge-status badge-ready"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready)</span>`;
+                }
 
                 const cardImg = ord.card_image || safeCardPlaceholder;
 
@@ -580,6 +592,12 @@
                             </a>
                         </div>
                     `;
+                }
+
+                // [REVIEWED] टैग को ग्राहक के सामने छिपाने का फ़िल्टर
+                let cleanCorrectionText = ord.customer_correction || '';
+                if (cleanCorrectionText.startsWith('[REVIEWED]')) {
+                    cleanCorrectionText = cleanCorrectionText.replace('[REVIEWED]', '').trim();
                 }
 
                 let correctionHtml = `
@@ -609,9 +627,9 @@
                             </button>
                         </div>
 
-                        ${ord.customer_correction || ord.customer_correction_file ? `
+                        ${cleanCorrectionText || ord.customer_correction_file ? `
                             <div style="margin-top: 8px; font-size: 11px; background: rgba(255,255,255,0.85); padding: 8px; border-radius: 6px; border-left: 3px solid #f59e0b;">
-                                <strong style="color:#b45309;">आपका भेजा गया पिछला संदेश/सुधार:</strong> ${ord.customer_correction || 'फ़ाइल भेजी गई'}
+                                <strong style="color:#b45309;">आपका भेजा गया पिछला संदेश/सुधार:</strong> ${cleanCorrectionText || 'फ़ाइल भेजी गई'}
                                 ${ord.customer_correction_file ? `<br><a href="${ord.customer_correction_file}" target="_blank" style="color:var(--blue); font-weight:bold; text-decoration:underline; display:inline-block; margin-top:2px;">संलग्न फ़ाइल देखें</a>` : ''}
                             </div>
                         ` : ''}
@@ -676,8 +694,7 @@
             const sendPayload = async () => {
                 try {
                     const updateData = {
-                        customer_correction: textVal || 'फ़ाइल संलग्न है',
-                        correction_reviewed: false
+                        customer_correction: textVal || 'फ़ाइल संलग्न है'
                     };
                     if (base64File) {
                         updateData.customer_correction_file = base64File;
@@ -728,8 +745,7 @@
                     const { error } = await supabaseClient
                         .from('orders')
                         .update({
-                            customer_correction: reminderMsg,
-                            correction_reviewed: false
+                            customer_correction: reminderMsg
                         })
                         .eq('id', Number(orderId));
 
@@ -755,12 +771,14 @@
             const advance = parseFloat(ord.advance_paid || 0);
             const balance = Math.max(0, total - advance);
             const img = ord.card_image || safeCardPlaceholder;
-            const status = ord.status || 'Pending';
+            const status = (ord.status || 'Pending').trim();
 
             let statusLabel = "प्राप्त हुआ (Pending)";
             let statusColor = "#b91c1c";
-            if (status === 'Processing') { statusLabel = "छपाई जारी है (Processing)"; statusColor = "#92400e"; }
-            if (status === 'Ready') { statusLabel = "कार्ड तैयार है (Ready)"; statusColor = "#15803d"; }
+            if (status === 'Received') { statusLabel = "स्वीकार किया गया (Received)"; statusColor = "#3730a3"; }
+            else if (status === 'Matter Typing') { statusLabel = "मैटर टाइपिंग जारी है (Matter Typing)"; statusColor = "#6b21a8"; }
+            else if (status === 'Processing') { statusLabel = "छपाई जारी है (Processing)"; statusColor = "#92400e"; }
+            else if (status === 'Ready') { statusLabel = "कार्ड तैयार है (Ready)"; statusColor = "#15803d"; }
 
             let receiptPicHtml = '';
             if (ord.payment_receipt) {
