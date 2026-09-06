@@ -156,7 +156,6 @@
         }
         .btn-view-receipt:hover { transform: translateY(-1px); }
 
-        /* मैटर एवं सुधार (Correction) स्टाइल्स */
         .matter-preview-block {
             background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px;
             padding: 12px 14px; margin-bottom: 14px; display: flex;
@@ -197,7 +196,6 @@
         }
         .empty-orders i { font-size: 45px; color: #94a3b8; margin-bottom: 14px; }
 
-        /* Bottom Catalog Section */
         .bottom-showcase-box {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -450,7 +448,7 @@
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
         try {
@@ -516,13 +514,11 @@
 
             if (!userMobile) return; 
 
-            // Dono calls ek sath parallel chalengi
             const [ordersRes, catalogRes] = await Promise.allSettled([
                 supabaseClient.from('orders').select('*').eq('mobile', userMobile).order('id', { ascending: false }).limit(20),
-                supabaseClient.from('cards_catalog').select('*').order('id', { ascending: false }).limit(20)
+                supabaseClient.from('catalog').select('*').order('id', { ascending: false }).limit(20)
             ]);
 
-            // Orders Update
             if (ordersRes.status === 'fulfilled' && ordersRes.value.data) {
                 fetchedOrdersList = ordersRes.value.data;
                 try {
@@ -533,7 +529,6 @@
                 renderOrdersUI();
             }
 
-            // Catalog Update
             if (catalogRes.status === 'fulfilled' && catalogRes.value.data && catalogRes.value.data.length > 0) {
                 catalogCardsList = catalogRes.value.data;
                 renderBottomCatalog(catalogCardsList);
@@ -572,7 +567,6 @@
 
                 const cardImg = ord.card_image || safeCardPlaceholder;
 
-                // 1. प्रेस द्वारा अपलोड किया गया मैटर (प्रूफ़)
                 let matterHtml = '';
                 if (ord.order_matter) {
                     matterHtml = `
@@ -588,7 +582,6 @@
                     `;
                 }
 
-                // 2. ग्राहक सुधार (Correction) फॉर्म
                 let correctionHtml = `
                     <div class="customer-correction-block">
                         <div class="correction-title">
@@ -606,9 +599,19 @@
                             </button>
                         </div>
 
+                        <!-- रिमाइंडर बटन -->
+                        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 11px; color: #64748b;">
+                                <i class="fa-solid fa-clock-rotate-left"></i> क्या मैटर तैयार होने में देर हो रही है?
+                            </span>
+                            <button type="button" onclick="sendTypingReminder('${ord.id}', ${index})" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-bell"></i> याद दिलाएं: मैटर टाइप करके भेजें
+                            </button>
+                        </div>
+
                         ${ord.customer_correction || ord.customer_correction_file ? `
                             <div style="margin-top: 8px; font-size: 11px; background: rgba(255,255,255,0.85); padding: 8px; border-radius: 6px; border-left: 3px solid #f59e0b;">
-                                <strong style="color:#b45309;">आपका भेजा गया पिछला सुधार:</strong> ${ord.customer_correction || 'फ़ाइल भेजी गई'}
+                                <strong style="color:#b45309;">आपका भेजा गया पिछला संदेश/सुधार:</strong> ${ord.customer_correction || 'फ़ाइल भेजी गई'}
                                 ${ord.customer_correction_file ? `<br><a href="${ord.customer_correction_file}" target="_blank" style="color:var(--blue); font-weight:bold; text-decoration:underline; display:inline-block; margin-top:2px;">संलग्न फ़ाइल देखें</a>` : ''}
                             </div>
                         ` : ''}
@@ -674,13 +677,12 @@
                 try {
                     const updateData = {
                         customer_correction: textVal || 'फ़ाइल संलग्न है',
-                        correction_reviewed: false // एडमिन पैनल पर 3D अलार्म सक्रिय करने के लिए
+                        correction_reviewed: false
                     };
                     if (base64File) {
                         updateData.customer_correction_file = base64File;
                     }
 
-                    // Supabase में अपडेट
                     if (supabaseClient) {
                         const { error } = await supabaseClient
                             .from('orders')
@@ -690,7 +692,6 @@
                         if (error) throw error;
                     }
 
-                    // लोकल लिस्ट में अपडेट
                     if (fetchedOrdersList[index]) {
                         fetchedOrdersList[index].customer_correction = updateData.customer_correction;
                         if (base64File) fetchedOrdersList[index].customer_correction_file = base64File;
@@ -714,6 +715,35 @@
                 reader.readAsDataURL(file);
             } else {
                 await sendPayload();
+            }
+        }
+
+        async function sendTypingReminder(orderId, index) {
+            if (!confirm("क्या आप प्रेस को याद दिलाना चाहते हैं कि मैटर टाइप करके भेजें?")) return;
+
+            const reminderMsg = "मैटर टाइपिंग रिमाइंडर: कृपया जल्द से जल्द कार्ड मैटर टाइप करके अपलोड करें!";
+
+            try {
+                if (supabaseClient) {
+                    const { error } = await supabaseClient
+                        .from('orders')
+                        .update({
+                            customer_correction: reminderMsg,
+                            correction_reviewed: false
+                        })
+                        .eq('id', Number(orderId));
+
+                    if (error) throw error;
+                }
+
+                if (fetchedOrdersList[index]) {
+                    fetchedOrdersList[index].customer_correction = reminderMsg;
+                }
+
+                alert("प्रेस को रिमाइंडर भेज दिया गया है!");
+                renderOrdersUI();
+            } catch (err) {
+                alert("रिमाइंडर भेजने में त्रुटि: " + err.message);
             }
         }
 
@@ -763,11 +793,11 @@
 
                 <div class="receipt-section-title">३. शादी मैटर विवरण (दूल्हा-दुल्हन)</div>
                 <div class="receipt-row"><span>वर (दूल्हा):</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
-                <div class="receipt-row"><span>पिता (वर):</span> <span>${ord.groom_father || '-'}</span></div>
-                <div class="receipt-row" style="flex-direction: column;"><span>पता (वर):</span> <span>${ord.groom_address || '-'}</span></div>
+                <div class="receipt-row"><span>पिता (वर):</span> <span>${ord.groom_father || '-'}</b></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता (वर):</span> <span>${ord.groom_address || '-'}</b></div>
                 <div class="receipt-row"><span>वधू (दुल्हन):</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
-                <div class="receipt-row"><span>पिता (वधू):</span> <span>${ord.bride_father || '-'}</span></div>
-                <div class="receipt-row" style="flex-direction: column;"><span>पता (वधू):</span> <span>${ord.bride_address || '-'}</span></div>
+                <div class="receipt-row"><span>पिता (वधू):</span> <span>${ord.bride_father || '-'}</b></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता (वधू):</span> <span>${ord.bride_address || '-'}</b></div>
 
                 <div class="receipt-section-title">४. वैवाहिक कार्यक्रम, शायरी व निमंत्रक</div>
                 <div style="font-size:12px; background:#f8fafc; padding:8px; border:1px solid #eee; white-space:pre-wrap; margin:6px 0; border-radius:4px;">${ord.custom_notes || 'कोई अतिरिक्त मैटर नहीं'}</div>
