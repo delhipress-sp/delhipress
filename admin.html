@@ -137,6 +137,20 @@
             transform: scale(1.08) translateY(-2px);
         }
 
+        .btn-approved-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
         .btn-reviewed-badge {
             display: inline-flex;
             align-items: center;
@@ -226,7 +240,7 @@
                                 <th>बिल / एडवांस</th>
                                 <th>स्टेटस बदलें</th>
                                 <th>मैटर अपलोड</th>
-                                <th>ग्राहक सुधार (अलार्म)</th>
+                                <th>ग्राहक स्थिति (अलार्म)</th>
                                 <th>रसीद</th>
                                 <th>हटाएं</th>
                             </tr>
@@ -331,7 +345,7 @@
     <div class="modal-overlay" id="correctionModal">
         <div class="modal-content" style="max-width: 520px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">
-                <h3 style="color:#b91c1c; font-size:17px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार / रिमाइंडर अनुरोध</h3>
+                <h3 style="color:#b91c1c; font-size:17px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार / स्टेटस विवरण</h3>
                 <button type="button" onclick="closeCorrectionModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
             </div>
             <div id="correctionModalBody" style="font-size: 13px; color:#1e293b; line-height: 1.6;"></div>
@@ -425,8 +439,16 @@
                     let correctionBtn = '<span style="color:#94a3b8; font-size:11px;">कोई सुधार नहीं</span>';
                     
                     if (o.customer_correction || o.customer_correction_file) {
+                        const isApproved = typeof o.customer_correction === 'string' && o.customer_correction.includes('[APPROVED_FOR_PRINT]');
                         const isReviewed = typeof o.customer_correction === 'string' && o.customer_correction.startsWith('[REVIEWED]');
-                        if (isReviewed) {
+
+                        if (isApproved) {
+                            correctionBtn = `
+                                <button class="btn-approved-badge" onclick="openCorrectionModal('${o.id}')">
+                                    <i class="fa-solid fa-circle-check"></i> मैटर फाइनल स्वीकृत
+                                </button>
+                            `;
+                        } else if (isReviewed) {
                             correctionBtn = `
                                 <button class="btn-reviewed-badge" onclick="openCorrectionModal('${o.id}')">
                                     <i class="fa-solid fa-check-double" style="color:var(--green);"></i> सुधार देखा गया
@@ -625,7 +647,7 @@
             modalBody.innerHTML = `
                 <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:12px;">
                     <div style="margin-bottom:6px;"><strong>ऑर्डर ID:</strong> #${o.id} | <strong>ग्राहक:</strong> ${o.customer_name || '-'} (📞 ${o.mobile || o.customer_phone || '-'})</div>
-                    <div style="margin-bottom:6px;"><strong>ग्राहक संदेश / सुधार विवरण:</strong></div>
+                    <div style="margin-bottom:6px;"><strong>ग्राहक संदेश / स्थिति विवरण:</strong></div>
                     <div style="background:white; padding:10px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#b91c1c; white-space:pre-wrap;">${displayText}</div>
                 </div>
                 ${o.customer_correction_file ? `
@@ -650,7 +672,7 @@
             if (!o || !supabaseClient) return;
 
             try {
-                let currentText = o.customer_correction || 'सुधार';
+                let currentText = o.customer_correction || 'सुधार देखा गया';
                 if (!currentText.startsWith('[REVIEWED]')) {
                     currentText = '[REVIEWED] ' + currentText;
                 }
