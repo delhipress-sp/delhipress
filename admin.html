@@ -69,11 +69,6 @@
         .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-view { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
 
-        .status-badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 15px; font-weight: 800; margin-bottom: 5px; }
-        .status-pending { background: #fee2e2; color: #b91c1c; }
-        .status-process { background: #fef3c7; color: #92400e; }
-        .status-ready { background: #dcfce7; color: #15803d; }
-
         .stock-badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: bold; }
         .in-stock { background: #dcfce7; color: #15803d; }
         .out-stock { background: #fee2e2; color: #b91c1c; }
@@ -150,6 +145,7 @@
                                 <th>वर-वधू</th>
                                 <th>बिल / एडवांस</th>
                                 <th>स्टेटस बदलें</th>
+                                <th>मैटर अपलोड</th>
                                 <th>रसीद</th>
                                 <th>हटाएं</th>
                             </tr>
@@ -196,15 +192,15 @@
             </div>
             <div id="printableReceiptArea" class="receipt-container"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
-                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">PDF डाउनलोड</button>
-                <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">प्रिंट</button>
+                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;">PDF डाउनलोड</button>
+                <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;">प्रिंट</button>
             </div>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5InIscm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
         try {
@@ -248,10 +244,10 @@
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="8">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
 
             if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="8" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
                 return;
             }
 
@@ -262,14 +258,14 @@
                     .order('id', { ascending: false });
 
                 if (error) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="9" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
                     return;
                 }
 
                 globalOrdersCache = data || [];
 
                 if (globalOrdersCache.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
                     return;
                 }
 
@@ -283,17 +279,50 @@
                         <td>
                             <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
                                 <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Received" ${o.status === 'Received' ? 'selected' : ''}>Received</option>
+                                <option value="Matter Typing" ${o.status === 'Matter Typing' ? 'selected' : ''}>Matter Typing</option>
                                 <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
                                 <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready</option>
                             </select>
+                        </td>
+                        <td>
+                            <label style="background:var(--blue); color:white; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; display:inline-block;">
+                                अपलोड मैटर <input type="file" onchange="uploadOrderMatter('${o.id}', this)" accept="image/*,.pdf" style="display:none;">
+                            </label>
+                            ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" style="color:var(--green); font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-down"></i> मैटर देखें</b></a>` : ''}
                         </td>
                         <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')">रसीद</button></td>
                         <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
                 `).join('');
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="8" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
             }
+        }
+
+        async function uploadOrderMatter(orderId, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64File = reader.result;
+
+                if (supabaseClient) {
+                    const { error } = await supabaseClient
+                        .from('orders')
+                        .update({ order_matter: base64File })
+                        .eq('id', Number(orderId));
+
+                    if (error) {
+                        alert("मैटर अपलोड नहीं हो पाया: " + error.message);
+                    } else {
+                        alert("मैटर सफलतापूर्वक अपलोड हो गया!");
+                        loadAdminOrders();
+                    }
+                }
+            };
         }
 
         async function updateOrderStatus(id, newStatus) {
@@ -330,24 +359,16 @@
             const o = globalOrdersCache.find(x => String(x.id) === String(id));
             if (!o) return;
 
-            // Payment Receipt / Screenshot Image Preview
             let receiptPicHtml = '';
             if (o.payment_receipt && o.payment_receipt.trim() !== '') {
                 receiptPicHtml = `
                     <div style="margin-top:14px; padding:10px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; text-align:center;">
                         <div style="font-weight:bold; color:#1e293b; margin-bottom:6px; font-size:13px;">
-                            <i class="fa-solid fa-image" style="color:var(--primary);"></i> ग्राहक द्वारा भेजी गई भुगतान रसीद / स्क्रीनशॉट:
+                            <i class="fa-solid fa-image" style="color:var(--primary);"></i> ग्राहक द्वारा भेजी गई भुगतान रसीद:
                         </div>
                         <a href="${o.payment_receipt}" target="_blank" title="बड़ा देखने के लिए क्लिक करें">
                             <img src="${o.payment_receipt}" style="max-width:100%; max-height:280px; border-radius:6px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.1); display:inline-block; margin-top:4px;">
                         </a>
-                        <p style="font-size:11px; color:#64748b; margin-top:4px;">(फ़ोटो को पूरा बड़ा देखने के लिए उस पर क्लिक करें)</p>
-                    </div>
-                `;
-            } else {
-                receiptPicHtml = `
-                    <div style="margin-top:10px; font-size:12px; color:#64748b; font-style:italic;">
-                        कोई रसीद संलग्न नहीं है (COD या बिना स्क्रीनशॉट का भुगतान)।
                     </div>
                 `;
             }
@@ -365,7 +386,7 @@
                 
                 <div class="receipt-section-title">शादी मैटर विवरण</div>
                 <div class="receipt-row"><span><b>वर (दूल्हा):</b></span><b style="color:var(--primary);">${o.groom_name || '-'} (पिता: ${o.groom_father || '-'})</b></div>
-                <div class="receipt-row"><span><b>वर का पता:</b></span><span>${o.groom_address || '-'}</span></div>
+                <div class="receipt-row"><span><b>वर का पता:</b></span><span>${o.groom_address || '-'}</b></div>
                 <div class="receipt-row"><span><b>वधू (दुल्हन):</b></span><b style="color:var(--secondary);">${o.bride_name || '-'} (पिता: ${o.bride_father || '-'})</b></div>
                 <div class="receipt-row"><span><b>वधू का पता:</b></span><span>${o.bride_address || '-'}</span></div>
                 <div style="font-size:12px; background:#f8fafc; padding:8px; margin:6px 0; border:1px solid #eee; white-space:pre-wrap; border-radius:4px;"><b>विवरण / शायरी / कार्यक्रम:</b><br>${o.custom_notes || 'कोई मैटर नहीं'}</div>
@@ -431,12 +452,13 @@
                     img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const max = 700;
                         let w = img.width, h = img.height;
-                        if (w > h && w > max) { h = Math.round((h * max) / w); w = max; }
-                        else if (h > max) { w = Math.round((w * max) / h); h = max; }
+                        const maxDim = 800;
+                        if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
                         canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
                 };
