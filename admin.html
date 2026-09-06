@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
@@ -133,10 +134,6 @@
             letter-spacing: 0.5px;
         }
 
-        .btn-alarm-3d:hover {
-            transform: scale(1.08) translateY(-2px);
-        }
-
         .btn-reviewed-badge {
             display: inline-flex;
             align-items: center;
@@ -149,6 +146,32 @@
             font-size: 10px;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        /* ग्राफ व एनालिटिक्स स्टाइल */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            text-align: center;
+        }
+        .stat-card h5 { font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; }
+        .stat-card h3 { font-size: 24px; color: var(--primary); font-weight: 800; margin-top: 4px; }
+        .chart-wrapper {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            max-height: 380px;
         }
     </style>
 </head>
@@ -181,6 +204,7 @@
             <div class="nav-tabs">
                 <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)</button>
                 <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
+                <button type="button" class="tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i> ग्राहक ग्राफ़ व लिस्ट</button>
             </div>
 
             <!-- TAB 1: ORDERS -->
@@ -235,6 +259,54 @@
                     </table>
                 </div>
             </div>
+
+            <!-- TAB 3: CUSTOMER ANALYTICS & GRAPH -->
+            <div id="tabAnalyticsSection" style="display: none;">
+                <div class="analytics-grid">
+                    <div class="stat-card">
+                        <h5>कुल विशिष्ट ग्राहक</h5>
+                        <h3 id="statTotalCustomers">0</h3>
+                    </div>
+                    <div class="stat-card">
+                        <h5>ईमेल पंजीकृत</h5>
+                        <h3 id="statTotalEmails" style="color: var(--blue);">0</h3>
+                    </div>
+                    <div class="stat-card">
+                        <h5>कुल प्राप्त ऑर्डर्स</h5>
+                        <h3 id="statTotalOrders" style="color: var(--green);">0</h3>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <h4 style="font-weight: 800; margin-bottom: 12px; color: #334155;"><i class="fa-solid fa-chart-column" style="color:var(--primary);"></i> पिछले 7 दिनों का नया ग्राहक व ऑर्डर ग्राफ़</h4>
+                    <div style="position: relative; height: 280px; width: 100%;">
+                        <canvas id="customerChart"></canvas>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;">
+                    <h4 style="font-weight: 800;"><i class="fa-solid fa-users" style="color:var(--blue);"></i> पंजीकृत एवं ऑर्डर करने वाले सभी ग्राहकों की लिस्ट</h4>
+                    <button onclick="buildCustomerAnalytics(globalOrdersCache)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रीफ़्रेश लिस्ट</button>
+                </div>
+
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>ग्राहक का नाम</th>
+                                <th>ईमेल / संपर्क विवरण</th>
+                                <th>फ़ोन नंबर</th>
+                                <th>कुल ऑर्डर्स</th>
+                                <th>कुल व्यापार (₹)</th>
+                                <th>प्रथम आगमन तिथि</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -278,6 +350,7 @@
         } catch (e) {}
 
         let globalOrdersCache = [];
+        let customerChartInstance = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('dp_admin_auth') === 'true') showDashboard();
@@ -308,8 +381,15 @@
         function switchAdminTab(tab) {
             document.getElementById('tabOrdersSection').style.display = (tab === 'orders') ? 'block' : 'none';
             document.getElementById('tabCatalogSection').style.display = (tab === 'catalog') ? 'block' : 'none';
+            document.getElementById('tabAnalyticsSection').style.display = (tab === 'analytics') ? 'block' : 'none';
+
             document.getElementById('tabBtnOrders').classList.toggle('active', tab === 'orders');
             document.getElementById('tabBtnCatalog').classList.toggle('active', tab === 'catalog');
+            document.getElementById('tabBtnAnalytics').classList.toggle('active', tab === 'analytics');
+
+            if (tab === 'analytics') {
+                buildCustomerAnalytics(globalOrdersCache);
+            }
         }
 
         async function loadAdminOrders() {
@@ -362,7 +442,7 @@
                     <tr>
                         <td>#${o.id}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</small></td>
                         <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
-                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}</td>
+                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}<br><small style="color:#2563eb;">${o.email || o.customer_email || ''}</small></td>
                         <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
                         <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || o.advance_amount || 0}</td>
                         <td>
@@ -389,6 +469,145 @@
             } catch (err) {
                 tbody.innerHTML = `<tr><td colspan="10" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
             }
+        }
+
+        /* ग्राहक विश्लेषण एवं ग्राफ़ (ANALYTICS & GRAPH) */
+        function buildCustomerAnalytics(orders) {
+            const customerMap = {};
+            let totalEmails = 0;
+
+            orders.forEach(o => {
+                const phone = (o.mobile || o.customer_phone || '').trim();
+                const email = (o.email || o.customer_email || '').trim();
+                const name = (o.customer_name || 'अज्ञात ग्राहक').trim();
+                const key = email ? email.toLowerCase() : (phone || `cust_${o.id}`);
+
+                if (!customerMap[key]) {
+                    customerMap[key] = {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        ordersCount: 0,
+                        totalSpent: 0,
+                        firstDate: o.created_at ? new Date(o.created_at) : new Date()
+                    };
+                    if (email) totalEmails++;
+                }
+
+                customerMap[key].ordersCount += 1;
+                customerMap[key].totalSpent += parseFloat(o.total_amount || 0);
+
+                if (o.created_at) {
+                    const d = new Date(o.created_at);
+                    if (d < customerMap[key].firstDate) customerMap[key].firstDate = d;
+                }
+            });
+
+            const customersList = Object.values(customerMap);
+
+            document.getElementById('statTotalCustomers').innerText = customersList.length;
+            document.getElementById('statTotalEmails').innerText = totalEmails;
+            document.getElementById('statTotalOrders').innerText = orders.length;
+
+            const tbody = document.getElementById('customerTableBody');
+            if (customersList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">कोई ग्राहक डेटा उपलब्ध नहीं है।</td></tr>';
+            } else {
+                tbody.innerHTML = customersList.map((c, i) => `
+                    <tr>
+                        <td><b>${i + 1}</b></td>
+                        <td><b>${c.name}</b></td>
+                        <td>${c.email ? `<span style="color:#2563eb; font-weight:600;"><i class="fa-regular fa-envelope"></i> ${c.email}</span>` : '<span style="color:#94a3b8;">-</span>'}</td>
+                        <td>${c.phone ? `📞 ${c.phone}` : '-'}</td>
+                        <td><span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:12px; font-weight:bold;">${c.ordersCount} ऑर्डर्स</span></td>
+                        <td><b>₹${c.totalSpent}</b></td>
+                        <td>${c.firstDate.toLocaleDateString('hi-IN')}</td>
+                    </tr>
+                `).join('');
+            }
+
+            renderCustomerGraph(orders);
+        }
+
+        function renderCustomerGraph(orders) {
+            const ctx = document.getElementById('customerChart').getContext('2d');
+            
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                last7Days.push(d.toISOString().split('T')[0]);
+            }
+
+            const ordersPerDay = {};
+            const customersPerDay = {};
+            last7Days.forEach(day => {
+                ordersPerDay[day] = 0;
+                customersPerDay[day] = new Set();
+            });
+
+            orders.forEach(o => {
+                if (o.created_at) {
+                    const day = o.created_at.split('T')[0];
+                    if (ordersPerDay[day] !== undefined) {
+                        ordersPerDay[day] += 1;
+                        const identifier = o.email || o.mobile || o.customer_phone || o.id;
+                        customersPerDay[day].add(identifier);
+                    }
+                }
+            });
+
+            const labels = last7Days.map(d => {
+                const parts = d.split('-');
+                return `${parts[2]}/${parts[1]}`;
+            });
+            const ordersData = last7Days.map(d => ordersPerDay[d]);
+            const customersData = last7Days.map(d => customersPerDay[d].size);
+
+            if (customerChartInstance) {
+                customerChartInstance.destroy();
+            }
+
+            customerChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'नए ग्राहक (Customer Activity)',
+                            data: customersData,
+                            backgroundColor: 'rgba(37, 99, 235, 0.75)',
+                            borderColor: '#1d4ed8',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'ऑर्डर्स की संख्या (Orders)',
+                            data: ordersData,
+                            backgroundColor: 'rgba(230, 57, 70, 0.75)',
+                            borderColor: '#b91c1c',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { family: 'Poppins', weight: 'bold' } }
+                        }
+                    }
+                }
+            });
         }
 
         function openCorrectionModal(orderId) {
@@ -633,6 +852,7 @@
                 <div class="receipt-section-title">ग्राहक व ऑर्डर विवरण</div>
                 <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${o.customer_name || '-'}</b></div>
                 <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${o.mobile || o.customer_phone || '-'}</b></div>
+                <div class="receipt-row"><span>ईमेल आईडी:</span> <b>${o.email || o.customer_email || '-'}</b></div>
                 <div class="receipt-row"><span>कार्ड मॉडल / नाम:</span> <b>${o.card_title || 'शादी कार्ड'}</b></div>
                 <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${o.quantity || 100} पीस</b></div>
 
