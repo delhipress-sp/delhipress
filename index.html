@@ -436,13 +436,115 @@
             </a>
         </div>
 
+        <!-- कैटलॉग सेक्शन (यह पहले गायब हो गया था) -->
+        <div class="showcase-box" id="showcaseSection">
+            <h3 class="showcase-header-title"><i class="fa-solid fa-images"></i> शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग</h3>
+            <p style="font-size:12px; color:#64748b; margin-top:5px;">(कार्ड देखने व चुनने के लिए फोटो पर क्लिक करें)</p>
+            
+            <div class="gallery-grid" id="cardsGrid">
+                <!-- script.js से कार्ड्स यहाँ लोड होते हैं, डिफ़ॉल्ट टेम्पलेट नीचे है -->
+                <div class="card-sample">
+                    <div class="img-box" onclick="openZoomModal('https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ', 'Muslim wedding card', 'MC-101', '₹12.00')">
+                        <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Muslim wedding card" loading="lazy">
+                        <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</span>
+                    </div>
+                    <div class="card-info">
+                        <h4>Muslim wedding card</h4>
+                        <p class="model-text">मॉडल: MC-101</p>
+                        <div class="card-price-tag">₹12.00</div>
+                        <span class="stock-badge in-stock">उपलब्ध है</span>
+                        <div class="card-actions-row">
+                            <a href="javascript:void(0)" onclick="selectCardAndOrder('MC-101', 'Muslim wedding card', 12)" class="btn-select-card">
+                                <i class="fa-solid fa-check"></i> चुनें
+                            </a>
+                            <button type="button" onclick="addToCartDirect('MC-101', 'Muslim wedding card', 12, 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ')" class="btn-add-cart-single">
+                                <i class="fa-solid fa-cart-plus"></i> कार्ट
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- नियम व शर्तें -->
+        <div class="info-card" id="aboutSection">
+            <div class="info-card-header">
+                <i class="fa-solid fa-file-contract"></i> महत्वपूर्ण नियम एवं शर्तें
+            </div>
+            <ul class="terms-list">
+                <li><i class="fa-solid fa-circle-check"></i> कार्ड की छपाई शुरू होने से पहले प्रूफ अच्छी तरह जांच लें। प्रूफ ओके होने के बाद किसी भी गलती की जिम्मेदारी ग्राहक की होगी।</li>
+                <li><i class="fa-solid fa-circle-check"></i> ऑर्डर कन्फर्म करने के लिए 50% एडवांस पेमेंट आवश्यक है। शेष राशि डिलीवरी के समय देय होगी।</li>
+                <li><i class="fa-solid fa-circle-check"></i> डिलीवरी का सामान्य समय प्रूफ कन्फर्म होने के 3 से 5 कार्यदिवस का होता है।</li>
+                <li><i class="fa-solid fa-circle-check"></i> किसी भी तरह के बदलाव के लिए तत्काल संपर्क करें। छपाई के बाद बदलाव संभव नहीं होगा।</li>
+            </ul>
+        </div>
+
+        <!-- मैप व पता -->
+        <div class="info-card" id="mapSection">
+            <div class="info-card-header">
+                <i class="fa-solid fa-location-dot"></i> दुकान का पता व लोकेशन
+            </div>
+            <p style="font-size:13px; color:#475569; margin-bottom:10px;">
+                <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong><br>
+                जामताड़ा, झारखंड - 815351<br>
+                मोबाइल: +91 9304509464
+            </p>
+            <div class="map-wrapper">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3648.567848906969!2d86.8000!3d23.9600!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDU3JzM2LjAiTiA4NsKwNDgnMDAuMCJF!5e0!3m2!1sen!2sin!4v1600000000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+
     </div>
 
-    <!-- आपकी कस्टम जावास्क्रिप्ट फाइल -->
+    <!-- ज़ूम व्यू मॉडल -->
+    <div class="zoom-modal" id="zoomModal">
+        <div class="zoom-header">
+            <div class="zoom-title" id="zoomModalTitle">कार्ड विवरण</div>
+            <button class="btn-zoom-close" onclick="closeZoomModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="zoom-body" id="zoomModalBody">
+            <img src="" alt="Zoom Preview" class="zoom-img" id="zoomModalImg">
+        </div>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomIn()"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button class="zoom-btn" onclick="zoomOut()"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button class="zoom-btn" onclick="resetZoom()"><i class="fa-solid fa-arrows-rotate"></i></button>
+            <button class="zoom-select-btn" id="zoomSelectActionBtn"><i class="fa-solid fa-check"></i> यह कार्ड चुनें</button>
+        </div>
+    </div>
+
+    <!-- मुख्य फुटर -->
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><i class="fa-solid fa-check-double"></i> शादी कार्ड, फ्लेक्स बैनर, विजिटिंग कार्ड एवं डिजिटल प्रिंटिंग।</p>
+                <p><i class="fa-solid fa-location-dot"></i> जामताड़ा, झारखंड</p>
+            </div>
+            <div class="footer-col">
+                <h4>संपर्क सूत्र</h4>
+                <p><i class="fa-solid fa-phone"></i> +91 9304509464</p>
+                <p><i class="fa-solid fa-envelope"></i> mdsajadans@gmail.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+        </div>
+    </footer>
+
+    <!-- मोबाइल बॉटम बार -->
+    <div class="mobile-bottom-bar">
+        <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
+        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
+        <a href="cart.html"><i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span></a>
+        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर फॉर्म</span></a>
+        <a href="my_orders.html"><i class="fa-solid fa-box-archive"></i><span>मेरे ऑर्डर्स</span></a>
+    </div>
+
+    <!-- मुख्य जावास्क्रिप्ट फाइल -->
     <script src="script.js"></script>
 
-    <!-- Tidio चैटबॉट कोड (आपकी स्क्रीनशॉट से) -->
+    <!-- Tidio चैटबॉट कोड -->
     <script src="//code.tidio.co/7zgizaqaa7hgsi8ncijezg32buh5lwvn.js" async></script>
 </body>
 </html>
-
