@@ -144,6 +144,18 @@
             border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;
         }
 
+        /* प्रेस की ओर से आई सूचना का बॉक्स */
+        .press-notice-box {
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            border-left: 4px solid #ea580c;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            color: #9a3412;
+        }
+
         .order-card-footer {
             display: flex; justify-content: space-between; align-items: center;
             border-top: 1px solid #f1f5f9; padding-top: 12px; flex-wrap: wrap; gap: 10px;
@@ -170,7 +182,6 @@
         }
         .btn-matter-download:hover { background: #059669; }
 
-        /* मैटर मंज़ूरी और सुधार ब्लॉक */
         .approval-actions-box {
             margin-top: 12px; padding: 12px; background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1;
         }
@@ -586,7 +597,20 @@
 
                 const cardImg = ord.card_image || safeCardPlaceholder;
 
-                // मैटर मंज़ूरी चेक
+                // प्रेस की ओर से आई सूचना (Notice) निकालना
+                let adminNoticeHtml = '';
+                if (ord.custom_notes && ord.custom_notes.includes('[ADMIN_NOTICE]')) {
+                    const noticeText = ord.custom_notes.split('[ADMIN_NOTICE]')[1].trim();
+                    if (noticeText) {
+                        adminNoticeHtml = `
+                            <div class="press-notice-box">
+                                <strong><i class="fa-solid fa-bullhorn"></i> प्रेस द्वारा आवश्यक सूचना:</strong><br>
+                                <span>${noticeText}</span>
+                            </div>
+                        `;
+                    }
+                }
+
                 const isApproved = ord.customer_correction && ord.customer_correction.includes('[APPROVED_FOR_PRINT]');
 
                 let matterHtml = '';
@@ -698,6 +722,7 @@
                             <b>मैटर सारांश:</b> वर: <b style="color:var(--primary);">${ord.groom_name || '-'}</b> संग वधू: <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
                         </div>
 
+                        ${adminNoticeHtml}
                         ${matterHtml}
                         ${correctionHtml}
 
@@ -865,6 +890,11 @@
                 receiptPicHtml = `<div style="margin-top:10px; text-align:center;"><b>भुगतान रसीद / स्क्रीनशॉट:</b><br><img src="${ord.payment_receipt}" style="max-width:200px; max-height:200px; border-radius:6px; border:1px solid #ccc; margin-top:6px;"></div>`;
             }
 
+            let baseNotes = ord.custom_notes || '';
+            if (baseNotes.includes('[ADMIN_NOTICE]')) {
+                baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
+            }
+
             document.getElementById('printableReceiptArea').innerHTML = `
                 <div class="receipt-header">
                     <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद डिजिटल प्रिंट्स)</h2>
@@ -898,7 +928,7 @@
                 <div class="receipt-row" style="flex-direction: column;"><span>पता (वधू):</span> <span>${ord.bride_address || '-'}</b></div>
 
                 <div class="receipt-section-title">४. वैवाहिक कार्यक्रम, शायरी व निमंत्रक</div>
-                <div style="font-size:12px; background:#f8fafc; padding:8px; border:1px solid #eee; white-space:pre-wrap; margin:6px 0; border-radius:4px;">${ord.custom_notes || 'कोई अतिरिक्त मैटर नहीं'}</div>
+                <div style="font-size:12px; background:#f8fafc; padding:8px; border:1px solid #eee; white-space:pre-wrap; margin:6px 0; border-radius:4px;">${baseNotes || 'कोई अतिरिक्त मैटर नहीं'}</div>
 
                 <div class="receipt-section-title">५. बिल एवं भुगतान विवरण</div>
                 <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${ord.quantity || 100} पीस</b></div>
