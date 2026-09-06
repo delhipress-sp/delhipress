@@ -425,7 +425,8 @@
                     let correctionBtn = '<span style="color:#94a3b8; font-size:11px;">कोई सुधार नहीं</span>';
                     
                     if (o.customer_correction || o.customer_correction_file) {
-                        if (o.correction_reviewed === true) {
+                        const isReviewed = typeof o.customer_correction === 'string' && o.customer_correction.startsWith('[REVIEWED]');
+                        if (isReviewed) {
                             correctionBtn = `
                                 <button class="btn-reviewed-badge" onclick="openCorrectionModal('${o.id}')">
                                     <i class="fa-solid fa-check-double" style="color:var(--green);"></i> सुधार देखा गया
@@ -615,12 +616,17 @@
             const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
             if (!o) return;
 
+            let displayText = o.customer_correction || '(कोई विवरण नहीं)';
+            if (typeof displayText === 'string' && displayText.startsWith('[REVIEWED]')) {
+                displayText = displayText.replace('[REVIEWED]', '').trim();
+            }
+
             const modalBody = document.getElementById('correctionModalBody');
             modalBody.innerHTML = `
                 <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:12px;">
                     <div style="margin-bottom:6px;"><strong>ऑर्डर ID:</strong> #${o.id} | <strong>ग्राहक:</strong> ${o.customer_name || '-'} (📞 ${o.mobile || o.customer_phone || '-'})</div>
                     <div style="margin-bottom:6px;"><strong>ग्राहक संदेश / सुधार विवरण:</strong></div>
-                    <div style="background:white; padding:10px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#b91c1c; white-space:pre-wrap;">${o.customer_correction || '(कोई विवरण नहीं)'}</div>
+                    <div style="background:white; padding:10px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#b91c1c; white-space:pre-wrap;">${displayText}</div>
                 </div>
                 ${o.customer_correction_file ? `
                     <div style="margin-bottom:14px; text-align:center;">
@@ -640,11 +646,18 @@
         }
 
         async function markCorrectionReviewed(orderId) {
-            if (!supabaseClient) return;
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o || !supabaseClient) return;
+
             try {
+                let currentText = o.customer_correction || 'सुधार';
+                if (!currentText.startsWith('[REVIEWED]')) {
+                    currentText = '[REVIEWED] ' + currentText;
+                }
+
                 const { error } = await supabaseClient
                     .from('orders')
-                    .update({ correction_reviewed: true })
+                    .update({ customer_correction: currentText })
                     .eq('id', Number(orderId));
 
                 if (error) {
