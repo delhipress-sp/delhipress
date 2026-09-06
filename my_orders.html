@@ -121,7 +121,6 @@
         .order-id-date h4 { font-size: 16px; color: var(--primary); margin: 0; font-weight: 800; }
         .order-id-date span { font-size: 12px; color: #64748b; font-weight: 600; }
 
-        /* सभी 5 तरह के स्टेटस बैज */
         .badge-status {
             padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
             display: inline-flex; align-items: center; gap: 6px;
@@ -162,8 +161,7 @@
 
         .matter-preview-block {
             background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px;
-            padding: 12px 14px; margin-bottom: 14px; display: flex;
-            justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+            padding: 12px 14px; margin-bottom: 14px;
         }
         .btn-matter-download {
             background: #10b981; color: white; text-decoration: none; padding: 7px 14px;
@@ -171,6 +169,17 @@
             align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
         }
         .btn-matter-download:hover { background: #059669; }
+
+        /* मैटर मंज़ूरी और सुधार ब्लॉक */
+        .approval-actions-box {
+            margin-top: 12px; padding: 12px; background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1;
+        }
+        .btn-action-choice {
+            padding: 8px 14px; font-size: 12px; font-weight: 800; border-radius: 6px; border: none; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .btn-approve-ok { background: #15803d; color: #fff; }
+        .btn-has-error { background: #dc2626; color: #fff; }
 
         .customer-correction-block {
             background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px;
@@ -517,7 +526,6 @@
 
             if (!userMobile) return; 
 
-            // Supabase से फ्रेश डेटा प्राप्त करना
             const [ordersRes, catalogRes] = await Promise.allSettled([
                 supabaseClient.from('orders').select('*').eq('mobile', userMobile).order('id', { ascending: false }).limit(20),
                 supabaseClient.from('catalog').select('*').order('id', { ascending: false }).limit(20)
@@ -565,7 +573,6 @@
                 const balance = Math.max(0, total - advance);
                 const status = (ord.status || 'Pending').trim();
 
-                // सभी 5 स्टेटस को सही नाम व रंगों के साथ दिखाना
                 let statusBadge = `<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> प्राप्त हुआ (Pending)</span>`;
                 if (status === 'Received') {
                     statusBadge = `<span class="badge-status badge-received"><i class="fa-solid fa-handshake"></i> स्वीकार किया गया (Received)</span>`;
@@ -579,33 +586,65 @@
 
                 const cardImg = ord.card_image || safeCardPlaceholder;
 
+                // मैटर मंज़ूरी चेक
+                const isApproved = ord.customer_correction && ord.customer_correction.includes('[APPROVED_FOR_PRINT]');
+
                 let matterHtml = '';
                 if (ord.order_matter) {
                     matterHtml = `
                         <div class="matter-preview-block">
-                            <div style="font-size: 13px; font-weight: 700; color: #065f46;">
-                                <i class="fa-solid fa-file-shield" style="color:#10b981; margin-right:4px;"></i> 
-                                प्रेस द्वारा शादी कार्ड मैटर (प्रूफ़) तैयार है
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <div style="font-size: 13px; font-weight: 700; color: #065f46;">
+                                    <i class="fa-solid fa-file-shield" style="color:#10b981; margin-right:4px;"></i> 
+                                    प्रेस द्वारा शादी कार्ड मैटर (प्रूफ़) तैयार है
+                                </div>
+                                <a href="${ord.order_matter}" target="_blank" download class="btn-matter-download">
+                                    <i class="fa-solid fa-file-arrow-down"></i> मैटर देखें / डाउनलोड
+                                </a>
                             </div>
-                            <a href="${ord.order_matter}" target="_blank" download class="btn-matter-download">
-                                <i class="fa-solid fa-file-arrow-down"></i> मैटर देखें / डाउनलोड
-                            </a>
+
+                            ${isApproved ? `
+                                <div style="margin-top: 10px; padding: 10px; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; color: #166534; font-size: 12px; font-weight: bold;">
+                                    <i class="fa-solid fa-check-circle"></i> आपने इस मैटर को फाइनल प्रिंट के लिए मंज़ूरी दे दी है। छपाई जारी होगी।
+                                </div>
+                            ` : `
+                                <div class="approval-actions-box">
+                                    <div style="font-weight: 800; font-size: 12px; color: #1e293b; margin-bottom: 8px;">
+                                        मैटर जांचने के बाद अपना निर्णय चुनें:
+                                    </div>
+
+                                    <div style="margin-bottom: 10px;">
+                                        <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 11px; color: #334155; font-weight: 600;">
+                                            <input type="checkbox" id="chk_responsibility_${ord.id}" style="width: auto; margin-top: 2px;">
+                                            <span>मैने कार्ड का सम्पूर्ण मैटर (नाम, दिनांक, पता) ध्यानपूर्वक पढ़ लिया है। अब प्रिंट के लिए मैं पूरी तरह ज़िम्मेदार होऊँगा।</span>
+                                        </label>
+                                    </div>
+
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <button type="button" class="btn-action-choice btn-approve-ok" onclick="handleCustomerMatterOK('${ord.id}', ${index})">
+                                            <i class="fa-solid fa-circle-check"></i> मैटर ओके है, प्रिंट करें
+                                        </button>
+                                        <button type="button" class="btn-action-choice btn-has-error" onclick="toggleCorrectionForm('${ord.id}')">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> मैटर में अभी भी कुछ गलतियाँ हैं
+                                        </button>
+                                    </div>
+                                </div>
+                            `}
                         </div>
                     `;
                 }
 
-                // [REVIEWED] टैग को ग्राहक के सामने छिपाने का फ़िल्टर
                 let cleanCorrectionText = ord.customer_correction || '';
                 if (cleanCorrectionText.startsWith('[REVIEWED]')) {
                     cleanCorrectionText = cleanCorrectionText.replace('[REVIEWED]', '').trim();
                 }
 
                 let correctionHtml = `
-                    <div class="customer-correction-block">
+                    <div class="customer-correction-block" id="correction_block_${ord.id}" style="${ord.order_matter && !isApproved ? 'display:none;' : 'display:block;'}">
                         <div class="correction-title">
-                            <i class="fa-solid fa-pen-to-square"></i> कार्ड मैटर में कोई सुधार (Correction) करवाना चाहते हैं?
+                            <i class="fa-solid fa-pen-to-square"></i> मैटर में जो भी गलती है, यहाँ सुधार लिखें:
                         </div>
-                        <textarea id="correction_text_${ord.id}" class="correction-input-area" rows="2" placeholder="यहाँ लिखें कि क्या नाम, तारीख या शब्द बदलना है..."></textarea>
+                        <textarea id="correction_text_${ord.id}" class="correction-input-area" rows="2" placeholder="यहाँ विस्तार से लिखें कि क्या नाम, तारीख या शब्द बदलना है..."></textarea>
                         
                         <div class="correction-actions-bar">
                             <label style="font-size: 11px; color: #64748b; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
@@ -617,7 +656,6 @@
                             </button>
                         </div>
 
-                        <!-- रिमाइंडर बटन -->
                         <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                             <span style="font-size: 11px; color: #64748b;">
                                 <i class="fa-solid fa-clock-rotate-left"></i> क्या मैटर तैयार होने में देर हो रही है?
@@ -674,6 +712,48 @@
             }).join('');
         }
 
+        function toggleCorrectionForm(orderId) {
+            const el = document.getElementById(`correction_block_${orderId}`);
+            if (el) {
+                el.style.display = 'block';
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        async function handleCustomerMatterOK(orderId, index) {
+            const chk = document.getElementById(`chk_responsibility_${orderId}`);
+            if (!chk || !chk.checked) {
+                alert("कृपया पहले चेकबॉक्स पर टिक करें कि आप प्रिंट के लिए पूरी ज़िम्मेदारी लेते हैं!");
+                return;
+            }
+
+            if (!confirm("क्या आप वाकई इस मैटर को फाइनल प्रिंट के लिए मंज़ूरी देना चाहते हैं? इसके बाद छपाई शुरू हो जाएगी।")) return;
+
+            const approvalMessage = "[APPROVED_FOR_PRINT] ग्राहक द्वारा मैटर ओके कर दिया गया है। प्रिंट की ज़िम्मेदारी ग्राहक ने स्वीकार की है।";
+
+            try {
+                if (supabaseClient) {
+                    const { error } = await supabaseClient
+                        .from('orders')
+                        .update({
+                            customer_correction: approvalMessage
+                        })
+                        .eq('id', Number(orderId));
+
+                    if (error) throw error;
+                }
+
+                if (fetchedOrdersList[index]) {
+                    fetchedOrdersList[index].customer_correction = approvalMessage;
+                }
+
+                alert("मैटर सफलतापूर्वक स्वीकृत हो गया है! अब प्रेस द्वारा छपाई की जाएगी।");
+                renderOrdersUI();
+            } catch (err) {
+                alert("मंज़ूरी दर्ज करने में समस्या: " + err.message);
+            }
+        }
+
         async function submitCustomerCorrection(orderId, index) {
             const textArea = document.getElementById(`correction_text_${orderId}`);
             const fileInput = document.getElementById(`correction_file_${orderId}`);
@@ -694,7 +774,7 @@
             const sendPayload = async () => {
                 try {
                     const updateData = {
-                        customer_correction: textVal || 'फ़ाइल संलग्न है'
+                        customer_correction: textVal || 'मैटर में गलतियाँ हैं - फ़ाइल संलग्न है'
                     };
                     if (base64File) {
                         updateData.customer_correction_file = base64File;
