@@ -453,7 +453,7 @@
         </div>
     </div>
 
-    <!-- ==================== IN-SITE AI CHATBOT WINDOW ==================== -->
+    <!-- IN-SITE AI CHATBOT WINDOW -->
     <div class="ai-chat-window" id="aiChatWindow">
         <div class="ai-chat-header">
             <div class="ai-chat-header-info">
@@ -466,7 +466,6 @@
             <button type="button" class="ai-close-btn" onclick="toggleAiChat()">&times;</button>
         </div>
 
-        <!-- Chat History Messages -->
         <div class="ai-chat-body" id="aiChatBody">
             <div class="chat-bubble chat-bubble-bot">
                 नमस्ते! 👋 मैं <b>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</b> का AI असिस्टेंट हूँ। मैं आपके ऑर्डर, कार्ड डिज़ाइन, रेट या मैटर सुधार में कैसे मदद कर सकता हूँ?
@@ -474,7 +473,6 @@
             </div>
         </div>
 
-        <!-- Quick reply suggestion chips -->
         <div class="ai-quick-replies">
             <button type="button" class="ai-quick-btn" onclick="handleQuickClick('मेरा ऑर्डर स्टेटस क्या है?')">📦 ऑर्डर स्टेटस</button>
             <button type="button" class="ai-quick-btn" onclick="handleQuickClick('शादी कार्ड का क्या रेट है?')">💰 कार्ड रेट</button>
@@ -576,13 +574,33 @@
 
             try {
                 const phone = String(currentUser.phone || '').trim();
-                const { data, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .eq('customer_phone', phone)
-                    .order('id', { ascending: false });
+                const possibleColumns = ['customer_phone', 'phone', 'mobile', 'customer_mobile', 'contact'];
+                let data = null;
+                let fetchSuccess = false;
 
-                if (error) throw error;
+                for (const col of possibleColumns) {
+                    try {
+                        const res = await supabaseClient
+                            .from('orders')
+                            .select('*')
+                            .eq(col, phone)
+                            .order('id', { ascending: false });
+
+                        if (!res.error && res.data) {
+                            data = res.data;
+                            fetchSuccess = true;
+                            break;
+                        }
+                    } catch (errLoop) {}
+                }
+
+                if (!fetchSuccess) {
+                    const resAll = await supabaseClient
+                        .from('orders')
+                        .select('*')
+                        .order('id', { ascending: false });
+                    data = resAll.data || [];
+                }
 
                 customerOrdersCache = data || [];
 
@@ -741,7 +759,7 @@
             }
         }
 
-        /* ==================== AI ASSISTANT IN-SITE CHAT ENGINE ==================== */
+        /* ==================== AI ASSISTANT CHATBOT ENGINE ==================== */
         function toggleAiChat() {
             const win = document.getElementById('aiChatWindow');
             if (win.style.display === 'flex') {
@@ -826,7 +844,7 @@
 
             setTimeout(() => {
                 appendMessage('bot', reply, true);
-            }, 450);
+            }, 400);
         }
     </script>
 </body>
