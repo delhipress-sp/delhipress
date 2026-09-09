@@ -76,6 +76,8 @@
         .out-stock { background: #fee2e2; color: #b91c1c; }
 
         .btn-stock-toggle { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
+        .btn-price-edit { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-price-edit:hover { transform: translateY(-1px); filter: brightness(1.05); }
 
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn {
@@ -190,6 +192,109 @@
             margin-bottom: 20px;
             max-height: 380px;
         }
+
+        /* ===== UPGRADED DELHI PRESS ADMIN UI ===== */
+        body {
+            padding: 12px;
+            background:
+                radial-gradient(circle at 0% 0%, rgba(230,57,70,.18), transparent 32%),
+                radial-gradient(circle at 100% 10%, rgba(37,99,235,.22), transparent 34%),
+                radial-gradient(circle at 50% 100%, rgba(16,185,129,.14), transparent 38%),
+                #071a32;
+        }
+        .top-nav-bar {
+            max-width: 1250px;
+            margin: 0 auto 12px;
+            min-height: 64px;
+            border-radius: 18px;
+            background: rgba(5, 24, 48, .92);
+            box-shadow: 0 12px 30px rgba(0,0,0,.25);
+        }
+        .top-nav-bar a:first-child {
+            gap: 10px;
+        }
+        .top-nav-bar a:first-child::before {
+            content: "DP";
+            width: 40px; height: 40px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#e63946,#d62828);
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 3px rgba(230,57,70,.25);
+            font-size: 13px;
+            font-weight: 900;
+        }
+        .admin-card {
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 20px 55px rgba(0,0,0,.20);
+        }
+        .nav-tabs { gap: 8px; }
+        .tab-btn {
+            border-radius: 12px;
+            min-height: 46px;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .tab-btn:hover { transform: translateY(-1px); }
+        .tab-btn.active { box-shadow: 0 8px 20px rgba(230,57,70,.25); }
+        .admin-table-wrapper {
+            border-radius: 14px;
+            box-shadow: 0 5px 18px rgba(15,23,42,.05);
+        }
+        .admin-table th {
+            position: sticky; top: 0; z-index: 1;
+            background: linear-gradient(#f8fafc,#eef2f7);
+        }
+        .catalog-filter-bar {
+            display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+            background:#f8fafc; border:1px solid #dbe3ee;
+            padding:12px; border-radius:12px; margin:0 0 12px;
+        }
+        .catalog-filter-bar label { margin:0; display:flex; align-items:center; gap:6px; }
+        .catalog-filter-bar select {
+            width:auto; min-width:230px; padding:8px 10px;
+        }
+        .category-pill {
+            display:inline-block; padding:3px 8px; border-radius:999px;
+            font-size:10px; font-weight:800; white-space:nowrap;
+        }
+        .cat-muslim { background:#dcfce7; color:#166534; }
+        .cat-hindu { background:#ffedd5; color:#9a3412; }
+        .cat-banner { background:#dbeafe; color:#1d4ed8; }
+        .cat-other { background:#f1f5f9; color:#475569; }
+        .mini-admin-stats {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
+        }
+        .mini-admin-stat {
+            padding:12px 14px; border-radius:13px; background:linear-gradient(135deg,#fff,#f8fafc);
+            border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;
+        }
+        .mini-admin-stat b { font-size:20px; color:#0f172a; }
+        .mini-admin-stat span { font-size:11px; color:#64748b; font-weight:700; }
+        .admin-mobile-bar {
+            display:none; position:fixed; left:10px; right:10px; bottom:10px; z-index:9998;
+            background:rgba(5,24,48,.96); border:1px solid rgba(255,255,255,.15);
+            border-radius:20px; padding:8px; box-shadow:0 15px 35px rgba(0,0,0,.35);
+            justify-content:space-around;
+        }
+        .admin-mobile-bar button {
+            border:0; background:transparent; color:#fff; font-size:10px; font-weight:700;
+            display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 9px;
+        }
+        .admin-mobile-bar i { font-size:17px; color:#facc15; }
+        @media(max-width:768px) {
+            body { padding:8px; padding-bottom:78px; }
+            .admin-card { padding:13px; border-radius:18px; }
+            .top-nav-bar { border-radius:15px; padding:9px 12px; }
+            .top-nav-bar a:first-child { font-size:14px !important; }
+            .mini-admin-stats { grid-template-columns:1fr 1fr 1fr; gap:6px; }
+            .mini-admin-stat { padding:9px 7px; flex-direction:column; text-align:center; gap:2px; }
+            .mini-admin-stat b { font-size:17px; }
+            .mini-admin-stat span { font-size:9px; }
+            .catalog-filter-bar select { width:100%; min-width:0; }
+            .admin-mobile-bar { display:flex; }
+        }
+
     </style>
 </head>
 <body>
@@ -265,14 +370,34 @@
                                 <label>स्टॉक:</label>
                                 <select id="admCardStock"><option value="true">उपलब्ध</option><option value="false">समाप्त</option></select>
                             </div>
+                            <div class="form-group" style="width: 190px;">
+                                <label>श्रेणी:</label>
+                                <select id="admCardCategory">
+                                    <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
+                                    <option value="hindu">🪔 हिंदू शादी कार्ड</option>
+                                    <option value="banner">🖼️ फ्लेक्स व बैनर</option>
+                                    <option value="other">📦 अन्य</option>
+                                </select>
+                            </div>
                             <div class="form-group" style="flex: 1; min-width: 160px;"><label>फोटो:</label><input type="file" id="admCardFile" accept="image/*" required></div>
                         </div>
                         <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
+                        <span style="display:inline-block; margin-left:10px; font-size:11px; color:#64748b;">श्रेणी चुनने से Index में वही फ़िल्टर सही कार्ड दिखाएगा।</span>
                     </form>
+                </div>
+                <div class="catalog-filter-bar">
+                    <label for="adminCategoryFilter"><i class="fa-solid fa-filter" style="color:var(--primary);"></i> श्रेणी चुनें:</label>
+                    <select id="adminCategoryFilter" onchange="filterAdminCatalog(this.value)">
+                        <option value="all">🌟 सभी कार्ड्स (All Cards)</option>
+                        <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
+                        <option value="hindu">🪔 हिंदू शादी कार्ड</option>
+                        <option value="banner">🖼️ फ्लेक्स व बैनर</option>
+                        <option value="other">📦 अन्य</option>
+                    </select>
                 </div>
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
-                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>रेट</th><th>स्टॉक</th><th>कार्रवाई</th><th>हटाएं</th></tr></thead>
+                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
                         <tbody id="catalogTableBody"></tbody>
                     </table>
                 </div>
@@ -461,6 +586,8 @@
                 }
 
                 globalOrdersCache = data || [];
+                const miniOrders = document.getElementById('miniOrdersCount');
+                if (miniOrders) miniOrders.innerText = globalOrdersCache.length;
 
                 if (globalOrdersCache.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="11">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
@@ -633,6 +760,8 @@
             document.getElementById('statTotalCustomers').innerText = customersList.length;
             document.getElementById('statTotalEmails').innerText = totalEmails;
             document.getElementById('statTotalOrders').innerText = orders.length;
+            const miniCustomers = document.getElementById('miniCustomersCount');
+            if (miniCustomers) miniCustomers.innerText = customersList.length;
 
             const tbody = document.getElementById('customerTableBody');
             if (customersList.length === 0) {
@@ -855,31 +984,46 @@
         }
 
         /* CATALOG FUNCTIONS (USING 'catalog' TABLE) */
-        async function loadCatalogStock() {
+        let globalCatalogCache = [];
+
+        function categoryLabel(cat) {
+            const v = String(cat || '').toLowerCase();
+            if (v === 'muslim' || v.includes('muslim') || v.includes('मुस्लिम') || v.includes('nikah') || v.includes('निकाह')) return ['🌙 मुस्लिम', 'cat-muslim'];
+            if (v === 'hindu' || v.includes('hindu') || v.includes('हिंदू') || v.includes('विवाह')) return ['🪔 हिंदू', 'cat-hindu'];
+            if (v === 'banner' || v === 'flex' || v.includes('बैनर') || v.includes('फ्लेक्स')) return ['🖼️ बैनर / फ्लेक्स', 'cat-banner'];
+            return ['📦 अन्य', 'cat-other'];
+        }
+
+        function filterAdminCatalog(category) {
+            const cards = category === 'all' ? globalCatalogCache : globalCatalogCache.filter(c => {
+                const raw = String(c.category || '').toLowerCase();
+                const name = `${c.name || ''} ${c.card_name || ''} ${c.model || ''}`.toLowerCase();
+                if (category === 'muslim') return raw === 'muslim' || name.includes('muslim') || name.includes('मुस्लिम') || name.includes('nikah') || name.includes('निकाह');
+                if (category === 'hindu') return raw === 'hindu' || name.includes('hindu') || name.includes('हिंदू') || name.includes('विवाह');
+                if (category === 'banner') return raw === 'banner' || name.includes('banner') || name.includes('flex') || name.includes('बैनर') || name.includes('फ्लेक्स');
+                if (category === 'other') return !['muslim','hindu','banner'].includes(raw);
+                return true;
+            });
+            renderCatalogAdminTable(cards);
+        }
+
+        function renderCatalogAdminTable(data) {
             const tbody = document.getElementById('catalogTableBody');
-            if (!tbody || !supabaseClient) return;
-            tbody.innerHTML = '<tr><td colspan="7">कैटलॉग लोड हो रहा है...</td></tr>';
-            try {
-                const { data, error } = await supabaseClient
-                    .from('catalog')
-                    .select('*')
-                    .order('id', { ascending: false });
-
-                if (error) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
-                    return;
-                }
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड उपलब्ध नहीं है।</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = data.map(c => `
+            if (!tbody) return;
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9">इस श्रेणी में कोई कार्ड उपलब्ध नहीं है।</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(c => {
+                const [catText, catClass] = categoryLabel(c.category);
+                return `
                     <tr>
                         <td><img src="${c.image || c.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';"></td>
                         <td><b>${c.name || c.card_name || '-'}</b></td>
                         <td>${c.model || '-'}</td>
-                        <td>₹${c.rate || 0}</td>
+                        <td><span class="category-pill ${catClass}">${catText}</span></td>
+                        <td><b style="color:var(--primary); font-size:14px;">₹${c.rate || c.price || 0}</b></td>
+                        <td><button type="button" class="btn-price-edit" onclick="editCardPrice('${c.id}', ${Number(c.rate || c.price || 0)})"><i class="fa-solid fa-pen-to-square"></i> रेट बदलें</button></td>
                         <td><span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
                         <td>
                             <button class="btn-stock-toggle" style="background:${c.in_stock ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${!c.in_stock})">
@@ -888,9 +1032,30 @@
                         </td>
                         <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
-                `).join('');
+                `;
+            }).join('');
+            const count = document.getElementById('miniCatalogCount');
+            if (count) count.innerText = globalCatalogCache.length;
+        }
+
+        async function loadCatalogStock() {
+            const tbody = document.getElementById('catalogTableBody');
+            if (!tbody || !supabaseClient) return;
+            tbody.innerHTML = '<tr><td colspan="9">कैटलॉग लोड हो रहा है...</td></tr>';
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog')
+                    .select('*')
+                    .order('id', { ascending: false });
+
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="9" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    return;
+                }
+                globalCatalogCache = data || [];
+                renderCatalogAdminTable(globalCatalogCache);
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="7" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
             }
         }
 
@@ -904,6 +1069,7 @@
             const model = document.getElementById('admCardModel').value.trim();
             const rate = parseFloat(document.getElementById('admCardRate').value);
             const in_stock = document.getElementById('admCardStock').value === "true";
+            const category = document.getElementById('admCardCategory').value;
             const file = document.getElementById('admCardFile').files[0];
 
             if (!file) {
@@ -918,17 +1084,26 @@
             reader.onload = async () => {
                 const base64Img = reader.result;
                 try {
-                    const { error } = await supabaseClient
-                        .from('catalog')
-                        .insert([{ 
-                            name: cardTitle,
-                            card_name: cardTitle,
-                            model: model, 
-                            rate: rate, 
-                            in_stock: in_stock, 
-                            image: base64Img,
-                            image_url: base64Img 
-                        }]);
+                    let insertPayload = {
+                        name: cardTitle,
+                        card_name: cardTitle,
+                        model: model,
+                        rate: rate,
+                        in_stock: in_stock,
+                        category: category,
+                        image: base64Img,
+                        image_url: base64Img
+                    };
+
+                    let { error } = await supabaseClient.from('catalog').insert([insertPayload]);
+
+                    // यदि पुराने database में category column अभी नहीं है, तो बाकी डेटा सुरक्षित रखते हुए
+                    // पुराने schema में भी कार्ड जोड़ने की कोशिश करें।
+                    if (error && /category|column/i.test(error.message || '')) {
+                        delete insertPayload.category;
+                        const retry = await supabaseClient.from('catalog').insert([insertPayload]);
+                        error = retry.error;
+                    }
 
                     if (error) throw error;
                     alert("नया कार्ड सफलतापूर्वक जोड़ा गया!");
@@ -941,6 +1116,43 @@
                     btn.innerText = "+ सुरक्षित करें";
                 }
             };
+        }
+
+        // कैटलॉग कार्ड का रेट/Price एडिट करें
+        async function editCardPrice(id, currentPrice) {
+            if (!supabaseClient) {
+                alert("डेटाबेस कनेक्ट नहीं है!");
+                return;
+            }
+
+            const entered = prompt("नया रेट (₹/पीस) दर्ज करें:", currentPrice);
+            if (entered === null) return;
+
+            const newPrice = parseFloat(String(entered).trim());
+            if (!Number.isFinite(newPrice) || newPrice < 0) {
+                alert("कृपया सही कीमत दर्ज करें।");
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('catalog')
+                    .update({ rate: newPrice })
+                    .eq('id', Number(id));
+
+                if (error) {
+                    alert("रेट अपडेट नहीं हो पाया: " + error.message);
+                    return;
+                }
+
+                const card = globalCatalogCache.find(x => String(x.id) === String(id));
+                if (card) card.rate = newPrice;
+                alert("रेट सफलतापूर्वक बदल दिया गया: ₹" + newPrice + " / पीस");
+                const selected = document.getElementById('adminCategoryFilter');
+                filterAdminCatalog(selected ? selected.value : 'all');
+            } catch (e) {
+                alert("रेट अपडेट करते समय नेटवर्क त्रुटि: " + e.message);
+            }
         }
 
         async function toggleCardStock(id, newStatus) {
