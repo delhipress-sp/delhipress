@@ -8,24 +8,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    
     <style>
         :root{
-            --red:#e51e3b;
-            --red2:#c8102e;
-            --blue:#063b91;
-            --blue2:#075fe5;
-            --navy:#031735;
-            --green:#08a86a;
-            --gold:#ffb400;
-            --orange:#ff7a00;
-            --white:#fff;
-            --ink:#10245c;
-            --muted:#5b6b86;
-            --panel:rgba(255,255,255,.97);
-            --shadow:0 10px 28px rgba(0,20,55,.16);
+            --red:#e51e3b; --red2:#c8102e; --blue:#063b91; --blue2:#075fe5;
+            --navy:#031735; --green:#08a86a; --gold:#ffb400; --orange:#ff7a00;
+            --white:#fff; --ink:#10245c; --muted:#5b6b86;
+            --panel:rgba(255,255,255,.97); --shadow:0 10px 28px rgba(0,20,55,.16);
         }
-
         *{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif;-webkit-tap-highlight-color:transparent}
         html{scroll-behavior:smooth}
         body{
@@ -38,8 +27,6 @@
                 linear-gradient(135deg,#07214d 0%,#0a5c91 50%,#062b58 100%);
             background-attachment:fixed;
         }
-
-        /* TOP CONTACT STRIP */
         .top-bar{
             height:40px;padding:0 30px;display:flex;align-items:center;justify-content:space-between;
             color:#fff;background:rgba(2,20,51,.96);border-bottom:1px solid rgba(255,255,255,.22);
@@ -48,8 +35,6 @@
         .top-left{display:flex;gap:9px;align-items:center}
         .top-bar i{color:#ffd21c;margin-right:4px}
         .top-bar a{color:#ffd21c;text-decoration:none;font-weight:800}
-
-        /* NAV */
         .navbar{
             min-height:72px;padding:8px 30px;display:flex;align-items:center;gap:18px;
             position:sticky;top:0;z-index:1000;
@@ -66,10 +51,7 @@
         .nav-brand-text h2{color:#ff1744;font-size:24px;line-height:1;font-weight:800}
         .nav-brand-text p{color:#fff;font-size:12px;margin-top:4px}
         .nav-menu{display:flex;align-items:center;gap:3px;list-style:none;flex:1;justify-content:center}
-        .nav-menu a{
-            color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 10px;
-            border-radius:8px;transition:.2s;white-space:nowrap
-        }
+        .nav-menu a{color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 10px;border-radius:8px;transition:.2s;white-space:nowrap}
         .nav-menu a:hover{background:rgba(255,255,255,.10);color:#ffd21c}
         .nav-menu .home-link{border-bottom:3px solid #ffd21c;border-radius:0}
         .btn-login{background:linear-gradient(135deg,#e51e3b,#c8102e)!important;color:#fff!important;border-radius:20px!important;padding:7px 14px!important}
@@ -86,19 +68,12 @@
             background:#f21c43;color:#fff;font-size:10px;font-weight:800;min-width:21px;height:21px;
             display:inline-flex;align-items:center;justify-content:center;border-radius:50%;
         }
-
-        /* PAGE */
         .container{max-width:1100px;margin:10px auto 22px;padding:0 12px}
-
-        /* HERO */
         .hero{
             position:relative;overflow:hidden;min-height:250px;border-radius:22px;padding:16px 22px;
             margin-bottom:10px;background:linear-gradient(100deg,#fff7df,#fffef7 48%,#fff9e9);
             border:4px solid rgba(255,255,255,.92);box-shadow:0 10px 25px rgba(0,0,0,.22);
         }
-        .hero:before,.hero:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
-        .hero:before{width:250px;height:250px;left:-130px;top:-120px;background:rgba(229,30,59,.10)}
-        .hero:after{width:250px;height:250px;right:-130px;bottom:-140px;background:rgba(5,95,229,.10)}
         .hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr 1.65fr .9fr;align-items:center;gap:18px}
         .hero-cards{height:215px;position:relative;display:flex;align-items:center;justify-content:center}
         .fake-card{
@@ -128,16 +103,12 @@
         .hero-feature i{width:30px;text-align:center;font-size:23px}
         .hero-feature:nth-child(1) i{color:#171717}.hero-feature:nth-child(2) i{color:#1675e8}
         .hero-feature:nth-child(3) i{color:#d71939}.hero-feature:nth-child(4) i{color:#09a86a}
-
-        /* NOTICE */
         .notice-banner{
             margin-bottom:10px;padding:12px 17px;border-radius:15px;border:1px solid #f3bd3c;
             background:linear-gradient(90deg,#fff0c4,#fff9e5);color:#6d390d;display:flex;align-items:center;
             gap:10px;font-size:14px;font-weight:800;box-shadow:0 7px 18px rgba(0,0,0,.10)
         }
         .notice-banner i{color:#ef5b18;font-size:23px}
-
-        /* CATALOG */
         .showcase-box{
             background:rgba(255,255,255,.98);border-radius:19px;padding:18px 20px;margin-bottom:10px;
             box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.9)
@@ -187,8 +158,6 @@
             flex:.45;display:flex;align-items:center;justify-content:center;border-radius:7px;
             background:#f2f6fa;border:1px solid #cbd9e8;color:#122b59;font-size:16px;cursor:pointer
         }
-
-        /* BENEFITS */
         .benefit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
         .benefit{
             background:rgba(255,255,255,.98);border-radius:17px;padding:10px 15px;display:flex;align-items:center;gap:12px;
@@ -197,8 +166,6 @@
         .benefit-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:23px;flex-shrink:0}
         .benefit:nth-child(1) .benefit-icon{background:#09ae74}.benefit:nth-child(2) .benefit-icon{background:#ff7b00}.benefit:nth-child(3) .benefit-icon{background:#7839df}
         .benefit h4{font-size:16px;color:#09256b}.benefit p{font-size:11px;color:#405575}
-
-        /* INFO */
         .info-card{
             background:rgba(255,255,255,.98);border-radius:17px;padding:16px 20px;margin-bottom:10px;
             box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.9)
@@ -215,7 +182,6 @@
         .quality-list span{font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px}
         .quality-list span:nth-child(1){color:#e91b40}.quality-list span:nth-child(2){color:#f77f00}.quality-list span:nth-child(3){color:#0787e8}
         .quality-list span i{font-size:14px}
-
         .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .two-col .info-card{margin-bottom:0}
         .terms-list{list-style:none}
@@ -228,8 +194,6 @@
         }
         .map-wrapper{position:relative;height:115px;overflow:hidden;border-radius:11px;border:1px solid #cbd8e7;margin-top:9px}
         .map-wrapper iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-
-        /* FOOTER */
         .main-footer{
             position:relative;overflow:hidden;margin-top:18px;padding:31px 18px 20px;color:#cbd5e1;
             background:linear-gradient(135deg,#02112e,#06275a 52%,#041934);border-top:1px solid rgba(255,255,255,.15)
@@ -243,8 +207,6 @@
         .footer-col p i{color:#ffd21c;width:18px}
         .footer-bottom{position:relative;z-index:1;max-width:1100px;margin:19px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;color:#7e92ae}
         .footer-bottom a{color:#ffd21c;text-decoration:none}
-
-        /* MOBILE BOTTOM */
         .mobile-bottom-bar{
             display:none;position:fixed;left:0;bottom:0;width:100%;height:72px;z-index:1001;
             background:rgba(3,22,52,.96);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.16);
@@ -253,8 +215,6 @@
         .mobile-bottom-bar a{color:#fff;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;position:relative}
         .mobile-bottom-bar a i{font-size:19px;color:#fff}
         .mobile-bottom-bar .cart-badge-count{position:absolute;top:-7px;right:-10px}
-
-        /* MODALS */
         .zoom-modal{display:none;position:fixed;inset:0;background:rgba(3,10,27,.96);z-index:9999;flex-direction:column;justify-content:space-between;align-items:center}
         .zoom-modal.active{display:flex}
         .zoom-header{width:100%;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;color:#fff}
@@ -265,7 +225,6 @@
         .zoom-controls{padding:13px 20px;display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap}
         .zoom-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);width:41px;height:41px;border-radius:50%;cursor:pointer}
         .zoom-select-btn{background:linear-gradient(135deg,#08b977,#07945f);color:#fff;border:0;padding:10px 19px;border-radius:24px;font-weight:800;cursor:pointer}
-
         #policyModalOverlay{backdrop-filter:blur(4px)}
 
         @media(max-width:980px){
@@ -298,4 +257,456 @@
             .quality-list{min-width:105px;gap:5px}.quality-list span{font-size:12px}.about-flex{align-items:flex-start}.two-col{grid-template-columns:1fr}
             .two-col .info-card{margin-bottom:10px}.location-details{font-size:11px}.map-wrapper{height:150px}
             .main-footer{padding:28px 14px 20px}.footer-grid{grid-template-columns:1fr 1fr;gap:15px}.footer-col:first-child{grid-column:1/-1}
-            .footer-col h4{font-size:14px}.footer-col p{font-size:11
+            .footer-col h4{font-size:14px}.footer-col p{font-size:11px}.footer-bottom{font-size:10px;justify-content:center;text-align:center;flex-direction:column}
+            .mobile-bottom-bar{display:flex}
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-left">
+            <span><i class="fa-solid fa-phone"></i>9304509464</span>
+            <span>|</span>
+            <span><i class="fa-solid fa-envelope"></i>mdsajadans@gmail.com</span>
+        </div>
+        <div class="top-right">
+            <span style="margin-right:22px"><i class="fa-solid fa-location-dot"></i>जामताड़ा, झारखंड</span>
+            <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span data-i18n="call_us">कॉल करें</span></a>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <a class="nav-brand" href="index.html">
+            <div class="nav-logo-box">
+                <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\' viewBox=\'0 0 44 44\'><rect width=\'44\' height=\'44\' fill=\'%23e63946\'/><text x=\'50%\' y=\'55%\' font-size=\'13\' fill=\'%23fff\' text-anchor=\'middle\' dominant-baseline=\'middle\'>DP</text></svg>';">
+            </div>
+            <div class="nav-brand-text">
+                <h2 data-i18n="brand_name">दिल्ली प्रेस</h2>
+                <p data-i18n="brand_tagline">सज्जाद प्रिंटर्स (Design • Print • Quality)</p>
+            </div>
+        </a>
+
+        <ul class="nav-menu">
+            <li><a href="index.html" class="home-link"><i class="fa-solid fa-house"></i> होम</a></li>
+            <li><a href="#showcaseSection" data-i18n="nav_catalog">कैटलॉग</a></li>
+            <li><a href="#aboutSection" data-i18n="nav_about">हमारे बारे में</a></li>
+            <li><a href="#termsSection">नियम एवं शर्तें</a></li>
+            <li><a href="#mapSection" data-i18n="nav_location">शॉप लोकेशन</a></li>
+            <li><a href="admin.html" style="color:#ffd21c"><i class="fa-solid fa-lock"></i> एडमिन</a></li>
+            <li id="authNavContainer"><a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> <span data-i18n="nav_login">लॉगिन</span></a></li>
+            <li class="user-logged-box" id="userLoggedBox"><a href="my_orders.html" class="btn-my-orders"><i class="fa-solid fa-box-archive"></i> <span data-i18n="nav_my_orders">मेरे ऑर्डर्स</span></a></li>
+        </ul>
+
+        <div class="nav-right-cluster">
+            <a href="cart.html" class="btn-cart-nav">
+                <i class="fa-solid fa-cart-shopping"></i><span data-i18n="nav_cart">कार्ट</span>
+                <span class="cart-badge-count" id="navCartBadge">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="hero">
+            <div class="hero-inner">
+                <div class="hero-cards" aria-hidden="true">
+                    <div class="fake-card one">शुभ<br>विवाह<small>Wedding</small></div>
+                    <div class="fake-card two">Wedding<br>Invitation<small>दिल्ली प्रेस</small></div>
+                    <div class="fake-card three">निकाह<br>मुबारक<small>دعوت नामह</small></div>
+                </div>
+                <div class="hero-content">
+                    <div class="hero-brand">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</div>
+                    <h1>शादी कार्ड, फ्लेक्स या<br>विजिटिंग कार्ड छपवाना चाहते हैं?</h1>
+                    <p>यहाँ क्लिक करके सीधे ऑनलाइन फॉर्म भरें और मैटर भेजें।</p>
+                    <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" class="btn-main-order">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span data-i18n="btn_open_form">शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="hero-features">
+                    <div class="hero-feature"><i class="fa-solid fa-palette"></i><span>बेहतरीन डिजाइन</span></div>
+                    <div class="hero-feature"><i class="fa-solid fa-gem"></i><span>प्रीमियम क्वालिटी</span></div>
+                    <div class="hero-feature"><i class="fa-solid fa-truck-fast"></i><span>समय पर डिलीवरी</span></div>
+                    <div class="hero-feature"><i class="fa-solid fa-shield-heart"></i><span>विश्वसनीय सेवा</span></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="notice-banner">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span data-i18n="notice_text">नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
+        </div>
+
+        <section class="showcase-box" id="showcaseSection">
+            <div class="catalog-head">
+                <div>
+                    <div class="catalog-heading">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <h3 class="showcase-header-title" data-i18n="catalog_title">शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग</h3>
+                    </div>
+                    <p class="catalog-sub" data-i18n="zoom_hint_text">(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)</p>
+                </div>
+                <div class="filter-box">
+                    <i class="fa-solid fa-filter"></i>
+                    <label>श्रेणी चुनें:</label>
+                    <select id="categoryFilterDropdown" class="category-select" onchange="filterCategory(this.value)">
+                        <option value="all">🌟 सभी कार्ड्स (All Cards)</option>
+                        <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
+                        <option value="hindu">🪔 हिंदू शादी कार्ड</option>
+                        <option value="banner">🖼️ फ्लेक्स व बैनर</option>
+                    </select>
+                </div>
+            </div>
+            <div class="gallery-grid" id="catalogContainer">
+                <p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b"><i class="fa-solid fa-spinner fa-spin"></i><br>कैटलॉग लोड हो रहा है...</p>
+            </div>
+        </section>
+
+        <div class="benefit-grid">
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-award"></i></div><div><h4>उत्तम गुणवत्ता</h4><p>हर प्रिंट में क्वालिटी हमारी पहचान</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-truck-fast"></i></div><div><h4>समय पर डिलीवरी</h4><p>आपका काम, हमारी जिम्मेदारी</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-headset"></i></div><div><h4>ग्राहक सहायता</h4><p>कभी भी हमसे संपर्क करें</p></div></div>
+        </div>
+
+        <section class="info-card" id="aboutSection">
+            <div class="info-card-header"><i class="fa-solid fa-circle-info"></i><span data-i18n="about_title">हमारे बारे में (About Delhi Press)</span></div>
+            <div class="about-flex">
+                <div class="about-copy">
+                    <p data-i18n="about_desc"><strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।</p>
+                </div>
+                <div class="quality-list" aria-label="Design Print Quality">
+                    <span><i class="fa-solid fa-circle-check"></i> Design</span>
+                    <span><i class="fa-solid fa-circle-check"></i> Print</span>
+                    <span><i class="fa-solid fa-circle-check"></i> Quality</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="two-col">
+            <section class="info-card" id="termsSection">
+                <div class="info-card-header"><i class="fa-solid fa-file-contract"></i><span data-i18n="terms_title">नियम एवं शर्तें (Terms & Conditions)</span></div>
+                <ul class="terms-list">
+                    <li><i class="fa-solid fa-circle-check"></i><strong data-i18n="t_rule1_b">मैटर प्रूफ-रीडिंग:</strong> <span data-i18n="t_rule1_txt">फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।</span></li>
+                    <li><i class="fa-solid fa-circle-check"></i><strong data-i18n="t_rule2_b">एडवांस भुगतान:</strong> <span data-i18n="t_rule2_txt">काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।</span></li>
+                </ul>
+            </section>
+
+            <section class="info-card" id="mapSection">
+                <div class="info-card-header"><i class="fa-solid fa-location-dot"></i><span data-i18n="location_title">शॉप लोकेशन एवं संपर्क (Visit Our Press)</span></div>
+                <div class="location-details">
+                    <p><i class="fa-solid fa-map-pin" style="color:var(--red)"></i> <strong data-i18n="address_lbl">पता:</strong> <span data-i18n="address_val">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464</span></p>
+                    <a href="https://share.google/8lCHKltM8SpeKMCHd" target="_blank" class="btn-open-map-direct"><i class="fa-solid fa-diamond-turn-right"></i> गूगल मैप्स पर दिशा-निर्देश देखें</a>
+                </div>
+                <div class="map-wrapper">
+                    <iframe src="https://maps.google.com/maps?q=Delhi+Press+Sajad+Printers,+Eidgah+More,+Karmatar,+Jamtara&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </section>
+        </div>
+    </div>
+        <div id="imageZoomModal" class="zoom-modal">
+        <div class="zoom-header">
+            <div class="zoom-title" id="zoomModalTitle" data-i18n="card_details_title">कार्ड विवरण</div>
+            <button type="button" class="btn-zoom-close" onclick="closeZoomModal()">&times;</button>
+        </div>
+        <div class="zoom-body" id="zoomBody"><img id="zoomModalImg" class="zoom-img" src="" alt="Zoom Image"></div>
+        <div class="zoom-controls">
+            <button type="button" class="zoom-btn" onclick="applyZoom(0.25)" title="ज़ूम इन"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button type="button" class="zoom-btn" onclick="applyZoom(-0.25)" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button type="button" class="zoom-btn" onclick="resetZoom()" title="सामान्य आकार"><i class="fa-solid fa-rotate-left"></i></button>
+            <button type="button" class="zoom-select-btn" onclick="addCurrentZoomToCart()" style="background:#2563eb"><i class="fa-solid fa-cart-plus"></i> <span data-i18n="btn_add_cart">कार्ट में जोड़ें</span></button>
+            <button type="button" id="zoomOrderBtn" class="zoom-select-btn" onclick="redirectToOrderFromZoom()"><i class="fa-solid fa-pen-to-square"></i> <span data-i18n="btn_order_this">यह कार्ड ऑर्डर करें</span></button>
+        </div>
+    </div>
+
+    <div class="mobile-bottom-bar">
+        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span data-i18n="call_us">कॉल करें</span></a>
+        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span data-i18n="nav_catalog">कैटलॉग</span></a>
+        <a href="cart.html"><i class="fa-solid fa-cart-shopping"></i><span data-i18n="nav_cart">कार्ट</span><span class="cart-badge-count" id="mobileCartBadge" style="position:absolute;top:-7px;right:-10px">0</span></a>
+        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()"><i class="fa-solid fa-file-pen"></i><span data-i18n="nav_order">ऑर्डर</span></a>
+        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user" id="mobileAuthIcon"></i><span id="mobileAuthText" data-i18n="nav_login">लॉगिन</span></a>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4 data-i18n="brand_full">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><a href="https://share.google/8lCHKltM8SpeKMCHd" target="_blank" style="color:#cbd5e1;text-decoration:none"><i class="fa-solid fa-location-dot"></i><span data-i18n="address_val">ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</span></a></p>
+                <p><i class="fa-solid fa-phone"></i>9304509464</p>
+                <p><i class="fa-solid fa-envelope"></i>mdsajadans@gmail.com</p>
+            </div>
+            <div class="footer-col">
+                <h4 data-i18n="services_header">हमारी सेवाएं</h4>
+                <p data-i18n="services_list">शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+            </div>
+            <div class="footer-col">
+                <h4>संपर्क एवं सहायता</h4>
+                <p><i class="fa-solid fa-phone"></i> सीधे हमसे संपर्क करें</p>
+                <p><i class="fa-solid fa-clock"></i> समय पर प्रिंटिंग सेवा</p>
+                <p><i class="fa-solid fa-shield"></i> विश्वसनीय प्रिंटिंग सेवा</p>
+            </div>
+        </div>
+        <div style="position:relative;z-index:1;text-align:center;margin-top:18px;font-size:12px">
+            <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color:#cbd5e1;margin:0 7px;text-decoration:underline">Terms & Conditions</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('privacy')" style="color:#cbd5e1;margin:0 7px;text-decoration:underline">Privacy Policy</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color:#cbd5e1;margin:0 7px;text-decoration:underline">Refund Policy</a> |
+            <a href="javascript:void(0)" onclick="openPolicyModal('contact')" style="color:#cbd5e1;margin:0 7px;text-decoration:underline">Contact Us</a>
+        </div>
+        <div class="footer-bottom">
+            <span data-i18n="copyright_text">© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+            <a href="admin.html"><i class="fa-solid fa-lock"></i> <span data-i18n="footer_admin">एडमिन</span></a>
+        </div>
+    </footer>
+
+    <div id="policyModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;justify-content:center;align-items:center;padding:15px">
+        <div style="background:#fff;width:100%;max-width:650px;max-height:85vh;border-radius:12px;overflow-y:auto;padding:22px;position:relative;box-shadow:0 10px 25px rgba(0,0,0,.3)">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #eee;padding-bottom:10px;margin-bottom:15px">
+                <h3 id="policyModalTitle" style="color:#c0392b;font-size:18px;margin:0">पॉलिसी विवरण</h3>
+                <button type="button" onclick="closePolicyModal()" style="border:none;background:#e2e8f0;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;font-weight:bold">&times;</button>
+            </div>
+            <div id="policyModalBody" style="font-size:14px;color:#334155;line-height:1.6"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        
+        let supabaseClient = null;
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {}
+
+        let globalCards = [];
+        let currentZoomCard = null;
+        let currentScale = 1;
+        let currentLang = 'hi';
+
+        const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='185' height='155' viewBox='0 0 185 155'><rect width='185' height='155' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='12' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Image</text></svg>";
+
+        const translations = {
+            hi: {
+                lang_toggle: "English", call_us: "कॉल करें", brand_name: "दिल्ली प्रेस",
+                brand_tagline: "सज्जाद प्रिंटर्स (Design • Print • Quality)", nav_catalog: "कैटलॉग",
+                nav_about: "हमारे बारे में", nav_location: "शॉप लोकेशन", nav_order: "ऑर्डर फॉर्म",
+                nav_cart: "कार्ट", nav_login: "लॉगिन", nav_my_orders: "मेरे ऑर्डर्स",
+                notice_text: "नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।",
+                promo_title: "शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?",
+                promo_desc: "यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।",
+                btn_open_form: "शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें",
+                catalog_title: "शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग",
+                zoom_hint_text: "(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)",
+                loading_catalog: "कैटलॉग लोड हो रहा है...", no_cards: "वर्तमान में कोई कार्ड उपलब्ध नहीं है।",
+                db_error: "डेटाबेस कनेक्ट नहीं हो पाया।", in_stock_txt: "उपलब्ध (In Stock)",
+                out_stock_txt: "स्टॉक समाप्त (Out)", btn_select: "ऑर्डर करें",
+                btn_add_cart: "कार्ट में जोड़ें", zoom_hint_btn: "बड़ा देखें",
+                about_title: "हमारे बारे में (About Delhi Press)",
+                about_desc: "दिल्ली प्रेस (सज्जाद प्रिंटर्स) जामताड़ा (करमाटांड़) का एक विश्वसनीय एवं प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिजाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।",
+                terms_title: "नियम एवं शर्तें (Terms & Conditions)",
+                t_rule1_b: "मैटर प्रूफ-रीडिंग:",
+                t_rule1_txt: "फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की जिम्मेदारी ग्राहक की होगी।",
+                t_rule2_b: "एडवांस भुगतान:",
+                t_rule2_txt: "काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।",
+                location_title: "शॉप लोकेशन एवं संपर्क (Visit Our Press)",
+                address_lbl: "पता:",
+                address_val: "ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464",
+                card_details_title: "कार्ड विवरण", btn_order_this: "यह कार्ड ऑर्डर करें",
+                brand_full: "दिल्ली प्रेस (सज्जाद प्रिंटर्स)", services_header: "सेवाएं",
+                services_list: "शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं",
+                copyright_text: "© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।",
+                footer_admin: "एडमिन", login_alert: "ऑर्डर करने के लिए कृपया पहले लॉगिन करें।",
+                cart_added_alert: "कार्ड कार्ट में सुरक्षित जोड़ दिया गया है!"
+            },
+            en: {
+                lang_toggle: "हिन्दी", call_us: "Call Us", brand_name: "Delhi Press",
+                brand_tagline: "Sajad Printers (Design • Print • Quality)", nav_catalog: "Catalog",
+                nav_about: "About Us", nav_location: "Shop Location", nav_order: "Order Form",
+                nav_cart: "Cart", nav_login: "Login", nav_my_orders: "My Orders",
+                notice_text: "Note: Please verify the full matter thoroughly before printing; corrections cannot be made later.",
+                promo_title: "Looking to print Wedding Cards, Flex Banners, or Visiting Cards?",
+                promo_desc: "Click here to fill out the online wedding card form and submit your matter directly.",
+                btn_open_form: "Open Wedding Card / Order Form",
+                catalog_title: "Wedding Cards, Flex & Visiting Card Catalog",
+                zoom_hint_text: "(Click on any photo to view enlarged and zoom)",
+                loading_catalog: "Loading catalog...", no_cards: "No cards currently available.",
+                db_error: "Database connection failed.", in_stock_txt: "Available (In Stock)",
+                out_stock_txt: "Out of Stock", btn_select: "Order Now",
+                btn_add_cart: "Add to Cart", zoom_hint_btn: "View Larger",
+                about_title: "About Us (About Delhi Press)",
+                about_desc: "Delhi Press (Sajad Printers) is a trusted and reputed digital printing firm located in Karmatar, Jamtara. We are committed to premium quality, creative design, and timely delivery.",
+                terms_title: "Terms & Conditions",
+                t_rule1_b: "Matter Proof-Reading:",
+                t_rule1_txt: "After final customer approval, any spelling, name, or date mistakes will be the customer's responsibility.",
+                t_rule2_b: "Advance Payment:",
+                t_rule2_txt: "A minimum of 50% advance deposit is mandatory to start print production.",
+                location_title: "Shop Location & Contact (Visit Our Press)",
+                address_lbl: "Address:",
+                address_val: "Eidgah More (Chhaitar More), Karmatar, Jamtara, Jharkhand - 815352 | Mob: 9304509464",
+                card_details_title: "Card Details", btn_order_this: "Order This Card",
+                brand_full: "Delhi Press (Sajad Printers)", services_header: "Our Services",
+                services_list: "Wedding Cards | Flex Banners | Visiting Cards | Bill Books | Online Services",
+                copyright_text: "© 2026 Delhi Press (Sajad Printers). All rights reserved.",
+                footer_admin: "Admin", login_alert: "Please login first to place an order.",
+                cart_added_alert: "Card added to cart successfully!"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'hi') ? 'en' : 'hi';
+            document.getElementById('langBtnLabel').innerText = translations[currentLang].lang_toggle;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) { el.innerText = translations[currentLang][key]; }
+            });
+            if (globalCards.length > 0) { renderCatalogCards(globalCards); }
+        }
+
+        function isUserLoggedIn() {
+            return !!(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user'));
+        }
+
+        function checkLoginBeforeOrder() {
+            if (!isUserLoggedIn()) {
+                alert(translations[currentLang].login_alert);
+                window.location.href = "login.html";
+                return;
+            }
+            window.location.href = "order.html";
+        }
+
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const count = cart.length;
+                const navBadge = document.getElementById('navCartBadge');
+                const mobBadge = document.getElementById('mobileCartBadge');
+                if (navBadge) navBadge.innerText = count;
+                if (mobBadge) mobBadge.innerText = count;
+            } catch (e) {}
+        }
+
+        function addToCart(index) {
+            const card = globalCards[index];
+            if (!card) return;
+            try {
+                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const existing = cart.find(item => String(item.id) === String(card.id));
+                if (existing) {
+                    existing.quantity = (existing.quantity || 100) + 100;
+                } else {
+                    cart.push({
+                        id: card.id || Date.now(),
+                        name: card.name || card.title || 'शादी कार्ड',
+                        model: card.model || card.code || '',
+                        rate: parseFloat(card.rate || card.price) || 0,
+                        image: card.image || card.image_url || card.photo || '',
+                        quantity: 100
+                    });
+                }
+                localStorage.setItem('dp_cart_items', JSON.stringify(cart));
+                updateCartBadges();
+                alert(translations[currentLang].cart_added_alert);
+            } catch (e) {}
+        }
+
+        function addCurrentZoomToCart() {
+            if (!currentZoomCard) return;
+            const index = globalCards.indexOf(currentZoomCard);
+            if (index !== -1) { addToCart(index); }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            checkUserAuthUI();
+            updateCartBadges();
+            await loadCatalog();
+        });
+
+        function checkUserAuthUI() {
+            const user = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+            const authNav = document.getElementById('authNavContainer');
+            const loggedBox = document.getElementById('userLoggedBox');
+            const mobLink = document.getElementById('mobileAuthLink');
+            const mobText = document.getElementById('mobileAuthText');
+            if (user) {
+                if (authNav) authNav.style.display = 'none';
+                if (loggedBox) loggedBox.style.display = 'flex';
+                if (mobLink) {
+                    mobLink.href = 'my_orders.html';
+                    if (mobText) mobText.textContent = translations[currentLang].nav_my_orders;
+                }
+            } else {
+                if (authNav) authNav.style.display = 'block';
+                if (loggedBox) loggedBox.style.display = 'none';
+                if (mobLink) {
+                    mobLink.href = 'login.html';
+                    if (mobText) mobText.textContent = translations[currentLang].nav_login;
+                }
+            }
+        }
+
+        async function loadCatalog() {
+            const container = document.getElementById('catalogContainer');
+            if (!supabaseClient) {
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#ef4444;">${translations[currentLang].db_error}</p>`;
+                return;
+            }
+            const tables = ['catalog', 'cards_catalog', 'cards'];
+            let fetchedData = null;
+            for (const tbl of tables) {
+                try {
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
+                    const fetchPromise = supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                    const res = await Promise.race([fetchPromise, timeoutPromise]);
+                    const data = res.data;
+                    if (data && data.length > 0) {
+                        fetchedData = data;
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(`Catalog load failed/timeout on ${tbl}:`, e);
+                }
+            }
+            if (!fetchedData || fetchedData.length === 0) {
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94a3b8;">${translations[currentLang].no_cards}</p>`;
+                return;
+            }
+            globalCards = fetchedData;
+            renderCatalogCards(fetchedData);
+        }
+
+        function renderCatalogCards(cards) {
+            const container = document.getElementById('catalogContainer');
+            container.innerHTML = '';
+            cards.forEach((card, index) => {
+                const name = card.name || card.title || (currentLang === 'hi' ? 'शादी कार्ड' : 'Wedding Card');
+                const model = card.model || card.code || '';
+                const rate = card.rate || card.price || 0;
+                const img = card.image || card.image_url || card.photo || safeCardPlaceholder;
+                const inStock = card.in_stock !== false;
+                const stockBadge = inStock 
+                    ? `<span class="stock-badge in-stock">${translations[currentLang].in_stock_txt}</span>` 
+                    : `<span class="stock-badge out-stock">${translations[currentLang].out_stock_txt}</span>`;
+
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-sample';
+                cardDiv.innerHTML = `
+                    <div class="img-box" onclick="openZoomModal(${index})">
+                        <img src="${img}" alt="${name}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                        <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> ${translations[currentLang].zoom_hint_btn}</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>${name}</h4>
+                        <div class="model-text">${model}</div>
+                        <div class="card-price-tag">₹${rate} / ${currentLang === 'hi' ? 'पीस' : 'pc'}</div>
+                        <div style="margin-bottom: 6px;">${stockBadge}</div>
+                        <div class="card-actions-row">
+                            <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
+                                <i class="fa-solid fa-bolt"></i> ${translations[currentLang].btn_select}
+                            </button>
+                            <button type="button" class="btn-add-cart-single" onclick="addToCart(${index})" title="कार्ट में जोड़ें">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+           
