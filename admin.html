@@ -69,14 +69,6 @@
 
         .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-view { background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .btn-notice { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-
-        .stock-badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: bold; }
-        .in-stock { background: #dcfce7; color: #15803d; }
-        .out-stock { background: #fee2e2; color: #b91c1c; }
-
-        .btn-stock-toggle { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
-        .btn-price-edit { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
 
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn {
@@ -86,82 +78,97 @@
         }
         .tab-btn.active { background: var(--primary-gradient); color: white; box-shadow: 0 8px 20px rgba(230,57,70,.25); }
 
-        /* RECEIPT MODAL ENHANCED STYLING */
+        /* MODAL STYLING */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
             display: none; justify-content: center; align-items: center; z-index: 9999; padding: 12px;
         }
         .modal-content {
-            background: white; width: 100%; max-width: 780px; max-height: 94vh;
+            background: white; width: 100%; max-width: 850px; max-height: 94vh;
             border-radius: 16px; overflow-y: auto; padding: 20px; position: relative;
         }
+
+        /* PRINTABLE RECEIPT WITH SEPARATE WELL-DEFINED TABLES */
         .receipt-container { 
             border: 2px solid #0f172a; 
             padding: 20px; 
-            border-radius: 12px; 
+            border-radius: 10px; 
             background: #fff;
+            color: #0f172a;
         }
         .receipt-header { 
             text-align: center; 
-            border-bottom: 2px solid #0f172a; 
+            border-bottom: 2px dashed #0f172a; 
             padding-bottom: 12px; 
-            margin-bottom: 14px; 
+            margin-bottom: 16px; 
         }
-        .receipt-grid-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
+        .receipt-header h2 { font-size: 24px; font-weight: 900; color: #dc2626; letter-spacing: 0.5px; }
+        .receipt-header p { font-size: 12px; color: #475569; font-weight: 600; }
+
         .receipt-card-block {
             display: flex;
-            gap: 14px;
+            gap: 16px;
             align-items: center;
             background: #f8fafc;
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid #cbd5e1;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
         .receipt-card-block img {
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            border: 1px solid #94a3b8;
             background: #fff;
         }
-        .receipt-section-title { 
-            background: #f1f5f9; 
-            padding: 6px 12px; 
-            font-weight: 800; 
-            color: #0f172a; 
-            margin: 14px 0 8px 0; 
-            border-left: 4px solid var(--primary); 
-            font-size: 13px; 
-            border-radius: 0 6px 6px 0;
+
+        /* CLEAR DISTINCT TABLES */
+        .r-table-title {
+            font-size: 13px;
+            font-weight: 800;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 6px 10px;
+            border-radius: 6px 6px 0 0;
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .receipt-data-box {
-            background: #fdfbf7;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 10px;
+        .r-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            background: #ffffff;
         }
-        .receipt-row { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 6px; 
-            font-size: 13px; 
-            border-bottom: 1px dashed #e2e8f0; 
-            padding-bottom: 4px; 
+        .r-table th, .r-table td {
+            border: 1px solid #334155;
+            padding: 8px 10px;
+            font-size: 12px;
+            text-align: left;
+            vertical-align: top;
         }
-        .receipt-row:last-child { border-bottom: none; }
+        .r-table th {
+            background: #f1f5f9;
+            color: #0f172a;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .r-table td {
+            word-break: break-word;
+            line-height: 1.6;
+        }
+
+        .karyakram-table th { background: #fee2e2; color: #991b1b; text-align: center; font-weight: 800; }
+        .karyakram-table td { text-align: center; font-weight: 600; }
+
         .receipt-screenshot-box {
             text-align: center;
             background: #f8fafc;
-            border: 1px dashed #cbd5e1;
+            border: 1px dashed #64748b;
             border-radius: 8px;
             padding: 12px;
             margin-top: 10px;
@@ -169,31 +176,16 @@
         .receipt-screenshot-box img {
             max-width: 250px;
             max-height: 280px;
-            border-radius: 8px;
-            border: 1px solid #94a3b8;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            border: 1px solid #475569;
         }
 
-        .btn-alarm-3d {
-            display: inline-flex; align-items: center; gap: 5px;
-            background: #dc2626; color: #fff !important; border: none;
-            border-radius: 6px; padding: 5px 9px; font-size: 11px; font-weight: 800; cursor: pointer;
-        }
-        .btn-approved-badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            background: #dcfce7; color: #15803d; border: 1px solid #86efac;
-            border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 800; cursor: pointer;
-        }
-        .btn-reviewed-badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;
-            border-radius: 6px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer;
-        }
-
-        @media(max-width:768px) {
-            .receipt-grid-row { grid-template-columns: 1fr; gap: 4px; }
-            .receipt-card-block { flex-direction: column; text-align: center; }
-            .receipt-card-block img { width: 120px; height: 120px; }
+        @media print {
+            body * { visibility: hidden; }
+            #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
+            #printableReceiptArea {
+                position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0;
+            }
         }
     </style>
 </head>
@@ -224,9 +216,9 @@
             </div>
 
             <div class="nav-tabs">
-                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)</button>
-                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
-                <button type="button" class="tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i> ग्राहक ग्राफ़</button>
+                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स</button>
+                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग</button>
+                <button type="button" class="tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i> ग्राफ़</button>
             </div>
 
             <!-- TAB 1: ORDERS -->
@@ -246,8 +238,6 @@
                                 <th>बिल / एडवांस</th>
                                 <th>पेमेंट मोड</th>
                                 <th>स्टेटस</th>
-                                <th>मैटर अपलोड</th>
-                                <th>ग्राहक स्थिति</th>
                                 <th>रसीद (Receipt)</th>
                                 <th>हटाएं</th>
                             </tr>
@@ -261,7 +251,7 @@
             <div id="tabCatalogSection" style="display: none;">
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
-                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>रेट</th><th>स्टॉक</th><th>रेट बदलें</th><th>हटाएं</th></tr></thead>
+                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>रेट</th><th>स्टॉक</th><th>हटाएं</th></tr></thead>
                         <tbody id="catalogTableBody"></tbody>
                     </table>
                 </div>
@@ -269,7 +259,7 @@
 
             <!-- TAB 3: CUSTOMER ANALYTICS -->
             <div id="tabAnalyticsSection" style="display: none;">
-                <h4 style="margin-bottom:12px; font-weight:800;">ग्राहक एवं ऑर्डर विश्लेषण</h4>
+                <h4 style="margin-bottom:12px; font-weight:800;">ग्राहक विश्लेषण</h4>
                 <div style="position: relative; height: 280px; width: 100%; background:#fff; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
                     <canvas id="customerChart"></canvas>
                 </div>
@@ -277,11 +267,11 @@
         </div>
     </div>
 
-    <!-- POORA DETAILED RECEIPT MODAL -->
+    <!-- POORA DETAILED SEPARATE TABLE RECEIPT MODAL -->
     <div class="modal-overlay" id="orderModal">
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h3 style="color:var(--primary); font-size:18px; font-weight:800;"><i class="fa-solid fa-receipt"></i> कम्पलीट ऑर्डर व शादी मैटर रसीद</h3>
+                <h3 style="color:var(--primary); font-size:18px; font-weight:800;"><i class="fa-solid fa-receipt"></i> शादी मैटर व संपूर्ण टेबल रसीद</h3>
                 <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
             </div>
             
@@ -290,20 +280,6 @@
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-file-pdf"></i> PDF डाउनलोड</button>
                 <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-print"></i> प्रिंट</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Customer Correction Modal -->
-    <div class="modal-overlay" id="correctionModal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">
-                <h3 style="color:#b91c1c; font-size:16px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार विवरण</h3>
-                <button type="button" onclick="closeCorrectionModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:28px; height:28px; cursor:pointer;">&times;</button>
-            </div>
-            <div id="correctionModalBody" style="font-size: 13px; line-height: 1.5;"></div>
-            <div style="margin-top: 14px; text-align:right;">
-                <button type="button" id="btnMarkReviewed" style="padding: 8px 14px; background: var(--green); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">✓ मैंने देख लिया</button>
             </div>
         </div>
     </div>
@@ -357,9 +333,8 @@
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="11">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9">डेटाबेस से लोड हो रहा है...</td></tr>';
 
-            // Local cache fallback first if Supabase is offline
             let localOrders = [];
             try {
                 localOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
@@ -390,48 +365,26 @@
         function renderOrdersTable(orders) {
             const tbody = document.getElementById('ordersTableBody');
             if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11">कोई ऑर्डर उपलब्ध नहीं है।</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9">कोई ऑर्डर उपलब्ध नहीं है।</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = orders.map(o => {
-                let correctionBadge = '<span style="color:#94a3b8; font-size:11px;">कोई सुधार नहीं</span>';
-                if (o.customer_correction) {
-                    correctionBadge = `<button class="btn-alarm-3d" onclick="openCorrectionModal('${o.id}')"><i class="fa-solid fa-bell"></i> सुधार अनुरोध</button>`;
-                }
-
-                return `
+            tbody.innerHTML = orders.map(o => `
                 <tr>
                     <td>#${o.id || o.order_id || '-'}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</small></td>
                     <td><b>${o.card_title || o.card_name || 'शादी कार्ड'}</b><br><small>${o.quantity || o.qty || 100} पीस</small></td>
-                    <td><b>${o.customer_name || o.name || '-'}</b><br>📞 ${o.mobile || o.phone || '-'}<br><small>${o.address || o.customer_address || ''}</small></td>
+                    <td><b>${o.customer_name || o.name || '-'}</b><br>📞 ${o.mobile || o.phone || '-'}<br><small>${o.address || ''}</small></td>
                     <td>वर: <b>${o.groom_name || o.groom || '-'}</b><br>वधू: <b>${o.bride_name || o.bride || '-'}</b></td>
                     <td>कुल: ₹${o.total_amount || 0}<br><span style="color:var(--green); font-weight:bold;">जमा: ₹${o.advance_paid || o.advance_amount || 0}</span></td>
-                    <td><span style="font-size:11px; font-weight:bold; color:${o.payment_mode && o.payment_mode.includes('Cash') ? '#b45309' : '#047857'};">${o.payment_mode || 'UPI / Online'}</span></td>
-                    <td>
-                        <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold; font-size:11px;">
-                            <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                            <option value="Received" ${o.status === 'Received' ? 'selected' : ''}>Received</option>
-                            <option value="Matter Typing" ${o.status === 'Matter Typing' ? 'selected' : ''}>Matter Typing</option>
-                            <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
-                            <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready</option>
-                        </select>
-                    </td>
-                    <td>
-                        <label style="background:var(--blue); color:white; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; display:inline-block;">
-                            अपलोड <input type="file" onchange="uploadOrderMatter('${o.id}', this)" accept="image/*,.pdf" style="display:none;">
-                        </label>
-                        ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" style="color:var(--green); font-size:11px; font-weight:bold;">मैटर देखें</a>` : ''}
-                    </td>
-                    <td>${correctionBadge}</td>
+                    <td><span style="font-weight:bold; font-size:11px;">${o.payment_mode || 'Online'}</span></td>
+                    <td><b>${o.status || 'Pending'}</b></td>
                     <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')"><i class="fa-solid fa-eye"></i> रसीद</button></td>
                     <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>
-                `;
-            }).join('');
+            `).join('');
         }
 
-        /* POORA RECEIPT DISPLAY FUNCTION (CARD PHOTO, FULL MATTER, ADDRESS, PAYMENT SCREENSHOT) */
+        /* HAR KARYAKRAM AUR VIVARAN KE LIYE SARE DISTINCT TABLES */
         function openOrderReceiptModal(orderId) {
             const o = globalOrdersCache.find(x => String(x.id) === String(orderId)) || {};
             
@@ -441,86 +394,155 @@
             const adv = parseFloat(o.advance_paid || o.advance_amount || 0);
             const bal = total - adv;
 
+            // Karyakram Parsing (Safe Fallbacks)
+            const mandaDate = o.manda_date || o.date_manda || '-';
+            const tilakDate = o.tilak_date || o.date_tilak || '-';
+            const haldiDate = o.haldi_date || o.date_haldi || '-';
+            const baratDate = o.barat_date || o.wedding_date || o.function_date || '-';
+            const vidaiDate = o.vidai_date || o.date_vidai || '-';
+
+            // Parivar / Relatives
+            const darshanabhilashi = o.darshan_abhilashi || o.darshanabhilashi || o.darshan || 'समस्त सगे संबंधी एवं मित्रगण';
+            const nivedak = o.nivedak || o.nivedak_name || `${o.groom_father || o.bride_father || ''} एवं समस्त परिवार`;
+            const adai = o.adai || o.bal_aagrah || o.bal_aakankshi || o.adai_names || 'समस्त बच्चे एवं परिवारजन';
+
             const area = document.getElementById('printableReceiptArea');
             area.innerHTML = `
                 <div class="receipt-header">
-                    <h2 style="font-size:22px; font-weight:800; color:#e63946; margin-bottom:2px;">दिल्ली प्रेस (Delhi Press)</h2>
-                    <p style="font-size:12px; color:#475569; font-weight:600;">शादी कार्ड, विजिटिंग कार्ड, फ्लेक्स बैनर एवं ऑफसेट प्रिंटिंग सेवा</p>
-                    <p style="font-size:11px; color:#64748b; margin-top:4px;">
-                        <b>रसीद संख्या:</b> #${o.order_id || o.id || 'DP-' + Date.now()} &nbsp;|&nbsp; 
-                        <b>दिनांक:</b> ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : new Date().toLocaleDateString('hi-IN')}
+                    <h2>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
+                    <p>शादी कार्ड, निमंत्रण पत्र, फ्लेक्स बैनर एवं ऑफसेट प्रिंटिंग सेवा</p>
+                    <p style="font-size:11px; margin-top:4px; color:#64748b;">
+                        <b>रसीद सं.:</b> #${o.order_id || o.id || 'DP-' + Date.now()} &nbsp;|&nbsp; 
+                        <b>बुकिंग तिथि:</b> ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : new Date().toLocaleDateString('hi-IN')}
                     </p>
                 </div>
 
-                <!-- CHUNA GAYA CARD -->
+                <!-- 1. CHOSEN CARD TABLE -->
                 <div class="receipt-card-block">
-                    <img src="${cardImg || 'https://via.placeholder.com/90?text=Card'}" alt="Wedding Card Photo" onerror="this.src='https://via.placeholder.com/90?text=Card';">
-                    <div style="text-align:left; font-size:13px; line-height:1.5;">
-                        <span style="background:var(--primary); color:#fff; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:800;">चयनित कार्ड</span>
-                        <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin-top:2px;">${o.card_title || o.card_name || 'शादी कार्ड'}</h4>
-                        <div>मॉडल नंबर: <b>${o.card_model || o.model || 'Standard'}</b></div>
-                        <div>ऑर्डर मात्रा: <b style="color:var(--blue);">${o.quantity || o.qty || 100} पीस</b></div>
+                    <img src="${cardImg || 'https://via.placeholder.com/100?text=Card'}" alt="Card" onerror="this.src='https://via.placeholder.com/100?text=Card';">
+                    <div style="flex:1;">
+                        <h4 style="font-size:16px; font-weight:800; color:#0f172a;">${o.card_title || o.card_name || 'शादी कार्ड'}</h4>
+                        <div style="font-size:12px; margin-top:3px;">मॉडल संख्या: <b>${o.card_model || o.model || 'Standard'}</b></div>
+                        <div style="font-size:12px; margin-top:2px;">कुल प्रिंटिंग मात्रा: <b style="color:var(--blue); font-size:14px;">${o.quantity || o.qty || 100} पीस</b></div>
                     </div>
                 </div>
 
-                <!-- GRAHAK KA VIVARAN -->
-                <div class="receipt-section-title"><i class="fa-solid fa-user"></i> ग्राहक विवरण (Customer Info)</div>
-                <div class="receipt-data-box">
-                    <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${o.customer_name || o.name || '-'}</b></div>
-                    <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${o.mobile || o.phone || o.customer_phone || '-'}</b></div>
-                    <div class="receipt-row"><span>पूरा पता:</span> <b>${o.address || o.customer_address || '-'}</b></div>
-                </div>
+                <!-- 2. GRAHAK INFO TABLE -->
+                <div class="r-table-title"><i class="fa-solid fa-user-tag"></i> 1. ग्राहक विवरण (Customer Info)</div>
+                <table class="r-table">
+                    <tr>
+                        <th style="width:25%;">ग्राहक का नाम</th>
+                        <td style="width:25%;"><b>${o.customer_name || o.name || '-'}</b></td>
+                        <th style="width:25%;">मोबाइल नंबर</th>
+                        <td style="width:25%;"><b>${o.mobile || o.phone || '-'}</b></td>
+                    </tr>
+                    <tr>
+                        <th>पूरा पता</th>
+                        <td colspan="3">${o.address || o.customer_address || '-'}</td>
+                    </tr>
+                </table>
 
-                <!-- POORA SHAADI MATTER -->
-                <div class="receipt-section-title"><i class="fa-solid fa-heart"></i> वैवाहिक विवरण (संपूर्ण शादी मैटर)</div>
-                <div class="receipt-grid-row">
-                    <!-- VAR BLOCK -->
-                    <div class="receipt-data-box">
-                        <div style="font-weight:800; color:#2563eb; margin-bottom:6px; font-size:13px;"><i class="fa-solid fa-mars"></i> वर पक्ष (लड़का विवरण)</div>
-                        <div class="receipt-row"><span>वर का नाम:</span> <b>${o.groom_name || o.groom || '-'}</b></div>
-                        <div class="receipt-row"><span>पिता / अभिभावक:</span> <b>${o.groom_father || o.g_father || '-'}</b></div>
-                        <div class="receipt-row"><span>वर का निवास पता:</span> <b>${o.groom_address || o.g_address || '-'}</b></div>
-                    </div>
-                    <!-- VADHU BLOCK -->
-                    <div class="receipt-data-box">
-                        <div style="font-weight:800; color:#e11d48; margin-bottom:6px; font-size:13px;"><i class="fa-solid fa-venus"></i> वधू पक्ष (लड़की विवरण)</div>
-                        <div class="receipt-row"><span>वधू का नाम:</span> <b>${o.bride_name || o.bride || '-'}</b></div>
-                        <div class="receipt-row"><span>पिता / अभिभावक:</span> <b>${o.bride_father || o.b_father || '-'}</b></div>
-                        <div class="receipt-row"><span>वधू का निवास पता:</span> <b>${o.bride_address || o.b_address || '-'}</b></div>
-                    </div>
-                </div>
+                <!-- 3. VAR-VADHU DETAILS TABLE -->
+                <div class="r-table-title" style="background:#b91c1c;"><i class="fa-solid fa-heart"></i> 2. वर एवं वधू विवरण (दूल्हा-दुल्हन पक्ष)</div>
+                <table class="r-table">
+                    <tr>
+                        <th style="width:20%; background:#dbeafe; color:#1e3a8a;">वर (लड़का)</th>
+                        <td style="width:30%; font-size:14px; font-weight:bold; color:#1e3a8a;">${o.groom_name || o.groom || '-'}</td>
+                        <th style="width:20%; background:#fce7f3; color:#9d174d;">वधू (लड़की)</th>
+                        <td style="width:30%; font-size:14px; font-weight:bold; color:#9d174d;">${o.bride_name || o.bride || '-'}</td>
+                    </tr>
+                    <tr>
+                        <th>वर के पिता</th>
+                        <td>${o.groom_father || o.g_father || '-'}</td>
+                        <th>वधू के पिता</th>
+                        <td>${o.bride_father || o.b_father || '-'}</td>
+                    </tr>
+                    <tr>
+                        <th>वर का निवास पता</th>
+                        <td>${o.groom_address || o.g_address || '-'}</td>
+                        <th>वधू का निवास पता</th>
+                        <td>${o.bride_address || o.b_address || '-'}</td>
+                    </tr>
+                </table>
 
-                <!-- SPECIAL NOTES / SHAYARI -->
-                ${(o.custom_notes || o.matter_text) ? `
-                <div class="receipt-data-box" style="margin-top:6px;">
-                    <span style="font-weight:700; font-size:12px; color:#475569;">विशेष मैटर / शायरी / निर्देश:</span>
-                    <div style="font-weight:600; color:#0f172a; margin-top:3px; white-space:pre-wrap; font-size:13px;">${o.custom_notes || o.matter_text}</div>
-                </div>` : ''}
+                <!-- 4. HAR KARYAKRAM TABLE -->
+                <div class="r-table-title" style="background:#c2410c;"><i class="fa-solid fa-calendar-days"></i> 3. वैवाहिक मांगलिक कार्यक्रम (शुभ तिथियाँ)</div>
+                <table class="r-table karyakram-table">
+                    <thead>
+                        <tr>
+                            <th>मांडा / मटकोर</th>
+                            <th>तिलक / फलदान</th>
+                            <th>हल्दी / मेंहदी</th>
+                            <th>शुभ विवाह / बारात</th>
+                            <th>विदाई / प्रीतिभोज</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${mandaDate}</td>
+                            <td>${tilakDate}</td>
+                            <td>${haldiDate}</td>
+                            <td style="color:#b91c1c; font-weight:800; font-size:13px;">${baratDate}</td>
+                            <td>${vidaiDate}</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-                <!-- BILL & ADVANCE PAYMENT DETAILS -->
-                <div class="receipt-section-title"><i class="fa-solid fa-indian-rupee-sign"></i> बिल एवं भुगतान स्थिति</div>
-                <div class="receipt-data-box">
-                    <div class="receipt-row"><span>कुल बिल राशि:</span> <b>₹${total}</b></div>
-                    <div class="receipt-row"><span>जमा अग्रिम राशि (Advance):</span> <b style="color:var(--green); font-size:15px;">₹${adv}</b></div>
-                    <div class="receipt-row"><span>बाकी बकाया राशि (Balance):</span> <b style="color:var(--primary); font-size:15px;">₹${bal >= 0 ? bal : 0}</b></div>
-                    <div class="receipt-row"><span>भुगतान का माध्यम (Mode):</span> <b>${o.payment_mode || 'Online (UPI / Cashfree)'}</b></div>
-                    <div class="receipt-row"><span>UTR / Transaction / Ref No:</span> <b style="color:#0f172a; background:#e2e8f0; padding:1px 6px; border-radius:4px;">${o.txn_id || o.utr_number || 'उपलब्ध नहीं'}</b></div>
-                    <div class="receipt-row"><span>ऑर्डर स्थिति (Status):</span> <b>${o.status || 'Pending'}</b></div>
-                </div>
+                <!-- 5. DARSHANABHILASHI, NIVEDAK & ADAI TABLES -->
+                <div class="r-table-title" style="background:#0f766e;"><i class="fa-solid fa-users"></i> 4. दर्शनाभिलाषी, निवेदक एवं आकांक्षी (Distinct Blocks)</div>
+                <table class="r-table">
+                    <tr>
+                        <th style="width:25%;">दर्शनाभिलाषी</th>
+                        <td style="font-weight:600;">${darshanabhilashi}</td>
+                    </tr>
+                    <tr>
+                        <th>निवेदक</th>
+                        <td style="font-weight:700; color:#b91c1c;">${nivedak}</td>
+                    </tr>
+                    <tr>
+                        <th>आदई / बाल आकांक्षी</th>
+                        <td style="font-weight:600; color:#0f766e;">${adai}</td>
+                    </tr>
+                    ${(o.custom_notes || o.matter_text) ? `
+                    <tr>
+                        <th>अन्य शायरी / मैटर</th>
+                        <td style="white-space:pre-wrap; font-weight:600;">${o.custom_notes || o.matter_text}</td>
+                    </tr>` : ''}
+                </table>
 
-                <!-- PAYMENT RECEIPT SCREENSHOT -->
-                <div class="receipt-section-title"><i class="fa-solid fa-image"></i> भुगतान स्क्रीनशॉट / रसीद प्रमाण</div>
+                <!-- 6. BILLING TABLE -->
+                <div class="r-table-title" style="background:#15803d;"><i class="fa-solid fa-indian-rupee-sign"></i> 5. बिल व भुगतान विवरण</div>
+                <table class="r-table">
+                    <tr>
+                        <th style="width:25%;">कुल बिल राशि</th>
+                        <td style="width:25%; font-size:14px; font-weight:800;">₹${total}</td>
+                        <th style="width:25%;">जमा एडवांस राशि</th>
+                        <td style="width:25%; color:#15803d; font-size:14px; font-weight:800;">₹${adv}</td>
+                    </tr>
+                    <tr>
+                        <th>बकाया राशि (Balance)</th>
+                        <td style="color:#dc2626; font-size:14px; font-weight:800;">₹${bal >= 0 ? bal : 0}</td>
+                        <th>भुगतान माध्यम</th>
+                        <td><b>${o.payment_mode || 'Online (UPI)'}</b></td>
+                    </tr>
+                    <tr>
+                        <th>UTR / Transaction Ref No</th>
+                        <td colspan="3"><code style="background:#f1f5f9; padding:2px 8px; font-weight:bold; font-size:13px;">${o.txn_id || o.utr_number || 'उपलब्ध नहीं'}</code></td>
+                    </tr>
+                </table>
+
+                <!-- 7. PAYMENT RECEIPT SCREENSHOT -->
+                <div class="r-table-title" style="background:#475569;"><i class="fa-solid fa-image"></i> 6. ग्राहक द्वारा अपलोड भुगतान प्रमाण (Screenshot)</div>
                 <div class="receipt-screenshot-box">
                     ${receiptImg ? `
-                        <img src="${receiptImg}" alt="Payment Screenshot" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <p style="display:none; color:#ef4444; font-size:12px;">स्क्रीनशॉट लोड नहीं हो सका</p>
-                        <div style="margin-top:8px;">
-                            <a href="${receiptImg}" target="_blank" download="Payment_Proof_${o.id}.jpg" style="font-size:12px; font-weight:bold; color:var(--blue); text-decoration:none;">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i> बड़ा स्क्रीनशॉट देखें / डाउनलोड करें
+                        <img src="${receiptImg}" alt="Payment Proof">
+                        <div style="margin-top:6px;">
+                            <a href="${receiptImg}" target="_blank" download="Receipt_${o.id}.jpg" style="font-size:12px; font-weight:bold; color:var(--blue); text-decoration:none;">
+                                <i class="fa-solid fa-download"></i> ओरिजिनल स्क्रीनशॉट डाउनलोड करें
                             </a>
                         </div>
                     ` : `
-                        <p style="color:#64748b; font-size:12px;">ग्राहक ने स्क्रीनशॉट अपलोड नहीं किया है (या नकद भुगतान चुना है)।</p>
+                        <p style="color:#64748b; font-size:12px;">कोई स्क्रीनशॉट अपलोड नहीं किया गया है।</p>
                     `}
                 </div>
             `;
@@ -535,27 +557,13 @@
         function downloadReceiptPDF() {
             const element = document.getElementById('printableReceiptArea');
             const opt = {
-                margin: 6,
+                margin: 4,
                 filename: `Delhi_Press_Receipt_${Date.now()}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().set(opt).from(element).save();
-        }
-
-        async function updateOrderStatus(id, newStatus) {
-            if (!supabaseClient) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('orders')
-                    .update({ status: newStatus })
-                    .eq('id', Number(id));
-
-                if (error) alert("स्टेटस अपडेट नहीं हो सका: " + error.message);
-            } catch (e) {
-                alert("नेटवर्क त्रुटि!");
-            }
         }
 
         async function deleteAdminOrder(id) {
@@ -580,7 +588,7 @@
                             <td><b>${c.name || '-'}</b></td>
                             <td>${c.model || '-'}</td>
                             <td><b>₹${c.rate || c.price || 0}</b></td>
-                            <td><span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
+                            <td><span>${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
                             <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                     `).join('');
