@@ -34,7 +34,7 @@
             background-attachment: fixed;
             color: #1e293b;
             line-height: 1.5;
-            padding-bottom: 110px; /* Space for sticky bottom bar */
+            padding-bottom: 110px;
             min-height: 100vh;
         }
 
@@ -134,7 +134,6 @@
             color: transparent;
         }
 
-        /* Order Matter Summary Block */
         .order-preview-card {
             display: flex;
             gap: 14px;
@@ -258,7 +257,6 @@
             color: #64748b;
         }
 
-        /* GUARANTEED FIXED BOTTOM APP BAR */
         .mobile-bottom-bar {
             position: fixed !important;
             bottom: 10px !important;
@@ -338,7 +336,6 @@
         <div class="payment-wrapper">
             <div class="section-header" data-i18n="pay_header">ऑर्डर भुगतान एवं कन्फर्मेशन</div>
 
-            <!-- Matter Preview Box -->
             <div class="order-preview-card" id="previewBox">
                 <img id="prevCardImg" src="https://via.placeholder.com/75?text=Card" alt="Card" onerror="this.src='https://via.placeholder.com/75?text=Card';">
                 <div class="order-preview-details">
@@ -348,7 +345,6 @@
                 </div>
             </div>
 
-            <!-- Bill Breakdown Box -->
             <div class="bill-summary-box" id="billSummaryBox">
                 <div class="bill-row"><span data-i18n="lbl_total">कुल बिल राशि:</span> <b id="lblTotal">₹0</b></div>
                 <div class="bill-row"><span data-i18n="lbl_advance">एडवांस जमा राशि:</span> <b style="color:var(--green);" id="lblAdvance">₹0</b></div>
@@ -558,7 +554,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             updateCartBadges();
             
-            // Fallback safe load taaki page crash ya auto-redirect na ho
             const rawTemp = localStorage.getItem('dp_temp_order');
             if (rawTemp) {
                 try {
@@ -569,21 +564,19 @@
             }
 
             if (!pendingOrderData) {
-                // Agar direct koi payment page khole toh dummy data load ho taaki UI sahi dikhe
                 pendingOrderData = {
                     total_amount: 1500,
                     advance_paid: 500,
                     balance_amount: 1000,
-                    card_title: "शादी कार्ड (Sample)",
+                    card_title: "शादी कार्ड",
                     quantity: 100,
-                    groom_name: "वर नाम",
-                    bride_name: "वधू नाम",
+                    groom_name: "वर",
+                    bride_name: "वधू",
                     customer_name: "ग्राहक",
                     mobile: "9304509464"
                 };
             }
 
-            // Fill Data Safely
             const total = pendingOrderData.total_amount || 0;
             const advance = pendingOrderData.advance_paid || pendingOrderData.advance_amount || 0;
             const balance = pendingOrderData.balance_amount || (total - advance);
@@ -601,7 +594,6 @@
             document.getElementById('prevCustomer').innerText = pendingOrderData.customer_name || pendingOrderData.name || '-';
             document.getElementById('prevMobile').innerText = pendingOrderData.mobile || pendingOrderData.phone || '-';
 
-            // UPI link and QR code setup
             const upiUrl = `upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&am=${advance}`;
             document.getElementById('directUpiAppBtn').href = upiUrl;
             document.getElementById('upiQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
@@ -750,7 +742,6 @@
                 created_at: new Date().toISOString()
             };
 
-            // LocalStorage me save karna
             try {
                 localStorage.setItem('dp_latest_confirmed_order', JSON.stringify(cleanOrderPayload));
                 let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
@@ -764,7 +755,6 @@
                 localStorage.setItem('dp_latest_confirmed_order', JSON.stringify(cleanOrderPayload));
             }
 
-            // Supabase Database Insert
             if (supabaseClient) {
                 try {
                     await supabaseClient.from('orders').insert([cleanOrderPayload]);
