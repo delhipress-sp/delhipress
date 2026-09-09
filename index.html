@@ -60,7 +60,7 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 18px;
         }
-        .nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .nav-logo-box {
             width: 44px; height: 44px; border-radius: 50%;
             background: #fff; border: 2px solid var(--primary);
@@ -87,7 +87,6 @@
             align-items: center;
             gap: 6px;
             box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-            transition: all 0.2s ease;
         }
 
         .btn-cart-nav {
@@ -166,7 +165,7 @@
             border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;
         }
 
-        /* --- कैटेगरी ड्रॉपडाउन स्टाइलिंग --- */
+        /* कैटेगरी ड्रॉपडाउन */
         .category-dropdown-box {
             margin: 15px 0 18px 0;
             background: rgba(15, 23, 42, 0.05);
@@ -198,10 +197,6 @@
             color: #1e293b;
             outline: none;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .category-select:focus {
-            border-color: var(--primary);
         }
 
         .gallery-grid {
@@ -227,7 +222,6 @@
             width: 100%; height: 100%; object-fit: cover; display: block;
             transition: transform 0.3s ease;
         }
-        .card-sample .img-box:hover img { transform: scale(1.06); }
         .card-sample .zoom-hint {
             position: absolute; bottom: 8px; right: 8px;
             background: rgba(15, 23, 42, 0.75); color: #fff;
@@ -251,9 +245,9 @@
             padding: 9px 6px; background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white !important; border: none; font-size: 13px; font-weight: 700;
             border-radius: 8px; cursor: pointer; text-decoration: none;
-            transition: 0.2s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
         }
 
+        /* सूचना व शर्तें कार्ड्स */
         .info-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -277,8 +271,26 @@
             position: absolute; left: 0; top: 4px; color: var(--secondary); font-size: 14px;
         }
 
+        /* गूगल मैप रैपर */
+        .map-wrapper {
+            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+            border-radius: 12px; border: 1px solid #cbd5e1; margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .map-wrapper iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
+        }
+
+        .btn-open-map-direct {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #2563eb; color: white; text-decoration: none;
+            padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* फुटर */
         .main-footer {
-            background: rgba(15, 23, 42, 0.92); color: #cbd5e1; padding: 35px 16px 25px;
+            background: rgba(15, 23, 42, 0.95); color: #cbd5e1; padding: 35px 16px 25px;
             margin-top: 40px; font-size: 13px; border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
         .footer-grid {
@@ -299,11 +311,11 @@
         .mobile-bottom-bar a {
             background: none; border: none; color: #cbd5e1; text-decoration: none;
             text-align: center; font-size: 11px; font-weight: 600;
-            display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
         }
         .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
 
-        /* ज़ूम पॉपअप मोडल */
+        /* ज़ूम मोडल */
         .zoom-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.95); z-index: 9999;
@@ -341,11 +353,13 @@
 </head>
 <body>
 
+    <!-- टॉप बार -->
     <div class="top-bar">
         <span><i class="fa-solid fa-phone"></i> 9304509464 | mdsajadans@gmail.com</span>
         <div><a href="tel:9304509464"><i class="fa-solid fa-phone"></i> <span>कॉल करें</span></a></div>
     </div>
 
+    <!-- नेवबार -->
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
             <div class="nav-logo-box">
@@ -368,6 +382,7 @@
                 <li><a href="#showcaseSection">कैटलॉग</a></li>
                 <li><a href="#aboutSection">हमारे बारे में</a></li>
                 <li><a href="#rulesSection">नियम एवं शर्तें</a></li>
+                <li><a href="#mapSection">शॉप लोकेशन</a></li>
                 <li><a href="admin.html" style="color: #facc15;"><i class="fa-solid fa-lock"></i> एडमिन</a></li>
             </ul>
         </div>
@@ -380,21 +395,21 @@
             <span>नोट: कार्ड छापने से पहले पूरा मैटर एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
         </div>
 
-        <!-- ऑनलाइन आर्डर बटन कार्ड -->
+        <!-- ऑनलाइन ऑर्डर कार्ड -->
         <div class="order-btn-card">
             <h3>शादी कार्ड, फ्लेक्स या विजिटिंग कार्ड छपवाना चाहते हैं?</h3>
             <p>यहाँ क्लिक करके सीधे ऑनलाइन शादी कार्ड फॉर्म भरें और मैटर भेजें।</p>
-            <a href="javascript:void(0)" onclick="openOrderModal()" class="btn-main-order">
+            <a href="javascript:void(0)" onclick="alert('ऑर्डर फॉर्म खोलने के लिए आगे बढ़ें।')" class="btn-main-order">
                 <i class="fa-solid fa-file-signature"></i> शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें
             </a>
         </div>
 
-        <!-- कैटलॉग शोकेस सेक्शन -->
+        <!-- कैटलॉग सेक्शन -->
         <div class="showcase-box" id="showcaseSection">
             <h3 class="showcase-header-title">शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग</h3>
             <p style="font-size: 12px; color: #64748b; margin-top: 4px;">(बड़ा देखने व ज़ूम करने के लिए फ़ोटो पर क्लिक करें)</p>
 
-            <!-- कैटेगरी ड्रॉपडाउन मेन्यू (कार्ड शो होने से ठीक ऊपर) -->
+            <!-- ड्रॉपडाउन श्रेणी -->
             <div class="category-dropdown-box">
                 <label for="categorySelector">
                     <i class="fa-solid fa-filter" style="color: var(--primary);"></i> श्रेणी चुनें:
@@ -422,21 +437,10 @@
                 <i class="fa-solid fa-circle-info"></i> हमारे बारे में (About Delhi Press)
             </div>
             <p style="font-size: 14px; color: #475569; line-height: 1.7;">
-                <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा का एक विश्वसनीय और प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिज़ाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए प्रतिबद्ध हैं।
+                <strong>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</strong> जामताड़ा का एक विश्वसनीय और प्रतिष्ठित डिजिटल प्रिंटिंग प्रतिष्ठान है। हम बेहतरीन डिज़ाइनिंग, प्रीमियम क्वालिटी और समय पर डिलीवरी के लिए जाने जाते हैं। हम सभी प्रकार के शादी कार्ड, फ्लेक्स बैनर, पम्पलेट, बिल बुक और डिजिटल प्रिंटिंग का कार्य पूरी निष्ठा से करते हैं।
             </p>
         </div>
 
-        <!-- नियम एवं शर्तें -->
+        <!-- नियम एवं शर्तें (Terms & Conditions) -->
         <div class="info-card" id="rulesSection">
             <div class="info-card-header">
-                <i class="fa-solid fa-file-contract"></i> नियम एवं शर्तें (Terms & Conditions)
-            </div>
-            <ul class="terms-list">
-                <li><i class="fa-solid fa-circle-check"></i> <strong>मैटर प्रूफ-रीडिंग:</strong> फाइनल अप्रूवल के बाद वर्तनी, नाम या तारीख में किसी भी त्रुटि की ज़िम्मेदारी ग्राहक की होगी।</li>
-                <li><i class="fa-solid fa-circle-check"></i> <strong>एडवांस भुगतान:</strong> काम शुरू करने के लिए न्यूनतम 50% एडवांस भुगतान अनिवार्य है।</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- ज़ूम व्यू मोडल -->
-    <div class="zoom
