@@ -68,7 +68,7 @@
 
         .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-view { background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .btn-save-rate { background: #2563eb; color: #fff; border: none; padding: 6px 9px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 4px; }
+        .btn-save-rate { background: #2563eb; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 4px; }
 
         .status-select {
             padding: 6px 8px;
@@ -127,20 +127,26 @@
     </div>
 
     <div class="admin-card">
+        <!-- एडमिन लॉगिन स्क्रीन -->
         <div id="adminPinSection" style="max-width: 380px; margin: 50px auto; text-align: center;">
             <div style="font-size: 46px; color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i></div>
             <h3 style="color: var(--dark); margin-bottom: 16px; font-weight:800;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
-                <label>सुरक्षा पिन:</label>
-                <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
+                <label>सुरक्षा पिन (PIN):</label>
+                <input type="password" id="adminPin" placeholder="पिन दर्ज करें (उदा: 1234)" autofocus>
             </div>
-            <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">प्रवेश करें</button>
+            <button type="button" id="loginBtn" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size:15px;">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> प्रवेश करें
+            </button>
         </div>
 
+        <!-- एडमिन डैशबोर्ड स्क्रीन -->
         <div id="adminDashboard" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 16px;">
                 <h2 style="color: var(--primary); font-size: 22px; font-weight:800;">एडमिन डैशबोर्ड</h2>
-                <button type="button" onclick="handleAdminLogout()" style="background: #e2e8f0; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">लॉगआउट</button>
+                <button type="button" onclick="handleAdminLogout()" style="background: #e2e8f0; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                    <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट
+                </button>
             </div>
 
             <div class="nav-tabs">
@@ -164,7 +170,7 @@
                                 <th>वर-वधू</th>
                                 <th>बिल / एडवांस</th>
                                 <th>पेमेंट मोड</th>
-                                <th style="width:140px;">स्टेटस बदलें</th>
+                                <th style="width:145px;">स्टेटस बदलें</th>
                                 <th>रसीद (Receipt)</th>
                                 <th>हटाएं</th>
                             </tr>
@@ -177,7 +183,7 @@
             <!-- TAB 2: CATALOG -->
             <div id="tabCatalogSection" style="display: none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h4 style="font-weight:800;">कैटलॉग कार्ड्स (रेट और स्टॉक स्थिति)</h4>
+                    <h4 style="font-weight:800;">कैटलॉग कार्ड्स (रेट और स्टॉक बदलें)</h4>
                     <button onclick="loadCatalogStock()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
                 </div>
                 <div class="admin-table-wrapper">
@@ -226,21 +232,38 @@
         let globalOrdersCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('dp_admin_auth') === 'true') showDashboard();
+            const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_auth') === 'true';
+            if (isAuth) {
+                showDashboard();
+            }
+
+            const pinInput = document.getElementById('adminPin');
+            if (pinInput) {
+                pinInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') verifyAdminPin();
+                });
+            }
         });
 
         function verifyAdminPin() {
-            const entered = document.getElementById('adminPin').value.trim();
+            const pinInput = document.getElementById('adminPin');
+            if (!pinInput) return;
+            const entered = pinInput.value.trim();
+
             if (["1234", "9304", "815352"].includes(entered)) {
                 sessionStorage.setItem('dp_admin_auth', 'true');
+                localStorage.setItem('dp_admin_auth', 'true');
                 showDashboard();
             } else {
-                alert("गलत पिन!");
+                alert("गलत पिन! कृपया 1234 या 9304 दर्ज करें।");
+                pinInput.value = '';
+                pinInput.focus();
             }
         }
 
         function handleAdminLogout() {
             sessionStorage.removeItem('dp_admin_auth');
+            localStorage.removeItem('dp_admin_auth');
             location.reload();
         }
 
@@ -277,7 +300,6 @@
                 if (!error && data && data.length > 0) {
                     globalOrdersCache = data;
                 } else {
-                    // Fallback to local
                     globalOrdersCache = localOrders;
                 }
                 renderOrdersTable(globalOrdersCache);
@@ -295,6 +317,7 @@
 
             tbody.innerHTML = orders.map(o => {
                 const curStatus = o.status || 'Pending';
+                const orderKey = o.id || o.order_id;
                 return `
                 <tr>
                     <td>#${o.order_id || o.id || '-'}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</small></td>
@@ -304,7 +327,7 @@
                     <td>कुल: ₹${o.total_amount || 0}<br><span style="color:var(--green); font-weight:bold;">जमा: ₹${o.advance_paid || o.advance_amount || 0}</span></td>
                     <td><span style="font-weight:bold; font-size:11px;">${o.payment_mode || 'Online'}</span></td>
                     <td>
-                        <select class="status-select" onchange="updateOrderStatus('${o.id || o.order_id}', this.value)" style="background:${getStatusBg(curStatus)};">
+                        <select class="status-select" onchange="updateOrderStatus('${orderKey}', this.value)" style="background:${getStatusBg(curStatus)};">
                             <option value="Pending" ${curStatus==='Pending'?'selected':''}>⏳ Pending</option>
                             <option value="Designing" ${curStatus==='Designing'?'selected':''}>🎨 Designing</option>
                             <option value="Printing" ${curStatus==='Printing'?'selected':''}>🖨️ Printing</option>
@@ -313,8 +336,8 @@
                             <option value="Cancelled" ${curStatus==='Cancelled'?'selected':''}>❌ Cancelled</option>
                         </select>
                     </td>
-                    <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id || o.order_id}')"><i class="fa-solid fa-eye"></i> रसीद</button></td>
-                    <td><button class="btn-del" onclick="deleteAdminOrder('${o.id || o.order_id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    <td><button class="btn-view" onclick="openOrderReceiptModal('${orderKey}')"><i class="fa-solid fa-eye"></i> रसीद</button></td>
+                    <td><button class="btn-del" onclick="deleteAdminOrder('${orderKey}')"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>
             `}).join('');
         }
@@ -326,22 +349,4 @@
                 case 'Printing': return '#fce7f3';
                 case 'Ready': return '#ccfbf1';
                 case 'Delivered': return '#dcfce7';
-                case 'Cancelled': return '#fee2e2';
-                default: return '#fff';
-            }
-        }
-
-        async function updateOrderStatus(orderIdentifier, newStatus) {
-            try {
-                // Local Cache update
-                const order = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier));
-                if (order) order.status = newStatus;
-
-                let localOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
-                localOrders = localOrders.map(item => {
-                    if (String(item.id) === String(orderIdentifier) || String(item.order_id) === String(orderIdentifier)) {
-                        item.status = newStatus;
-                    }
-                    return item;
-                });
-                localStorage.setItem('dp_all_orders', JSON.s
+                    
