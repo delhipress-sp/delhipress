@@ -64,7 +64,7 @@
         }
         .btn-logout-nav { background: #ef4444; border-color: #f87171; color: white !important; cursor: pointer; }
 
-        .container { max-width: 850px; margin: 20px auto; padding: 0 14px; }
+        .container { max-width: 950px; margin: 20px auto; padding: 0 14px; }
 
         .user-welcome-card {
             background: var(--glass-bg);
@@ -150,9 +150,90 @@
         }
         .btn-cancel-order:hover { background: #dc2626; }
 
+        .cancel-reason-tag {
+            font-size: 11px; color: #b91c1c; background: #fee2e2; padding: 4px 8px; border-radius: 6px; margin-top: 6px; display: inline-block;
+        }
+
         .empty-orders {
             background: var(--glass-bg); border: 2px dashed #cbd5e1; border-radius: 16px;
             padding: 45px 20px; text-align: center; color: #64748b;
+        }
+
+        /* RECOMMENDED CATALOG SECTION STYLES */
+        .bottom-showcase-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 18px;
+            margin-top: 35px;
+            box-shadow: var(--card-shadow);
+        }
+        .showcase-header-title {
+            color: #08266f;
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .card-sample {
+            border: 1px solid #dbe5ef;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.22s;
+        }
+        .card-sample:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 20px rgba(0,0,0,0.10);
+        }
+        .card-sample .img-box {
+            position: relative;
+            overflow: hidden;
+            background: #f3f6fa;
+            height: 145px;
+            cursor: pointer;
+        }
+        .card-sample .img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: 0.3s;
+        }
+        .card-sample .img-box:hover img { transform: scale(1.05); }
+        .card-info { padding: 10px; text-align: left; }
+        .card-info h4 { font-size: 15px; color: #13265a; margin-bottom: 2px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-info .model-text { font-size: 11px; color: #344c77; margin-bottom: 3px; font-weight: 600; }
+        .card-price-tag { color: #e51e3b; font-weight: 800; font-size: 16px; margin-bottom: 6px; }
+        .btn-select-card {
+            width: 100%;
+            padding: 8px;
+            background: linear-gradient(135deg,#0869f1,#0753ce);
+            color: white !important;
+            border: none;
+            font-size: 12px;
+            font-weight: 800;
+            border-radius: 7px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .modal-overlay {
@@ -184,8 +265,12 @@
         }
         .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
 
+        @media (max-width: 980px) {
+            .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+        }
         @media (max-width: 768px) {
             .mobile-bottom-bar { display: flex; }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
         }
     </style>
 </head>
@@ -229,6 +314,16 @@
             </div>
         </div>
 
+        <!-- RECOMMENDED CATALOG BLOCK DIRECT FROM INDEX TABLE -->
+        <div class="bottom-showcase-box">
+            <h3 class="showcase-header-title">
+                <i class="fa-solid fa-layer-group" style="color:var(--primary);"></i> अन्य पसंद किए जाने वाले शादी कार्ड्स (कैटलॉग)
+            </h3>
+            <div class="gallery-grid" id="recommendedCatalogContainer">
+                <p style="grid-column:1/-1; text-align:center; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> कार्ड्स लोड हो रहे हैं...</p>
+            </div>
+        </div>
+
     </div>
 
     <!-- Receipt Modal -->
@@ -268,11 +363,13 @@
         } catch (e) {}
 
         let fetchedOrdersList = [];
+        let recommendedCards = [];
         const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='11' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card</text></svg>";
 
         window.addEventListener('DOMContentLoaded', () => {
             loadInitialLocalOrders();
             syncWithCloudFast();
+            loadRecommendedCatalog();
         });
 
         function loadInitialLocalOrders() {
@@ -382,15 +479,22 @@
             }
         }
 
+        /* 2. CANCEL ORDER WITH CONFIRMATION AND REASON */
         async function cancelCustomerOrder(orderIdentifier, index) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को रद्द (Cancel) करना चाहते हैं?")) return;
+            const reason = prompt("कृपया ऑर्डर रद्द (Cancel) करने का कारण बताइए:\n(उदा: शादी की तारीख बदल गई, गलती से ऑर्डर हो गया, कार्ड बदलना है आदि)");
+            if (reason === null) return; // Cancel pressed in prompt
+            
+            const cleanReason = reason.trim() || "ग्राहक द्वारा कोई कारण नहीं दिया गया";
+            if (!confirm(`क्या आप वाकई इस कारण से ऑर्डर रद्द करना चाहते हैं?\nकारण: "${cleanReason}"`)) return;
 
             const order = fetchedOrdersList[index];
             if (order) {
                 order.status = 'Cancelled';
+                order.custom_notes = (order.custom_notes ? order.custom_notes + " | " : "") + `[रद्द करने का कारण: ${cleanReason}]`;
                 renderOrdersUI();
             }
 
+            // Sync with local storage
             const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
             keys.forEach(k => {
                 let list = [];
@@ -398,22 +502,28 @@
                 list = list.map(item => {
                     if (String(item.id) === String(orderIdentifier) || String(item.order_id) === String(orderIdentifier)) {
                         item.status = 'Cancelled';
+                        item.custom_notes = (item.custom_notes ? item.custom_notes + " | " : "") + `[रद्द करने का कारण: ${cleanReason}]`;
                     }
                     return item;
                 });
                 localStorage.setItem(k, JSON.stringify(list));
             });
 
+            // Update on Supabase
             if (supabaseClient) {
                 try {
-                    let res = await supabaseClient.from('orders').update({ status: 'Cancelled' }).eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
+                    const updatePayload = {
+                        status: 'Cancelled',
+                        custom_notes: order ? order.custom_notes : `[रद्द करने का कारण: ${cleanReason}]`
+                    };
+                    let res = await supabaseClient.from('orders').update(updatePayload).eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
                     if (res.error) {
-                        await supabaseClient.from('orders').update({ status: 'Cancelled' }).eq('order_id', String(orderIdentifier));
+                        await supabaseClient.from('orders').update(updatePayload).eq('order_id', String(orderIdentifier));
                     }
                 } catch (e) {}
             }
 
-            alert("आपका ऑर्डर सफलतापूर्वक रद्द (Cancel) कर दिया गया है!");
+            alert("आपका ऑर्डर सफलता से रद्द (Cancelled) कर दिया गया है!");
         }
 
         function renderOrdersUI() {
@@ -443,6 +553,15 @@
                 const orderKey = ord.id || ord.order_id;
                 const isCancelled = status.toLowerCase() === 'cancelled' || status === 'रद्द';
 
+                // Cancellation note if present
+                let cancelReasonHtml = '';
+                if (isCancelled && ord.custom_notes && ord.custom_notes.includes('[रद्द करने का कारण:')) {
+                    const rMatch = ord.custom_notes.match(/\[रद्द करने का कारण:(.*?)\]/);
+                    if (rMatch && rMatch[1]) {
+                        cancelReasonHtml = `<div class="cancel-reason-tag"><i class="fa-solid fa-circle-info"></i> रद्द कारण: ${rMatch[1].trim()}</div>`;
+                    }
+                }
+
                 return `
                     <div class="order-card">
                         <div class="order-card-header">
@@ -451,6 +570,7 @@
                                 <div>
                                     <h4>${ord.card_title || 'शादी कार्ड'} ${ord.card_model ? '(' + ord.card_model + ')' : ''}</h4>
                                     <span>ID: #${ord.order_id || ord.id || '-'} | ${dt}</span>
+                                    ${cancelReasonHtml}
                                 </div>
                             </div>
                             <div>${statusBadge}</div>
@@ -483,6 +603,70 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        /* 1. LOAD RECOMMENDED CATALOG DIRECT FROM SUPABASE CATALOG TABLE */
+        async function loadRecommendedCatalog() {
+            const container = document.getElementById('recommendedCatalogContainer');
+            if (!container) return;
+
+            const tables = ['catalog', 'cards', 'cards_catalog'];
+            let fetched = [];
+
+            if (supabaseClient) {
+                for (const tbl of tables) {
+                    try {
+                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false }).limit(8);
+                        if (!error && data && data.length > 0) {
+                            fetched = data;
+                            break;
+                        }
+                    } catch(e) {}
+                }
+            }
+
+            if (fetched.length === 0) {
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#94a3b8; font-size:13px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+                return;
+            }
+
+            recommendedCards = fetched;
+            container.innerHTML = fetched.map((c, idx) => {
+                const name = c.name || c.title || 'शादी कार्ड';
+                const model = c.model || c.code || '';
+                const rate = c.rate || c.price || 0;
+                const img = c.image || c.image_url || safeCardPlaceholder;
+
+                return `
+                    <div class="card-sample">
+                        <div class="img-box" onclick="selectRecommendedForOrder(${idx})">
+                            <img src="${img}" alt="${name}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                        </div>
+                        <div class="card-info">
+                            <h4>${name}</h4>
+                            <div class="model-text">${model}</div>
+                            <div class="card-price-tag">₹${rate} / पीस</div>
+                            <button type="button" class="btn-select-card" onclick="selectRecommendedForOrder(${idx})">
+                                <i class="fa-solid fa-bolt"></i> ऑर्डर करें
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectRecommendedForOrder(idx) {
+            const c = recommendedCards[idx];
+            if (!c) return;
+            const cardData = {
+                id: c.id || '',
+                name: c.name || c.title || 'शादी कार्ड',
+                model: c.model || c.code || '',
+                rate: parseFloat(c.rate || c.price) || 0,
+                image: c.image || c.image_url || ''
+            };
+            localStorage.setItem('order_selected_card', JSON.stringify(cardData));
+            window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
         }
 
         function viewCustomerReceipt(index) {
