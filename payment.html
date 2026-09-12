@@ -701,11 +701,22 @@
             submitText.innerText = "ऑर्डर सुरक्षित हो रहा है...";
 
             const currentData = pendingOrderData || {};
+            const uniqueOrderId = 'DP-' + Math.floor(100000 + Math.random() * 900000);
+
+            // Logged in user verification
+            let loggedPhone = "";
+            try {
+                const userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}');
+                loggedPhone = userObj.phone || userObj.mobile || "";
+            } catch(e) {}
+
+            const customerPhone = currentData.mobile || currentData.phone || loggedPhone || '';
+
             const cleanOrderPayload = {
-                id: Date.now(),
-                order_id: 'DP-' + Math.floor(100000 + Math.random() * 900000),
+                order_id: uniqueOrderId,
                 customer_name: currentData.customer_name || currentData.name || 'ग्राहक',
-                mobile: currentData.mobile || currentData.phone || '',
+                mobile: customerPhone,
+                phone: customerPhone,
                 address: currentData.address || currentData.customer_address || '',
                 card_title: currentData.card_title || currentData.card_name || 'शादी कार्ड',
                 card_model: currentData.card_model || currentData.model || '',
@@ -713,7 +724,7 @@
                 quantity: parseInt(currentData.quantity || currentData.qty || 100),
                 total_amount: parseFloat(currentData.total_amount || 0),
                 advance_paid: parseFloat(currentData.advance_paid || currentData.advance_amount || 0),
-                balance_amount: parseFloat(currentData.balance_amount || 0),
+                balance_amount: parseFloat(currentData.balance_amount || (parseFloat(currentData.total_amount || 0) - parseFloat(currentData.advance_paid || 0))),
 
                 groom_name: currentData.groom_name || currentData.groom || '-',
                 groom_father: currentData.groom_father || currentData.g_father || '-',
@@ -742,25 +753,44 @@
                 created_at: new Date().toISOString()
             };
 
+            // Supabase Database Save (Without forcing explicit ID so auto-increment works)
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('orders').insert([cleanOrderPayload]).select();
+                    if (!error && data && data[0] && data[0].id) {
+                        cleanOrderPayload.id = data[0].id;
+                    }
+                } catch (dbErr) {
+                    console.warn("Supabase insert note:", dbErr);
+                }
+            }
+
+            if (!cleanOrderPayload.id) {
+                cleanOrderPayload.id = Date.now();
+            }
+
+            // Sync with all LocalStorage keys so my_orders.html never misses it
             try {
                 localStorage.setItem('dp_latest_confirmed_order', JSON.stringify(cleanOrderPayload));
-                let localOrders = JSON.parse(localStorage.getItem('my_orders_list') || localStorage.getItem('dp_all_orders') || '[]');
-                localOrders.unshift(cleanOrderPayload);
-                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
-                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
+                
+                const syncKeys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
+                syncKeys.forEach(key => {
+                    let list = [];
+                    try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { list = []; }
+                    if (!Array.isArray(list)) list = [];
+                    list.unshift(cleanOrderPayload);
+                    localStorage.setItem(key, JSON.stringify(list));
+                });
+
                 localStorage.removeItem('dp_temp_order');
             } catch (storageErr) {
+                // If base64 storage quota full, drop screenshot and store
                 cleanOrderPayload.payment_receipt = "";
                 cleanOrderPayload.screenshot = "";
                 localStorage.setItem('dp_latest_confirmed_order', JSON.stringify(cleanOrderPayload));
-            }
-
-            if (supabaseClient) {
-                try {
-                    await supabaseClient.from('orders').insert([cleanOrderPayload]);
-                } catch (dbErr) {
-                    console.warn("DB insert note:", dbErr);
-                }
+                let list = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
+                list.unshift(cleanOrderPayload);
+                localStorage.setItem('my_orders_list', JSON.stringify(list));
             }
 
             alert(translations[currentLang].alert_order_success);
