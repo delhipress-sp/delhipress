@@ -335,7 +335,10 @@
                 phone = fetchedOrdersList[0].mobile || fetchedOrdersList[0].phone;
             }
 
-            if (!supabaseClient) return;
+            if (!supabaseClient) {
+                renderOrdersUI();
+                return;
+            }
 
             try {
                 let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(25);
@@ -348,7 +351,7 @@
                     fetchedOrdersList = data;
                     localStorage.setItem('my_orders_list', JSON.stringify(data));
                     renderOrdersUI();
-                } else if (fetchedOrdersList.length === 0) {
+                } else {
                     renderOrdersUI();
                 }
             } catch(e) {
@@ -379,15 +382,178 @@
             }
         }
 
-        /* CUSTOMER ORDER CANCEL FUNCTION */
         async function cancelCustomerOrder(orderIdentifier, index) {
             if (!confirm("क्या आप वाकई इस ऑर्डर को रद्द (Cancel) करना चाहते हैं?")) return;
 
             const order = fetchedOrdersList[index];
-            if (!order) return;
+            if (order) {
+                order.status = 'Cancelled';
+                renderOrdersUI();
+            }
 
-            // Update state locally
-            order.status = 'Cancelled';
-            renderOrdersUI();
+            const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
+            keys.forEach(k => {
+                let list = [];
+                try { list = JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) {}
+                list = list.map(item => {
+                    if (String(item.id) === String(orderIdentifier) || String(item.order_id) === String(orderIdentifier)) {
+                        item.status = 'Cancelled';
+                    }
+                    return item;
+                });
+                localStorage.setItem(k, JSON.stringify(list));
+            });
 
-        
+            if (supabaseClient) {
+                try {
+                    let res = await supabaseClient.from('orders').update({ status: 'Cancelled' }).eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
+                    if (res.error) {
+                        await supabaseClient.from('orders').update({ status: 'Cancelled' }).eq('order_id', String(orderIdentifier));
+                    }
+                } catch (e) {}
+            }
+
+            alert("आपका ऑर्डर सफलतापूर्वक रद्द (Cancel) कर दिया गया है!");
+        }
+
+        function renderOrdersUI() {
+            const container = document.getElementById('ordersContainer');
+            if (!container) return;
+
+            if (!fetchedOrdersList || fetchedOrdersList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-orders">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
+                        <p style="font-size:13px; margin: 8px 0;">यदि आपने ऑर्डर कर दिया है, तो 'रिफ्रेश' बटन दबाएँ।</p>
+                        <a href="index.html" class="btn-nav" style="margin-top: 12px; background: var(--primary-gradient); color: white; border: none; padding: 9px 22px; border-radius:25px; display:inline-block;">होम पेज पर जाएं</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = fetchedOrdersList.map((ord, index) => {
+                const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN') : 'हाल ही में';
+                const total = parseFloat(ord.total_amount || 0);
+                const advance = parseFloat(ord.advance_paid || 0);
+                const balance = Math.max(0, total - advance);
+                const status = (ord.status || 'Pending').trim();
+                const statusBadge = getStatusBadge(status);
+                const cardImg = ord.card_image || safeCardPlaceholder;
+                const orderKey = ord.id || ord.order_id;
+                const isCancelled = status.toLowerCase() === 'cancelled' || status === 'रद्द';
+
+                return `
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div class="order-id-date">
+                                <img src="${cardImg}" class="order-card-img" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                                <div>
+                                    <h4>${ord.card_title || 'शादी कार्ड'} ${ord.card_model ? '(' + ord.card_model + ')' : ''}</h4>
+                                    <span>ID: #${ord.order_id || ord.id || '-'} | ${dt}</span>
+                                </div>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+
+                        <div class="order-details-grid">
+                            <div class="detail-item"><b>मात्रा</b>${ord.quantity || 100} पीस</div>
+                            <div class="detail-item"><b>कुल बिल राशि</b>₹${total}</div>
+                            <div class="detail-item"><b>जमा एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
+                            <div class="detail-item"><b>बाकी बकाया</b><span style="color:red; font-weight:bold;">₹${balance}</span></div>
+                        </div>
+
+                        <div class="couples-summary">
+                            <b>मैटर सारांश:</b> वर: <b style="color:var(--primary);">${ord.groom_name || '-'}</b> संग वधू: <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
+                        </div>
+
+                        <div class="order-card-footer">
+                            <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
+                            <div class="footer-action-buttons">
+                                <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
+                                    <i class="fa-solid fa-file-invoice"></i> रसीद देखें
+                                </button>
+                                ${!isCancelled ? `
+                                    <button class="btn-cancel-order" onclick="cancelCustomerOrder('${orderKey}', ${index})">
+                                        <i class="fa-solid fa-ban"></i> ऑर्डर कैंसिल करें
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewCustomerReceipt(index) {
+            const ord = fetchedOrdersList[index];
+            if (!ord) return;
+
+            const total = parseFloat(ord.total_amount || 0);
+            const advance = parseFloat(ord.advance_paid || 0);
+            const balance = Math.max(0, total - advance);
+            const img = ord.card_image || safeCardPlaceholder;
+
+            document.getElementById('printableReceiptArea').innerHTML = `
+                <div class="receipt-header">
+                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
+                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़, करमाटांड़, जामताड़ा | मो: 9304509464</p>
+                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:3px 12px; border-radius:3px; font-size:12px;">ग्राहक ऑर्डर रसीद</h4>
+                </div>
+
+                <div class="receipt-section-title">१. कार्ड एवं वर्तमान स्थिति</div>
+                <div class="card-preview-box">
+                    <img src="${img}" alt="Card" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                    <div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || 'शादी कार्ड'}</div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || '-'}</b></div>
+                        <div style="font-size:12px; color:#64748b; margin-top:4px;">स्थिति: <b>${ord.status || 'Pending'}</b></div>
+                    </div>
+                </div>
+
+                <div class="receipt-section-title">२. ऑर्डर एवं ग्राहक विवरण</div>
+                <div class="receipt-row"><span>आर्डर ID:</span> <b>#${ord.order_id || ord.id || '-'}</b></div>
+                <div class="receipt-row"><span>ग्राहक:</span> <b>${ord.customer_name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल:</span> <b>${ord.mobile || ord.phone || '-'}</b></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${ord.address || '-'}</b></div>
+
+                <div class="receipt-section-title">३. शादी मैटर विवरण (वर-वधू)</div>
+                <div class="receipt-row"><span>वर (दूल्हा):</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
+                <div class="receipt-row"><span>वधू (दुल्हन):</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
+                <div class="receipt-row"><span>शुभ विवाह / बारात:</span> <b>${ord.barat_date || '-'}</b></div>
+
+                <div class="receipt-section-title">४. बिल एवं भुगतान विवरण</div>
+                <div class="receipt-row"><span>प्रिंटिंग मात्रा:</span> <b>${ord.quantity || 100} पीस</b></div>
+                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
+                <div class="receipt-row"><span>एडवांस जमा:</span> <b style="color:green;">₹${advance}</b></div>
+                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
+                <div class="receipt-row"><span>UTR / Txn ID:</span> <b>${ord.txn_id || 'उपलब्ध नहीं'}</b></div>
+            `;
+
+            document.getElementById('userReceiptModal').style.display = 'flex';
+        }
+
+        function closeReceiptModal() { 
+            document.getElementById('userReceiptModal').style.display = 'none'; 
+        }
+
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            html2pdf().set({
+                margin: 6,
+                filename: 'DelhiPress_Receipt.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(element).save();
+        }
+
+        function logoutCustomer() {
+            localStorage.removeItem('dp_current_user');
+            localStorage.removeItem('dp_logged_in_user');
+            alert("आप सफलतापूर्वक लॉगआउट हो गए हैं!");
+            window.location.replace("index.html");
+        }
+    </script>
+</body>
+</html>
