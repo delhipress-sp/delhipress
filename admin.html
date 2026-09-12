@@ -66,7 +66,8 @@
         .admin-table th, .admin-table td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: center; vertical-align: middle; }
         .admin-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 13px; }
 
-        .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-del { background: #ef4444; color: white; border: none; padding: 7px 11px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-del:hover { background: #dc2626; }
         .btn-view { background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-save-rate { background: #2563eb; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 4px; }
         .btn-save-rate:hover { background: #1d4ed8; }
@@ -135,12 +136,11 @@
             <h3 style="color: var(--dark); margin-bottom: 16px; font-weight:800;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
                 <label>सुरक्षा पिन (PIN):</label>
-                <input type="password" id="adminPin" placeholder="पिन दर्ज करें (उदा: 1234)" autocomplete="current-password" autofocus>
+                <input type="password" id="adminPin" placeholder="पिन दर्ज करें (उदा: 1234)" autofocus>
             </div>
             <button type="button" id="loginBtn" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size:15px;">
                 <i class="fa-solid fa-arrow-right-to-bracket"></i> प्रवेश करें
             </button>
-            <p style="font-size:11px; color:#64748b; margin-top:10px;">डिफ़ॉल्ट सुरक्षा पिन: <b>1234</b> या <b>9304</b></p>
         </div>
 
         <!-- एडमिन डैशबोर्ड स्क्रीन -->
@@ -175,7 +175,7 @@
                                 <th>पेमेंट मोड</th>
                                 <th style="width:145px;">स्टेटस बदलें</th>
                                 <th>रसीद (Receipt)</th>
-                                <th>हटाएं</th>
+                                <th>हटाएं (Delete)</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody"></tbody>
@@ -356,7 +356,7 @@
                         </select>
                     </td>
                     <td><button class="btn-view" onclick="openOrderReceiptModal('${orderKey}')"><i class="fa-solid fa-eye"></i> रसीद</button></td>
-                    <td><button class="btn-del" onclick="deleteAdminOrder('${orderKey}')"><i class="fa-solid fa-trash"></i></button></td>
+                    <td><button class="btn-del" onclick="deleteAdminOrder('${orderKey}')" title="हटाएं"><i class="fa-solid fa-trash"></i> हटाएं</button></td>
                 </tr>
             `}).join('');
         }
@@ -399,6 +399,39 @@
             } catch (err) {
                 alert("स्टेटस अपडेट में समस्या आई।");
             }
+        }
+
+        /* 3. WORKING DELETE FUNCTION (SUPABASE + LOCALSTORAGE) */
+        async function deleteAdminOrder(orderIdentifier) {
+            if (!confirm(`क्या आप वाकई इस ऑर्डर (#${orderIdentifier}) को हमेशा के लिए हटाना चाहते हैं?`)) return;
+
+            // 1. Remove from local array immediately
+            globalOrdersCache = globalOrdersCache.filter(x => String(x.id) !== String(orderIdentifier) && String(x.order_id) !== String(orderIdentifier));
+            renderOrdersTable(globalOrdersCache);
+
+            // 2. Remove from LocalStorage keys
+            const keys = ['dp_all_orders', 'my_orders_list', 'user_orders', 'dp_my_orders'];
+            keys.forEach(k => {
+                let list = [];
+                try { list = JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) {}
+                list = list.filter(item => String(item.id) !== String(orderIdentifier) && String(item.order_id) !== String(orderIdentifier));
+                localStorage.setItem(k, JSON.stringify(list));
+            });
+
+            // 3. Remove from Supabase DB
+            if (supabaseClient) {
+                try {
+                    let delRes = await supabaseClient.from('orders').delete().eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
+                    if (delRes.error) {
+                        await supabaseClient.from('orders').delete().eq('order_id', String(orderIdentifier));
+                    }
+                } catch (e) {
+                    console.error("DB Delete Exception:", e);
+                }
+            }
+
+            alert("ऑर्डर सफलतापूर्वक हटा (Deleted) दिया गया है!");
+            loadAdminOrders();
         }
 
         async function loadCatalogStock() {
@@ -555,19 +588,6 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().set(opt).from(element).save();
-        }
-
-        async function deleteAdminOrder(orderIdentifier) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
-            if (supabaseClient) {
-                try {
-                    let delRes = await supabaseClient.from('orders').delete().eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
-                    if (delRes.error) {
-                        await supabaseClient.from('orders').delete().eq('order_id', String(orderIdentifier));
-                    }
-                } catch (e) {}
-            }
-            loadAdminOrders();
         }
     </script>
 </body>
