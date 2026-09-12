@@ -18,7 +18,7 @@
             --light: #fdfbf7;
             --green: #10b981;
             --blue: #2563eb;
-            --glass-bg: rgba(255, 255, 255, 0.94);
+            --glass-bg: rgba(255, 255, 255, 0.96);
             --glass-border: rgba(255, 255, 255, 0.6);
             --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
         }
@@ -69,6 +69,7 @@
         .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-view { background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-save-rate { background: #2563eb; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 4px; }
+        .btn-save-rate:hover { background: #1d4ed8; }
 
         .status-select {
             padding: 6px 8px;
@@ -77,6 +78,7 @@
             font-size: 12px;
             cursor: pointer;
             border: 1.5px solid #cbd5e1;
+            outline: none;
         }
 
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -133,11 +135,12 @@
             <h3 style="color: var(--dark); margin-bottom: 16px; font-weight:800;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
                 <label>सुरक्षा पिन (PIN):</label>
-                <input type="password" id="adminPin" placeholder="पिन दर्ज करें (उदा: 1234)" autofocus>
+                <input type="password" id="adminPin" placeholder="पिन दर्ज करें (उदा: 1234)" autocomplete="current-password" autofocus>
             </div>
             <button type="button" id="loginBtn" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size:15px;">
                 <i class="fa-solid fa-arrow-right-to-bracket"></i> प्रवेश करें
             </button>
+            <p style="font-size:11px; color:#64748b; margin-top:10px;">डिफ़ॉल्ट सुरक्षा पिन: <b>1234</b> या <b>9304</b></p>
         </div>
 
         <!-- एडमिन डैशबोर्ड स्क्रीन -->
@@ -183,7 +186,7 @@
             <!-- TAB 2: CATALOG -->
             <div id="tabCatalogSection" style="display: none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h4 style="font-weight:800;">कैटलॉग कार्ड्स (रेट और स्टॉक बदलें)</h4>
+                    <h4 style="font-weight:800;">कैटलॉग कार्ड्स (रेट और स्टॉक स्थिति)</h4>
                     <button onclick="loadCatalogStock()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
                 </div>
                 <div class="admin-table-wrapper">
@@ -232,46 +235,62 @@
         let globalOrdersCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
-            const isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_auth') === 'true';
+            let isAuth = false;
+            try {
+                isAuth = sessionStorage.getItem('dp_admin_auth') === 'true' || localStorage.getItem('dp_admin_auth') === 'true';
+            } catch(e) {}
+
             if (isAuth) {
                 showDashboard();
             }
 
             const pinInput = document.getElementById('adminPin');
             if (pinInput) {
-                pinInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') verifyAdminPin();
+                pinInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        verifyAdminPin();
+                    }
                 });
             }
         });
 
         function verifyAdminPin() {
             const pinInput = document.getElementById('adminPin');
-            if (!pinInput) return;
-            const entered = pinInput.value.trim();
+            const entered = pinInput ? pinInput.value.trim() : '';
+            const validPins = ["1234", "9304", "815352", "admin"];
 
-            if (["1234", "9304", "815352"].includes(entered)) {
-                sessionStorage.setItem('dp_admin_auth', 'true');
-                localStorage.setItem('dp_admin_auth', 'true');
+            if (validPins.includes(entered)) {
+                try {
+                    sessionStorage.setItem('dp_admin_auth', 'true');
+                    localStorage.setItem('dp_admin_auth', 'true');
+                } catch(e) {}
                 showDashboard();
             } else {
                 alert("गलत पिन! कृपया 1234 या 9304 दर्ज करें।");
-                pinInput.value = '';
-                pinInput.focus();
+                if (pinInput) {
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
             }
         }
 
         function handleAdminLogout() {
-            sessionStorage.removeItem('dp_admin_auth');
-            localStorage.removeItem('dp_admin_auth');
+            try {
+                sessionStorage.removeItem('dp_admin_auth');
+                localStorage.removeItem('dp_admin_auth');
+            } catch(e) {}
             location.reload();
         }
 
         function showDashboard() {
-            document.getElementById('adminPinSection').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'block';
-            loadAdminOrders();
-            loadCatalogStock();
+            const pinSection = document.getElementById('adminPinSection');
+            const dashSection = document.getElementById('adminDashboard');
+            if (pinSection) pinSection.style.display = 'none';
+            if (dashSection) dashSection.style.display = 'block';
+
+            try { loadAdminOrders(); } catch(e) {}
+            try { loadCatalogStock(); } catch(e) {}
         }
 
         function switchAdminTab(tab) {
@@ -349,4 +368,207 @@
                 case 'Printing': return '#fce7f3';
                 case 'Ready': return '#ccfbf1';
                 case 'Delivered': return '#dcfce7';
-                    
+                case 'Cancelled': return '#fee2e2';
+                default: return '#fff';
+            }
+        }
+
+        async function updateOrderStatus(orderIdentifier, newStatus) {
+            try {
+                const order = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier));
+                if (order) order.status = newStatus;
+
+                let localOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
+                localOrders = localOrders.map(item => {
+                    if (String(item.id) === String(orderIdentifier) || String(item.order_id) === String(orderIdentifier)) {
+                        item.status = newStatus;
+                    }
+                    return item;
+                });
+                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
+                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
+
+                if (supabaseClient) {
+                    let updateRes = await supabaseClient.from('orders').update({ status: newStatus }).eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
+                    if (updateRes.error) {
+                        await supabaseClient.from('orders').update({ status: newStatus }).eq('order_id', String(orderIdentifier));
+                    }
+                }
+                alert(`स्टेटस '${newStatus}' में बदल दिया गया है!`);
+                loadAdminOrders();
+            } catch (err) {
+                alert("स्टेटस अपडेट में समस्या आई।");
+            }
+        }
+
+        async function loadCatalogStock() {
+            const tbody = document.getElementById('catalogTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="6">कैटलॉग लोड हो रहा है...</td></tr>';
+
+            const tables = ['catalog', 'cards', 'cards_catalog'];
+            let fetchedData = [];
+            let activeTable = 'catalog';
+
+            if (supabaseClient) {
+                for (const tbl of tables) {
+                    try {
+                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                        if (!error && data && data.length > 0) {
+                            fetchedData = data;
+                            activeTable = tbl;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            if (fetchedData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">कोई कार्ड नहीं मिला।</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = fetchedData.map(c => {
+                const rate = c.rate || c.price || 0;
+                const inStock = c.in_stock !== false;
+                return `
+                <tr>
+                    <td><img src="${c.image || c.image_url || 'https://via.placeholder.com/45'}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;"></td>
+                    <td><b>${c.name || c.title || '-'}</b></td>
+                    <td>${c.model || c.code || '-'}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; justify-content:center;">
+                            <input type="number" id="rateInput_${c.id}" value="${rate}" style="width:70px; text-align:center; padding:4px;" step="0.5">
+                            <button class="btn-save-rate" onclick="saveCardRate('${activeTable}', '${c.id}')" title="रेट सेव करें"><i class="fa-solid fa-floppy-disk"></i></button>
+                        </div>
+                    </td>
+                    <td>
+                        <button onclick="toggleCardStock('${activeTable}', '${c.id}', ${!inStock})" style="background:${inStock ? '#dcfce7':'#fee2e2'}; color:${inStock ? '#15803d':'#b91c1c'}; border:1px solid currentColor; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                            ${inStock ? '✓ उपलब्ध' : '✕ समाप्त'}
+                        </button>
+                    </td>
+                    <td><button class="btn-del" onclick="deleteCatalogCard('${activeTable}', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `}).join('');
+        }
+
+        async function saveCardRate(table, cardId) {
+            const input = document.getElementById(`rateInput_${cardId}`);
+            if (!input) return;
+            const newRate = parseFloat(input.value);
+            if (isNaN(newRate) || newRate < 0) {
+                alert("कृपया मान्य रेट डालें!");
+                return;
+            }
+
+            if (!supabaseClient) return;
+
+            try {
+                const { error } = await supabaseClient.from(table).update({ rate: newRate, price: newRate }).eq('id', isNaN(cardId) ? cardId : Number(cardId));
+                if (error) throw error;
+                alert("कार्ड का रेट सफलतापूर्वक बदल दिया गया है!");
+                loadCatalogStock();
+            } catch (e) {
+                alert("रेट अपडेट नहीं हो सका: " + e.message);
+            }
+        }
+
+        async function toggleCardStock(table, cardId, newStatus) {
+            if (!supabaseClient) return;
+            try {
+                await supabaseClient.from(table).update({ in_stock: newStatus }).eq('id', isNaN(cardId) ? cardId : Number(cardId));
+                loadCatalogStock();
+            } catch (e) {}
+        }
+
+        async function deleteCatalogCard(table, id) {
+            if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from(table).delete().eq('id', isNaN(id) ? id : Number(id));
+                } catch (e) {}
+            }
+            loadCatalogStock();
+        }
+
+        function openOrderReceiptModal(orderIdentifier) {
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier)) || {};
+            const cardImg = o.card_image || o.image || o.card_photo || '';
+            const receiptImg = o.payment_receipt || o.screenshot || '';
+            const total = parseFloat(o.total_amount || 0);
+            const adv = parseFloat(o.advance_paid || o.advance_amount || 0);
+            const bal = total - adv;
+
+            const area = document.getElementById('printableReceiptArea');
+            area.innerHTML = `
+                <div class="receipt-header">
+                    <h2>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
+                    <p>शादी कार्ड, निमंत्रण पत्र, फ्लेक्स बैनर एवं ऑफसेट प्रिंटिंग सेवा</p>
+                    <p style="font-size:11px; margin-top:4px; color:#64748b;">
+                        <b>रसीद सं.:</b> #${o.order_id || o.id || 'DP-' + Date.now()} &nbsp;|&nbsp; 
+                        <b>तिथि:</b> ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : new Date().toLocaleDateString('hi-IN')}
+                    </p>
+                </div>
+                <div class="receipt-card-block">
+                    <img src="${cardImg || 'https://via.placeholder.com/100?text=Card'}" alt="Card">
+                    <div>
+                        <h4 style="font-size:16px; font-weight:800;">${o.card_title || o.card_name || 'शादी कार्ड'}</h4>
+                        <div style="font-size:12px;">मॉडल: <b>${o.card_model || o.model || 'Standard'}</b></div>
+                        <div style="font-size:12px;">मात्रा: <b>${o.quantity || o.qty || 100} पीस</b></div>
+                    </div>
+                </div>
+                <div class="r-table-title">1. ग्राहक विवरण</div>
+                <table class="r-table">
+                    <tr><th>नाम</th><td>${o.customer_name || o.name || '-'}</td><th>मोबाइल</th><td>${o.mobile || o.phone || '-'}</td></tr>
+                    <tr><th>पता</th><td colspan="3">${o.address || '-'}</td></tr>
+                </table>
+                <div class="r-table-title" style="background:#b91c1c;">2. वैवाहिक विवरण</div>
+                <table class="r-table">
+                    <tr><th>वर</th><td>${o.groom_name || o.groom || '-'}</td><th>वधू</th><td>${o.bride_name || o.bride || '-'}</td></tr>
+                    <tr><th>शुभ विवाह / बारात</th><td colspan="3">${o.barat_date || o.wedding_date || '-'}</td></tr>
+                </table>
+                <div class="r-table-title" style="background:#15803d;">3. भुगतान विवरण</div>
+                <table class="r-table">
+                    <tr><th>कुल राशि</th><td>₹${total}</td><th>जमा एडवांस</th><td style="color:#15803d; font-weight:bold;">₹${adv}</td></tr>
+                    <tr><th>बकाया</th><td style="color:#dc2626; font-weight:bold;">₹${bal >= 0 ? bal : 0}</td><th>मोड</th><td>${o.payment_mode || 'Online'}</td></tr>
+                    <tr><th>UTR / Txn ID</th><td colspan="3"><code>${o.txn_id || o.utr_number || 'उपलब्ध नहीं'}</code></td></tr>
+                </table>
+                <div class="r-table-title" style="background:#475569;">4. भुगतान रसीद स्क्रीनशॉट</div>
+                <div class="receipt-screenshot-box">
+                    ${receiptImg ? `<img src="${receiptImg}" alt="Payment Proof">` : `<p style="color:#64748b; font-size:12px;">कोई स्क्रीनशॉट नहीं है।</p>`}
+                </div>
+            `;
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            const opt = {
+                margin: 4,
+                filename: `Delhi_Press_Receipt_${Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        async function deleteAdminOrder(orderIdentifier) {
+            if (!confirm("क्या आप वाकई इस ऑर्डर को हटाना चाहते हैं?")) return;
+            if (supabaseClient) {
+                try {
+                    let delRes = await supabaseClient.from('orders').delete().eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
+                    if (delRes.error) {
+                        await supabaseClient.from('orders').delete().eq('order_id', String(orderIdentifier));
+                    }
+                } catch (e) {}
+            }
+            loadAdminOrders();
+        }
+    </script>
+</body>
+</html>
