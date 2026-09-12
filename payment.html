@@ -161,13 +161,8 @@
 
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
-            <div class="nav-logo-box">
-                <img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img">
-            </div>
-            <div class="nav-brand-text">
-                <h2>दिल्ली प्रेस</h2>
-                <p>सज्जाद प्रिंटर्स</p>
-            </div>
+            <div class="nav-logo-box"><img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img"></div>
+            <div class="nav-brand-text"><h2>दिल्ली प्रेस</h2><p>सज्जाद प्रिंटर्स</p></div>
         </a>
     </nav>
 
@@ -235,7 +230,6 @@
 
     <nav class="mobile-bottom-bar">
         <a href="index.html" class="bar-item"><i class="fa-solid fa-house"></i><span>होम</span></a>
-        <a href="index.html#showcaseSection" class="bar-item"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
         <a href="my_orders.html" class="bar-item"><i class="fa-solid fa-receipt"></i><span>रसीद</span></a>
     </nav>
 
@@ -345,7 +339,6 @@
                 bride_father: currentData.bride_father || '-',
                 bride_address: currentData.bride_address || '-',
                 barat_date: currentData.barat_date || currentData.wedding_date || '-',
-                custom_notes: currentData.custom_notes || '',
                 status: 'Pending',
                 txn_id: txnId,
                 payment_mode: isUpi ? 'Online (UPI)' : 'Cash on Delivery',
@@ -357,15 +350,10 @@
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient.from('orders').insert([cleanOrderPayload]).select();
-                    if (error) {
-                        console.error("Supabase Error Details:", error);
-                        alert("डेटाबेस में ऑर्डर सेव नहीं हो पाया: " + error.message + "\n(कृपया Supabase में RLS पॉलिसी चेक करें)");
-                    } else if (data && data[0]) {
+                    if (!error && data && data[0]) {
                         cleanOrderPayload.id = data[0].id;
                     }
-                } catch (e) {
-                    console.error("Insert Exception:", e);
-                }
+                } catch (e) {}
             }
 
             if (!cleanOrderPayload.id) cleanOrderPayload.id = Date.now();
@@ -381,7 +369,7 @@
             });
 
             localStorage.removeItem('dp_temp_order');
-            alert("आपका ऑर्डर सफलतापूर्वक सबमिट हो गया है!");
+            alert("आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है!");
             window.location.href = "my_orders.html";
         }
     </script>
