@@ -736,6 +736,31 @@
         }
     </script>
 
+    <style>
+      /* सुधार/बातचीत — केवल पॉपअप के अंदर */
+      .corr-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.62);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:14px;}
+      .corr-panel{width:min(560px,100%);max-height:min(760px,92vh);overflow:hidden;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);display:flex;flex-direction:column;border:1px solid #e2e8f0;}
+      .corr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;background:linear-gradient(135deg,#f8fbff,#eef4ff);border-bottom:1px solid #e2e8f0;}
+      .corr-head h3{margin:0;font-size:17px;}
+      .btn-corr-close{background:#ef4444;font-size:22px;line-height:1;}
+      .corr-badge{margin:12px 15px 8px!important;padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;}
+      .corr-thread{margin:0 15px 10px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;min-height:100px;max-height:330px;overflow-y:auto;}
+      .corr-msg{background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:9px 11px;margin-bottom:8px;font-size:12px;line-height:1.55;box-shadow:0 2px 6px rgba(15,23,42,.04);}
+      .corr-msg:last-child{margin-bottom:0;}
+      .corr-msg.admin{background:#eff6ff;border-color:#bfdbfe;margin-left:28px;}
+      .corr-file{display:inline-block;margin-top:5px;padding:6px 9px;border-radius:7px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700;}
+      .corr-compose{padding:11px 15px 15px;border-top:1px solid #e2e8f0;background:#fff;}
+      #adminCorrText{width:100%;min-height:72px;resize:vertical;border:1px solid #cbd5e1;border-radius:10px;padding:9px 10px;font-size:13px;outline:none;}
+      #adminCorrText:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.10);}
+      #adminCorrFile{width:100%;margin-top:8px;padding:7px;border:1px dashed #94a3b8;border-radius:9px;background:#f8fafc;font-size:12px;}
+      .corr-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;}
+      .corr-actions button{border:0;border-radius:9px;padding:10px 8px;color:#fff;font-weight:800;font-size:12px;cursor:pointer;}
+      .btn-corr-send{background:#2563eb;grid-column:1/-1;}
+      .btn-corr-approve{background:#10b981;}
+      .btn-corr-more{background:#f59e0b;}
+      @media(max-width:520px){.corr-modal{padding:8px}.corr-panel{max-height:94vh;border-radius:15px}.corr-thread{max-height:270px}.corr-actions{grid-template-columns:1fr}.btn-corr-send{grid-column:auto}}
+    </style>
+
     <div id="correctionModal" class="corr-modal">
       <div class="corr-panel">
         <div class="corr-head"><div><h3 style="color:#0f2f70;">ऑर्डर सुधार / ग्राहक बातचीत</h3><div id="corrOrderInfo" style="font-size:11px;color:#64748b;"></div></div><button class="btn-corr-close" style="border:0;border-radius:50%;width:34px;height:34px;color:#fff;cursor:pointer;" onclick="closeCorrectionModal()">×</button></div>
