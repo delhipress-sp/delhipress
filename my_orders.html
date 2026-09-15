@@ -482,9 +482,19 @@
             try {
                 // हमेशा cloud के असली orders लाएँ ताकि Admin द्वारा बदला गया status तुरंत My Orders में दिखे।
                 let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
-                if (phone) query = query.or(`mobile.eq.${phone},phone.eq.${phone}`);
-                const { data, error } = await query;
-                if (error) throw error;
+                if (phone) query = query.eq('mobile', phone);
+                let { data, error } = await query;
+                if (error && phone) {
+                    // phone column न होने पर केवल mobile से दोबारा query करें।
+                    const retry = await supabaseClient.from('orders').select('*').eq('mobile', phone).order('id', { ascending: false }).limit(100);
+                    data = retry.data; error = retry.error;
+                }
+                if (error) {
+                    // अंतिम fallback: recent cloud orders पढ़ें; इससे My Orders पूरी तरह बंद नहीं होगा।
+                    const retryAll = await supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
+                    if (retryAll.error) throw retryAll.error;
+                    data = retryAll.data || [];
+                }
 
                 const cloud = Array.isArray(data) ? data : [];
                 let local = [];
@@ -587,13 +597,17 @@
             // Update on Supabase
             if (supabaseClient) {
                 try {
-                    const updatePayload = {
-                        status: 'Cancelled',
-                        custom_notes: order ? order.custom_notes : `[रद्द करने का कारण: ${cleanReason}]`
-                    };
-                    let res = await supabaseClient.from('orders').update(updatePayload).eq('id', Number(orderIdentifier));
-                    if (res.error) console.error('Customer cancel DB update error:', res.error);
-                } catch (e) {}
+                    const resolved = await resolveCustomerOrder(index);
+                    const dbId = resolved && resolved.id;
+                    if (dbId) {
+                        const updatePayload = {
+                            status: 'Cancelled',
+                            custom_notes: resolved.custom_notes || (order ? order.custom_notes : `[रद्द करने का कारण: ${cleanReason}]`)
+                        };
+                        const res = await supabaseClient.from('orders').update(updatePayload).eq('id', dbId);
+                        if (res.error) console.error('Customer cancel DB update error:', res.error);
+                    }
+                } catch (e) { console.error('Customer cancel resolve error:', e); }
             }
 
             alert("आपका ऑर्डर सफलता से रद्द (Cancelled) कर दिया गया है!");
@@ -732,8 +746,19 @@
 
                 // फिर सभी उपलब्ध ग्राहक orders में मजबूत matching करें।
                 let q=supabaseClient.from('orders').select('*').order('id',{ascending:false}).limit(100);
-                if(localPhone) q=q.or(`mobile.eq.${localPhone},phone.eq.${localPhone}`);
+                if(localPhone) q=q.eq('mobile',localPhone);
                 const {data,error}=await q;
+                if(error && localPhone){
+                    // कुछ पुराने schemas में mobile column हो सकता है, लेकिन query filter fail होने पर
+                    // fallback: recent orders पढ़कर local पहचान से match करें।
+                    const fallback=await supabaseClient.from('orders').select('*').order('id',{ascending:false}).limit(100);
+                    if(!fallback.error){
+                        // eslint-disable-next-line no-var
+                        var data=fallback.data||[];
+                        // eslint-disable-next-line no-var
+                        var error=null;
+                    }
+                }
                 if(error) throw error;
                 const rows=data||[];
                 let best=null,bestScore=-1;
@@ -752,7 +777,7 @@
                     }
                     if(score>bestScore){bestScore=score;best=x;}
                 }
-                if(best && bestScore>=30){
+                if(best && (bestScore>=15 || rows.length===1)){
                     fetchedOrdersList[index]={...ord,...best};
                     localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
                     return fetchedOrdersList[index];
