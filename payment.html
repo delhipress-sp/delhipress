@@ -397,7 +397,7 @@
 
                 for (const payload of payloadsToTry) {
                     try {
-                        const result = await supabaseClient.from('orders').insert([payload]).select();
+                        const result = await supabaseClient.from('orders').insert([payload]);
                         if (!result.error) {
                             cloudSaved = true;
                             console.log('Order saved to Supabase successfully.');
@@ -423,8 +423,46 @@
             }
 
             if (!cloudSaved && supabaseClient) {
-                // Local copy remains available; My Orders/Admin will still display it.
-                console.warn("Order saved locally; cloud sync will be available from local data.");
+                // अंतिम fallback: केवल पुराने/मुख्य columns भेजें। इससे किसी नए optional
+                // column की वजह से पूरा order cloud में जाने से नहीं रुकेगा।
+                try {
+                    const legacyPayload = {
+                        order_id: cleanOrderPayload.order_id,
+                        customer_name: cleanOrderPayload.customer_name,
+                        mobile: cleanOrderPayload.mobile,
+                        address: cleanOrderPayload.address,
+                        card_title: cleanOrderPayload.card_title,
+                        card_model: cleanOrderPayload.card_model,
+                        card_image: cleanOrderPayload.card_image,
+                        quantity: cleanOrderPayload.quantity,
+                        total_amount: cleanOrderPayload.total_amount,
+                        advance_paid: cleanOrderPayload.advance_paid,
+                        balance_amount: cleanOrderPayload.balance_amount,
+                        groom_name: cleanOrderPayload.groom_name,
+                        groom_father: cleanOrderPayload.groom_father,
+                        groom_address: cleanOrderPayload.groom_address,
+                        bride_name: cleanOrderPayload.bride_name,
+                        bride_father: cleanOrderPayload.bride_father,
+                        bride_address: cleanOrderPayload.bride_address,
+                        status: cleanOrderPayload.status,
+                        txn_id: cleanOrderPayload.txn_id,
+                        payment_mode: cleanOrderPayload.payment_mode,
+                        created_at: cleanOrderPayload.created_at
+                    };
+                    const legacyResult = await supabaseClient.from('orders').insert([legacyPayload]);
+                    if (!legacyResult.error) {
+                        cloudSaved = true;
+                        console.log('Legacy cloud order saved successfully.');
+                    } else {
+                        console.error('Final cloud insert failed:', legacyResult.error);
+                    }
+                } catch (e) {
+                    console.error('Final cloud insert exception:', e);
+                }
+            }
+
+            if (!cloudSaved) {
+                console.warn("Order saved locally but cloud sync failed.");
             }
 
             alert("आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है!");
