@@ -297,6 +297,32 @@
         .cust-corr-more{background:#f59e0b;}
         .btn-open-correction{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:0;padding:8px 14px;font-size:12px;font-weight:800;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
         @media(max-width:520px){.cust-corr-modal{padding:8px}.cust-corr-panel{max-height:94vh;border-radius:15px}.cust-corr-thread{max-height:270px}.cust-corr-actions{grid-template-columns:1fr}.cust-corr-send{grid-column:auto}}
+
+/* WhatsApp-like live chat + voice */
+.cust-corr-panel{max-width:620px!important;height:min(760px,94vh)!important;background:#efeae2!important;}
+.cust-corr-head{background:#075e54!important;color:#fff!important;padding:12px 14px!important;}
+.cust-corr-head h3{color:#fff!important;}
+.cust-corr-head #custCorrOrderInfo{color:#d9fdd3!important;}
+.cust-corr-close{background:#128c7e!important;color:#fff!important;}
+.cust-corr-badge{margin:8px 12px!important;background:#d9fdd3!important;color:#075e54!important;}
+.cust-corr-thread{flex:1!important;max-height:none!important;min-height:0!important;margin:0!important;padding:14px 10px!important;background:#efeae2!important;border:0!important;overflow-y:auto!important;}
+.cust-corr-msg{max-width:82%;width:fit-content;background:#fff!important;border:0!important;border-radius:8px!important;padding:7px 9px!important;margin:0 0 8px 0!important;box-shadow:0 1px 1px rgba(0,0,0,.10)!important;position:relative;}
+.cust-corr-msg.customer{margin-left:auto!important;margin-right:0!important;background:#d9fdd3!important;}
+.cust-corr-msg.admin{margin-left:0!important;margin-right:auto!important;background:#fff!important;}
+.cust-corr-compose{background:#f0f2f5!important;padding:8px!important;border-top:0!important;}
+.cust-corr-compose textarea{min-height:46px!important;border-radius:22px!important;padding:11px 15px!important;border:1px solid #d1d7db!important;}
+.cust-corr-compose .chat-tools{display:flex;align-items:center;gap:7px;margin-top:7px;}
+.cust-corr-compose .chat-tools input[type=file]{flex:1;margin:0!important;background:#fff;border:1px solid #d1d7db;padding:6px;border-radius:20px;}
+.btn-voice-record{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:18px;display:inline-flex;align-items:center;justify-content:center;}
+.btn-voice-record.recording{background:#ef4444;animation:voicePulse 1s infinite;}
+.btn-chat-send{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:17px;display:inline-flex;align-items:center;justify-content:center;}
+.voice-preview{display:none;margin:6px 0 0;padding:6px 9px;background:#fff;border-radius:14px;font-size:11px;color:#475569;align-items:center;gap:8px;}
+.voice-preview audio{max-width:220px;height:34px;}
+.cust-corr-actions{grid-template-columns:1fr 1fr!important;margin-top:7px!important;}
+@keyframes voicePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.voice-msg audio{width:220px;max-width:100%;height:34px;margin-top:4px;}
+@media(max-width:520px){.cust-corr-msg{max-width:90%;}.voice-msg audio{width:190px;}.cust-corr-actions{grid-template-columns:1fr!important;}}
+
 </style>
 </head>
 <body>
@@ -385,10 +411,17 @@
             <div id="custCorrStatus" class="cust-corr-badge">स्थिति: कोई सुधार अनुरोध नहीं</div>
             <div id="custCorrThread" class="cust-corr-thread"></div>
             <div class="cust-corr-compose">
-                <textarea id="custCorrText" placeholder="मैटर में सुधार / संदेश लिखें..."></textarea>
-                <input type="file" id="custCorrFile" accept="image/*,.pdf,.doc,.docx,.txt">
+                <textarea id="custCorrText" placeholder="मैसेज लिखें..."></textarea>
+                <div class="chat-tools">
+                    <button type="button" class="btn-voice-record" id="custVoiceBtn" onclick="toggleCustomerVoice()" title="वॉयस रिकॉर्ड करें"><i class="fa-solid fa-microphone"></i></button>
+                    <input type="file" id="custCorrFile" accept="image/*,.pdf,.doc,.docx,.txt,audio/*">
+                    <button type="button" class="btn-chat-send" onclick="sendCustomerCorrectionPopup()" title="भेजें"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+                <div id="custVoicePreview" class="voice-preview">
+                    <i class="fa-solid fa-microphone"></i><span>वॉयस तैयार है</span>
+                    <audio id="custVoiceAudio" controls></audio>
+                </div>
                 <div class="cust-corr-actions">
-                    <button type="button" class="cust-corr-send" onclick="sendCustomerCorrectionPopup()"><i class="fa-solid fa-paper-plane"></i> फाइल / मैसेज भेजें</button>
                     <button type="button" class="cust-corr-approve" onclick="setCustomerCorrectionStatus('approved')"><i class="fa-solid fa-circle-check"></i> ठीक है / अप्रूव</button>
                     <button type="button" class="cust-corr-more" onclick="setCustomerCorrectionStatus('needs_more')"><i class="fa-solid fa-rotate"></i> और सुधार चाहिए</button>
                 </div>
@@ -712,7 +745,10 @@
                 const isAdmin=x.from==='admin';
                 const who=isAdmin?'एडमिन':'आप';
                 const time=x.at?new Date(x.at).toLocaleString('hi-IN'):'';
-                if(x._type==='file') return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'}"><b>${who}</b> • फाइल • ${time}<br><a class="cust-corr-file" href="${escapeHtml(x.url||'#')}" target="_blank" rel="noopener" download><i class="fa-solid fa-download"></i> ${escapeHtml(x.name||'फाइल देखें / डाउनलोड करें')}</a></div>`;
+                if(x._type==='file') {
+                    if(x.kind==='voice' || String(x.type||'').startsWith('audio/')) return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'} voice-msg"><b>${who}</b> • वॉयस • ${time}<br><audio controls preload="metadata" src="${escapeHtml(x.url||'')}"></audio></div>`;
+                    return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'}"><b>${who}</b> • फाइल • ${time}<br><a class="cust-corr-file" href="${escapeHtml(x.url||'#')}" target="_blank" rel="noopener" download><i class="fa-solid fa-download"></i> ${escapeHtml(x.name||'फाइल देखें / डाउनलोड करें')}</a></div>`;
+                }
                 return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'}"><b>${who}</b> • ${time}<br>${escapeHtml(x.text||'')}</div>`;
             }).join('');
             return html || '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:20px 5px;">अभी कोई बातचीत या सुधार फाइल नहीं है।</div>';
@@ -791,6 +827,7 @@
             }
             customerCorrectionIndex=index;
             customerCorrectionOrderId=ord.id;
+            subscribeCustomerRealtime(ord.id);
             document.getElementById('custCorrOrderInfo').innerText=`#${ord.order_id||ord.id} • ${ord.customer_name||ord.name||'ग्राहक'} • ${ord.card_title||ord.card_name||'ऑर्डर'}`;
             document.getElementById('custCorrStatus').innerText='स्थिति: '+(ord.correction_status||'कोई सुधार अनुरोध नहीं');
             document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(ord);
@@ -811,6 +848,63 @@
             return {name:file.name,url:data.publicUrl,path,from,at:new Date().toISOString()};
         }
 
+
+        let customerVoiceRecorder=null, customerVoiceChunks=[], customerVoiceBlob=null, customerVoiceUrl=null;
+        async function toggleCustomerVoice(){
+            const btn=document.getElementById('custVoiceBtn');
+            if(customerVoiceRecorder && customerVoiceRecorder.state==='recording'){
+                customerVoiceRecorder.stop();
+                if(btn){btn.classList.remove('recording');btn.innerHTML='<i class="fa-solid fa-microphone"></i>';}
+                return;
+            }
+            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+                alert('इस ब्राउज़र में वॉयस रिकॉर्डिंग उपलब्ध नहीं है। Chrome/Edge में अनुमति दें।'); return;
+            }
+            try{
+                const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+                const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(x=>MediaRecorder.isTypeSupported(x))||'';
+                customerVoiceRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+                customerVoiceChunks=[];
+                customerVoiceBlob=null;
+                customerVoiceRecorder.ondataavailable=e=>{if(e.data&&e.data.size)customerVoiceChunks.push(e.data);};
+                customerVoiceRecorder.onstop=()=>{
+                    stream.getTracks().forEach(t=>t.stop());
+                    const type=customerVoiceRecorder.mimeType||'audio/webm';
+                    customerVoiceBlob=new Blob(customerVoiceChunks,{type});
+                    if(customerVoiceUrl)URL.revokeObjectURL(customerVoiceUrl);
+                    customerVoiceUrl=URL.createObjectURL(customerVoiceBlob);
+                    const prev=document.getElementById('custVoicePreview'), aud=document.getElementById('custVoiceAudio');
+                    if(prev)prev.style.display='flex'; if(aud)aud.src=customerVoiceUrl;
+                };
+                customerVoiceRecorder.start();
+                if(btn){btn.classList.add('recording');btn.innerHTML='<i class="fa-solid fa-stop"></i>';}
+            }catch(e){alert('माइक्रोफोन की अनुमति नहीं मिली। कृपया Allow/Microphone दबाएँ।');}
+        }
+        async function uploadCustomerVoice(blob, orderId){
+            const ext=(blob.type||'audio/webm').includes('mp4')?'m4a':'webm';
+            const path=`${orderId}/customer_voice_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+            const {error}=await supabaseClient.storage.from('order-corrections').upload(path,blob,{contentType:blob.type||'audio/webm',upsert:false});
+            if(error)throw new Error('वॉयस अपलोड नहीं हुई: '+(error.message||error));
+            const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
+            return {name:'वॉयस संदेश',url:data.publicUrl,path,from:'customer',kind:'voice',type:blob.type||'audio/webm',at:new Date().toISOString()};
+        }
+        function subscribeCustomerRealtime(orderId){
+            if(!supabaseClient || !orderId) return;
+            if(window.customerRealtimeChannel){try{supabaseClient.removeChannel(window.customerRealtimeChannel);}catch(e){}}
+            window.customerRealtimeChannel=supabaseClient.channel('customer-order-live-'+orderId)
+              .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
+                  const idx=customerCorrectionIndex;
+                  if(idx!==null && fetchedOrdersList[idx] && String(fetchedOrdersList[idx].id)===String(orderId)){
+                      fetchedOrdersList[idx]={...fetchedOrdersList[idx],...payload.new};
+                      localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
+                      document.getElementById('custCorrStatus').innerText='स्थिति: '+(payload.new.correction_status||'कोई सुधार अनुरोध नहीं');
+                      document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(fetchedOrdersList[idx]);
+                      const th=document.getElementById('custCorrThread'); th.scrollTop=th.scrollHeight;
+                  }
+                  renderOrdersUI();
+              }).subscribe();
+        }
+
         async function sendCustomerCorrectionPopup(){
             const index=customerCorrectionIndex;
             let ord=(index!==null)?fetchedOrdersList[index]:null;
@@ -821,17 +915,22 @@
             customerCorrectionOrderId=id;
             const input=document.getElementById('custCorrText'), fileEl=document.getElementById('custCorrFile');
             const text=(input.value||'').trim(), file=fileEl.files&&fileEl.files[0];
-            if(!text&&!file){ alert('मैसेज लिखें या फाइल चुनें।'); return; }
+            const voice=customerVoiceBlob;
+            if(!text&&!file&&!voice){ alert('मैसेज, फाइल या वॉयस संदेश भेजें।'); return; }
             try{
                 if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
                 const messages=parseJsonArray(ord.customer_messages), files=parseJsonArray(ord.customer_files);
                 if(text) messages.push({from:'customer',text,at:new Date().toISOString()});
                 if(file){ const f=await uploadCorrectionFile(file,id,'customer'); if(f) files.push(f); }
+                if(voice){ const vf=await uploadCustomerVoice(voice,id); if(vf) files.push(vf); }
                 const {data,error}=await supabaseClient.from('orders').update({customer_messages:messages,customer_files:files,correction_status:'customer_sent'}).eq('id',id).select().single();
                 if(error) throw error;
                 fetchedOrdersList[index]={...ord,...data};
                 localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
-                input.value=''; fileEl.value='';
+                input.value=''; fileEl.value=''; customerVoiceBlob=null;
+                if(customerVoiceUrl){URL.revokeObjectURL(customerVoiceUrl);customerVoiceUrl=null;}
+                const vp=document.getElementById('custVoicePreview'), va=document.getElementById('custVoiceAudio'), vb=document.getElementById('custVoiceBtn');
+                if(vp)vp.style.display='none'; if(va)va.removeAttribute('src'); if(vb){vb.classList.remove('recording');vb.innerHTML='<i class="fa-solid fa-microphone"></i>';}
                 document.getElementById('custCorrStatus').innerText='स्थिति: customer_sent';
                 document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(fetchedOrdersList[index]);
                 const th=document.getElementById('custCorrThread'); th.scrollTop=th.scrollHeight;
