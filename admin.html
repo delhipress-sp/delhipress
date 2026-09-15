@@ -156,6 +156,11 @@
 @keyframes adminVoicePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
 </style>
+
+<style>
+.wa-panel{width:min(520px,100%);height:min(760px,96vh)!important;border-radius:18px!important;overflow:hidden;display:flex;flex-direction:column;background:#efeae2!important}.wa-head{height:62px;flex:none;background:#075e54;color:#fff;display:flex;align-items:center;padding:8px 12px;gap:10px}.wa-avatar{width:42px;height:42px;border-radius:50%;background:#dfe8e5;color:#075e54;display:grid;place-items:center;font-size:20px}.wa-head-info{display:flex;flex-direction:column;min-width:0;flex:1}.wa-head-info b{font-size:15px}.wa-head-info span{font-size:10px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wa-head-info small{font-size:10px;color:#d7ffd9}.wa-close{border:0;background:transparent;color:#fff;font-size:28px;width:36px;height:36px;cursor:pointer}.wa-status{font-size:10px;padding:4px 10px;background:#f7f8f8;color:#64748b}.wa-typing{display:none;font-size:11px;color:#075e54;background:#e8f5e9;padding:3px 12px;font-style:italic}.wa-thread{flex:1;min-height:0;overflow-y:auto;padding:14px 10px;background-color:#efeae2;background-image:radial-gradient(#d9d0c5 1px,transparent 1px);background-size:18px 18px}.wa-bubble{max-width:82%;padding:7px 9px 6px;margin:4px 0;border-radius:8px;font-size:13px;line-height:1.42;box-shadow:0 1px 1px rgba(0,0,0,.10);word-break:break-word}.wa-bubble.admin{margin-left:auto;background:#d9fdd3;border-top-right-radius:3px}.wa-bubble.customer{margin-right:auto;background:#fff;border-top-left-radius:3px}.wa-meta{font-size:9px;color:#667781;text-align:right;margin-top:3px}.wa-bubble audio{width:100%;max-width:240px;height:36px}.wa-file{display:inline-flex;align-items:center;gap:7px;background:#f0f2f5;padding:8px;border-radius:8px;text-decoration:none;color:#075e54;font-weight:700;margin-top:4px}.wa-compose{background:#f0f2f5!important;padding:7px 8px 8px!important;flex:none}.wa-input-row{display:flex;align-items:flex-end;gap:5px;background:#fff;border-radius:24px;padding:4px}.wa-icon,.wa-mic,.wa-send{border:0;background:transparent;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font-size:18px;color:#54656f;flex:none}.wa-mic{color:#075e54}.wa-mic.recording{background:#e53935;color:#fff}.wa-send{background:#128c7e;color:#fff}.wa-input-row textarea{flex:1;border:0;outline:0;resize:none;max-height:90px;font:14px Arial;padding:9px 5px;background:transparent}.wa-compose input[type=file]{display:none}.wa-preview{display:none;align-items:center;gap:7px;background:#fff;padding:6px 9px;margin-bottom:5px;border-radius:12px}.wa-preview audio{width:180px;height:34px}.wa-preview button{border:0;background:#eee;border-radius:50%;width:28px;height:28px}.wa-file-name{font-size:10px;color:#54656f;padding:3px 8px;min-height:14px}.corr-actions{display:flex!important;gap:6px!important;margin-top:5px!important}.corr-actions button{flex:1!important;border:0!important;border-radius:8px!important;padding:7px!important;font-size:10px!important;font-weight:700!important;color:#fff!important}.btn-corr-approve{background:#10b981!important}.btn-corr-more{background:#f59e0b!important}.corr-modal{padding:0!important}.corr-panel{max-width:520px!important}.corr-msg{max-width:82%!important;border:0!important;padding:7px 9px!important;margin:4px 0!important;border-radius:8px!important;box-shadow:0 1px 1px rgba(0,0,0,.10)!important}.corr-msg.admin{margin-left:auto!important;background:#d9fdd3!important}.corr-msg:not(.admin){margin-right:auto!important;background:#fff!important}.corr-file{background:#f0f2f5!important;color:#075e54!important}.corr-msg audio{width:100%;max-width:240px;height:36px}
+@media(max-width:520px){.corr-modal{padding:0!important}.wa-panel{width:100%;height:100dvh!important;max-height:none!important;border-radius:0!important}.wa-bubble,.corr-msg{max-width:88%!important}}
+</style>
 </head>
 <body>
 
@@ -492,14 +497,14 @@
         function renderAdminCorrectionThread(o){
           const msgs=[...parseJsonArrayAdmin(o.customer_messages),...parseJsonArrayAdmin(o.admin_messages)].map(x=>({...x,type:'msg'}));
           const files=[...parseJsonArrayAdmin(o.customer_files),...parseJsonArrayAdmin(o.admin_files)].map(x=>({...x,type:'file'}));
-          return [...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0)).map(x=>x.type==='file'?(x.kind==='voice'||String(x.type||'').startsWith('audio/')?`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • वॉयस<br><audio controls preload="metadata" src="${escAdmin(x.url||'')}"></audio></div>`:`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • फाइल<br><a class="corr-file" href="${x.url}" target="_blank" download><i class="fa-solid fa-download"></i>${escAdmin(x.name||'फाइल डाउनलोड/देखें')}</a></div>`):`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • ${x.at?new Date(x.at).toLocaleString('hi-IN'):''}<br>${escAdmin(x.text||'')}</div>`).join('')||'<div style="color:#94a3b8;font-size:12px;">अभी कोई बातचीत या फाइल नहीं है।</div>';
+          return [...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0)).map(x=>x.type==='file'?(x.kind==='voice'||String(x.mime||x.fileType||x.type||'').startsWith('audio/')?`<div class="wa-bubble ${x.from==='admin'?'admin':'customer'}"><audio controls preload="metadata" src="${escAdmin(x.url||'')}"></audio><div class="wa-meta">वॉयस • ${x.at?new Date(x.at).toLocaleString('hi-IN'):''}</div></div>`:`<div class="wa-bubble ${x.from==='admin'?'admin':'customer'}"><a class="wa-file" href="${escAdmin(x.url||'#')}" target="_blank" download><i class="fa-solid fa-file-arrow-down"></i>${escAdmin(x.name||'फाइल डाउनलोड/देखें')}</a><div class="wa-meta">${x.at?new Date(x.at).toLocaleString('hi-IN'):''}</div></div>`):`<div class="wa-bubble ${x.from==='admin'?'admin':'customer'}">${escAdmin(x.text||'')}<div class="wa-meta">${x.at?new Date(x.at).toLocaleString('hi-IN'):''} ✓✓</div></div>`).join('')||'<div style="color:#94a3b8;font-size:12px;text-align:center;padding:20px;">अभी कोई बातचीत या फाइल नहीं है।</div>';
         }
         function openCorrectionModal(orderIdentifier){
           const o=globalOrdersCache.find(x=>String(x.id)===String(orderIdentifier)||String(x.order_id)===String(orderIdentifier)); if(!o)return;
           correctionOrderId=o.id; subscribeAdminRealtime(o.id); document.getElementById('corrOrderInfo').innerText=`#${o.order_id||o.id} • ${o.customer_name||o.name||'ग्राहक'} • ${o.card_title||o.card_name||'ऑर्डर'}`;
           document.getElementById('corrStatus').innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं'); document.getElementById('corrThread').innerHTML=renderAdminCorrectionThread(o); document.getElementById('correctionModal').style.display='flex';
         }
-        function closeCorrectionModal(){document.getElementById('correctionModal').style.display='none';correctionOrderId=null;}
+        function closeCorrectionModal(){document.getElementById('correctionModal').style.display='none';if(adminLiveChannel&&supabaseClient){try{supabaseClient.removeChannel(adminLiveChannel);}catch(e){}}adminLiveChannel=null;correctionOrderId=null;}
         async function uploadAdminCorrection(file,orderId){
           if(!file)return null; if(file.size>10*1024*1024)throw new Error('फाइल 10 MB से छोटी रखें।');
           const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase(); const path=`${orderId}/admin_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
@@ -530,16 +535,21 @@
           const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
           return {name:'वॉयस संदेश',url:data.publicUrl,path,from:'admin',kind:'voice',type:blob.type||'audio/webm',at:new Date().toISOString()};
         }
+        let adminLiveChannel=null, adminTypingTimer=null;
         function subscribeAdminRealtime(orderId){
           if(!supabaseClient||!orderId)return;
-          if(window.adminRealtimeChannel){try{supabaseClient.removeChannel(window.adminRealtimeChannel);}catch(e){}}
-          window.adminRealtimeChannel=supabaseClient.channel('admin-order-live-'+orderId)
+          if(adminLiveChannel){try{supabaseClient.removeChannel(adminLiveChannel);}catch(e){}}
+          adminLiveChannel=supabaseClient.channel('order-chat-live-'+orderId,{config:{broadcast:{self:false},presence:{key:'admin'}}})
           .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
-            const o=globalOrdersCache.find(x=>String(x.id)===String(orderId));
-            if(o){Object.assign(o,payload.new);if(document.getElementById('correctionModal').style.display==='flex'){document.getElementById('corrStatus').innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');document.getElementById('corrThread').innerHTML=renderAdminCorrectionThread(o);}}
-            renderOrdersTable(globalOrdersCache);
+            const o=globalOrdersCache.find(x=>String(x.id)===String(orderId)); if(o){Object.assign(o,payload.new);const th=document.getElementById('corrThread');if(th){th.innerHTML=renderAdminCorrectionThread(o);th.scrollTop=th.scrollHeight;}const st=document.getElementById('corrStatus');if(st)st.innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');}
+          }).on('broadcast',{event:'typing'},payload=>{
+            const el=document.getElementById('adminTyping');if(!el)return;if(payload.payload&&payload.payload.from==='customer'&&payload.payload.typing){el.style.display='block';clearTimeout(window.__adminTypeHide);window.__adminTypeHide=setTimeout(()=>el.style.display='none',1800);}else if(payload.payload&&payload.payload.from==='customer'){el.style.display='none';}
           }).subscribe();
         }
+        function adminTyping(value){if(!adminLiveChannel)return;clearTimeout(adminTypingTimer);adminLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'admin',typing:!!value}}).catch(()=>{});adminTypingTimer=setTimeout(()=>adminLiveChannel&&adminLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'admin',typing:false}}).catch(()=>{}),1200);}
+        function showAdminFileName(el){const n=document.getElementById('adminFileName');if(n)n.textContent=el.files&&el.files[0]?'📎 '+el.files[0].name:'';}
+        function copyAdminCameraFile(el){const f=el.files&&el.files[0];if(!f)return;const dt=new DataTransfer();dt.items.add(f);document.getElementById('adminCorrFile').files=dt.files;showAdminFileName(document.getElementById('adminCorrFile'));}
+        function cancelAdminVoice(){adminVoiceBlob=null;if(adminVoiceUrl){URL.revokeObjectURL(adminVoiceUrl);adminVoiceUrl=null;}const p=document.getElementById('adminVoicePreview'),a=document.getElementById('adminVoiceAudio');if(p)p.style.display='none';if(a)a.removeAttribute('src');}
 
         async function sendAdminCorrection(){
           if(!correctionOrderId||!supabaseClient)return; const o=globalOrdersCache.find(x=>String(x.id)===String(correctionOrderId)); if(!o)return; const text=document.getElementById('adminCorrText').value.trim(), fileEl=document.getElementById('adminCorrFile'), file=fileEl.files&&fileEl.files[0], voice=adminVoiceBlob; if(!text&&!file&&!voice){alert('मैसेज, फाइल या वॉयस दें।');return;}
@@ -814,21 +824,28 @@
       @media(max-width:520px){.corr-modal{padding:8px}.corr-panel{max-height:94vh;border-radius:15px}.corr-thread{max-height:270px}.corr-actions{grid-template-columns:1fr}.btn-corr-send{grid-column:auto}}
     </style>
 
-    <div id="correctionModal" class="corr-modal">
-      <div class="corr-panel">
-        <div class="corr-head"><div><h3 style="color:#0f2f70;">ऑर्डर सुधार / ग्राहक बातचीत</h3><div id="corrOrderInfo" style="font-size:11px;color:#64748b;"></div></div><button class="btn-corr-close" style="border:0;border-radius:50%;width:34px;height:34px;color:#fff;cursor:pointer;" onclick="closeCorrectionModal()">×</button></div>
-        <div id="corrStatus" class="corr-badge" style="display:inline-block;margin-bottom:8px;"></div>
-        <div id="corrThread" class="corr-thread"></div>
-        <div class="corr-compose">
-          <textarea id="adminCorrText" placeholder="ग्राहक को सुधार/निर्देश लिखें..."></textarea>
-          <input type="file" id="adminCorrFile" accept="image/*,.pdf,.doc,.docx,.txt">
-          <div class="corr-actions">
-            <button class="btn-corr-send" onclick="sendAdminCorrection()"><i class="fa-solid fa-paper-plane"></i> फाइल/मैसेज भेजें</button>
-            <button class="btn-corr-approve" onclick="setCorrectionStatus('approved')"><i class="fa-solid fa-circle-check"></i> ठीक है / अप्रूव</button>
-            <button class="btn-corr-more" onclick="setCorrectionStatus('needs_more')"><i class="fa-solid fa-rotate"></i> और सुधार चाहिए</button>
+    <div id="correctionModal" class="corr-modal" onclick="if(event.target===this) closeCorrectionModal()">
+      <div class="corr-panel wa-panel">
+        <div class="wa-head"><div class="wa-avatar"><i class="fa-solid fa-user-tie"></i></div><div class="wa-head-info"><b id="adminChatTitle">ग्राहक</b><span id="corrOrderInfo">ऑर्डर बातचीत</span><small id="adminOnline">ऑनलाइन</small></div><button class="wa-close" onclick="closeCorrectionModal()">×</button></div>
+        <div id="corrStatus" class="wa-status">स्थिति: कोई सुधार अनुरोध नहीं</div>
+        <div id="adminTyping" class="wa-typing">ग्राहक टाइप कर रहे हैं…</div>
+        <div id="corrThread" class="wa-thread"></div>
+        <div class="corr-compose wa-compose">
+          <div id="adminVoicePreview" class="wa-preview"><span>वॉयस तैयार है</span><audio id="adminVoiceAudio" controls></audio><button onclick="cancelAdminVoice()">×</button></div>
+          <div class="wa-input-row">
+            <button class="wa-icon" type="button" onclick="document.getElementById('adminCorrFile').click()"><i class="fa-solid fa-paperclip"></i></button>
+            <input type="file" id="adminCorrFile" accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*" onchange="showAdminFileName(this)">
+            <button class="wa-icon" type="button" onclick="document.getElementById('adminCameraFile').click()"><i class="fa-solid fa-camera"></i></button>
+            <input type="file" id="adminCameraFile" accept="image/*" capture="environment" onchange="copyAdminCameraFile(this)">
+            <textarea id="adminCorrText" rows="1" placeholder="मैसेज लिखें…" oninput="adminTyping(this.value)"></textarea>
+            <button type="button" class="wa-mic" id="adminVoiceBtn" onclick="toggleAdminVoice()"><i class="fa-solid fa-microphone"></i></button>
+            <button type="button" class="wa-send" onclick="sendAdminCorrection()"><i class="fa-solid fa-paper-plane"></i></button>
           </div>
+          <div id="adminFileName" class="wa-file-name"></div>
+          <div class="corr-actions"><button class="btn-corr-approve" onclick="setCorrectionStatus('approved')">✓ ठीक है / अप्रूव</button><button class="btn-corr-more" onclick="setCorrectionStatus('needs_more')">↻ और सुधार चाहिए</button></div>
         </div>
       </div>
     </div>
+
 </body>
 </html>
