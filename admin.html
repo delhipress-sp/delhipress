@@ -135,6 +135,26 @@
             color: #475569;
             font-weight: 800;
         }
+
+/* WhatsApp-like admin correction chat + voice */
+.corr-panel{max-width:620px!important;height:min(760px,94vh)!important;background:#efeae2!important;}
+.corr-head{background:#075e54!important;color:#fff!important;}
+.corr-head h3{color:#fff!important;}
+.corr-head div{color:#d9fdd3!important;}
+.corr-thread{background:#efeae2!important;}
+.corr-msg{max-width:82%;width:fit-content!important;background:#fff!important;border:0!important;border-radius:8px!important;box-shadow:0 1px 1px rgba(0,0,0,.10)!important;}
+.corr-msg.admin{margin-left:auto!important;margin-right:0!important;background:#d9fdd3!important;}
+.corr-msg:not(.admin){margin-left:0!important;margin-right:auto!important;}
+.corr-compose{background:#f0f2f5!important;}
+.corr-tools{display:flex;align-items:center;gap:7px;margin-top:7px;}
+.btn-admin-voice{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:18px;display:inline-flex;align-items:center;justify-content:center;}
+.btn-admin-voice.recording{background:#ef4444;animation:adminVoicePulse 1s infinite;}
+.btn-admin-send{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:17px;display:inline-flex;align-items:center;justify-content:center;}
+.admin-voice-preview{display:none;margin:6px 0 0;padding:6px 9px;background:#fff;border-radius:14px;font-size:11px;align-items:center;gap:8px;}
+.admin-voice-preview audio{max-width:220px;height:34px;}
+.corr-msg audio{width:220px;max-width:100%;height:34px;margin-top:4px;}
+@keyframes adminVoicePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
 </style>
 </head>
 <body>
@@ -472,11 +492,11 @@
         function renderAdminCorrectionThread(o){
           const msgs=[...parseJsonArrayAdmin(o.customer_messages),...parseJsonArrayAdmin(o.admin_messages)].map(x=>({...x,type:'msg'}));
           const files=[...parseJsonArrayAdmin(o.customer_files),...parseJsonArrayAdmin(o.admin_files)].map(x=>({...x,type:'file'}));
-          return [...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0)).map(x=>x.type==='file'?`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • फाइल<br><a class="corr-file" href="${x.url}" target="_blank" download><i class="fa-solid fa-download"></i>${escAdmin(x.name||'फाइल डाउनलोड/देखें')}</a></div>`:`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • ${x.at?new Date(x.at).toLocaleString('hi-IN'):''}<br>${escAdmin(x.text||'')}</div>`).join('')||'<div style="color:#94a3b8;font-size:12px;">अभी कोई बातचीत या फाइल नहीं है।</div>';
+          return [...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0)).map(x=>x.type==='file'?(x.kind==='voice'||String(x.type||'').startsWith('audio/')?`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • वॉयस<br><audio controls preload="metadata" src="${escAdmin(x.url||'')}"></audio></div>`:`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • फाइल<br><a class="corr-file" href="${x.url}" target="_blank" download><i class="fa-solid fa-download"></i>${escAdmin(x.name||'फाइल डाउनलोड/देखें')}</a></div>`):`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • ${x.at?new Date(x.at).toLocaleString('hi-IN'):''}<br>${escAdmin(x.text||'')}</div>`).join('')||'<div style="color:#94a3b8;font-size:12px;">अभी कोई बातचीत या फाइल नहीं है।</div>';
         }
         function openCorrectionModal(orderIdentifier){
           const o=globalOrdersCache.find(x=>String(x.id)===String(orderIdentifier)||String(x.order_id)===String(orderIdentifier)); if(!o)return;
-          correctionOrderId=o.id; document.getElementById('corrOrderInfo').innerText=`#${o.order_id||o.id} • ${o.customer_name||o.name||'ग्राहक'} • ${o.card_title||o.card_name||'ऑर्डर'}`;
+          correctionOrderId=o.id; subscribeAdminRealtime(o.id); document.getElementById('corrOrderInfo').innerText=`#${o.order_id||o.id} • ${o.customer_name||o.name||'ग्राहक'} • ${o.card_title||o.card_name||'ऑर्डर'}`;
           document.getElementById('corrStatus').innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं'); document.getElementById('corrThread').innerHTML=renderAdminCorrectionThread(o); document.getElementById('correctionModal').style.display='flex';
         }
         function closeCorrectionModal(){document.getElementById('correctionModal').style.display='none';correctionOrderId=null;}
@@ -485,9 +505,45 @@
           const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase(); const path=`${orderId}/admin_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
           const {error}=await supabaseClient.storage.from('order-corrections').upload(path,file,{upsert:false}); if(error)throw error; const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path); return {name:file.name,url:data.publicUrl,path,from:'admin',at:new Date().toISOString()};
         }
+
+        let adminVoiceRecorder=null, adminVoiceChunks=[], adminVoiceBlob=null, adminVoiceUrl=null;
+        async function toggleAdminVoice(){
+          const btn=document.getElementById('adminVoiceBtn');
+          if(adminVoiceRecorder && adminVoiceRecorder.state==='recording'){
+            adminVoiceRecorder.stop(); if(btn){btn.classList.remove('recording');btn.innerHTML='<i class="fa-solid fa-microphone"></i>';} return;
+          }
+          if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){alert('इस ब्राउज़र में वॉयस रिकॉर्डिंग उपलब्ध नहीं है।');return;}
+          try{
+            const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+            const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(x=>MediaRecorder.isTypeSupported(x))||'';
+            adminVoiceRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined); adminVoiceChunks=[]; adminVoiceBlob=null;
+            adminVoiceRecorder.ondataavailable=e=>{if(e.data&&e.data.size)adminVoiceChunks.push(e.data);};
+            adminVoiceRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const type=adminVoiceRecorder.mimeType||'audio/webm';adminVoiceBlob=new Blob(adminVoiceChunks,{type});if(adminVoiceUrl)URL.revokeObjectURL(adminVoiceUrl);adminVoiceUrl=URL.createObjectURL(adminVoiceBlob);const p=document.getElementById('adminVoicePreview'),au=document.getElementById('adminVoiceAudio');if(p)p.style.display='flex';if(au)au.src=adminVoiceUrl;};
+            adminVoiceRecorder.start(); if(btn){btn.classList.add('recording');btn.innerHTML='<i class="fa-solid fa-stop"></i>';}
+          }catch(e){alert('माइक्रोफोन की अनुमति नहीं मिली।');}
+        }
+        async function uploadAdminVoice(blob, orderId){
+          const ext=(blob.type||'audio/webm').includes('mp4')?'m4a':'webm';
+          const path=`${orderId}/admin_voice_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+          const {error}=await supabaseClient.storage.from('order-corrections').upload(path,blob,{contentType:blob.type||'audio/webm',upsert:false});
+          if(error)throw new Error('वॉयस अपलोड नहीं हुई: '+(error.message||error));
+          const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
+          return {name:'वॉयस संदेश',url:data.publicUrl,path,from:'admin',kind:'voice',type:blob.type||'audio/webm',at:new Date().toISOString()};
+        }
+        function subscribeAdminRealtime(orderId){
+          if(!supabaseClient||!orderId)return;
+          if(window.adminRealtimeChannel){try{supabaseClient.removeChannel(window.adminRealtimeChannel);}catch(e){}}
+          window.adminRealtimeChannel=supabaseClient.channel('admin-order-live-'+orderId)
+          .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
+            const o=globalOrdersCache.find(x=>String(x.id)===String(orderId));
+            if(o){Object.assign(o,payload.new);if(document.getElementById('correctionModal').style.display==='flex'){document.getElementById('corrStatus').innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');document.getElementById('corrThread').innerHTML=renderAdminCorrectionThread(o);}}
+            renderOrdersTable(globalOrdersCache);
+          }).subscribe();
+        }
+
         async function sendAdminCorrection(){
-          if(!correctionOrderId||!supabaseClient)return; const o=globalOrdersCache.find(x=>String(x.id)===String(correctionOrderId)); if(!o)return; const text=document.getElementById('adminCorrText').value.trim(), fileEl=document.getElementById('adminCorrFile'), file=fileEl.files&&fileEl.files[0]; if(!text&&!file){alert('मैसेज या फाइल दें।');return;}
-          try{const msgs=parseJsonArrayAdmin(o.admin_messages),files=parseJsonArrayAdmin(o.admin_files); if(text)msgs.push({from:'admin',text,at:new Date().toISOString()}); if(file){const f=await uploadAdminCorrection(file,o.id);if(f)files.push(f);} const {data,error}=await supabaseClient.from('orders').update({admin_messages:msgs,admin_files:files,correction_status:'admin_sent'}).eq('id',o.id).select().single(); if(error)throw error; Object.assign(o,data); document.getElementById('adminCorrText').value='';fileEl.value='';openCorrectionModal(o.id); await loadAdminOrders(); alert('ग्राहक को सुधार संदेश/फाइल भेज दिया गया है।');}catch(e){alert('भेजा नहीं गया। '+(e.message||e));}
+          if(!correctionOrderId||!supabaseClient)return; const o=globalOrdersCache.find(x=>String(x.id)===String(correctionOrderId)); if(!o)return; const text=document.getElementById('adminCorrText').value.trim(), fileEl=document.getElementById('adminCorrFile'), file=fileEl.files&&fileEl.files[0], voice=adminVoiceBlob; if(!text&&!file&&!voice){alert('मैसेज, फाइल या वॉयस दें।');return;}
+          try{const msgs=parseJsonArrayAdmin(o.admin_messages),files=parseJsonArrayAdmin(o.admin_files); if(text)msgs.push({from:'admin',text,at:new Date().toISOString()}); if(file){const f=await uploadAdminCorrection(file,o.id);if(f)files.push(f);} if(voice){const vf=await uploadAdminVoice(voice,o.id);if(vf)files.push(vf);} const {data,error}=await supabaseClient.from('orders').update({admin_messages:msgs,admin_files:files,correction_status:'admin_sent'}).eq('id',o.id).select().single(); if(error)throw error; Object.assign(o,data); document.getElementById('adminCorrText').value='';fileEl.value='';adminVoiceBlob=null;if(adminVoiceUrl){URL.revokeObjectURL(adminVoiceUrl);adminVoiceUrl=null;}const ap=document.getElementById('adminVoicePreview'),aa=document.getElementById('adminVoiceAudio'),ab=document.getElementById('adminVoiceBtn');if(ap)ap.style.display='none';if(aa)aa.removeAttribute('src');if(ab){ab.classList.remove('recording');ab.innerHTML='<i class="fa-solid fa-microphone"></i>';}openCorrectionModal(o.id); await loadAdminOrders(); alert('ग्राहक को सुधार संदेश/फाइल भेज दिया गया है।');}catch(e){alert('भेजा नहीं गया। '+(e.message||e));}
         }
         async function setCorrectionStatus(status){
           if(!correctionOrderId||!supabaseClient)return; try{const {data,error}=await supabaseClient.from('orders').update({correction_status:status}).eq('id',correctionOrderId).select().single();if(error)throw error;const o=globalOrdersCache.find(x=>String(x.id)===String(correctionOrderId));if(o)Object.assign(o,data);openCorrectionModal(correctionOrderId);renderOrdersTable(globalOrdersCache);alert(status==='approved'?'ग्राहक की स्वीकृति/ठीक है दर्ज हो गई।':'ग्राहक को और सुधार की जरूरत के रूप में दर्ज कर दिया गया।');}catch(e){alert('स्थिति अपडेट नहीं हुई। '+(e.message||e));}}
