@@ -118,7 +118,24 @@
             #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
             #printableReceiptArea { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
         }
-    </style>
+    
+        .full-matter-table th {
+            width: 22%;
+            vertical-align: top;
+            white-space: normal;
+        }
+        .full-matter-table td {
+            white-space: pre-wrap;
+            word-break: break-word;
+            vertical-align: top;
+            line-height: 1.55;
+        }
+        .full-matter-table th[colspan="4"] {
+            width: auto;
+            color: #475569;
+            font-weight: 800;
+        }
+</style>
 </head>
 <body>
 
@@ -540,6 +557,49 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function buildFullMatterRows(matter) {
+            const text = String(matter || '').trim();
+            if (!text) {
+                return `<tr><th>मैटर</th><td colspan="3">ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।</td></tr>`;
+            }
+
+            const lines = text.split(/\r?\n/);
+            let html = '';
+            let pendingLabel = null;
+
+            lines.forEach(line => {
+                const raw = String(line || '').trim();
+                if (!raw) return;
+
+                // Section headings such as --- [वैवाहिक कार्यक्रम] ---
+                if (/^---\s*\[.*\]\s*---$/.test(raw)) {
+                    html += `<tr><th colspan="4" style="background:#f8fafc; text-align:left;">${escapeAdminReceiptText(raw.replace(/^---\s*\[|\]\s*---$/g,''))}</th></tr>`;
+                    pendingLabel = null;
+                    return;
+                }
+
+                // Pair format: "वर: ...", "कार्यक्रम: ...", etc.
+                const m = raw.match(/^([^:|]+):\s*(.*)$/);
+                if (m) {
+                    const label = m[1].trim();
+                    const value = m[2].trim();
+
+                    // Keep long event lines readable in a single full-width row.
+                    if (raw.includes(' | ')) {
+                        html += `<tr><th>${escapeAdminReceiptText(label)}</th><td colspan="3">${escapeAdminReceiptText(value)}</td></tr>`;
+                    } else {
+                        html += `<tr><th>${escapeAdminReceiptText(label)}</th><td colspan="3">${escapeAdminReceiptText(value || '-')}</td></tr>`;
+                    }
+                    pendingLabel = null;
+                } else {
+                    // Lines without a colon are still shown, never discarded.
+                    html += `<tr><th>विवरण</th><td colspan="3">${escapeAdminReceiptText(raw)}</td></tr>`;
+                }
+            });
+
+            return html || `<tr><th>मैटर</th><td colspan="3">-</td></tr>`;
+        }
+
         function openOrderReceiptModal(orderIdentifier) {
             const o = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier)) || {};
             const cardImg = o.card_image || o.image || o.card_photo || '';
@@ -580,13 +640,19 @@
                 <table class="r-table">
                     <tr><th>कुल राशि</th><td>₹${total}</td><th>जमा एडवांस</th><td style="color:#15803d; font-weight:bold;">₹${adv}</td></tr>
                     <tr><th>बकाया</th><td style="color:#dc2626; font-weight:bold;">₹${bal >= 0 ? bal : 0}</td><th>मोड</th><td>${o.payment_mode || 'Online'}</td></tr>
-                    <tr><th>UTR / Txn ID</th><td colspan="3"><code>${escapeAdminReceiptText(o.txn_id || o.utr_number || 'उपलब्ध नहीं')}</code></td></tr>
                 </table>
-                <div class="r-table-title" style="background:#7c3aed;">4. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
-                <div style="border:1px solid #c4b5fd; background:#faf5ff; border-radius:8px; padding:12px; white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.7;">
-                    ${escapeAdminReceiptText(o.custom_notes || o.order_notes || o.notes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}
-                </div>
-                <div class="r-table-title" style="background:#475569;">5. भुगतान रसीद स्क्रीनशॉट</div>
+                <div class="r-table-title" style="background:#7c3aed;">4. ऑर्डर फॉर्म के अनुसार पूरा भरा हुआ मैटर</div>
+                <table class="r-table full-matter-table">
+                    ${buildFullMatterRows(o.custom_notes || o.order_notes || o.notes || '')}
+                </table>
+
+                <div class="r-table-title" style="background:#475569;">5. भुगतान विवरण — UTR / स्क्रीनशॉट</div>
+                <table class="r-table">
+                    <tr>
+                        <th>UTR / Transaction ID</th>
+                        <td colspan="3"><code>${escapeAdminReceiptText(o.txn_id || o.utr_number || 'उपलब्ध नहीं')}</code></td>
+                    </tr>
+                </table>
                 <div class="receipt-screenshot-box">
                     ${receiptImg ? `<img src="${receiptImg}" alt="Payment Proof">` : `<p style="color:#64748b; font-size:12px;">कोई स्क्रीनशॉट नहीं है।</p>`}
                 </div>
