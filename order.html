@@ -418,7 +418,7 @@
                     <div class="row-2">
                         <div class="form-group">
                             <label data-i18n="lbl_name">ग्राहक का पूरा नाम:</label>
-                            <input type="text" id="custFullName" placeholder="अपना नाम दर्ज करें" required>
+                            <input type="text" id="custFullName" placeholder="अपना नाम दर्ज करें" required class="transliterate-input">
                         </div>
                         <div class="form-group">
                             <label data-i18n="lbl_mobile">मोबाइल नंबर / WhatsApp:</label>
@@ -427,7 +427,7 @@
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
                         <label data-i18n="lbl_address">ग्राहक का पूरा पता (गाँव/शहर, पोस्ट, थाना, जिला):</label>
-                        <input type="text" id="custFullAddress" placeholder="ग्राम, पोस्ट, जिला..." required>
+                        <input type="text" id="custFullAddress" placeholder="ग्राम, पोस्ट, जिला..." required class="transliterate-input">
                     </div>
                 </div>
 
@@ -459,7 +459,7 @@
                         <div class="row-3">
                             <div class="form-group">
                                 <label data-i18n="lbl_card_model">कार्ड मॉडल / नाम:</label>
-                                <input type="text" id="cardCategory" placeholder="कार्ड का नाम">
+                                <input type="text" id="cardCategory" placeholder="कार्ड का नाम" class="transliterate-input">
                             </div>
                             <div class="form-group">
                                 <label data-i18n="lbl_rate">प्रति पीस रेट (₹):</label>
@@ -487,16 +487,16 @@
                                 <div class="row-2">
                                     <div class="form-group">
                                         <label data-i18n="lbl_groom_name">वर का नाम:</label>
-                                        <input type="text" id="groomName" class="main-groom-name" placeholder="लड़का का नाम">
+                                        <input type="text" id="groomName" class="main-groom-name transliterate-input" placeholder="लड़का का नाम">
                                     </div>
                                     <div class="form-group">
                                         <label data-i18n="lbl_groom_father">पिता का नाम:</label>
-                                        <input type="text" id="groomFather" class="main-groom-father" placeholder="पिता का नाम">
+                                        <input type="text" id="groomFather" class="main-groom-father transliterate-input" placeholder="पिता का नाम">
                                     </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label data-i18n="lbl_groom_address">वर का पता:</label>
-                                    <input type="text" id="groomAddress" class="main-groom-addr" placeholder="ग्राम - ...">
+                                    <input type="text" id="groomAddress" class="main-groom-addr transliterate-input" placeholder="ग्राम - ...">
                                 </div>
                             </div>
 
@@ -507,16 +507,16 @@
                                 <div class="row-2">
                                     <div class="form-group">
                                         <label data-i18n="lbl_bride_name">वधू का नाम:</label>
-                                        <input type="text" id="brideName" class="main-bride-name" placeholder="लड़की का नाम">
+                                        <input type="text" id="brideName" class="main-bride-name transliterate-input" placeholder="लड़की का नाम">
                                     </div>
                                     <div class="form-group">
                                         <label data-i18n="lbl_bride_father">पिता का नाम:</label>
-                                        <input type="text" id="brideFather" class="main-bride-father" placeholder="पिता का नाम">
+                                        <input type="text" id="brideFather" class="main-bride-father transliterate-input" placeholder="पिता का नाम">
                                     </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label data-i18n="lbl_bride_address">वधू का पता:</label>
-                                    <input type="text" id="brideAddress" class="main-bride-addr" placeholder="ग्राम - ...">
+                                    <input type="text" id="brideAddress" class="main-bride-addr transliterate-input" placeholder="ग्राम - ...">
                                 </div>
                             </div>
                         </div>
@@ -537,9 +537,34 @@
                         <div id="eventsContainer">
                             <div class="event-box-item">
                                 <div class="row-3">
-                                    <div class="form-group"><label data-i18n="lbl_event_title">कार्यक्रम नाम:</label><input type="text" class="event-title" value="शुभ विवाह / निकाह"></div>
-                                    <div class="form-group"><label data-i18n="lbl_event_date">दिनांक (Date):</label><input type="date" class="event-date"></div>
-                                    <div class="form-group"><label data-i18n="lbl_event_time">समय:</label><input type="text" class="event-time" placeholder="उदा: रात्रि 08:00 बजे"></div>
+                                    <div class="form-group"><label data-i18n="lbl_event_title">कार्यक्रम नाम:</label><input type="text" class="event-title transliterate-input" value="शुभ विवाह / निकाह"></div>
+                                    <div class="form-group"><label data-i18n="lbl_event_date">दिनांक (Date):</label><input type="date" class="event-date" onchange="setEventDayFromDate(this)"></div>
+                                    <div class="form-group"><label data-i18n="lbl_event_time">समय:</label><input type="text" class="event-time transliterate-input" placeholder="उदा: 08:00 बजे"></div>
+                                </div>
+                                <div class="row-2">
+                                    <div class="form-group">
+                                        <label>दिन:</label>
+                                        <select class="event-day">
+                                            <option value="">-- दिन चुनें --</option>
+                                            <option value="रविवार">रविवार</option>
+                                            <option value="सोमवार">सोमवार</option>
+                                            <option value="मंगलवार">मंगलवार</option>
+                                            <option value="बुधवार">बुधवार</option>
+                                            <option value="गुरुवार">गुरुवार</option>
+                                            <option value="शुक्रवार">शुक्रवार</option>
+                                            <option value="शनिवार">शनिवार</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>समय का भाग:</label>
+                                        <select class="event-daypart">
+                                            <option value="">-- चुनें --</option>
+                                            <option value="सुबह">सुबह</option>
+                                            <option value="दोपहर">दोपहर</option>
+                                            <option value="शाम">शाम</option>
+                                            <option value="रात">रात</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -557,8 +582,12 @@
                     <div class="form-block">
                         <h4><span data-i18n="sec5_title">४. RSVP / दर्शनाभिलाषी</span></h4>
                         <div class="row-2">
-                            <div class="form-group"><label data-i18n="lbl_rsvp_from">From (निवेदक परिवार):</label><textarea id="vineetNames" rows="2" placeholder="सभी दोस्त रिश्तेदार"></textarea></div>
-                            <div class="form-group"><label data-i18n="lbl_rsvp_waiver">अदाई / आकांक्षी:</label><textarea id="darshanNames" rows="2" placeholder="चाचा, ताऊ..."></textarea></div>
+                            <div class="form-group"><label data-i18n="lbl_rsvp_from">From (निवेदक परिवार):</label><textarea id="vineetNames" rows="2" placeholder="सभी दोस्त रिश्तेदार" class="transliterate-input"></textarea></div>
+                            <div class="form-group"><label data-i18n="lbl_rsvp_waiver">अदाई / आकांक्षी:</label><textarea id="darshanNames" rows="2" placeholder="चाचा, ताऊ..." class="transliterate-input"></textarea></div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label data-i18n="lbl_contact_box">Contact / संपर्क:</label>
+                                <input type="text" id="rsvpContact" class="transliterate-input" placeholder="मोबाइल नंबर / संपर्क व्यक्ति">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -601,16 +630,16 @@
                         <h4><i class="fa-solid fa-pen-nib" style="color:#8e44ad;"></i> <span data-i18n="banner_sec2">बैनर पर क्या लिखवाना है (मैटर विवरण)</span></h4>
                         <div class="form-group">
                             <label data-i18n="lbl_b_heading">दुकान / संस्था / आयोजन का मुख्य शीर्षक (Title):</label>
-                            <input type="text" id="bannerHeading" placeholder="उदा: पूजा ज्वेलर्स / शुभ उद्घाटन">
+                            <input type="text" id="bannerHeading" placeholder="उदा: पूजा ज्वेलर्स / शुभ उद्घाटन" class="transliterate-input">
                         </div>
                         <div class="form-group">
                             <label data-i18n="lbl_b_sub">सेवाएं / ऑफर / अन्य मैटर:</label>
-                            <textarea id="bannerSubDetails" rows="4" placeholder="यहाँ सभी पॉइंट लिखें जो बैनर पर छापने हैं..."></textarea>
+                            <textarea id="bannerSubDetails" rows="4" placeholder="यहाँ सभी पॉइंट लिखें जो बैनर पर छापने हैं..." class="transliterate-input"></textarea>
                         </div>
                         <div class="row-2">
                             <div class="form-group">
                                 <label data-i18n="lbl_b_prop">प्रोपराइटर / संपर्क नाम:</label>
-                                <input type="text" id="bannerProprietor" placeholder="नाम...">
+                                <input type="text" id="bannerProprietor" placeholder="नाम..." class="transliterate-input">
                             </div>
                             <div class="form-group">
                                 <label data-i18n="lbl_b_phone">बैनर पर डालने हेतु मोबाइल नंबर:</label>
@@ -658,21 +687,21 @@
                         <div class="row-2">
                             <div class="form-group">
                                 <label data-i18n="lbl_v_shop">फर्म / दुकान / कंपनी का नाम:</label>
-                                <input type="text" id="visitingShopName" placeholder="उदा: दिल्ली प्रेस">
+                                <input type="text" id="visitingShopName" placeholder="उदा: दिल्ली प्रेस" class="transliterate-input">
                             </div>
                             <div class="form-group">
                                 <label data-i18n="lbl_v_person">व्यक्ति का नाम एवं पद:</label>
-                                <input type="text" id="visitingPersonName" placeholder="उदा: मो. सज्जाद (संचालक)">
+                                <input type="text" id="visitingPersonName" placeholder="उदा: मो. सज्जाद (संचालक)" class="transliterate-input">
                             </div>
                         </div>
                         <div class="form-group">
                             <label data-i18n="lbl_v_services">उपलब्ध सेवाएं / डीलिंग सामग्री:</label>
-                            <textarea id="visitingServices" rows="3" placeholder="आप क्या बेचते हैं या क्या सेवा देते हैं..."></textarea>
+                            <textarea id="visitingServices" rows="3" placeholder="आप क्या बेचते हैं या क्या सेवा देते हैं..." class="transliterate-input"></textarea>
                         </div>
                         <div class="row-2">
                             <div class="form-group">
                                 <label data-i18n="lbl_v_address">कार्ड पर छपने वाला पता:</label>
-                                <input type="text" id="visitingPrintAddress" placeholder="ईदगाह मोड़, करमाटांड़...">
+                                <input type="text" id="visitingPrintAddress" placeholder="ईदगाह मोड़, करमाटांड़..." class="transliterate-input">
                             </div>
                             <div class="form-group">
                                 <label data-i18n="lbl_v_web">ईमेल / वेबसाइट (यदि हो):</label>
@@ -835,6 +864,7 @@
                 sec5_title: "४. RSVP / दर्शनाभिलाषी",
                 lbl_rsvp_from: "From (निवेदक परिवार):",
                 lbl_rsvp_waiver: "अदाई / आकांक्षी:",
+                lbl_contact_box: "Contact / संपर्क:",
                 banner_sec1: "बैनर साइज एवं स्पेसिफिकेशन",
                 lbl_b_width: "चौड़ाई (Width in Feet):",
                 lbl_b_height: "ऊंचाई (Height in Feet):",
@@ -925,6 +955,7 @@
                 sec5_title: "4. RSVP & Best Compliments",
                 lbl_rsvp_from: "From (Cordially Invited By):",
                 lbl_rsvp_waiver: "With Best Compliments:",
+                lbl_contact_box: "Contact:",
                 banner_sec1: "Banner Size & Specifications",
                 lbl_b_width: "Width (in Feet):",
                 lbl_b_height: "Height (in Feet):",
@@ -1194,10 +1225,10 @@
                 <div class="dynamic-item" style="border-left: 3px solid var(--primary); margin-bottom:10px;">
                     <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> वर (दूल्हा #${coupleCount})</h5>
                     <div class="row-2">
-                        <div class="form-group"><label>वर का नाम:</label><input type="text" class="add-groom-name" placeholder="लड़का का नाम"></div>
-                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-groom-father" placeholder="पिता का नाम"></div>
+                        <div class="form-group"><label>वर का नाम:</label><input type="text" class="add-groom-name transliterate-input" placeholder="लड़का का नाम"></div>
+                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-groom-father transliterate-input" placeholder="पिता का नाम"></div>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;"><label>वर का पता:</label><input type="text" class="add-groom-addr" placeholder="ग्राम - ..."></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>वर का पता:</label><input type="text" class="add-groom-addr transliterate-input" placeholder="ग्राम - ..."></div>
                 </div>
 
                 <div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग (Weds)</span></div>
@@ -1205,13 +1236,27 @@
                 <div class="dynamic-item" style="border-left: 3px solid var(--secondary); margin-bottom:0;">
                     <h5 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-person-dress"></i> वधू (दुल्हन #${coupleCount})</h5>
                     <div class="row-2">
-                        <div class="form-group"><label>वधू का नाम:</label><input type="text" class="add-bride-name" placeholder="लड़की का नाम"></div>
-                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-bride-father" placeholder="पिता का नाम"></div>
+                        <div class="form-group"><label>वधू का नाम:</label><input type="text" class="add-bride-name transliterate-input" placeholder="लड़की का नाम"></div>
+                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-bride-father transliterate-input" placeholder="पिता का नाम"></div>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;"><label>वधू का पता:</label><input type="text" class="add-bride-addr" placeholder="ग्राम - ..."></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>वधू का पता:</label><input type="text" class="add-bride-addr transliterate-input" placeholder="ग्राम - ..."></div>
                 </div>
             `;
             container.appendChild(div);
+        }
+
+        function setEventDayFromDate(dateInput) {
+            if (!dateInput || !dateInput.value) return;
+            const box = dateInput.closest('.event-box-item');
+            const daySelect = box ? box.querySelector('.event-day') : null;
+            if (!daySelect) return;
+
+            // Parse as local date so the weekday does not shift because of timezone.
+            const parts = dateInput.value.split('-').map(Number);
+            if (parts.length !== 3) return;
+            const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+            const hindiDays = ['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+            daySelect.value = hindiDays[dt.getDay()];
         }
 
         function addEventRow() {
@@ -1220,9 +1265,34 @@
             div.innerHTML = `
                 <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
                 <div class="row-3">
-                    <div class="form-group"><label>${translations[currentLang].lbl_event_title}</label><input type="text" class="event-title" placeholder="उदा: संगीत"></div>
-                    <div class="form-group"><label>${translations[currentLang].lbl_event_date}</label><input type="date" class="event-date"></div>
-                    <div class="form-group"><label>${translations[currentLang].lbl_event_time}</label><input type="text" class="event-time" placeholder="शाम 05:00"></div>
+                    <div class="form-group"><label>${translations[currentLang].lbl_event_title}</label><input type="text" class="event-title transliterate-input" placeholder="उदा: संगीत"></div>
+                    <div class="form-group"><label>${translations[currentLang].lbl_event_date}</label><input type="date" class="event-date" onchange="setEventDayFromDate(this)"></div>
+                    <div class="form-group"><label>${translations[currentLang].lbl_event_time}</label><input type="text" class="event-time transliterate-input" placeholder="उदा: 05:00 बजे"></div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>दिन:</label>
+                        <select class="event-day">
+                            <option value="">-- दिन चुनें --</option>
+                            <option value="रविवार">रविवार</option>
+                            <option value="सोमवार">सोमवार</option>
+                            <option value="मंगलवार">मंगलवार</option>
+                            <option value="बुधवार">बुधवार</option>
+                            <option value="गुरुवार">गुरुवार</option>
+                            <option value="शुक्रवार">शुक्रवार</option>
+                            <option value="शनिवार">शनिवार</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>समय का भाग:</label>
+                        <select class="event-daypart">
+                            <option value="">-- चुनें --</option>
+                            <option value="सुबह">सुबह</option>
+                            <option value="दोपहर">दोपहर</option>
+                            <option value="शाम">शाम</option>
+                            <option value="रात">रात</option>
+                        </select>
+                    </div>
                 </div>
             `;
             document.getElementById('eventsContainer').appendChild(div);
@@ -1233,11 +1303,76 @@
             div.className = 'event-box-item custom-note-item';
             div.innerHTML = `
                 <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
-                <div class="form-group"><label>शीर्षक / Title:</label><input type="text" class="custom-note-title" placeholder="उदा: बाल मनुहार / शायरी"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>संदेश / Message:</label><textarea class="custom-note-text" rows="2"></textarea></div>
+                <div class="form-group"><label>शीर्षक / Title:</label><input type="text" class="custom-note-title transliterate-input" placeholder="उदा: बाल मनुहार / शायरी"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>संदेश / Message:</label><textarea class="custom-note-text transliterate-input" rows="2"></textarea></div>
             `;
             document.getElementById('customNotesContainer').appendChild(div);
         }
+
+
+        /* ===== English/Hinglish → Hindi for all text boxes ===== */
+        const transliterationState = new WeakMap();
+
+        function shouldTransliterateInput(el) {
+            // Conversion runs only in Hindi mode.
+            // When the form is switched to English, typed English stays English.
+            if (currentLang !== 'hi') return false;
+            if (!el || !el.matches('input[type="text"], textarea')) return false;
+            const id = (el.id || '').toLowerCase();
+            const cls = (el.className || '').toString().toLowerCase();
+            if (id.includes('email') || id.includes('web') || id.includes('phone') ||
+                id.includes('mobile') || cls.includes('email') || cls.includes('phone')) return false;
+            return true;
+        }
+
+        async function transliterateToHindi(text) {
+            const value = text.trim();
+            if (!value || !/[A-Za-z]/.test(value)) return null;
+            try {
+                const url = 'https://inputtools.google.com/request?text=' +
+                    encodeURIComponent(value) +
+                    '&itc=hi-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8';
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                const data = await response.json();
+                if (Array.isArray(data) && data[0] === 'SUCCESS' &&
+                    data[1] && data[1][0] && data[1][0][1] &&
+                    data[1][0][1][0]) {
+                    return data[1][0][1][0];
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function queueHindiConversion(el) {
+            if (!shouldTransliterateInput(el)) return;
+            const state = transliterationState.get(el) || {};
+            clearTimeout(state.timer);
+
+            state.timer = setTimeout(async () => {
+                const before = el.value;
+                if (!before || !/[A-Za-z]/.test(before)) return;
+
+                const hindi = await transliterateToHindi(before);
+                if (!hindi || el.value !== before) return;
+
+                const cursor = el.selectionStart;
+                el.value = hindi;
+                try {
+                    const p = Math.min(cursor == null ? hindi.length : cursor, hindi.length);
+                    el.setSelectionRange(p, p);
+                } catch (e) {}
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }, 300);
+
+            transliterationState.set(el, state);
+        }
+
+        document.addEventListener('input', function(e) {
+            if (e.target && shouldTransliterateInput(e.target)) {
+                queueHindiConversion(e.target);
+            }
+        }, true);
 
         function processUniversalOrder() {
             const fullName = document.getElementById('custFullName').value;
@@ -1291,8 +1426,12 @@
                 document.querySelectorAll('#eventsContainer .event-box-item').forEach(el => {
                     const t = el.querySelector('.event-title')?.value;
                     const d = el.querySelector('.event-date')?.value;
+                    const day = el.querySelector('.event-day')?.value;
+                    const part = el.querySelector('.event-daypart')?.value;
                     const tm = el.querySelector('.event-time')?.value;
-                    if(t || d || tm) notes.push(`कार्यक्रम: ${t || ''} | तारीख: ${d || ''} | समय: ${tm || ''}`);
+                    if(t || d || day || part || tm) {
+                        notes.push(`कार्यक्रम: ${t || ''} | तारीख: ${d || ''} | दिन: ${day || ''} | समय का भाग: ${part || ''} | समय: ${tm || ''}`);
+                    }
                 });
 
                 document.querySelectorAll('#customNotesContainer .custom-note-item').forEach(el => {
@@ -1303,8 +1442,10 @@
 
                 const v = document.getElementById('vineetNames').value;
                 const d = document.getElementById('darshanNames').value;
+                const c = document.getElementById('rsvpContact')?.value || "";
                 if(v) notes.push(`विनीत / निवेदक: ${v}`);
                 if(d) notes.push(`दर्शनाभिलाषी: ${d}`);
+                if(c) notes.push(`संपर्क: ${c}`);
 
                 orderNotes = notes.join('\n');
 
