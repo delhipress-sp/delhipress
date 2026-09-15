@@ -323,7 +323,22 @@
 
             let localOrders = [];
             try {
-                localOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
+                // सभी local sources को मिलाएँ; केवल पहले key के मौजूद होने के कारण
+                // दूसरे key के orders छूटें नहीं।
+                const localSources = ['dp_all_orders', 'my_orders_list', 'user_orders', 'dp_my_orders'];
+                const localMap = new Map();
+                localSources.forEach(key => {
+                    try {
+                        const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                        if (Array.isArray(arr)) arr.forEach(item => {
+                            const k = String(item.order_id || item.id || '');
+                            if (k) localMap.set(k, item);
+                        });
+                    } catch (e) {}
+                });
+                localOrders = Array.from(localMap.values()).sort((a,b) =>
+                    new Date(b.created_at || 0) - new Date(a.created_at || 0)
+                );
             } catch (e) {}
 
             if (!supabaseClient) {
