@@ -326,7 +326,6 @@
 
             const currentData = pendingOrderData || {};
             const uniqueOrderId = 'DP-' + Math.floor(100000 + Math.random() * 900000);
-
             const cleanOrderPayload = {
                 order_id: uniqueOrderId,
                 customer_name: currentData.customer_name || 'ग्राहक',
@@ -347,8 +346,6 @@
                 bride_father: currentData.bride_father || '-',
                 bride_address: currentData.bride_address || '-',
                 barat_date: currentData.barat_date || currentData.wedding_date || '-',
-                // पूरा Order Form Matter: इसी field में Order Form के सभी भरे हुए
-                // wedding/event/RSVP/custom-note/banner/visiting-card विवरण सुरक्षित रहेंगे।
                 custom_notes: currentData.custom_notes || currentData.order_notes || currentData.notes || '',
                 status: 'Pending',
                 txn_id: txnId,
@@ -357,76 +354,45 @@
                 created_at: new Date().toISOString()
             };
 
-            // 1. First save locally so My Orders/Admin can show the complete order
-            //    even before/if cloud synchronization finishes.
+            // Local backup — दूसरे पेज पर भी तुरंत receipt उपलब्ध रहे।
             try {
                 const syncKeys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
                 syncKeys.forEach(key => {
                     let list = [];
                     try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
                     if (!Array.isArray(list)) list = [];
-
-                    // Same order को दोबारा जोड़ने के बजाय update करें.
-                    const keyId = String(cleanOrderPayload.order_id || '');
+                    const keyId = String(cleanOrderPayload.order_id);
                     list = list.filter(item => String(item.order_id || item.id || '') !== keyId);
                     list.unshift(cleanOrderPayload);
-
                     localStorage.setItem(key, JSON.stringify(list));
                 });
                 localStorage.setItem('dp_latest_confirmed_order', JSON.stringify(cleanOrderPayload));
-                // Payment page से आगे जाने के बाद temp हटेगा, लेकिन complete confirmed
-                // payload सभी shared local keys में मौजूद रहेगा.
                 localStorage.removeItem('dp_temp_order');
             } catch(e) {
-                // If storage full, remove image string and save
-                cleanOrderPayload.payment_receipt = "";
+                cleanOrderPayload.payment_receipt = '';
                 localStorage.setItem('my_orders_list', JSON.stringify([cleanOrderPayload]));
             }
 
-            // 2. Cloud DB sync: पहले पूरा payload भेजें।
-            // यदि Supabase schema में कोई optional/new column (जैसे custom_notes या
-            // payment_receipt) मौजूद न हो, तो fallback payload से order फिर भी cloud में
-            // save हो जाए — वरना Admin Panel में पूरा order ही दिखाई नहीं देता।
+            // सबसे जरूरी हिस्सा: Supabase में cloud save.
             let cloudSaved = false;
-            if (supabaseClient) {
-                const payloadsToTry = [
-                    cleanOrderPayload,
-                    { ...cleanOrderPayload, payment_receipt: '' },
-                    (() => { const x = { ...cleanOrderPayload }; delete x.custom_notes; delete x.payment_receipt; return x; })()
-                ];
+            let lastCloudError = null;
 
-                for (const payload of payloadsToTry) {
-                    try {
-                        const result = await supabaseClient.from('orders').insert([payload]);
-                        if (!result.error) {
-                            cloudSaved = true;
-                            console.log('Order saved to Supabase successfully.');
-                            break;
-                        }
-                        console.error('Order cloud insert error:', result.error);
-                    } catch (e) {
-                        console.warn('Cloud DB sync attempt failed:', e);
-                    }
-                }
-
-                // यदि insert ने duplicate बताया तो existing order को update करें।
-                if (!cloudSaved) {
-                    try {
-                        const retry = await supabaseClient
-                            .from('orders')
-                            .update(cleanOrderPayload)
-                            .eq('order_id', cleanOrderPayload.order_id)
-                            .select();
-                        if (!retry.error) cloudSaved = true;
-                    } catch (e) {}
-                }
-            }
-
-            if (!cloudSaved && supabaseClient) {
-                // अंतिम fallback: केवल पुराने/मुख्य columns भेजें। इससे किसी नए optional
-                // column की वजह से पूरा order cloud में जाने से नहीं रुकेगा।
-                try {
-                    const legacyPayload = {
+            if (!supabaseClient) {
+                lastCloudError = new Error('Supabase client load नहीं हुआ। Internet/CDN connection check करें।');
+            } else {
+                // पहले पूरा payload। अगर किसी optional column की वजह से fail हो तो नीचे छोटे payload से retry होगा।
+                const attempts = [
+                    { name: 'पूरा Order', payload: cleanOrderPayload },
+                    { name: 'बिना payment screenshot', payload: { ...cleanOrderPayload, payment_receipt: '' } },
+                    { name: 'बिना नए optional fields', payload: (() => {
+                        const x = { ...cleanOrderPayload };
+                        delete x.custom_notes;
+                        delete x.payment_receipt;
+                        delete x.phone;
+                        delete x.barat_date;
+                        return x;
+                    })() },
+                    { name: 'मुख्य पुराने fields', payload: {
                         order_id: cleanOrderPayload.order_id,
                         customer_name: cleanOrderPayload.customer_name,
                         mobile: cleanOrderPayload.mobile,
@@ -448,25 +414,42 @@
                         txn_id: cleanOrderPayload.txn_id,
                         payment_mode: cleanOrderPayload.payment_mode,
                         created_at: cleanOrderPayload.created_at
-                    };
-                    const legacyResult = await supabaseClient.from('orders').insert([legacyPayload]);
-                    if (!legacyResult.error) {
-                        cloudSaved = true;
-                        console.log('Legacy cloud order saved successfully.');
-                    } else {
-                        console.error('Final cloud insert failed:', legacyResult.error);
+                    }}
+                ];
+
+                for (const attempt of attempts) {
+                    try {
+                        const result = await supabaseClient.from('orders').insert([attempt.payload]).select();
+                        if (!result.error) {
+                            cloudSaved = true;
+                            console.log('Supabase order saved:', attempt.name, result.data);
+                            break;
+                        }
+                        lastCloudError = result.error;
+                        console.error('Supabase insert failed (' + attempt.name + '):', result.error);
+                    } catch (e) {
+                        lastCloudError = e;
+                        console.error('Supabase insert exception (' + attempt.name + '):', e);
                     }
-                } catch (e) {
-                    console.error('Final cloud insert exception:', e);
                 }
             }
 
             if (!cloudSaved) {
-                console.warn("Order saved locally but cloud sync failed.");
+                submitBtn.disabled = false;
+                document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज करें";
+                const msg = lastCloudError
+                    ? ((lastCloudError.message || lastCloudError.error_description || String(lastCloudError)) +
+                       (lastCloudError.details ? '\nDetails: ' + lastCloudError.details : '') +
+                       (lastCloudError.hint ? '\nHint: ' + lastCloudError.hint : ''))
+                    : 'अज्ञात Supabase error';
+                alert("⚠️ ऑर्डर Supabase में Save नहीं हुआ।\n\nअसली Error:\n" + msg +
+                      "\n\nऑर्डर मोबाइल में local backup के रूप में सुरक्षित है।");
+                return;
             }
 
-            alert("आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है!");
+            alert("आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!\nOrder ID: " + uniqueOrderId);
             window.location.replace("my_orders.html");
+        }
         }
     </script>
 </body>
