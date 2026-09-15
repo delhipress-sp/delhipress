@@ -187,7 +187,7 @@
                                 <th>ID / दिनांक</th>
                                 <th>कार्ड विवरण</th>
                                 <th>ग्राहक</th>
-                                <th>वर-वधू</th>
+                                <th>लड़का-लड़की</th>
                                 <th>बिल / एडवांस</th>
                                 <th>पेमेंट मोड</th>
                                 <th style="width:145px;">स्टेटस बदलें</th>
@@ -213,7 +213,9 @@
                                 <th>फोटो</th>
                                 <th>नाम</th>
                                 <th>मॉडल</th>
-                                <th style="width:150px;">रेट (₹ प्रति पीस)</th>
+                                <th style="width:125px;">कैटलॉग रेट<br>(₹/पीस)</th>
+                                <th style="width:150px;">सेल रेट<br>(₹/पीस)</th>
+                                <th style="width:110px;">डिस्काउंट</th>
                                 <th style="width:120px;">स्टॉक स्थिति</th>
                                 <th>हटाएं</th>
                             </tr>
@@ -323,22 +325,7 @@
 
             let localOrders = [];
             try {
-                // सभी local sources को मिलाएँ; केवल पहले key के मौजूद होने के कारण
-                // दूसरे key के orders छूटें नहीं।
-                const localSources = ['dp_all_orders', 'my_orders_list', 'user_orders', 'dp_my_orders'];
-                const localMap = new Map();
-                localSources.forEach(key => {
-                    try {
-                        const arr = JSON.parse(localStorage.getItem(key) || '[]');
-                        if (Array.isArray(arr)) arr.forEach(item => {
-                            const k = String(item.order_id || item.id || '');
-                            if (k) localMap.set(k, item);
-                        });
-                    } catch (e) {}
-                });
-                localOrders = Array.from(localMap.values()).sort((a,b) =>
-                    new Date(b.created_at || 0) - new Date(a.created_at || 0)
-                );
+                localOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
             } catch (e) {}
 
             if (!supabaseClient) {
@@ -381,7 +368,7 @@
                     <td>#${o.order_id || o.id || '-'}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</small></td>
                     <td><b>${o.card_title || o.card_name || 'शादी कार्ड'}</b><br><small>${o.quantity || o.qty || 100} पीस</small></td>
                     <td><b>${o.customer_name || o.name || '-'}</b><br>📞 ${o.mobile || o.phone || '-'}<br><small>${o.address || ''}</small></td>
-                    <td>वर: <b>${o.groom_name || o.groom || '-'}</b><br>वधू: <b>${o.bride_name || o.bride || '-'}</b></td>
+                    <td>लड़का: <b>${o.groom_name || o.groom || '-'}</b><br>लड़की: <b>${o.bride_name || o.bride || '-'}</b></td>
                     <td>कुल: ₹${o.total_amount || 0}<br><span style="color:var(--green); font-weight:bold;">जमा: ₹${o.advance_paid || o.advance_amount || 0}</span></td>
                     <td><span style="font-weight:bold; font-size:11px;">${o.payment_mode || 'Online'}</span></td>
                     <td>
@@ -414,29 +401,37 @@
 
         async function updateOrderStatus(orderIdentifier, newStatus) {
             try {
-                const order = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier));
-                if (order) order.status = newStatus;
+                const order = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier));
+                if (!order || !order.id) { alert('ऑर्डर ID नहीं मिली।'); return; }
 
-                let localOrders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
-                localOrders = localOrders.map(item => {
-                    if (String(item.id) === String(orderIdentifier) || String(item.order_id) === String(orderIdentifier)) {
-                        item.status = newStatus;
-                    }
-                    return item;
-                });
-                localStorage.setItem('dp_all_orders', JSON.stringify(localOrders));
-                localStorage.setItem('my_orders_list', JSON.stringify(localOrders));
-
-                if (supabaseClient) {
-                    let updateRes = await supabaseClient.from('orders').update({ status: newStatus }).eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
-                    if (updateRes.error) {
-                        await supabaseClient.from('orders').update({ status: newStatus }).eq('order_id', String(orderIdentifier));
-                    }
+                if (!supabaseClient) {
+                    alert('Database connection उपलब्ध नहीं है।');
+                    return;
                 }
+
+                // Supabase के वास्तविक primary-key id से ही status update करें।
+                const { error } = await supabaseClient.from('orders')
+                    .update({ status: newStatus })
+                    .eq('id', Number(order.id));
+
+                if (error) throw error;
+
+                // Cloud update सफल होने के बाद local cache भी update करें।
+                order.status = newStatus;
+                ['dp_all_orders','my_orders_list','user_orders','dp_my_orders'].forEach(key => {
+                    try {
+                        let list = JSON.parse(localStorage.getItem(key) || '[]');
+                        if (!Array.isArray(list)) list = [];
+                        list = list.map(item => String(item.id) === String(order.id) ? {...item, status:newStatus} : item);
+                        localStorage.setItem(key, JSON.stringify(list));
+                    } catch(e) {}
+                });
+
                 alert(`स्टेटस '${newStatus}' में बदल दिया गया है!`);
-                loadAdminOrders();
+                await loadAdminOrders();
             } catch (err) {
-                alert("स्टेटस अपडेट में समस्या आई।");
+                console.error('Status update error:', err);
+                alert('स्टेटस अपडेट नहीं हुआ।\n\nअसली Error: ' + (err.message || err));
             }
         }
 
@@ -476,7 +471,7 @@
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="6">कैटलॉग लोड हो रहा है...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8">कैटलॉग लोड हो रहा है...</td></tr>';
 
             const tables = ['catalog', 'cards', 'cards_catalog'];
             let fetchedData = [];
@@ -496,24 +491,28 @@
             }
 
             if (fetchedData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">कोई कार्ड नहीं मिला।</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड नहीं मिला।</td></tr>';
                 return;
             }
 
             tbody.innerHTML = fetchedData.map(c => {
-                const rate = c.rate || c.price || 0;
+                const catalogRate = parseFloat(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
+                const saleRate = parseFloat(c.sale_rate ?? c.selling_price ?? c.rate ?? c.price ?? catalogRate) || 0;
+                const discount = catalogRate > 0 && saleRate < catalogRate ? Math.round(((catalogRate - saleRate) / catalogRate) * 100) : 0;
                 const inStock = c.in_stock !== false;
                 return `
                 <tr>
                     <td><img src="${c.image || c.image_url || 'https://via.placeholder.com/45'}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;"></td>
                     <td><b>${c.name || c.title || '-'}</b></td>
                     <td>${c.model || c.code || '-'}</td>
+                    <td><b style="color:#64748b;">₹${catalogRate.toLocaleString('en-IN')}</b></td>
                     <td>
                         <div style="display:flex; align-items:center; justify-content:center;">
-                            <input type="number" id="rateInput_${c.id}" value="${rate}" style="width:70px; text-align:center; padding:4px;" step="0.5">
-                            <button class="btn-save-rate" onclick="saveCardRate('${activeTable}', '${c.id}')" title="रेट सेव करें"><i class="fa-solid fa-floppy-disk"></i></button>
+                            <input type="number" id="saleRateInput_${c.id}" value="${saleRate}" style="width:78px; text-align:center; padding:4px;" step="0.5" min="0">
+                            <button class="btn-save-rate" onclick="saveCardSaleRate('${activeTable}', '${c.id}')" title="सेल रेट सेव करें"><i class="fa-solid fa-floppy-disk"></i></button>
                         </div>
                     </td>
+                    <td>${discount > 0 ? `<b style="color:#dc2626;">${discount}% OFF</b>` : '<span style="color:#64748b;">0%</span>'}</td>
                     <td>
                         <button onclick="toggleCardStock('${activeTable}', '${c.id}', ${!inStock})" style="background:${inStock ? '#dcfce7':'#fee2e2'}; color:${inStock ? '#15803d':'#b91c1c'}; border:1px solid currentColor; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">
                             ${inStock ? '✓ उपलब्ध' : '✕ समाप्त'}
@@ -524,24 +523,33 @@
             `}).join('');
         }
 
-        async function saveCardRate(table, cardId) {
-            const input = document.getElementById(`rateInput_${cardId}`);
+        async function saveCardSaleRate(table, cardId) {
+            const input = document.getElementById(`saleRateInput_${cardId}`);
             if (!input) return;
-            const newRate = parseFloat(input.value);
-            if (isNaN(newRate) || newRate < 0) {
-                alert("कृपया मान्य रेट डालें!");
+            const newSaleRate = parseFloat(input.value);
+            if (isNaN(newSaleRate) || newSaleRate < 0) {
+                alert("कृपया मान्य सेल रेट डालें!");
                 return;
             }
 
-            if (!supabaseClient) return;
+            if (!supabaseClient) {
+                alert("Database connection उपलब्ध नहीं है।");
+                return;
+            }
 
             try {
-                const { error } = await supabaseClient.from(table).update({ rate: newRate, price: newRate }).eq('id', isNaN(cardId) ? cardId : Number(cardId));
+                // केवल बेचने वाला/सेल रेट बदलेगा; कैटलॉग रेट (MRP) जस का तस रहेगा।
+                const { error } = await supabaseClient.from(table).update({
+                    sale_rate: newSaleRate,
+                    selling_price: newSaleRate,
+                    rate: newSaleRate,
+                    price: newSaleRate
+                }).eq('id', isNaN(cardId) ? cardId : Number(cardId));
                 if (error) throw error;
-                alert("कार्ड का रेट सफलतापूर्वक बदल दिया गया है!");
+                alert("सेल रेट सफलतापूर्वक बदल दिया गया: ₹" + newSaleRate + " / पीस");
                 loadCatalogStock();
             } catch (e) {
-                alert("रेट अपडेट नहीं हो सका: " + e.message);
+                alert("सेल रेट अपडेट नहीं हो सका: " + e.message);
             }
         }
 
@@ -615,6 +623,15 @@
             return html || `<tr><th>मैटर</th><td colspan="3">-</td></tr>`;
         }
 
+        function normalizeMatterForReceipt(text) {
+            return String(text || '')
+                .replace(/वर-?वधू/g, 'लड़का-लड़की')
+                .replace(/वर/g, 'लड़का')
+                .replace(/वधू/g, 'लड़की')
+                .replace(/दूल्हा/g, 'लड़का')
+                .replace(/दुल्हन/g, 'लड़की');
+        }
+
         function openOrderReceiptModal(orderIdentifier) {
             const o = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier)) || {};
             const cardImg = o.card_image || o.image || o.card_photo || '';
@@ -648,7 +665,7 @@
                 </table>
                 <div class="r-table-title" style="background:#b91c1c;">2. वैवाहिक विवरण</div>
                 <table class="r-table">
-                    <tr><th>वर</th><td>${o.groom_name || o.groom || '-'}</td><th>वधू</th><td>${o.bride_name || o.bride || '-'}</td></tr>
+                    <tr><th>लड़का</th><td>${o.groom_name || o.groom || '-'}</td><th>लड़की</th><td>${o.bride_name || o.bride || '-'}</td></tr>
                     <tr><th>शुभ विवाह / बारात</th><td colspan="3">${o.barat_date || o.wedding_date || '-'}</td></tr>
                 </table>
                 <div class="r-table-title" style="background:#15803d;">3. भुगतान विवरण</div>
