@@ -336,12 +336,9 @@
             try {
                 const { data, error } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
                 if (!error && data && data.length > 0) {
-                    const byKey = new Map();
-                    [...localOrders, ...data].forEach(item => {
-                        const k = String(item.order_id || item.id || '');
-                        if (k) byKey.set(k, item);
-                    });
-                    globalOrdersCache = Array.from(byKey.values()).sort((a,b) =>
+                    // Database को हमेशा source-of-truth रखें। Local backup को cloud data के ऊपर merge
+                    // करने से पुराना status दोबारा दिख सकता था।
+                    globalOrdersCache = data.slice().sort((a,b) =>
                         new Date(b.created_at || 0) - new Date(a.created_at || 0)
                     );
                 } else {
@@ -402,8 +399,8 @@
 
         async function updateOrderStatus(orderIdentifier, newStatus) {
             try {
-                const order = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier));
-                if (!order || !order.id) { alert('ऑर्डर ID नहीं मिली।'); return; }
+                const order = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id || '') === String(orderIdentifier));
+                if (!order || !order.id) { alert('Database ऑर्डर ID नहीं मिली। कृपया ऑर्डर सूची Refresh करें।'); return; }
 
                 if (!supabaseClient) {
                     alert('Database connection उपलब्ध नहीं है।');
