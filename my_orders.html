@@ -407,9 +407,9 @@
     <!-- WhatsApp-like Customer Correction Chat Popup -->
     <div id="customerCorrectionModal" class="cust-corr-modal" onclick="if(event.target===this) closeCustomerCorrectionModal()">
       <div class="cust-corr-panel wa-panel">
-        <div class="wa-head"><div class="wa-avatar"><i class="fa-solid fa-user-tie"></i></div><div class="wa-head-info"><b>दिल्ली प्रेस</b><span id="custCorrOrderInfo">ऑर्डर बातचीत</span><small id="custOnline">ऑनलाइन</small></div><button class="wa-close" onclick="closeCustomerCorrectionModal()">×</button></div>
+        <div class="wa-head"><div class="wa-avatar"><i class="fa-solid fa-user-tie"></i></div><div class="wa-head-info"><b>दिल्ली प्रेस</b><span id="custCorrOrderInfo">ऑर्डर बातचीत</span><div class="chat-live-row"><span id="custLiveDot" class="live-dot offline"></span><span id="custLiveLabel">ऑफलाइन</span></div><small id="custOnline">ऑनलाइन</small></div><button class="wa-close" onclick="closeCustomerCorrectionModal()">×</button></div>
         <div class="wa-status" id="custCorrStatus">स्थिति: कोई सुधार अनुरोध नहीं</div>
-        <div id="custTyping" class="wa-typing">एडमिन टाइप कर रहे हैं…</div>
+        <div id="custTyping" class="wa-typing">एडमिन टाइपिंग <span class="typing-dots">● ● ●</span></div>
         <div id="custCorrThread" class="wa-thread"></div>
         <div class="wa-compose">
           <div id="custVoicePreview" class="wa-preview"><span>वॉयस तैयार है</span><audio id="custVoiceAudio" controls></audio><button onclick="cancelCustomerVoice()">×</button></div>
@@ -888,16 +888,40 @@
             return {name:'वॉयस संदेश',url:data.publicUrl,path,from:'customer',kind:'voice',type:blob.type||'audio/webm',at:new Date().toISOString()};
         }
         let customerLiveChannel=null, customerTypingTimer=null;
+        function setCustomerLiveStatus(online){
+          const d=document.getElementById('custLiveDot'),l=document.getElementById('custLiveLabel');
+          if(d)d.className='live-dot '+(online?'online':'offline');
+          if(l)l.textContent=online?'ऑनलाइन':'ऑफलाइन';
+        }
         function subscribeCustomerRealtime(orderId){
           if(!supabaseClient||!orderId)return;
           if(customerLiveChannel){try{supabaseClient.removeChannel(customerLiveChannel);}catch(e){}}
           customerLiveChannel=supabaseClient.channel('order-chat-live-'+orderId,{config:{broadcast:{self:false},presence:{key:'customer'}}})
           .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
-            const o=fetchedOrdersList[customerCorrectionIndex]; if(o){Object.assign(o,payload.new); const th=document.getElementById('custCorrThread'); if(th){th.innerHTML=renderCustomerCorrectionThread(o);th.scrollTop=th.scrollHeight;} const st=document.getElementById('custCorrStatus');if(st)st.innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');}
-          }).on('broadcast',{event:'typing'},payload=>{
-            const el=document.getElementById('custTyping'); if(!el)return; if(payload.payload&&payload.payload.from==='admin'&&payload.payload.typing){el.style.display='block';clearTimeout(window.__custTypeHide);window.__custTypeHide=setTimeout(()=>el.style.display='none',1800);} else if(payload.payload&&payload.payload.from==='admin'){el.style.display='none';}
-          }).subscribe();
+            const o=fetchedOrdersList[customerCorrectionIndex];
+            if(o){Object.assign(o,payload.new);const th=document.getElementById('custCorrThread');if(th){th.innerHTML=renderCustomerCorrectionThread(o);th.scrollTop=th.scrollHeight;}const st=document.getElementById('custCorrStatus');if(st)st.innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');}
+          })
+          .on('broadcast',{event:'typing'},payload=>{
+            const el=document.getElementById('custTyping'); if(!el)return;
+            const on=payload.payload&&payload.payload.from==='admin'&&payload.payload.typing;
+            el.style.display=on?'block':'none';
+            if(on){clearTimeout(window.__custTypeHide);window.__custTypeHide=setTimeout(()=>el.style.display='none',2000);}
+          })
+          .on('presence',{event:'sync'},()=>{
+            const st=customerLiveChannel.presenceState();
+            const online=Object.values(st).flat().some(x=>x&&x.role==='admin');
+            setCustomerLiveStatus(online);
+          })
+          .on('presence',{event:'join'},()=>setCustomerLiveStatus(true))
+          .on('presence',{event:'leave'},()=>{
+            const st=customerLiveChannel.presenceState();
+            setCustomerLiveStatus(Object.values(st).flat().some(x=>x&&x.role==='admin'));
+          })
+          .subscribe(async status=>{
+            if(status==='SUBSCRIBED'){try{await customerLiveChannel.track({role:'customer',online_at:new Date().toISOString()});}catch(e){}}
+          });
         }
+
         function customerTyping(value){
           if(!customerLiveChannel)return; clearTimeout(customerTypingTimer);
           customerLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'customer',typing:!!value}}).catch(()=>{});
