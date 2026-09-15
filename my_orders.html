@@ -324,6 +324,12 @@
 @media(max-width:520px){.cust-corr-msg{max-width:90%;}.voice-msg audio{width:190px;}.cust-corr-actions{grid-template-columns:1fr!important;}}
 
 </style>
+
+<style>
+.wa-panel{width:min(520px,100%);height:min(760px,96vh)!important;border-radius:18px!important;overflow:hidden;display:flex;flex-direction:column;background:#efeae2!important}
+.wa-head{height:62px;flex:none;background:#075e54;color:#fff;display:flex;align-items:center;padding:8px 12px;gap:10px}.wa-avatar{width:42px;height:42px;border-radius:50%;background:#dfe8e5;color:#075e54;display:grid;place-items:center;font-size:20px}.wa-head-info{display:flex;flex-direction:column;min-width:0;flex:1}.wa-head-info b{font-size:15px}.wa-head-info span{font-size:10px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wa-head-info small{font-size:10px;color:#d7ffd9}.wa-close{border:0;background:transparent;color:#fff;font-size:28px;width:36px;height:36px;cursor:pointer}.wa-status{font-size:10px;padding:4px 10px;background:#f7f8f8;color:#64748b}.wa-typing{display:none;font-size:11px;color:#075e54;background:#e8f5e9;padding:3px 12px;font-style:italic}.wa-thread{flex:1;min-height:0;overflow-y:auto;padding:14px 10px;background-color:#efeae2;background-image:radial-gradient(#d9d0c5 1px,transparent 1px);background-size:18px 18px}.wa-bubble{max-width:82%;padding:7px 9px 6px;margin:4px 0;border-radius:8px;font-size:13px;line-height:1.42;box-shadow:0 1px 1px rgba(0,0,0,.10);position:relative;word-break:break-word}.wa-bubble.admin{margin-right:auto;background:#fff;border-top-left-radius:3px}.wa-bubble.customer{margin-left:auto;background:#d9fdd3;border-top-right-radius:3px}.wa-meta{font-size:9px;color:#667781;text-align:right;margin-top:3px}.wa-bubble audio{width:100%;max-width:240px;height:36px}.wa-file{display:inline-flex;align-items:center;gap:7px;background:#f0f2f5;padding:8px;border-radius:8px;text-decoration:none;color:#075e54;font-weight:700;margin-top:4px}.wa-compose{background:#f0f2f5;padding:7px 8px 8px;flex:none}.wa-input-row{display:flex;align-items:flex-end;gap:5px;background:#fff;border-radius:24px;padding:4px}.wa-icon,.wa-mic,.wa-send{border:0;background:transparent;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font-size:18px;color:#54656f;flex:none}.wa-mic{color:#075e54}.wa-mic.recording{background:#e53935;color:#fff}.wa-send{background:#128c7e;color:#fff}.wa-input-row textarea{flex:1;border:0;outline:0;resize:none;max-height:90px;font:14px Arial;padding:9px 5px;background:transparent}.wa-compose input[type=file]{display:none}.wa-preview{display:none;align-items:center;gap:7px;background:#fff;padding:6px 9px;margin-bottom:5px;border-radius:12px}.wa-preview audio{width:180px;height:34px}.wa-preview button{border:0;background:#eee;border-radius:50%;width:28px;height:28px}.wa-file-name{font-size:10px;color:#54656f;padding:3px 8px;min-height:14px}.wa-actions{display:flex;gap:6px;margin-top:5px}.wa-actions button{flex:1;border:0;border-radius:8px;padding:7px;font-size:10px;font-weight:700;color:#fff}.wa-actions .cust-corr-approve{background:#10b981}.wa-actions .cust-corr-more{background:#f59e0b}
+@media(max-width:520px){.cust-corr-modal{padding:0!important}.wa-panel{width:100%;height:100dvh!important;max-height:none!important;border-radius:0!important}.wa-thread{padding-bottom:8px}.wa-bubble{max-width:88%}}
+</style>
 </head>
 <body>
 
@@ -398,35 +404,28 @@
         </div>
     </div>
 
-    <!-- Customer Correction Chat Popup -->
+    <!-- WhatsApp-like Customer Correction Chat Popup -->
     <div id="customerCorrectionModal" class="cust-corr-modal" onclick="if(event.target===this) closeCustomerCorrectionModal()">
-        <div class="cust-corr-panel">
-            <div class="cust-corr-head">
-                <div>
-                    <h3><i class="fa-solid fa-comments"></i> ऑर्डर सुधार / ग्राहक बातचीत</h3>
-                    <div id="custCorrOrderInfo" style="font-size:11px;color:#64748b;margin-top:2px;"></div>
-                </div>
-                <button type="button" class="cust-corr-close" onclick="closeCustomerCorrectionModal()">×</button>
-            </div>
-            <div id="custCorrStatus" class="cust-corr-badge">स्थिति: कोई सुधार अनुरोध नहीं</div>
-            <div id="custCorrThread" class="cust-corr-thread"></div>
-            <div class="cust-corr-compose">
-                <textarea id="custCorrText" placeholder="मैसेज लिखें..."></textarea>
-                <div class="chat-tools">
-                    <button type="button" class="btn-voice-record" id="custVoiceBtn" onclick="toggleCustomerVoice()" title="वॉयस रिकॉर्ड करें"><i class="fa-solid fa-microphone"></i></button>
-                    <input type="file" id="custCorrFile" accept="image/*,.pdf,.doc,.docx,.txt,audio/*">
-                    <button type="button" class="btn-chat-send" onclick="sendCustomerCorrectionPopup()" title="भेजें"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-                <div id="custVoicePreview" class="voice-preview">
-                    <i class="fa-solid fa-microphone"></i><span>वॉयस तैयार है</span>
-                    <audio id="custVoiceAudio" controls></audio>
-                </div>
-                <div class="cust-corr-actions">
-                    <button type="button" class="cust-corr-approve" onclick="setCustomerCorrectionStatus('approved')"><i class="fa-solid fa-circle-check"></i> ठीक है / अप्रूव</button>
-                    <button type="button" class="cust-corr-more" onclick="setCustomerCorrectionStatus('needs_more')"><i class="fa-solid fa-rotate"></i> और सुधार चाहिए</button>
-                </div>
-            </div>
+      <div class="cust-corr-panel wa-panel">
+        <div class="wa-head"><div class="wa-avatar"><i class="fa-solid fa-user-tie"></i></div><div class="wa-head-info"><b>दिल्ली प्रेस</b><span id="custCorrOrderInfo">ऑर्डर बातचीत</span><small id="custOnline">ऑनलाइन</small></div><button class="wa-close" onclick="closeCustomerCorrectionModal()">×</button></div>
+        <div class="wa-status" id="custCorrStatus">स्थिति: कोई सुधार अनुरोध नहीं</div>
+        <div id="custTyping" class="wa-typing">एडमिन टाइप कर रहे हैं…</div>
+        <div id="custCorrThread" class="wa-thread"></div>
+        <div class="wa-compose">
+          <div id="custVoicePreview" class="wa-preview"><span>वॉयस तैयार है</span><audio id="custVoiceAudio" controls></audio><button onclick="cancelCustomerVoice()">×</button></div>
+          <div class="wa-input-row">
+            <button class="wa-icon" type="button" title="फाइल/फोटो" onclick="document.getElementById('custCorrFile').click()"><i class="fa-solid fa-paperclip"></i></button>
+            <input type="file" id="custCorrFile" accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*" onchange="showCustomerFileName(this)">
+            <button class="wa-icon" type="button" title="फोटो कैमरा" onclick="document.getElementById('custCameraFile').click()"><i class="fa-solid fa-camera"></i></button>
+            <input type="file" id="custCameraFile" accept="image/*" capture="environment" onchange="copyCustomerCameraFile(this)">
+            <textarea id="custCorrText" rows="1" placeholder="मैसेज लिखें…" oninput="customerTyping(this.value)"></textarea>
+            <button type="button" class="wa-mic" id="custVoiceBtn" onclick="toggleCustomerVoice()"><i class="fa-solid fa-microphone"></i></button>
+            <button type="button" class="wa-send" onclick="sendCustomerCorrectionPopup()"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div id="custFileName" class="wa-file-name"></div>
+          <div class="wa-actions"><button class="cust-corr-approve" onclick="setCustomerCorrectionStatus('approved')">✓ ठीक है / अप्रूव</button><button class="cust-corr-more" onclick="setCustomerCorrectionStatus('needs_more')">↻ और सुधार चाहिए</button></div>
         </div>
+      </div>
     </div>
 
     <div class="mobile-bottom-bar">
@@ -746,10 +745,10 @@
                 const who=isAdmin?'एडमिन':'आप';
                 const time=x.at?new Date(x.at).toLocaleString('hi-IN'):'';
                 if(x._type==='file') {
-                    if(x.kind==='voice' || String(x.type||'').startsWith('audio/')) return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'} voice-msg"><b>${who}</b> • वॉयस • ${time}<br><audio controls preload="metadata" src="${escapeHtml(x.url||'')}"></audio></div>`;
-                    return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'}"><b>${who}</b> • फाइल • ${time}<br><a class="cust-corr-file" href="${escapeHtml(x.url||'#')}" target="_blank" rel="noopener" download><i class="fa-solid fa-download"></i> ${escapeHtml(x.name||'फाइल देखें / डाउनलोड करें')}</a></div>`;
+                    if(x.kind==='voice' || String(x.mime||x.fileType||x.type||'').startsWith('audio/')) return `<div class="wa-bubble ${isAdmin?'admin':'customer'}"><b>${who}</b><br><audio controls preload="metadata" src="${escapeHtml(x.url||'')}"></audio><div class="wa-meta">वॉयस • ${time}</div></div>`;
+                    return `<div class="wa-bubble ${isAdmin?'admin':'customer'}"><b>${who}</b><br><a class="wa-file" href="${escapeHtml(x.url||'#')}" target="_blank" rel="noopener" download><i class="fa-solid fa-file-arrow-down"></i> ${escapeHtml(x.name||'फाइल देखें / डाउनलोड करें')}</a><div class="wa-meta">${time}</div></div>`;
                 }
-                return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'}"><b>${who}</b> • ${time}<br>${escapeHtml(x.text||'')}</div>`;
+                return `<div class="wa-bubble ${isAdmin?'admin':'customer'}">${escapeHtml(x.text||'')}<div class="wa-meta">${time} ✓✓</div></div>`;
             }).join('');
             return html || '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:20px 5px;">अभी कोई बातचीत या सुधार फाइल नहीं है।</div>';
         }
@@ -834,7 +833,7 @@
             document.getElementById('customerCorrectionModal').style.display='flex';
             setTimeout(()=>{const el=document.getElementById('custCorrThread');if(el)el.scrollTop=el.scrollHeight;},30);
         }
-        function closeCustomerCorrectionModal(){ document.getElementById('customerCorrectionModal').style.display='none'; customerCorrectionIndex=null; customerCorrectionOrderId=null; }
+        function closeCustomerCorrectionModal(){ document.getElementById('customerCorrectionModal').style.display='none'; if(customerLiveChannel&&supabaseClient){try{supabaseClient.removeChannel(customerLiveChannel);}catch(e){}} customerLiveChannel=null; customerCorrectionIndex=null; customerCorrectionOrderId=null; }
 
         async function uploadCorrectionFile(file, orderId, from){
             if(!file) return null;
@@ -888,22 +887,25 @@
             const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
             return {name:'वॉयस संदेश',url:data.publicUrl,path,from:'customer',kind:'voice',type:blob.type||'audio/webm',at:new Date().toISOString()};
         }
+        let customerLiveChannel=null, customerTypingTimer=null;
         function subscribeCustomerRealtime(orderId){
-            if(!supabaseClient || !orderId) return;
-            if(window.customerRealtimeChannel){try{supabaseClient.removeChannel(window.customerRealtimeChannel);}catch(e){}}
-            window.customerRealtimeChannel=supabaseClient.channel('customer-order-live-'+orderId)
-              .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
-                  const idx=customerCorrectionIndex;
-                  if(idx!==null && fetchedOrdersList[idx] && String(fetchedOrdersList[idx].id)===String(orderId)){
-                      fetchedOrdersList[idx]={...fetchedOrdersList[idx],...payload.new};
-                      localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
-                      document.getElementById('custCorrStatus').innerText='स्थिति: '+(payload.new.correction_status||'कोई सुधार अनुरोध नहीं');
-                      document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(fetchedOrdersList[idx]);
-                      const th=document.getElementById('custCorrThread'); th.scrollTop=th.scrollHeight;
-                  }
-                  renderOrdersUI();
-              }).subscribe();
+          if(!supabaseClient||!orderId)return;
+          if(customerLiveChannel){try{supabaseClient.removeChannel(customerLiveChannel);}catch(e){}}
+          customerLiveChannel=supabaseClient.channel('order-chat-live-'+orderId,{config:{broadcast:{self:false},presence:{key:'customer'}}})
+          .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
+            const o=fetchedOrdersList[customerCorrectionIndex]; if(o){Object.assign(o,payload.new); const th=document.getElementById('custCorrThread'); if(th){th.innerHTML=renderCustomerCorrectionThread(o);th.scrollTop=th.scrollHeight;} const st=document.getElementById('custCorrStatus');if(st)st.innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');}
+          }).on('broadcast',{event:'typing'},payload=>{
+            const el=document.getElementById('custTyping'); if(!el)return; if(payload.payload&&payload.payload.from==='admin'&&payload.payload.typing){el.style.display='block';clearTimeout(window.__custTypeHide);window.__custTypeHide=setTimeout(()=>el.style.display='none',1800);} else if(payload.payload&&payload.payload.from==='admin'){el.style.display='none';}
+          }).subscribe();
         }
+        function customerTyping(value){
+          if(!customerLiveChannel)return; clearTimeout(customerTypingTimer);
+          customerLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'customer',typing:!!value}}).catch(()=>{});
+          customerTypingTimer=setTimeout(()=>customerLiveChannel&&customerLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'customer',typing:false}}).catch(()=>{}),1200);
+        }
+        function showCustomerFileName(el){const n=document.getElementById('custFileName');if(n)n.textContent=el.files&&el.files[0]?'📎 '+el.files[0].name:'';}
+        function copyCustomerCameraFile(el){const f=el.files&&el.files[0];if(!f)return;const dt=new DataTransfer();dt.items.add(f);document.getElementById('custCorrFile').files=dt.files;showCustomerFileName(document.getElementById('custCorrFile'));}
+        function cancelCustomerVoice(){customerVoiceBlob=null;if(customerVoiceUrl){URL.revokeObjectURL(customerVoiceUrl);customerVoiceUrl=null;}const p=document.getElementById('custVoicePreview'),a=document.getElementById('custVoiceAudio');if(p)p.style.display='none';if(a)a.removeAttribute('src');}
 
         async function sendCustomerCorrectionPopup(){
             const index=customerCorrectionIndex;
