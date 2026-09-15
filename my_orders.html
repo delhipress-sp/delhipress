@@ -531,10 +531,8 @@
                         status: 'Cancelled',
                         custom_notes: order ? order.custom_notes : `[रद्द करने का कारण: ${cleanReason}]`
                     };
-                    let res = await supabaseClient.from('orders').update(updatePayload).eq('id', isNaN(orderIdentifier) ? orderIdentifier : Number(orderIdentifier));
-                    if (res.error) {
-                        await supabaseClient.from('orders').update(updatePayload).eq('order_id', String(orderIdentifier));
-                    }
+                    let res = await supabaseClient.from('orders').update(updatePayload).eq('id', Number(orderIdentifier));
+                    if (res.error) console.error('Customer cancel DB update error:', res.error);
                 } catch (e) {}
             }
 
@@ -599,7 +597,19 @@
                         </div>
 
                         <div class="couples-summary">
-                            <b>मैटर सारांश:</b> वर: <b style="color:var(--primary);">${ord.groom_name || '-'}</b> संग वधू: <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
+                            <b>मैटर सारांश:</b> वर: <b style="color:var(--primary);">${ord.groom_name || '-'}</b> संग लड़की: <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
+                        </div>
+
+                        <div class="correction-box">
+                            <div class="correction-title"><i class="fa-solid fa-comments"></i> ऑर्डर सुधार / ग्राहक बातचीत</div>
+                            <div class="correction-messages">${renderCorrectionMessages(ord)}</div>
+                            <div class="correction-row">
+                                <input class="correction-input" id="custMsg_${index}" placeholder="मैटर में सुधार / संदेश लिखें...">
+                                <input class="correction-file" type="file" id="custFile_${index}" accept="image/*,.pdf,.doc,.docx,.txt">
+                                <button class="btn-correction" onclick="sendCustomerCorrection(${index})"><i class="fa-solid fa-paper-plane"></i> भेजें</button>
+                            </div>
+                            ${String(ord.correction_status||'').toLowerCase()==='admin_sent' ? `<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;"><button class="btn-approve" onclick="approveCorrection(${index})"><i class="fa-solid fa-circle-check"></i> ठीक है / अप्रूव</button><button class="btn-more-fix" onclick="requestMoreCorrection(${index})"><i class="fa-solid fa-rotate"></i> और सुधार चाहिए</button></div>` : ''}
+                            <div style="margin-top:8px;font-size:11px;color:#64748b;">एडमिन द्वारा भेजी गई सुधार फाइल/मैसेज यहाँ दिखेगा और यहीं से जवाब दिया जा सकता है।</div>
                         </div>
 
                         <div class="order-card-footer">
@@ -618,6 +628,48 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function parseJsonArray(value){ try{ const a=typeof value==='string'?JSON.parse(value||'[]'):value; return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+        function escapeHtml(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+        function renderCorrectionMessages(ord){
+            const msgs=[...parseJsonArray(ord.customer_messages),...parseJsonArray(ord.admin_messages)].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0));
+            const files=[...parseJsonArray(ord.customer_files),...parseJsonArray(ord.admin_files)];
+            let h=msgs.map(m=>`<div class="msg-item ${m.from==='admin'?'admin':'customer'}"><div class="msg-meta">${m.from==='admin'?'एडमिन':'आप'} • ${m.at?new Date(m.at).toLocaleString('hi-IN'):''}</div>${escapeHtml(m.text||'')}</div>`).join('');
+            h+=files.map(f=>`<div class="msg-item ${f.from==='admin'?'admin':'customer'}"><div class="msg-meta">${f.from==='admin'?'एडमिन':'आप'} • फाइल</div><a class="file-link" href="${f.url}" target="_blank" download><i class="fa-solid fa-download"></i> ${escapeHtml(f.name||'फाइल देखें')}</a></div>`).join('');
+            return h || '<div style="font-size:12px;color:#94a3b8;padding:5px 0;">अभी कोई संदेश या सुधार फाइल नहीं है।</div>';
+        }
+        async function uploadCorrectionFile(file, orderId, from){
+            if(!file) return null;
+            if(file.size>10*1024*1024){ alert('फाइल 10 MB से छोटी रखें।'); return null; }
+            const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase();
+            const path=`${orderId}/${from}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+            const {error}=await supabaseClient.storage.from('order-corrections').upload(path,file,{upsert:false});
+            if(error) throw error;
+            const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
+            return {name:file.name,url:data.publicUrl,path,from,at:new Date().toISOString()};
+        }
+        async function sendCustomerCorrection(index){
+            const ord=fetchedOrdersList[index]; if(!ord||!ord.id||!supabaseClient){alert('ऑर्डर/Database उपलब्ध नहीं है।');return;}
+            const input=document.getElementById(`custMsg_${index}`), fileEl=document.getElementById(`custFile_${index}`);
+            const text=(input.value||'').trim(), file=fileEl.files&&fileEl.files[0];
+            if(!text&&!file){alert('मैसेज लिखें या फाइल चुनें।');return;}
+            try{
+                const messages=parseJsonArray(ord.customer_messages); const files=parseJsonArray(ord.customer_files);
+                if(text) messages.push({from:'customer',text,at:new Date().toISOString()});
+                if(file){ const f=await uploadCorrectionFile(file,ord.id,'customer'); if(f) files.push(f); }
+                const {data,error}=await supabaseClient.from('orders').update({customer_messages:messages,customer_files:files,correction_status:'customer_sent'}).eq('id',ord.id).select().single();
+                if(error) throw error;
+                fetchedOrdersList[index]={...ord,...data}; renderOrdersUI(); alert('आपका सुधार संदेश/फाइल एडमिन को भेज दिया गया है।');
+            }catch(e){console.error(e);alert('सुधार भेजा नहीं गया। '+(e.message||e));}
+        }
+        async function requestMoreCorrection(index){
+            const ord=fetchedOrdersList[index]; if(!ord||!ord.id||!supabaseClient)return;
+            try{ const {data,error}=await supabaseClient.from('orders').update({correction_status:'needs_more'}).eq('id',ord.id).select().single(); if(error)throw error; fetchedOrdersList[index]={...ord,...data}; renderOrdersUI(); alert('और सुधार की जरूरत एडमिन को भेज दी गई है।'); }catch(e){alert('अनुरोध नहीं भेजा गया। '+(e.message||e));}
+        }
+        async function approveCorrection(index){
+            const ord=fetchedOrdersList[index]; if(!ord||!ord.id||!supabaseClient)return;
+            try{ const {data,error}=await supabaseClient.from('orders').update({correction_status:'approved',status:'Approved'}).eq('id',ord.id).select().single(); if(error)throw error; fetchedOrdersList[index]={...ord,...data}; renderOrdersUI(); alert('आपकी स्वीकृति दर्ज हो गई है।'); }catch(e){alert('स्वीकृति दर्ज नहीं हुई। '+(e.message||e));}
         }
 
         /* 1. LOAD RECOMMENDED CATALOG DIRECT FROM SUPABASE CATALOG TABLE */
@@ -725,9 +777,9 @@
                 <div class="receipt-row"><span>मोबाइल:</span> <b>${ord.mobile || ord.phone || '-'}</b></div>
                 <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${ord.address || '-'}</b></div>
 
-                <div class="receipt-section-title">३. शादी मैटर विवरण (वर-वधू)</div>
-                <div class="receipt-row"><span>वर (दूल्हा):</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
-                <div class="receipt-row"><span>वधू (दुल्हन):</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
+                <div class="receipt-section-title">३. शादी मैटर विवरण (लड़का-लड़की)</div>
+                <div class="receipt-row"><span>लड़का:</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
+                <div class="receipt-row"><span>लड़की:</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
                 <div class="receipt-row"><span>शुभ विवाह / बारात:</span> <b>${ord.barat_date || '-'}</b></div>
 
                 <div class="receipt-section-title">४. बिल एवं भुगतान विवरण</div>
