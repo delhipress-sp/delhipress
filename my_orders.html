@@ -747,16 +747,13 @@
                 // फिर सभी उपलब्ध ग्राहक orders में मजबूत matching करें।
                 let q=supabaseClient.from('orders').select('*').order('id',{ascending:false}).limit(100);
                 if(localPhone) q=q.eq('mobile',localPhone);
-                const {data,error}=await q;
+                let {data,error}=await q;
                 if(error && localPhone){
-                    // कुछ पुराने schemas में mobile column हो सकता है, लेकिन query filter fail होने पर
-                    // fallback: recent orders पढ़कर local पहचान से match करें।
+                    // Filter query fail होने पर recent cloud orders से पहचान करें।
                     const fallback=await supabaseClient.from('orders').select('*').order('id',{ascending:false}).limit(100);
                     if(!fallback.error){
-                        // eslint-disable-next-line no-var
-                        var data=fallback.data||[];
-                        // eslint-disable-next-line no-var
-                        var error=null;
+                        data=fallback.data||[];
+                        error=null;
                     }
                 }
                 if(error) throw error;
