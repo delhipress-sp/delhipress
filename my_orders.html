@@ -701,18 +701,47 @@
             try{
                 let userObj={};
                 try{ userObj=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}'); }catch(e){}
-                const phone=userObj.phone||userObj.mobile||ord.mobile||ord.phone;
+                const phone=String(userObj.phone||userObj.mobile||ord.mobile||ord.phone||'').trim();
                 if(!phone) return null;
-                const {data,error}=await supabaseClient.from('orders').select('*').or(`mobile.eq.${phone},phone.eq.${phone}`).order('id',{ascending:false}).limit(25);
+
+                const {data,error}=await supabaseClient.from('orders').select('*')
+                    .or(`mobile.eq.${phone},phone.eq.${phone}`)
+                    .order('id',{ascending:false}).limit(50);
                 if(error) throw error;
-                const targetKey=String(ord.order_id||'');
-                let match=(data||[]).find(x=>targetKey && String(x.order_id||'')===targetKey);
-                if(!match && ord.created_at){
-                    const targetTime=new Date(ord.created_at).getTime();
-                    match=(data||[]).find(x=>Math.abs(new Date(x.created_at||0).getTime()-targetTime)<5*60*1000);
+                const rows=data||[];
+                if(!rows.length) return null;
+
+                const localOrderNo=String(ord.order_id||'').trim();
+                const localCard=String(ord.card_title||ord.card_name||'').trim().toLowerCase();
+                const localModel=String(ord.card_model||ord.model||'').trim().toLowerCase();
+                const localTotal=parseFloat(ord.total_amount||0);
+                const localTime=ord.created_at?new Date(ord.created_at).getTime():0;
+
+                // सबसे पहले पुराने order_id से मिलान, अगर cloud में वह field मौजूद हो।
+                let match=localOrderNo ? rows.find(x=>String(x.order_id||'').trim()===localOrderNo) : null;
+                // फिर तारीख/समय + कार्ड/राशि से सबसे नजदीकी रिकॉर्ड खोजें।
+                if(!match && localTime){
+                    let candidates=rows.filter(x=>{
+                        const t=new Date(x.created_at||0).getTime();
+                        const card=String(x.card_title||x.card_name||'').trim().toLowerCase();
+                        const model=String(x.card_model||x.model||'').trim().toLowerCase();
+                        const total=parseFloat(x.total_amount||0);
+                        return Math.abs(t-localTime)<=24*60*60*1000 &&
+                               (!localCard || !card || localCard===card) &&
+                               (!localModel || !model || localModel===model) &&
+                               (!localTotal || !total || Math.abs(localTotal-total)<0.01);
+                    });
+                    candidates.sort((a,b)=>Math.abs(new Date(a.created_at||0).getTime()-localTime)-Math.abs(new Date(b.created_at||0).getTime()-localTime));
+                    match=candidates[0]||null;
                 }
-                if(!match && data && data.length===1) match=data[0];
-                if(match){ fetchedOrdersList[index]={...ord,...match}; localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList)); return fetchedOrdersList[index]; }
+                // अगर फोन से केवल एक ही cloud order मिला तो वही निश्चित रिकॉर्ड है।
+                if(!match && rows.length===1) match=rows[0];
+
+                if(match){
+                    fetchedOrdersList[index]={...ord,...match};
+                    localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
+                    return fetchedOrdersList[index];
+                }
             }catch(e){ console.error('Resolve customer order error:',e); }
             return null;
         }
@@ -746,9 +775,13 @@
         }
 
         async function sendCustomerCorrectionPopup(){
-            const index=customerCorrectionIndex, id=customerCorrectionOrderId;
-            const ord=(index!==null)?fetchedOrdersList[index]:null;
-            if(!ord||!id){ alert('ऑर्डर Database से लिंक नहीं है। पहले रिफ्रेश करके फिर प्रयास करें।'); return; }
+            const index=customerCorrectionIndex;
+            let ord=(index!==null)?fetchedOrdersList[index]:null;
+            if(index===null||!ord) return;
+            ord=await resolveCustomerOrder(index);
+            const id=ord&&ord.id;
+            if(!ord||!id){ alert('यह ऑर्डर अभी Database में नहीं मिला। कृपया इंटरनेट कनेक्शन जांचकर एक बार रिफ्रेश करें।'); return; }
+            customerCorrectionOrderId=id;
             const input=document.getElementById('custCorrText'), fileEl=document.getElementById('custCorrFile');
             const text=(input.value||'').trim(), file=fileEl.files&&fileEl.files[0];
             if(!text&&!file){ alert('मैसेज लिखें या फाइल चुनें।'); return; }
