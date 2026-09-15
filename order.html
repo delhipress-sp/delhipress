@@ -739,7 +739,7 @@
                 </div>
 
                 <button type="submit" class="btn-order-now">
-                    <i class="fa-solid fa-bag-shopping"></i> <span data-i18n="btn_order_now">Order Now (भुगतान पृष्ठ पर जाएं)</span>
+                    <i class="fa-solid fa-bag-shopping"></i> <span data-i18n="btn_order_now">Continue (भुगतान पृष्ठ पर जाएं)</span>
                 </button>
 
             </form>
@@ -894,7 +894,7 @@
                 and_word: "तथा",
                 refund_link: "रिफंड नीति",
                 terms_tail: "से सहमत हूँ। छपाई के बाद वर्तनी (Spelling) या मैटर की त्रुटि की जिम्मेदारी मेरी होगी।",
-                btn_order_now: "Order Now (भुगतान पृष्ठ पर जाएं)",
+                btn_order_now: "Continue (भुगतान पृष्ठ पर जाएं)",
                 brand_full: "दिल्ली प्रेस (सज्जाद प्रिंटर्स)",
                 footer_addr: "ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352",
                 footer_services_title: "हमारी सेवाएं",
@@ -985,7 +985,7 @@
                 and_word: "and",
                 refund_link: "Refund Policy",
                 terms_tail: ". I am responsible for spelling or text mistakes once printing starts.",
-                btn_order_now: "Order Now (Proceed to Payment)",
+                btn_order_now: "Continue (Proceed to Payment)",
                 brand_full: "Delhi Press (Sajad Printers)",
                 footer_addr: "Eidgah More (Chhaitar More), Karmatar, Jamtara, Jharkhand - 815352",
                 footer_services_title: "Our Services",
@@ -1368,10 +1368,31 @@
             transliterationState.set(el, state);
         }
 
-        document.addEventListener('input', function(e) {
-            if (e.target && shouldTransliterateInput(e.target)) {
-                queueHindiConversion(e.target);
-            }
+        // English → Hindi conversion केवल SPACE (स्पेस) दबाने पर होगी।
+        // टाइप करते समय अपने-आप conversion नहीं होगा।
+        document.addEventListener('keydown', async function(e) {
+            const el = e.target;
+            if (e.key !== ' ' || !shouldTransliterateInput(el)) return;
+
+            const before = el.value;
+            const cursor = el.selectionStart;
+            const endPos = el.selectionEnd;
+            if (cursor !== endPos) return;
+
+            const textBeforeCursor = before.slice(0, cursor);
+            if (!/[A-Za-z]/.test(textBeforeCursor)) return;
+
+            e.preventDefault();
+            const hindi = await transliterateToHindi(textBeforeCursor);
+            if (!hindi || el.value !== before) return;
+
+            el.value = hindi + ' ' + before.slice(cursor);
+            try {
+                const newPos = hindi.length + 1;
+                el.setSelectionRange(newPos, newPos);
+            } catch (err) {}
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
         }, true);
 
         function processUniversalOrder() {
@@ -1491,7 +1512,7 @@
             };
 
             localStorage.setItem('dp_temp_order', JSON.stringify(fullPayload));
-            window.location.href = "payment.html";
+            window.location.href = "payment_admin_fixed.html";
         }
 
         const policyContents = {
