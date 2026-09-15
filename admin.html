@@ -381,7 +381,8 @@
                             <option value="Cancelled" ${curStatus==='Cancelled'?'selected':''}>❌ Cancelled</option>
                         </select>
                     </td>
-                    <td><button class="btn-view" onclick="openOrderReceiptModal('${orderKey}')"><i class="fa-solid fa-eye"></i> रसीद</button></td>
+                    <td><button class="btn-view" style="background:#7c3aed; margin-bottom:4px;" onclick="openCorrectionModal('${orderKey}')"><i class="fa-solid fa-comments"></i> सुधार/बातचीत</button><br>
+                        <button class="btn-view" onclick="openOrderReceiptModal('${orderKey}')"><i class="fa-solid fa-eye"></i> रसीद</button></td>
                     <td><button class="btn-del" onclick="deleteAdminOrder('${orderKey}')" title="हटाएं"><i class="fa-solid fa-trash"></i> हटाएं</button></td>
                 </tr>
             `}).join('');
@@ -467,6 +468,32 @@
             alert("ऑर्डर सफलतापूर्वक हटा (Deleted) दिया गया है!");
             loadAdminOrders();
         }
+
+        let correctionOrderId=null;
+        function parseJsonArrayAdmin(v){try{const a=typeof v==='string'?JSON.parse(v||'[]'):v;return Array.isArray(a)?a:[];}catch(e){return [];}}
+        function escAdmin(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+        function renderAdminCorrectionThread(o){
+          const msgs=[...parseJsonArrayAdmin(o.customer_messages),...parseJsonArrayAdmin(o.admin_messages)].map(x=>({...x,type:'msg'}));
+          const files=[...parseJsonArrayAdmin(o.customer_files),...parseJsonArrayAdmin(o.admin_files)].map(x=>({...x,type:'file'}));
+          return [...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0)).map(x=>x.type==='file'?`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • फाइल<br><a class="corr-file" href="${x.url}" target="_blank" download><i class="fa-solid fa-download"></i>${escAdmin(x.name||'फाइल डाउनलोड/देखें')}</a></div>`:`<div class="corr-msg ${x.from==='admin'?'admin':''}"><b>${x.from==='admin'?'एडमिन':'ग्राहक'}</b> • ${x.at?new Date(x.at).toLocaleString('hi-IN'):''}<br>${escAdmin(x.text||'')}</div>`).join('')||'<div style="color:#94a3b8;font-size:12px;">अभी कोई बातचीत या फाइल नहीं है।</div>';
+        }
+        function openCorrectionModal(orderIdentifier){
+          const o=globalOrdersCache.find(x=>String(x.id)===String(orderIdentifier)||String(x.order_id)===String(orderIdentifier)); if(!o)return;
+          correctionOrderId=o.id; document.getElementById('corrOrderInfo').innerText=`#${o.order_id||o.id} • ${o.customer_name||o.name||'ग्राहक'} • ${o.card_title||o.card_name||'ऑर्डर'}`;
+          document.getElementById('corrStatus').innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं'); document.getElementById('corrThread').innerHTML=renderAdminCorrectionThread(o); document.getElementById('correctionModal').style.display='flex';
+        }
+        function closeCorrectionModal(){document.getElementById('correctionModal').style.display='none';correctionOrderId=null;}
+        async function uploadAdminCorrection(file,orderId){
+          if(!file)return null; if(file.size>10*1024*1024)throw new Error('फाइल 10 MB से छोटी रखें।');
+          const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase(); const path=`${orderId}/admin_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+          const {error}=await supabaseClient.storage.from('order-corrections').upload(path,file,{upsert:false}); if(error)throw error; const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path); return {name:file.name,url:data.publicUrl,path,from:'admin',at:new Date().toISOString()};
+        }
+        async function sendAdminCorrection(){
+          if(!correctionOrderId||!supabaseClient)return; const o=globalOrdersCache.find(x=>String(x.id)===String(correctionOrderId)); if(!o)return; const text=document.getElementById('adminCorrText').value.trim(), fileEl=document.getElementById('adminCorrFile'), file=fileEl.files&&fileEl.files[0]; if(!text&&!file){alert('मैसेज या फाइल दें।');return;}
+          try{const msgs=parseJsonArrayAdmin(o.admin_messages),files=parseJsonArrayAdmin(o.admin_files); if(text)msgs.push({from:'admin',text,at:new Date().toISOString()}); if(file){const f=await uploadAdminCorrection(file,o.id);if(f)files.push(f);} const {data,error}=await supabaseClient.from('orders').update({admin_messages:msgs,admin_files:files,correction_status:'admin_sent'}).eq('id',o.id).select().single(); if(error)throw error; Object.assign(o,data); document.getElementById('adminCorrText').value='';fileEl.value='';openCorrectionModal(o.id); await loadAdminOrders(); alert('ग्राहक को सुधार संदेश/फाइल भेज दिया गया है।');}catch(e){alert('भेजा नहीं गया। '+(e.message||e));}
+        }
+        async function setCorrectionStatus(status){
+          if(!correctionOrderId||!supabaseClient)return; try{const {data,error}=await supabaseClient.from('orders').update({correction_status:status}).eq('id',correctionOrderId).select().single();if(error)throw error;const o=globalOrdersCache.find(x=>String(x.id)===String(correctionOrderId));if(o)Object.assign(o,data);openCorrectionModal(correctionOrderId);renderOrdersTable(globalOrdersCache);alert(status==='approved'?'ग्राहक की स्वीकृति/ठीक है दर्ज हो गई।':'ग्राहक को और सुधार की जरूरत के रूप में दर्ज कर दिया गया।');}catch(e){alert('स्थिति अपडेट नहीं हुई। '+(e.message||e));}}
 
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
@@ -708,5 +735,22 @@
             html2pdf().set(opt).from(element).save();
         }
     </script>
+
+    <div id="correctionModal" class="corr-modal">
+      <div class="corr-panel">
+        <div class="corr-head"><div><h3 style="color:#0f2f70;">ऑर्डर सुधार / ग्राहक बातचीत</h3><div id="corrOrderInfo" style="font-size:11px;color:#64748b;"></div></div><button class="btn-corr-close" style="border:0;border-radius:50%;width:34px;height:34px;color:#fff;cursor:pointer;" onclick="closeCorrectionModal()">×</button></div>
+        <div id="corrStatus" class="corr-badge" style="display:inline-block;margin-bottom:8px;"></div>
+        <div id="corrThread" class="corr-thread"></div>
+        <div class="corr-compose">
+          <textarea id="adminCorrText" placeholder="ग्राहक को सुधार/निर्देश लिखें..."></textarea>
+          <input type="file" id="adminCorrFile" accept="image/*,.pdf,.doc,.docx,.txt">
+          <div class="corr-actions">
+            <button class="btn-corr-send" onclick="sendAdminCorrection()"><i class="fa-solid fa-paper-plane"></i> फाइल/मैसेज भेजें</button>
+            <button class="btn-corr-approve" onclick="setCorrectionStatus('approved')"><i class="fa-solid fa-circle-check"></i> ठीक है / अप्रूव</button>
+            <button class="btn-corr-more" onclick="setCorrectionStatus('needs_more')"><i class="fa-solid fa-rotate"></i> और सुधार चाहिए</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
