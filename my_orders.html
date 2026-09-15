@@ -445,8 +445,23 @@
 
                 const { data, error } = await query;
                 if (!error && data && data.length > 0) {
-                    fetchedOrdersList = data;
-                    localStorage.setItem('my_orders_list', JSON.stringify(data));
+                    // Cloud + local merge: cloud sync में जो order अभी नहीं आया,
+                    // वह local My Orders से गायब नहीं होगा.
+                    let localMerged = [];
+                    try {
+                        localMerged = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
+                        if (!Array.isArray(localMerged)) localMerged = [];
+                    } catch(e) {}
+
+                    const byKey = new Map();
+                    [...localMerged, ...data].forEach(item => {
+                        const k = String(item.order_id || item.id || '');
+                        if (k) byKey.set(k, item);
+                    });
+                    fetchedOrdersList = Array.from(byKey.values()).sort((a,b) =>
+                        new Date(b.created_at || 0) - new Date(a.created_at || 0)
+                    );
+                    localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                     renderOrdersUI();
                 } else {
                     renderOrdersUI();
@@ -669,6 +684,15 @@
             window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
         }
 
+        function escapeReceiptText(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function viewCustomerReceipt(index) {
             const ord = fetchedOrdersList[index];
             if (!ord) return;
@@ -712,6 +736,10 @@
                 <div class="receipt-row"><span>एडवांस जमा:</span> <b style="color:green;">₹${advance}</b></div>
                 <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
                 <div class="receipt-row"><span>UTR / Txn ID:</span> <b>${ord.txn_id || 'उपलब्ध नहीं'}</b></div>
+                <div class="receipt-section-title">५. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.7;">
+                    ${escapeReceiptText(ord.custom_notes || ord.order_notes || ord.notes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}
+                </div>
             `;
 
             document.getElementById('userReceiptModal').style.display = 'flex';
