@@ -272,7 +272,32 @@
             .mobile-bottom-bar { display: flex; }
             .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
         }
-    </style>
+    
+        /* CUSTOMER CORRECTION CHAT POPUP */
+        .cust-corr-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.62);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:14px;}
+        .cust-corr-panel{width:min(560px,100%);max-height:min(760px,92vh);overflow:hidden;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);display:flex;flex-direction:column;border:1px solid #e2e8f0;}
+        .cust-corr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;background:linear-gradient(135deg,#f8fbff,#eef4ff);border-bottom:1px solid #e2e8f0;}
+        .cust-corr-head h3{margin:0;font-size:17px;color:#0f2f70;}
+        .cust-corr-close{background:#ef4444;color:#fff;border:0;border-radius:50%;width:34px;height:34px;font-size:22px;line-height:1;cursor:pointer;}
+        .cust-corr-badge{margin:12px 15px 8px;padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;display:inline-block;align-self:flex-start;}
+        .cust-corr-thread{margin:0 15px 10px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;min-height:100px;max-height:330px;overflow-y:auto;}
+        .cust-corr-msg{background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:9px 11px;margin-bottom:8px;font-size:12px;line-height:1.55;box-shadow:0 2px 6px rgba(15,23,42,.04);}
+        .cust-corr-msg:last-child{margin-bottom:0;}
+        .cust-corr-msg.admin{background:#eff6ff;border-color:#bfdbfe;margin-left:28px;}
+        .cust-corr-msg.customer{background:#fff7ed;border-color:#fed7aa;margin-right:28px;}
+        .cust-corr-file{display:inline-block;margin-top:5px;padding:6px 9px;border-radius:7px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700;}
+        .cust-corr-compose{padding:11px 15px 15px;border-top:1px solid #e2e8f0;background:#fff;}
+        #custCorrText{width:100%;min-height:72px;resize:vertical;border:1px solid #cbd5e1;border-radius:10px;padding:9px 10px;font-size:13px;outline:none;}
+        #custCorrText:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.10);}
+        #custCorrFile{width:100%;margin-top:8px;padding:7px;border:1px dashed #94a3b8;border-radius:9px;background:#f8fafc;font-size:12px;}
+        .cust-corr-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;}
+        .cust-corr-actions button{border:0;border-radius:9px;padding:10px 8px;color:#fff;font-weight:800;font-size:12px;cursor:pointer;}
+        .cust-corr-send{background:#2563eb;grid-column:1/-1;}
+        .cust-corr-approve{background:#10b981;}
+        .cust-corr-more{background:#f59e0b;}
+        .btn-open-correction{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:0;padding:8px 14px;font-size:12px;font-weight:800;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+        @media(max-width:520px){.cust-corr-modal{padding:8px}.cust-corr-panel{max-height:94vh;border-radius:15px}.cust-corr-thread{max-height:270px}.cust-corr-actions{grid-template-columns:1fr}.cust-corr-send{grid-column:auto}}
+</style>
 </head>
 <body>
 
@@ -343,6 +368,30 @@
                 <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
                     <i class="fa-solid fa-print"></i> प्रिंट निकालें
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Correction Chat Popup -->
+    <div id="customerCorrectionModal" class="cust-corr-modal" onclick="if(event.target===this) closeCustomerCorrectionModal()">
+        <div class="cust-corr-panel">
+            <div class="cust-corr-head">
+                <div>
+                    <h3><i class="fa-solid fa-comments"></i> ऑर्डर सुधार / ग्राहक बातचीत</h3>
+                    <div id="custCorrOrderInfo" style="font-size:11px;color:#64748b;margin-top:2px;"></div>
+                </div>
+                <button type="button" class="cust-corr-close" onclick="closeCustomerCorrectionModal()">×</button>
+            </div>
+            <div id="custCorrStatus" class="cust-corr-badge">स्थिति: कोई सुधार अनुरोध नहीं</div>
+            <div id="custCorrThread" class="cust-corr-thread"></div>
+            <div class="cust-corr-compose">
+                <textarea id="custCorrText" placeholder="मैटर में सुधार / संदेश लिखें..."></textarea>
+                <input type="file" id="custCorrFile" accept="image/*,.pdf,.doc,.docx,.txt">
+                <div class="cust-corr-actions">
+                    <button type="button" class="cust-corr-send" onclick="sendCustomerCorrectionPopup()"><i class="fa-solid fa-paper-plane"></i> फाइल / मैसेज भेजें</button>
+                    <button type="button" class="cust-corr-approve" onclick="setCustomerCorrectionStatus('approved')"><i class="fa-solid fa-circle-check"></i> ठीक है / अप्रूव</button>
+                    <button type="button" class="cust-corr-more" onclick="setCustomerCorrectionStatus('needs_more')"><i class="fa-solid fa-rotate"></i> और सुधार चाहिए</button>
+                </div>
             </div>
         </div>
     </div>
@@ -600,16 +649,10 @@
                             <b>मैटर सारांश:</b> वर: <b style="color:var(--primary);">${ord.groom_name || '-'}</b> संग लड़की: <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
                         </div>
 
-                        <div class="correction-box">
-                            <div class="correction-title"><i class="fa-solid fa-comments"></i> ऑर्डर सुधार / ग्राहक बातचीत</div>
-                            <div class="correction-messages">${renderCorrectionMessages(ord)}</div>
-                            <div class="correction-row">
-                                <input class="correction-input" id="custMsg_${index}" placeholder="मैटर में सुधार / संदेश लिखें...">
-                                <input class="correction-file" type="file" id="custFile_${index}" accept="image/*,.pdf,.doc,.docx,.txt">
-                                <button class="btn-correction" onclick="sendCustomerCorrection(${index})"><i class="fa-solid fa-paper-plane"></i> भेजें</button>
-                            </div>
-                            ${String(ord.correction_status||'').toLowerCase()==='admin_sent' ? `<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;"><button class="btn-approve" onclick="approveCorrection(${index})"><i class="fa-solid fa-circle-check"></i> ठीक है / अप्रूव</button><button class="btn-more-fix" onclick="requestMoreCorrection(${index})"><i class="fa-solid fa-rotate"></i> और सुधार चाहिए</button></div>` : ''}
-                            <div style="margin-top:8px;font-size:11px;color:#64748b;">एडमिन द्वारा भेजी गई सुधार फाइल/मैसेज यहाँ दिखेगा और यहीं से जवाब दिया जा सकता है।</div>
+                        <div style="display:flex;justify-content:flex-end;margin:0 0 14px;">
+                            <button type="button" class="btn-open-correction" onclick="openCustomerCorrectionModal(${index})">
+                                <i class="fa-solid fa-comments"></i> सुधार / बातचीत
+                            </button>
                         </div>
 
                         <div class="order-card-footer">
@@ -632,45 +675,121 @@
 
         function parseJsonArray(value){ try{ const a=typeof value==='string'?JSON.parse(value||'[]'):value; return Array.isArray(a)?a:[]; }catch(e){ return []; } }
         function escapeHtml(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
-        function renderCorrectionMessages(ord){
-            const msgs=[...parseJsonArray(ord.customer_messages),...parseJsonArray(ord.admin_messages)].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0));
-            const files=[...parseJsonArray(ord.customer_files),...parseJsonArray(ord.admin_files)];
-            let h=msgs.map(m=>`<div class="msg-item ${m.from==='admin'?'admin':'customer'}"><div class="msg-meta">${m.from==='admin'?'एडमिन':'आप'} • ${m.at?new Date(m.at).toLocaleString('hi-IN'):''}</div>${escapeHtml(m.text||'')}</div>`).join('');
-            h+=files.map(f=>`<div class="msg-item ${f.from==='admin'?'admin':'customer'}"><div class="msg-meta">${f.from==='admin'?'एडमिन':'आप'} • फाइल</div><a class="file-link" href="${f.url}" target="_blank" download><i class="fa-solid fa-download"></i> ${escapeHtml(f.name||'फाइल देखें')}</a></div>`).join('');
-            return h || '<div style="font-size:12px;color:#94a3b8;padding:5px 0;">अभी कोई संदेश या सुधार फाइल नहीं है।</div>';
+
+        let customerCorrectionIndex = null;
+        let customerCorrectionOrderId = null;
+
+        function renderCustomerCorrectionThread(ord){
+            const msgs=[...parseJsonArray(ord.customer_messages),...parseJsonArray(ord.admin_messages)].map((m,i)=>({...m,_i:i,_type:'msg'}));
+            const files=[...parseJsonArray(ord.customer_files),...parseJsonArray(ord.admin_files)].map((f,i)=>({...f,_i:i,_type:'file'}));
+            const items=[...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0));
+            const html=items.map(x=>{
+                const isAdmin=x.from==='admin';
+                const who=isAdmin?'एडमिन':'आप';
+                const time=x.at?new Date(x.at).toLocaleString('hi-IN'):'';
+                if(x._type==='file') return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'}"><b>${who}</b> • फाइल • ${time}<br><a class="cust-corr-file" href="${escapeHtml(x.url||'#')}" target="_blank" rel="noopener" download><i class="fa-solid fa-download"></i> ${escapeHtml(x.name||'फाइल देखें / डाउनलोड करें')}</a></div>`;
+                return `<div class="cust-corr-msg ${isAdmin?'admin':'customer'}"><b>${who}</b> • ${time}<br>${escapeHtml(x.text||'')}</div>`;
+            }).join('');
+            return html || '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:20px 5px;">अभी कोई बातचीत या सुधार फाइल नहीं है।</div>';
         }
+
+        async function resolveCustomerOrder(index){
+            let ord=fetchedOrdersList[index];
+            if(!ord) return null;
+            if(ord.id) return ord;
+            if(!supabaseClient) return null;
+            try{
+                let userObj={};
+                try{ userObj=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}'); }catch(e){}
+                const phone=userObj.phone||userObj.mobile||ord.mobile||ord.phone;
+                if(!phone) return null;
+                const {data,error}=await supabaseClient.from('orders').select('*').or(`mobile.eq.${phone},phone.eq.${phone}`).order('id',{ascending:false}).limit(25);
+                if(error) throw error;
+                const targetKey=String(ord.order_id||'');
+                let match=(data||[]).find(x=>targetKey && String(x.order_id||'')===targetKey);
+                if(!match && ord.created_at){
+                    const targetTime=new Date(ord.created_at).getTime();
+                    match=(data||[]).find(x=>Math.abs(new Date(x.created_at||0).getTime()-targetTime)<5*60*1000);
+                }
+                if(!match && data && data.length===1) match=data[0];
+                if(match){ fetchedOrdersList[index]={...ord,...match}; localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList)); return fetchedOrdersList[index]; }
+            }catch(e){ console.error('Resolve customer order error:',e); }
+            return null;
+        }
+
+        async function openCustomerCorrectionModal(index){
+            const ord=await resolveCustomerOrder(index);
+            if(!ord || !ord.id){
+                alert('इस ऑर्डर का Database रिकॉर्ड अभी उपलब्ध नहीं है। कृपया पहले “रिफ्रेश” दबाएँ और फिर सुधार/बातचीत खोलें।');
+                return;
+            }
+            customerCorrectionIndex=index;
+            customerCorrectionOrderId=ord.id;
+            document.getElementById('custCorrOrderInfo').innerText=`#${ord.order_id||ord.id} • ${ord.customer_name||ord.name||'ग्राहक'} • ${ord.card_title||ord.card_name||'ऑर्डर'}`;
+            document.getElementById('custCorrStatus').innerText='स्थिति: '+(ord.correction_status||'कोई सुधार अनुरोध नहीं');
+            document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(ord);
+            document.getElementById('customerCorrectionModal').style.display='flex';
+            setTimeout(()=>{const el=document.getElementById('custCorrThread');if(el)el.scrollTop=el.scrollHeight;},30);
+        }
+        function closeCustomerCorrectionModal(){ document.getElementById('customerCorrectionModal').style.display='none'; customerCorrectionIndex=null; customerCorrectionOrderId=null; }
+
         async function uploadCorrectionFile(file, orderId, from){
             if(!file) return null;
-            if(file.size>10*1024*1024){ alert('फाइल 10 MB से छोटी रखें।'); return null; }
+            if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
+            if(file.size>10*1024*1024) throw new Error('फाइल 10 MB से छोटी रखें।');
             const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase();
             const path=`${orderId}/${from}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
             const {error}=await supabaseClient.storage.from('order-corrections').upload(path,file,{upsert:false});
-            if(error) throw error;
+            if(error) throw new Error('फाइल अपलोड नहीं हुई: '+(error.message||error));
             const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
             return {name:file.name,url:data.publicUrl,path,from,at:new Date().toISOString()};
         }
-        async function sendCustomerCorrection(index){
-            const ord=fetchedOrdersList[index]; if(!ord||!ord.id||!supabaseClient){alert('ऑर्डर/Database उपलब्ध नहीं है।');return;}
-            const input=document.getElementById(`custMsg_${index}`), fileEl=document.getElementById(`custFile_${index}`);
+
+        async function sendCustomerCorrectionPopup(){
+            const index=customerCorrectionIndex, id=customerCorrectionOrderId;
+            const ord=(index!==null)?fetchedOrdersList[index]:null;
+            if(!ord||!id){ alert('ऑर्डर Database से लिंक नहीं है। पहले रिफ्रेश करके फिर प्रयास करें।'); return; }
+            const input=document.getElementById('custCorrText'), fileEl=document.getElementById('custCorrFile');
             const text=(input.value||'').trim(), file=fileEl.files&&fileEl.files[0];
-            if(!text&&!file){alert('मैसेज लिखें या फाइल चुनें।');return;}
+            if(!text&&!file){ alert('मैसेज लिखें या फाइल चुनें।'); return; }
             try{
-                const messages=parseJsonArray(ord.customer_messages); const files=parseJsonArray(ord.customer_files);
+                if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
+                const messages=parseJsonArray(ord.customer_messages), files=parseJsonArray(ord.customer_files);
                 if(text) messages.push({from:'customer',text,at:new Date().toISOString()});
-                if(file){ const f=await uploadCorrectionFile(file,ord.id,'customer'); if(f) files.push(f); }
-                const {data,error}=await supabaseClient.from('orders').update({customer_messages:messages,customer_files:files,correction_status:'customer_sent'}).eq('id',ord.id).select().single();
+                if(file){ const f=await uploadCorrectionFile(file,id,'customer'); if(f) files.push(f); }
+                const {data,error}=await supabaseClient.from('orders').update({customer_messages:messages,customer_files:files,correction_status:'customer_sent'}).eq('id',id).select().single();
                 if(error) throw error;
-                fetchedOrdersList[index]={...ord,...data}; renderOrdersUI(); alert('आपका सुधार संदेश/फाइल एडमिन को भेज दिया गया है।');
-            }catch(e){console.error(e);alert('सुधार भेजा नहीं गया। '+(e.message||e));}
+                fetchedOrdersList[index]={...ord,...data};
+                localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
+                input.value=''; fileEl.value='';
+                document.getElementById('custCorrStatus').innerText='स्थिति: customer_sent';
+                document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(fetchedOrdersList[index]);
+                const th=document.getElementById('custCorrThread'); th.scrollTop=th.scrollHeight;
+                alert('आपका सुधार संदेश/फाइल एडमिन को भेज दिया गया है।');
+            }catch(e){ console.error(e); alert('सुधार भेजा नहीं गया।\n\nकारण: '+(e.message||e)); }
         }
-        async function requestMoreCorrection(index){
-            const ord=fetchedOrdersList[index]; if(!ord||!ord.id||!supabaseClient)return;
-            try{ const {data,error}=await supabaseClient.from('orders').update({correction_status:'needs_more'}).eq('id',ord.id).select().single(); if(error)throw error; fetchedOrdersList[index]={...ord,...data}; renderOrdersUI(); alert('और सुधार की जरूरत एडमिन को भेज दी गई है।'); }catch(e){alert('अनुरोध नहीं भेजा गया। '+(e.message||e));}
+
+        async function setCustomerCorrectionStatus(status){
+            const index=customerCorrectionIndex, id=customerCorrectionOrderId;
+            if(index===null||!id||!supabaseClient){ alert('ऑर्डर Database से लिंक नहीं है।'); return; }
+            try{
+                const payload={correction_status:status};
+                if(status==='approved') payload.status='Approved';
+                const {data,error}=await supabaseClient.from('orders').update(payload).eq('id',id).select().single();
+                if(error) throw error;
+                fetchedOrdersList[index]={...fetchedOrdersList[index],...data};
+                localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
+                document.getElementById('custCorrStatus').innerText='स्थिति: '+status;
+                renderOrdersUI();
+                openCustomerCorrectionModal(index);
+                alert(status==='approved'?'आपकी स्वीकृति दर्ज हो गई है।':'और सुधार की जरूरत एडमिन को भेज दी गई है।');
+            }catch(e){ alert('स्थिति अपडेट नहीं हुई।\n\nकारण: '+(e.message||e)); }
         }
-        async function approveCorrection(index){
-            const ord=fetchedOrdersList[index]; if(!ord||!ord.id||!supabaseClient)return;
-            try{ const {data,error}=await supabaseClient.from('orders').update({correction_status:'approved',status:'Approved'}).eq('id',ord.id).select().single(); if(error)throw error; fetchedOrdersList[index]={...ord,...data}; renderOrdersUI(); alert('आपकी स्वीकृति दर्ज हो गई है।'); }catch(e){alert('स्वीकृति दर्ज नहीं हुई। '+(e.message||e));}
-        }
+
+        // पुराने inline handlers के लिए compatibility
+        async function sendCustomerCorrection(index){ await openCustomerCorrectionModal(index); }
+        async function requestMoreCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('needs_more'); }
+        async function approveCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('approved'); }
 
         /* 1. LOAD RECOMMENDED CATALOG DIRECT FROM SUPABASE CATALOG TABLE */
         async function loadRecommendedCatalog() {
