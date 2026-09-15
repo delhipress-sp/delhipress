@@ -536,16 +536,40 @@
           return {name:'वॉयस संदेश',url:data.publicUrl,path,from:'admin',kind:'voice',type:blob.type||'audio/webm',at:new Date().toISOString()};
         }
         let adminLiveChannel=null, adminTypingTimer=null;
+        function setAdminLiveStatus(online){
+          const d=document.getElementById('adminLiveDot'),l=document.getElementById('adminLiveLabel');
+          if(d)d.className='live-dot '+(online?'online':'offline');
+          if(l)l.textContent=online?'ऑनलाइन':'ऑफलाइन';
+        }
         function subscribeAdminRealtime(orderId){
           if(!supabaseClient||!orderId)return;
           if(adminLiveChannel){try{supabaseClient.removeChannel(adminLiveChannel);}catch(e){}}
           adminLiveChannel=supabaseClient.channel('order-chat-live-'+orderId,{config:{broadcast:{self:false},presence:{key:'admin'}}})
           .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
-            const o=globalOrdersCache.find(x=>String(x.id)===String(orderId)); if(o){Object.assign(o,payload.new);const th=document.getElementById('corrThread');if(th){th.innerHTML=renderAdminCorrectionThread(o);th.scrollTop=th.scrollHeight;}const st=document.getElementById('corrStatus');if(st)st.innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');}
-          }).on('broadcast',{event:'typing'},payload=>{
-            const el=document.getElementById('adminTyping');if(!el)return;if(payload.payload&&payload.payload.from==='customer'&&payload.payload.typing){el.style.display='block';clearTimeout(window.__adminTypeHide);window.__adminTypeHide=setTimeout(()=>el.style.display='none',1800);}else if(payload.payload&&payload.payload.from==='customer'){el.style.display='none';}
-          }).subscribe();
+            const o=globalOrdersCache.find(x=>String(x.id)===String(orderId));
+            if(o){Object.assign(o,payload.new);const th=document.getElementById('corrThread');if(th){th.innerHTML=renderAdminCorrectionThread(o);th.scrollTop=th.scrollHeight;}const st=document.getElementById('corrStatus');if(st)st.innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');}
+          })
+          .on('broadcast',{event:'typing'},payload=>{
+            const el=document.getElementById('adminTyping');if(!el)return;
+            const on=payload.payload&&payload.payload.from==='customer'&&payload.payload.typing;
+            el.style.display=on?'block':'none';
+            if(on){clearTimeout(window.__adminTypeHide);window.__adminTypeHide=setTimeout(()=>el.style.display='none',2000);}
+          })
+          .on('presence',{event:'sync'},()=>{
+            const st=adminLiveChannel.presenceState();
+            const online=Object.values(st).flat().some(x=>x&&x.role==='customer');
+            setAdminLiveStatus(online);
+          })
+          .on('presence',{event:'join'},()=>setAdminLiveStatus(true))
+          .on('presence',{event:'leave'},()=>{
+            const st=adminLiveChannel.presenceState();
+            setAdminLiveStatus(Object.values(st).flat().some(x=>x&&x.role==='customer'));
+          })
+          .subscribe(async status=>{
+            if(status==='SUBSCRIBED'){try{await adminLiveChannel.track({role:'admin',online_at:new Date().toISOString()});}catch(e){}}
+          });
         }
+
         function adminTyping(value){if(!adminLiveChannel)return;clearTimeout(adminTypingTimer);adminLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'admin',typing:!!value}}).catch(()=>{});adminTypingTimer=setTimeout(()=>adminLiveChannel&&adminLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'admin',typing:false}}).catch(()=>{}),1200);}
         function showAdminFileName(el){const n=document.getElementById('adminFileName');if(n)n.textContent=el.files&&el.files[0]?'📎 '+el.files[0].name:'';}
         function copyAdminCameraFile(el){const f=el.files&&el.files[0];if(!f)return;const dt=new DataTransfer();dt.items.add(f);document.getElementById('adminCorrFile').files=dt.files;showAdminFileName(document.getElementById('adminCorrFile'));}
@@ -826,9 +850,9 @@
 
     <div id="correctionModal" class="corr-modal" onclick="if(event.target===this) closeCorrectionModal()">
       <div class="corr-panel wa-panel">
-        <div class="wa-head"><div class="wa-avatar"><i class="fa-solid fa-user-tie"></i></div><div class="wa-head-info"><b id="adminChatTitle">ग्राहक</b><span id="corrOrderInfo">ऑर्डर बातचीत</span><small id="adminOnline">ऑनलाइन</small></div><button class="wa-close" onclick="closeCorrectionModal()">×</button></div>
+        <div class="wa-head"><div class="wa-avatar"><i class="fa-solid fa-user-tie"></i></div><div class="wa-head-info"><b id="adminChatTitle">ग्राहक</b><span id="corrOrderInfo">ऑर्डर बातचीत</span><div class="chat-live-row"><span id="adminLiveDot" class="live-dot offline"></span><span id="adminLiveLabel">ऑफलाइन</span></div><small id="adminOnline">ऑनलाइन</small></div><button class="wa-close" onclick="closeCorrectionModal()">×</button></div>
         <div id="corrStatus" class="wa-status">स्थिति: कोई सुधार अनुरोध नहीं</div>
-        <div id="adminTyping" class="wa-typing">ग्राहक टाइप कर रहे हैं…</div>
+        <div id="adminTyping" class="wa-typing">ग्राहक टाइपिंग <span class="typing-dots">● ● ●</span></div>
         <div id="corrThread" class="wa-thread"></div>
         <div class="corr-compose wa-compose">
           <div id="adminVoicePreview" class="wa-preview"><span>वॉयस तैयार है</span><audio id="adminVoiceAudio" controls></audio><button onclick="cancelAdminVoice()">×</button></div>
