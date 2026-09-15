@@ -383,29 +383,42 @@
                 localStorage.setItem('my_orders_list', JSON.stringify([cleanOrderPayload]));
             }
 
-            // 2. Cloud DB sync: पूरा payload (खासकर custom_notes) Supabase में जाए.
+            // 2. Cloud DB sync: पहले पूरा payload भेजें।
+            // यदि Supabase schema में कोई optional/new column (जैसे custom_notes या
+            // payment_receipt) मौजूद न हो, तो fallback payload से order फिर भी cloud में
+            // save हो जाए — वरना Admin Panel में पूरा order ही दिखाई नहीं देता।
             let cloudSaved = false;
             if (supabaseClient) {
-                try {
-                    const insertResult = await supabaseClient
-                        .from('orders')
-                        .insert([cleanOrderPayload])
-                        .select();
+                const payloadsToTry = [
+                    cleanOrderPayload,
+                    { ...cleanOrderPayload, payment_receipt: '' },
+                    (() => { const x = { ...cleanOrderPayload }; delete x.custom_notes; delete x.payment_receipt; return x; })()
+                ];
 
-                    if (insertResult.error) {
-                        console.error("Order cloud insert error:", insertResult.error);
-                        // अगर यह order पहले से मौजूद हो तो उसे update करने की कोशिश करें.
+                for (const payload of payloadsToTry) {
+                    try {
+                        const result = await supabaseClient.from('orders').insert([payload]).select();
+                        if (!result.error) {
+                            cloudSaved = true;
+                            console.log('Order saved to Supabase successfully.');
+                            break;
+                        }
+                        console.error('Order cloud insert error:', result.error);
+                    } catch (e) {
+                        console.warn('Cloud DB sync attempt failed:', e);
+                    }
+                }
+
+                // यदि insert ने duplicate बताया तो existing order को update करें।
+                if (!cloudSaved) {
+                    try {
                         const retry = await supabaseClient
                             .from('orders')
                             .update(cleanOrderPayload)
                             .eq('order_id', cleanOrderPayload.order_id)
                             .select();
                         if (!retry.error) cloudSaved = true;
-                    } else {
-                        cloudSaved = true;
-                    }
-                } catch (e) {
-                    console.warn("Cloud DB sync note:", e);
+                    } catch (e) {}
                 }
             }
 
