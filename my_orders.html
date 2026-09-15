@@ -471,51 +471,62 @@
         }
 
         async function syncWithCloudFast() {
-            let userObj = null;
-            try {
-                userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}');
-            } catch(e) {}
+            let userObj = {};
+            try { userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}'); } catch(e) {}
 
-            let phone = userObj ? (userObj.phone || userObj.mobile) : null;
-            if (!phone && fetchedOrdersList.length > 0) {
-                phone = fetchedOrdersList[0].mobile || fetchedOrdersList[0].phone;
-            }
+            const clean = v => String(v ?? '').trim();
+            const phone = clean(userObj.phone || userObj.mobile || (fetchedOrdersList[0] && (fetchedOrdersList[0].mobile || fetchedOrdersList[0].phone)));
 
-            if (!supabaseClient) {
-                renderOrdersUI();
-                return;
-            }
+            if (!supabaseClient) { renderOrdersUI(); return; }
 
             try {
-                let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(25);
-                if (phone) {
-                    query = query.or(`mobile.eq.${phone},phone.eq.${phone}`);
-                }
-
+                // हमेशा cloud के असली orders लाएँ ताकि Admin द्वारा बदला गया status तुरंत My Orders में दिखे।
+                let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
+                if (phone) query = query.or(`mobile.eq.${phone},phone.eq.${phone}`);
                 const { data, error } = await query;
-                if (!error && data && data.length > 0) {
-                    // Cloud + local merge: cloud sync में जो order अभी नहीं आया,
-                    // वह local My Orders से गायब नहीं होगा.
-                    let localMerged = [];
-                    try {
-                        localMerged = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                        if (!Array.isArray(localMerged)) localMerged = [];
-                    } catch(e) {}
+                if (error) throw error;
 
-                    const byKey = new Map();
-                    [...localMerged, ...data].forEach(item => {
-                        const k = String(item.order_id || item.id || '');
-                        if (k) byKey.set(k, item);
-                    });
-                    fetchedOrdersList = Array.from(byKey.values()).sort((a,b) =>
-                        new Date(b.created_at || 0) - new Date(a.created_at || 0)
-                    );
-                    localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
-                    renderOrdersUI();
-                } else {
-                    renderOrdersUI();
+                const cloud = Array.isArray(data) ? data : [];
+                let local = [];
+                try { local = JSON.parse(localStorage.getItem('my_orders_list') || '[]'); if(!Array.isArray(local)) local=[]; } catch(e) {}
+
+                // Cloud record को प्राथमिकता दें। Local record को केवल तभी रखें जब उसका cloud counterpart न मिला हो।
+                const merged = [];
+                const usedCloud = new Set();
+                const norm = v => clean(v).toLowerCase();
+                const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
+
+                for (const l of local) {
+                    let best = null, bestScore = -1, bestIndex = -1;
+                    for (let i=0;i<cloud.length;i++) {
+                        if (usedCloud.has(i)) continue;
+                        const c=cloud[i]; let score=0;
+                        if (l.id && c.id && String(l.id)===String(c.id)) score += 100;
+                        if (l.order_id && c.order_id && norm(l.order_id)===norm(c.order_id)) score += 90;
+                        if (norm(l.mobile||l.phone) && norm(l.mobile||l.phone)===norm(c.mobile||c.phone)) score += 35;
+                        if (norm(l.customer_name||l.name) && norm(l.customer_name||l.name)===norm(c.customer_name||c.name)) score += 20;
+                        if (norm(l.card_title||l.card_name) && norm(l.card_title||l.card_name)===norm(c.card_title||c.card_name)) score += 15;
+                        const lt=num(l.total_amount), ct=num(c.total_amount);
+                        if (lt!==null && ct!==null && Math.abs(lt-ct)<0.01) score += 15;
+                        if (l.created_at && c.created_at) {
+                            const diff=Math.abs(new Date(l.created_at).getTime()-new Date(c.created_at).getTime());
+                            if (Number.isFinite(diff) && diff <= 24*60*60*1000) score += 10;
+                        }
+                        if (score>bestScore) { bestScore=score; best=c; bestIndex=i; }
+                    }
+                    if (best && bestScore >= (l.id ? 100 : (l.order_id ? 90 : 45))) {
+                        merged.push({...l,...best}); usedCloud.add(bestIndex);
+                    } else {
+                        merged.push(l);
+                    }
                 }
+                for (let i=0;i<cloud.length;i++) if(!usedCloud.has(i)) merged.push(cloud[i]);
+
+                fetchedOrdersList = merged.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+                localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
+                renderOrdersUI();
             } catch(e) {
+                console.error('My Orders cloud sync error:', e);
                 renderOrdersUI();
             }
         }
@@ -696,49 +707,53 @@
         async function resolveCustomerOrder(index){
             let ord=fetchedOrdersList[index];
             if(!ord) return null;
-            if(ord.id) return ord;
-            if(!supabaseClient) return null;
+            if(!supabaseClient) return ord.id ? ord : null;
             try{
-                let userObj={};
-                try{ userObj=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}'); }catch(e){}
-                const phone=String(userObj.phone||userObj.mobile||ord.mobile||ord.phone||'').trim();
-                if(!phone) return null;
-
-                const {data,error}=await supabaseClient.from('orders').select('*')
-                    .or(`mobile.eq.${phone},phone.eq.${phone}`)
-                    .order('id',{ascending:false}).limit(50);
-                if(error) throw error;
-                const rows=data||[];
-                if(!rows.length) return null;
-
-                const localOrderNo=String(ord.order_id||'').trim();
-                const localCard=String(ord.card_title||ord.card_name||'').trim().toLowerCase();
-                const localModel=String(ord.card_model||ord.model||'').trim().toLowerCase();
+                const clean=v=>String(v??'').trim();
+                const norm=v=>clean(v).toLowerCase();
+                const localId=clean(ord.id);
+                const localOrderNo=clean(ord.order_id);
+                const localPhone=clean(ord.mobile||ord.phone);
+                const localName=norm(ord.customer_name||ord.name);
+                const localCard=norm(ord.card_title||ord.card_name);
+                const localModel=norm(ord.card_model||ord.model);
                 const localTotal=parseFloat(ord.total_amount||0);
                 const localTime=ord.created_at?new Date(ord.created_at).getTime():0;
 
-                // सबसे पहले पुराने order_id से मिलान, अगर cloud में वह field मौजूद हो।
-                let match=localOrderNo ? rows.find(x=>String(x.order_id||'').trim()===localOrderNo) : null;
-                // फिर तारीख/समय + कार्ड/राशि से सबसे नजदीकी रिकॉर्ड खोजें।
-                if(!match && localTime){
-                    let candidates=rows.filter(x=>{
-                        const t=new Date(x.created_at||0).getTime();
-                        const card=String(x.card_title||x.card_name||'').trim().toLowerCase();
-                        const model=String(x.card_model||x.model||'').trim().toLowerCase();
-                        const total=parseFloat(x.total_amount||0);
-                        return Math.abs(t-localTime)<=24*60*60*1000 &&
-                               (!localCard || !card || localCard===card) &&
-                               (!localModel || !model || localModel===model) &&
-                               (!localTotal || !total || Math.abs(localTotal-total)<0.01);
-                    });
-                    candidates.sort((a,b)=>Math.abs(new Date(a.created_at||0).getTime()-localTime)-Math.abs(new Date(b.created_at||0).getTime()-localTime));
-                    match=candidates[0]||null;
+                // पहले exact database id से रिकॉर्ड लें।
+                if(localId){
+                    const r=await supabaseClient.from('orders').select('*').eq('id',localId).limit(1);
+                    if(!r.error && r.data && r.data[0]){
+                        fetchedOrdersList[index]={...ord,...r.data[0]};
+                        localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
+                        return fetchedOrdersList[index];
+                    }
                 }
-                // अगर फोन से केवल एक ही cloud order मिला तो वही निश्चित रिकॉर्ड है।
-                if(!match && rows.length===1) match=rows[0];
 
-                if(match){
-                    fetchedOrdersList[index]={...ord,...match};
+                // फिर सभी उपलब्ध ग्राहक orders में मजबूत matching करें।
+                let q=supabaseClient.from('orders').select('*').order('id',{ascending:false}).limit(100);
+                if(localPhone) q=q.or(`mobile.eq.${localPhone},phone.eq.${localPhone}`);
+                const {data,error}=await q;
+                if(error) throw error;
+                const rows=data||[];
+                let best=null,bestScore=-1;
+                for(const x of rows){
+                    let score=0;
+                    if(localOrderNo && clean(x.order_id)===localOrderNo) score+=100;
+                    if(localPhone && clean(x.mobile||x.phone)===localPhone) score+=45;
+                    if(localName && norm(x.customer_name||x.name)===localName) score+=30;
+                    if(localCard && norm(x.card_title||x.card_name)===localCard) score+=20;
+                    if(localModel && norm(x.card_model||x.model)===localModel) score+=15;
+                    const xt=parseFloat(x.total_amount||0);
+                    if(localTotal && xt && Math.abs(localTotal-xt)<0.01) score+=15;
+                    if(localTime && x.created_at){
+                        const diff=Math.abs(new Date(x.created_at).getTime()-localTime);
+                        if(Number.isFinite(diff) && diff<=24*60*60*1000) score+=10;
+                    }
+                    if(score>bestScore){bestScore=score;best=x;}
+                }
+                if(best && bestScore>=30){
+                    fetchedOrdersList[index]={...ord,...best};
                     localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
                     return fetchedOrdersList[index];
                 }
@@ -803,9 +818,13 @@
         }
 
         async function setCustomerCorrectionStatus(status){
-            const index=customerCorrectionIndex, id=customerCorrectionOrderId;
-            if(index===null||!id||!supabaseClient){ alert('ऑर्डर Database से लिंक नहीं है।'); return; }
+            const index=customerCorrectionIndex;
+            if(index===null||!supabaseClient){ alert('Database connection उपलब्ध नहीं है।'); return; }
             try{
+                const ord=await resolveCustomerOrder(index);
+                const id=ord&&ord.id;
+                if(!id){ alert('इस ऑर्डर का Database रिकॉर्ड नहीं मिला। कृपया रिफ्रेश के बाद दोबारा खोलें।'); return; }
+                customerCorrectionOrderId=id;
                 const payload={correction_status:status};
                 if(status==='approved') payload.status='Approved';
                 const {data,error}=await supabaseClient.from('orders').update(payload).eq('id',id).select().single();
