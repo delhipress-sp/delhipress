@@ -1159,7 +1159,10 @@
                 data.forEach(item => {
                     const opt = document.createElement('option');
                     opt.value = item.id;
-                    opt.textContent = `${item.name || 'शादी कार्ड'} (${item.model || ''}) - ₹${item.rate || 0}/पीस`;
+                    const catalogRate = parseFloat(item.catalog_rate ?? item.original_rate ?? item.mrp ?? item.rate ?? item.price ?? 0) || 0;
+                    const saleRate = parseFloat(item.sale_rate ?? item.selling_price ?? item.rate ?? item.price ?? catalogRate) || 0;
+                    const discount = catalogRate > 0 && saleRate < catalogRate ? ` | ${Math.round(((catalogRate - saleRate) / catalogRate) * 100)}% OFF` : '';
+                    opt.textContent = `${item.name || 'शादी कार्ड'} (${item.model || ''}) - ₹${saleRate}/पीस${discount}`;
                     dropdown.appendChild(opt);
                 });
             } else {
@@ -1177,7 +1180,9 @@
             const imgUrl = card.image || card.image_url || card.photo || '';
             const name = card.name || card.title || 'शादी कार्ड';
             const model = card.model || card.code || '';
-            const rate = parseFloat(card.rate || card.price) || 0;
+            const catalogRate = parseFloat(card.catalog_rate ?? card.original_rate ?? card.mrp ?? card.rate ?? card.price ?? 0) || 0;
+            const rate = parseFloat(card.sale_rate ?? card.selling_price ?? card.rate ?? card.price ?? catalogRate) || 0;
+            const discount = catalogRate > 0 && rate < catalogRate ? Math.round(((catalogRate - rate) / catalogRate) * 100) : 0;
 
             const imgElem = document.getElementById('previewCardImage');
             if (imgUrl && imgUrl.trim() !== "" && imgUrl !== "null") {
@@ -1188,7 +1193,7 @@
 
             document.getElementById('previewCardName').innerText = name;
             document.getElementById('previewCardModel').innerText = model ? `मॉडल / कोड: ${model}` : '';
-            document.getElementById('previewCardRate').innerText = `मूल्य: ₹${rate} / पीस`;
+            document.getElementById('previewCardRate').innerHTML = catalogRate > rate && discount > 0 ? `<span style="text-decoration:line-through;color:#94a3b8;">₹${catalogRate}/पीस</span> <b style="color:#dc2626;font-size:16px;">₹${rate}/पीस</b> <span style="color:#15803d;font-weight:800;">(${discount}% OFF)</span>` : `मूल्य: ₹${rate} / पीस`;
 
             document.getElementById('cardCategory').value = model ? `${name} (${model})` : name;
             document.getElementById('cardRate').value = rate;
