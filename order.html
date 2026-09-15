@@ -411,7 +411,7 @@
         <div class="form-wrapper">
             <div class="section-header" id="currentSectionTitle" data-i18n="title_wedding">शादी कार्ड ऑर्डर फॉर्म</div>
 
-            <form id="masterOrderForm" onsubmit="event.preventDefault(); processUniversalOrder();">
+            <form id="masterOrderForm" onsubmit="return false;">
                 
                 <div class="form-block" style="border-left-color: var(--blue);">
                     <h4><i class="fa-solid fa-user-tag" style="color:var(--blue);"></i> <span data-i18n="cust_header">ग्राहक का विवरण (Customer Details)</span></h4>
@@ -738,7 +738,7 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn-order-now">
+                <button type="button" class="btn-order-now" onclick="continueToPayment();">
                     <i class="fa-solid fa-bag-shopping"></i> <span data-i18n="btn_order_now">Continue (भुगतान पृष्ठ पर जाएं)</span>
                 </button>
 
@@ -1429,6 +1429,18 @@
 
             await convertWordBeforeSpace(el, previousValue, cursor - 1);
         }, true);
+
+        function continueToPayment() {
+            const form = document.getElementById('masterOrderForm');
+            if (!form) return;
+            if (typeof form.reportValidity === 'function' && !form.reportValidity()) return;
+            try {
+                processUniversalOrder();
+            } catch (err) {
+                console.error('Continue error:', err);
+                alert('फॉर्म आगे नहीं जा रहा है। कृपया सभी जरूरी जानकारी भरकर फिर Continue दबाएं।');
+            }
+        }
 
         function processUniversalOrder() {
             const fullName = document.getElementById('custFullName').value;
