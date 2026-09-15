@@ -1369,30 +1369,65 @@
         }
 
         // English → Hindi conversion केवल SPACE (स्पेस) दबाने पर होगी।
-        // टाइप करते समय अपने-आप conversion नहीं होगा।
+        // Mobile keyboard में कई बार keydown event नहीं आता, इसलिए input event भी handle किया गया है।
+        async function convertWordBeforeSpace(el, beforeValue, cursorPos) {
+            if (!shouldTransliterateInput(el)) return false;
+            const pos = cursorPos == null ? beforeValue.length : cursorPos;
+            const left = beforeValue.slice(0, pos);
+            const right = beforeValue.slice(pos);
+            const match = left.match(/([A-Za-z][A-Za-z0-9'’.-]*)\s*$/);
+            if (!match) return false;
+
+            const word = match[1];
+            const wordStart = left.length - match[0].length + (match[0].length - match[1].length - (left.endsWith(' ') ? 1 : 0));
+            // Safer exact word start calculation.
+            const exactStart = left.lastIndexOf(word);
+            if (exactStart < 0) return false;
+
+            const hindi = await transliterateToHindi(word);
+            if (!hindi || el.value !== beforeValue) return false;
+
+            el.value = beforeValue.slice(0, exactStart) + hindi + ' ' + right;
+            try {
+                const newPos = exactStart + hindi.length + 1;
+                el.setSelectionRange(newPos, newPos);
+            } catch (err) {}
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+        }
+
         document.addEventListener('keydown', async function(e) {
             const el = e.target;
             if (e.key !== ' ' || !shouldTransliterateInput(el)) return;
-
             const before = el.value;
             const cursor = el.selectionStart;
             const endPos = el.selectionEnd;
             if (cursor !== endPos) return;
-
-            const textBeforeCursor = before.slice(0, cursor);
-            if (!/[A-Za-z]/.test(textBeforeCursor)) return;
+            if (!/[A-Za-z]/.test(before.slice(0, cursor))) return;
 
             e.preventDefault();
-            const hindi = await transliterateToHindi(textBeforeCursor);
-            if (!hindi || el.value !== before) return;
+            await convertWordBeforeSpace(el, before, cursor);
+        }, true);
 
-            el.value = hindi + ' ' + before.slice(cursor);
-            try {
-                const newPos = hindi.length + 1;
-                el.setSelectionRange(newPos, newPos);
-            } catch (err) {}
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
+        // Android/iPhone virtual keyboards: space is often delivered through input,
+        // not keydown. Detect only a newly inserted SPACE and convert the last word.
+        document.addEventListener('input', async function(e) {
+            const el = e.target;
+            if (!shouldTransliterateInput(el)) return;
+            if (e.inputType !== 'insertText' || e.data !== ' ') return;
+
+            const after = el.value;
+            const cursor = el.selectionStart;
+            if (cursor == null || cursor < 2) return;
+            const before = after.slice(0, cursor - 1);
+            if (!/[A-Za-z]/.test(before)) return;
+
+            // Remove the just-inserted space while conversion is being requested.
+            const previousValue = before + after.slice(cursor);
+            el.value = previousValue;
+            try { el.setSelectionRange(cursor - 1, cursor - 1); } catch (err) {}
+
+            await convertWordBeforeSpace(el, previousValue, cursor - 1);
         }, true);
 
         function processUniversalOrder() {
@@ -1512,7 +1547,7 @@
             };
 
             localStorage.setItem('dp_temp_order', JSON.stringify(fullPayload));
-            window.location.href = "payment_admin_fixed.html";
+            window.location.href = "payment.html";
         }
 
         const policyContents = {
