@@ -111,7 +111,7 @@
         .r-table th, .r-table td { border: 1px solid #334155; padding: 8px 10px; font-size: 12px; text-align: left; }
         .r-table th { background: #f1f5f9; color: #0f172a; font-weight: 800; }
         .receipt-screenshot-box { text-align: center; background: #f8fafc; border: 1px dashed #64748b; border-radius: 8px; padding: 12px; }
-        .receipt-screenshot-box img { max-width: 250px; max-height: 280px; border-radius: 6px; }
+        .receipt-screenshot-box img { max-width: 100%; max-height: 500px; width: auto; height: auto; border-radius: 6px; border:1px solid #cbd5e1; object-fit:contain; }
 
         @media print {
             body * { visibility: hidden; }
@@ -694,6 +694,13 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function getCompleteOrderMatter(o) {
+            // केवल ऑर्डर फॉर्म में सेव किया गया टाइप किया हुआ मैटर।
+            // दूसरे database columns को receipt में बिल्कुल नहीं मिलाया जाएगा।
+            const matter = o.custom_notes;
+            return (matter === null || matter === undefined) ? '' : String(matter);
+        }
+
         function buildFullMatterRows(matter) {
             const text = String(matter || '').trim();
             if (!text) {
@@ -748,6 +755,29 @@
 
         function openOrderReceiptModal(orderIdentifier) {
             const o = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier)) || {};
+
+            // केवल Order Form में बना हुआ custom_notes ही receipt में दिखाएँ।
+            // यदि पुराने cloud record में custom_notes खाली है, तो उसी order का
+            // local backup देखें। दूसरे database fields को matter में कभी न मिलाएँ।
+            let receiptOrderNotes = String(o.custom_notes || '').trim();
+            if (!receiptOrderNotes) {
+                try {
+                    const localLists = ['dp_all_orders','my_orders_list','user_orders','dp_my_orders'];
+                    for (const key of localLists) {
+                        const list = JSON.parse(localStorage.getItem(key) || '[]');
+                        if (!Array.isArray(list)) continue;
+                        const localMatch = list.find(x =>
+                            String(x.order_id || '') === String(o.order_id || '') ||
+                            String(x.id || '') === String(o.id || '')
+                        );
+                        if (localMatch && String(localMatch.custom_notes || '').trim()) {
+                            receiptOrderNotes = String(localMatch.custom_notes).trim();
+                            break;
+                        }
+                    }
+                } catch(e) {}
+            }
+
             const cardImg = o.card_image || o.image || o.card_photo || '';
             const receiptImg = o.payment_receipt || o.screenshot || '';
             const total = parseFloat(o.total_amount || 0);
@@ -780,7 +810,6 @@
                 <div class="r-table-title" style="background:#b91c1c;">2. वैवाहिक विवरण</div>
                 <table class="r-table">
                     <tr><th>लड़का</th><td>${o.groom_name || o.groom || '-'}</td><th>लड़की</th><td>${o.bride_name || o.bride || '-'}</td></tr>
-                    <tr><th>शुभ विवाह / बारात</th><td colspan="3">${o.barat_date || o.wedding_date || '-'}</td></tr>
                 </table>
                 <div class="r-table-title" style="background:#15803d;">3. भुगतान विवरण</div>
                 <table class="r-table">
@@ -789,7 +818,7 @@
                 </table>
                 <div class="r-table-title" style="background:#7c3aed;">4. ऑर्डर फॉर्म के अनुसार पूरा भरा हुआ मैटर</div>
                 <table class="r-table full-matter-table">
-                    ${buildFullMatterRows(o.custom_notes || o.order_notes || o.notes || '')}
+                    ${buildFullMatterRows(o.custom_notes || '')}
                 </table>
 
                 <div class="r-table-title" style="background:#475569;">5. भुगतान विवरण — UTR / स्क्रीनशॉट</div>
@@ -800,7 +829,14 @@
                     </tr>
                 </table>
                 <div class="receipt-screenshot-box">
-                    ${receiptImg ? `<img src="${receiptImg}" alt="Payment Proof">` : `<p style="color:#64748b; font-size:12px;">कोई स्क्रीनशॉट नहीं है।</p>`}
+                    ${receiptImg ? `
+                        <a href="${escapeAdminReceiptText(receiptImg)}" target="_blank" rel="noopener" style="display:inline-block;">
+                            <img src="${escapeAdminReceiptText(receiptImg)}" alt="Payment Proof"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+                            <span style="display:none;padding:10px 14px;background:#2563eb;color:#fff;border-radius:7px;font-weight:700;">
+                                📷 स्क्रीनशॉट खोलें
+                            </span>
+                        </a>` : `<p style="color:#64748b; font-size:12px;">कोई स्क्रीनशॉट नहीं है।</p>`}
                 </div>
             `;
             document.getElementById('orderModal').style.display = 'flex';
