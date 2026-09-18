@@ -328,7 +328,7 @@
             <div id="tabCatalogSection" style="display: none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h4 style="font-weight:800;">कैटलॉग कार्ड्स (रेट और स्टॉक स्थिति)</h4>
-                    <button onclick="loadCatalogStock()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
+                    <button onclick="catalogPage=0; catalogLoadedOnce=false; loadCatalogStock(true)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
                 </div>
                 <!-- CATALOG UPLOAD FORM -->
                 <div class="catalog-upload-box">
@@ -378,6 +378,7 @@
                         <thead>
                             <tr>
                                 <th>फोटो</th>
+                                <th>प्रिव्यू</th>
                                 <th>नाम</th>
                                 <th>मॉडल</th>
                                 <th style="width:125px;">कैटलॉग रेट<br>(₹/पीस)</th>
@@ -391,6 +392,23 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- CATALOG PREVIEW MODAL -->
+    <div class="modal-overlay" id="catalogPreviewModal" style="display:none; z-index:100000;" onclick="if(event.target===this) closeCatalogPreview()">
+        <div class="modal-content" style="max-width:650px; width:min(650px,96vw);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <h3 id="catalogPreviewTitle" style="color:var(--primary);font-size:18px;font-weight:800;">
+                    <i class="fa-solid fa-eye"></i> कैटलॉग प्रिव्यू
+                </h3>
+                <button type="button" onclick="closeCatalogPreview()" style="border:none;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer;font-weight:bold;font-size:20px;">&times;</button>
+            </div>
+            <div style="text-align:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
+                <img id="catalogPreviewLargeImg" alt="Catalog Preview"
+                     style="display:block;max-width:100%;max-height:65vh;width:auto;height:auto;margin:auto;object-fit:contain;border-radius:8px;">
+            </div>
+            <div id="catalogPreviewMeta" style="margin-top:10px;text-align:center;font-size:13px;color:#475569;"></div>
         </div>
     </div>
 
@@ -781,21 +799,16 @@
             if (!file.type.startsWith('image/')) {
                 throw new Error('कृपया केवल JPG, PNG, WEBP आदि फोटो चुनें।');
             }
-            if (file.size > 15 * 1024 * 1024) {
-                throw new Error('फोटो 15 MB से छोटी रखें।');
+            if (file.size > 10 * 1024 * 1024) {
+                throw new Error('फोटो 10 MB से छोटी रखें।');
             }
 
             const ext = (file.name.split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'jpg';
             const safeId = String(recordId || Date.now()).replace(/[^a-zA-Z0-9_-]/g,'_');
             const path = `catalog/${safeId}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
-            /*
-             * IMPORTANT:
-             * "catalog" / "cards" bucket मौजूद नहीं होने पर पहले से upload fail हो रहा था।
-             * अब पहले वही buckets try होंगे, फिर इस project में पहले से इस्तेमाल हो रहे
-             * "order-corrections" bucket में catalog/ folder के अंदर फोटो रखी जाएगी।
-             */
-            const buckets = ['catalog', 'cards', 'order-corrections'];
+            // सामान्य bucket "catalog" पहले, फिर "cards" fallback.
+            const buckets = ['catalog', 'cards'];
             let lastError = null;
 
             for (const bucket of buckets) {
@@ -804,7 +817,6 @@
                         contentType: file.type,
                         upsert: false
                     });
-
                     if (!error) {
                         const { data } = supabaseClient.storage.from(bucket).getPublicUrl(path);
                         if (data && data.publicUrl) return data.publicUrl;
@@ -815,78 +827,10 @@
                 }
             }
 
-            /*
-             * अंतिम fallback:
-             * यदि Storage bucket उपलब्ध नहीं है तो छोटी compressed image को Data URL
-             * के रूप में Database में सेव किया जाएगा। इससे नया bucket बनाने की जरूरत नहीं।
-             */
-            try {
-                const dataUrl = await compressCatalogImageToDataUrl(file);
-                if (dataUrl) return dataUrl;
-            } catch(e) {
-                lastError = e;
-            }
-
             throw new Error(
-                'फोटो अपलोड नहीं हो सकी। Supabase Storage bucket उपलब्ध नहीं है और फोटो को Database में भी तैयार नहीं किया जा सका।' +
+                'फोटो Storage में अपलोड नहीं हुई। Supabase में "catalog" या "cards" Storage bucket और उसकी upload policy जाँचें।' +
                 (lastError && lastError.message ? '\n' + lastError.message : '')
             );
-        }
-
-        function compressCatalogImageToDataUrl(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-
-                reader.onload = () => {
-                    const img = new Image();
-
-                    img.onload = () => {
-                        try {
-                            const maxSide = 1200;
-                            const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
-                            const w = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
-                            const h = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
-
-                            const canvas = document.createElement('canvas');
-                            canvas.width = w;
-                            canvas.height = h;
-
-                            const ctx = canvas.getContext('2d');
-                            if (!ctx) throw new Error('Image processing उपलब्ध नहीं है।');
-
-                            // Catalog card designs में transparent PNG होने पर सफेद background रखें।
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillRect(0, 0, w, h);
-                            ctx.drawImage(img, 0, 0, w, h);
-
-                            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-
-                            // बहुत बड़ी Data URL को फिर से छोटे आकार में compress करें।
-                            if (dataUrl.length > 700000) {
-                                const smaller = document.createElement('canvas');
-                                const s = 800 / Math.max(w, h);
-                                smaller.width = Math.max(1, Math.round(w * Math.min(1, s)));
-                                smaller.height = Math.max(1, Math.round(h * Math.min(1, s)));
-                                const sctx = smaller.getContext('2d');
-                                sctx.fillStyle = '#ffffff';
-                                sctx.fillRect(0, 0, smaller.width, smaller.height);
-                                sctx.drawImage(img, 0, 0, smaller.width, smaller.height);
-                                resolve(smaller.toDataURL('image/jpeg', 0.72));
-                            } else {
-                                resolve(dataUrl);
-                            }
-                        } catch(e) {
-                            reject(e);
-                        }
-                    };
-
-                    img.onerror = () => reject(new Error('कैटलॉग फोटो पढ़ी नहीं जा सकी।'));
-                    img.src = reader.result;
-                };
-
-                reader.onerror = () => reject(new Error('कैटलॉग फोटो पढ़ने में समस्या हुई।'));
-                reader.readAsDataURL(file);
-            });
         }
 
         function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl) {
@@ -954,7 +898,7 @@
 
             try {
                 if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> अपलोड हो रहा है...'; }
-                if (status) status.textContent = 'कैटलॉग फोटो सेव हो रही है...';
+                if (status) status.textContent = 'फोटो अपलोड हो रही है...';
 
                 // पहले unique path के लिए timestamp इस्तेमाल किया जाता है।
                 const imageUrl = await uploadCatalogImage(file, 'card');
@@ -1054,60 +998,206 @@
             `).join('');
         }
 
-        async function loadCatalogStock() {
+        let catalogPage = 0;
+        const CATALOG_PAGE_SIZE = 30;
+        let catalogActiveTable = 'catalog';
+        let catalogLoadedOnce = false;
+
+        function openCatalogPreview(imageUrl, title, model) {
+            const modal = document.getElementById('catalogPreviewModal');
+            const img = document.getElementById('catalogPreviewLargeImg');
+            const titleEl = document.getElementById('catalogPreviewTitle');
+            const meta = document.getElementById('catalogPreviewMeta');
+            if (!modal || !img) return;
+
+            img.src = imageUrl || 'https://via.placeholder.com/600x800?text=No+Image';
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-eye"></i> ' + escapeAdminReceiptText(title || 'कैटलॉग प्रिव्यू');
+            if (meta) meta.textContent = model ? ('मॉडल: ' + model) : '';
+            modal.style.display = 'flex';
+        }
+
+        function closeCatalogPreview() {
+            const modal = document.getElementById('catalogPreviewModal');
+            const img = document.getElementById('catalogPreviewLargeImg');
+            if (modal) modal.style.display = 'none';
+            if (img) img.removeAttribute('src');
+        }
+
+        async function loadCatalogStock(force = false) {
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="8">कैटलॉग लोड हो रहा है...</td></tr>';
 
-            const tables = ['catalog', 'cards', 'cards_catalog'];
-            let fetchedData = [];
-            let activeTable = 'catalog';
+            if (catalogLoadedOnce && !force) return;
 
-            if (supabaseClient) {
-                for (const tbl of tables) {
-                    try {
-                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
-                        if (!error && data && data.length > 0) {
-                            fetchedData = data;
-                            activeTable = tbl;
-                            break;
-                        }
-                    } catch (e) {}
-                }
-            }
+            tbody.innerHTML = '<tr><td colspan="9">कैटलॉग लोड हो रहा है...</td></tr>';
 
-            if (fetchedData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड नहीं मिला।</td></tr>';
+            if (!supabaseClient) {
+                tbody.innerHTML = '<tr><td colspan="8">Database connection उपलब्ध नहीं है।</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = fetchedData.map(c => {
-                const catalogRate = parseFloat(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
-                const saleRate = parseFloat(c.sale_rate ?? c.selling_price ?? c.rate ?? c.price ?? catalogRate) || 0;
-                const discount = catalogRate > 0 && saleRate < catalogRate ? Math.round(((catalogRate - saleRate) / catalogRate) * 100) : 0;
-                const inStock = c.in_stock !== false;
-                return `
-                <tr>
-                    <td><img src="${c.image || c.image_url || 'https://via.placeholder.com/45'}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;"></td>
-                    <td><b>${c.name || c.title || '-'}</b></td>
-                    <td>${c.model || c.code || '-'}</td>
-                    <td><b style="color:#64748b;">₹${catalogRate.toLocaleString('en-IN')}</b></td>
-                    <td>
-                        <div style="display:flex; align-items:center; justify-content:center;">
-                            <input type="number" id="saleRateInput_${c.id}" value="${saleRate}" style="width:78px; text-align:center; padding:4px;" step="0.5" min="0">
-                            <button class="btn-save-rate" onclick="saveCardSaleRate('${activeTable}', '${c.id}')" title="सेल रेट सेव करें"><i class="fa-solid fa-floppy-disk"></i></button>
-                        </div>
-                    </td>
-                    <td>${discount > 0 ? `<b style="color:#dc2626;">${discount}% OFF</b>` : '<span style="color:#64748b;">0%</span>'}</td>
-                    <td>
-                        <button onclick="toggleCardStock('${activeTable}', '${c.id}', ${!inStock})" style="background:${inStock ? '#dcfce7':'#fee2e2'}; color:${inStock ? '#15803d':'#b91c1c'}; border:1px solid currentColor; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">
-                            ${inStock ? '✓ उपलब्ध' : '✕ समाप्त'}
-                        </button>
-                    </td>
-                    <td><button class="btn-del" onclick="deleteCatalogCard('${activeTable}', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `}).join('');
+            const selectCols = 'id,name,title,model,code,image,image_url,catalog_rate,original_rate,mrp,sale_rate,selling_price,rate,price,in_stock';
+
+            try {
+                // पहले catalog table को इस्तेमाल करें। केवल जरूरत पर fallback tables देखें।
+                let result = await supabaseClient
+                    .from('catalog')
+                    .select(selectCols, { count: 'exact' })
+                    .order('id', { ascending: false })
+                    .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+
+                if (result.error) {
+                    result = await supabaseClient
+                        .from('cards')
+                        .select(selectCols, { count: 'exact' })
+                        .order('id', { ascending: false })
+                        .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+                    catalogActiveTable = 'cards';
+                } else {
+                    catalogActiveTable = 'catalog';
+                }
+
+                if (result.error) {
+                    result = await supabaseClient
+                        .from('cards_catalog')
+                        .select(selectCols, { count: 'exact' })
+                        .order('id', { ascending: false })
+                        .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+                    catalogActiveTable = 'cards_catalog';
+                }
+
+                if (result.error) throw result.error;
+
+                const fetchedData = result.data || [];
+                const total = result.count || fetchedData.length;
+
+                if (!fetchedData.length) {
+                    tbody.innerHTML = '<tr><td colspan="9">कोई कार्ड नहीं मिला।</td></tr>';
+                    updateCatalogPager(0, 0);
+                    catalogLoadedOnce = true;
+                    return;
+                }
+
+                tbody.innerHTML = fetchedData.map(c => {
+                    const catalogRate = parseFloat(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
+                    const saleRate = parseFloat(c.sale_rate ?? c.selling_price ?? c.rate ?? c.price ?? catalogRate) || 0;
+                    const discount = catalogRate > 0 && saleRate < catalogRate
+                        ? Math.round(((catalogRate - saleRate) / catalogRate) * 100) : 0;
+                    const inStock = c.in_stock !== false;
+                    const img = c.image || c.image_url || 'https://via.placeholder.com/45';
+
+                    return `
+                    <tr>
+                        <td>
+                            <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+                                 data-src="${img}" loading="lazy" decoding="async"
+                                 style="width:45px;height:45px;object-fit:cover;border-radius:6px;background:#f8fafc;"
+                                 onload="if(this.dataset.src){const u=this.dataset.src;this.removeAttribute('data-src');this.src=u;}"
+                                 onerror="this.style.opacity='.35';">
+                        </td>
+                        <td>
+                            <button type="button" onclick="openCatalogPreview('${String(img).replace(/'/g, "\\'")}', '${String(c.name || c.title || 'कैटलॉग कार्ड').replace(/'/g, "\\'")}', '${String(c.model || c.code || '').replace(/'/g, "\\'")}')"
+                                style="background:#7c3aed;color:#fff;border:0;padding:6px 10px;border-radius:7px;cursor:pointer;font-weight:800;">
+                                <i class="fa-solid fa-eye"></i> प्रिव्यू
+                            </button>
+                        </td>
+                        <td><b>${c.name || c.title || '-'}</b></td>
+                        <td>${c.model || c.code || '-'}</td>
+                        <td><b style="color:#64748b;">₹${catalogRate.toLocaleString('en-IN')}</b></td>
+                        <td>
+                            <div style="display:flex;align-items:center;justify-content:center;">
+                                <input type="number" id="saleRateInput_${c.id}" value="${saleRate}" style="width:78px;text-align:center;padding:4px;" step="0.5" min="0">
+                                <button class="btn-save-rate" onclick="saveCardSaleRate('${catalogActiveTable}','${c.id}')">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>${discount > 0 ? `<b style="color:#dc2626;">${discount}% OFF</b>` : '<span style="color:#64748b;">0%</span>'}</td>
+                        <td>
+                            <button onclick="toggleCardStock('${catalogActiveTable}','${c.id}',${!inStock})"
+                                style="background:${inStock ? '#dcfce7':'#fee2e2'};color:${inStock ? '#15803d':'#b91c1c'};border:1px solid currentColor;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:bold;">
+                                ${inStock ? '✓ उपलब्ध' : '✕ समाप्त'}
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn-del" onclick="deleteCatalogCard('${catalogActiveTable}','${c.id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                updateCatalogPager(total, fetchedData.length);
+                catalogLoadedOnce = true;
+
+                // Lazy-load visible images without blocking table rendering.
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('#catalogTableBody img[data-src]').forEach(img => {
+                        if ('IntersectionObserver' in window) {
+                            if (!window.__catalogImageObserver) {
+                                window.__catalogImageObserver = new IntersectionObserver(entries => {
+                                    entries.forEach(entry => {
+                                        if (entry.isIntersecting) {
+                                            const el = entry.target;
+                                            const u = el.dataset.src;
+                                            if (u) {
+                                                el.src = u;
+                                                el.removeAttribute('data-src');
+                                            }
+                                            window.__catalogImageObserver.unobserve(el);
+                                        }
+                                    }, {rootMargin:'300px'});
+                            }
+                            window.__catalogImageObserver.observe(img);
+                        } else {
+                            const u = img.dataset.src;
+                            if (u) { img.src = u; img.removeAttribute('data-src'); }
+                        }
+                    });
+                });
+
+            } catch (e) {
+                console.error('Catalog load error:', e);
+                tbody.innerHTML = `<tr><td colspan="9">कैटलॉग लोड नहीं हुआ।<br><small>${String(e.message || e)}</small></td></tr>`;
+            }
         }
+
+        function updateCatalogPager(total, currentCount) {
+            let pager = document.getElementById('catalogPager');
+            if (!pager) {
+                const section = document.getElementById('tabCatalogSection');
+                if (!section) return;
+                pager = document.createElement('div');
+                pager.id = 'catalogPager';
+                pager.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;';
+                const wrapper = section.querySelector('.admin-table-wrapper');
+                if (wrapper) wrapper.after(pager);
+            }
+
+            const pages = Math.max(1, Math.ceil((total || currentCount || 0) / CATALOG_PAGE_SIZE));
+            const current = catalogPage + 1;
+
+            pager.innerHTML = `
+                <button type="button" onclick="changeCatalogPage(-1)" ${catalogPage <= 0 ? 'disabled' : ''}
+                    style="padding:7px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font-weight:bold;cursor:pointer;">
+                    ← पिछला
+                </button>
+                <span style="font-size:12px;font-weight:800;color:#475569;">पेज ${current} / ${pages}</span>
+                <button type="button" onclick="changeCatalogPage(1)" ${current >= pages ? 'disabled' : ''}
+                    style="padding:7px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font-weight:bold;cursor:pointer;">
+                    अगला →
+                </button>
+            `;
+        }
+
+        async function changeCatalogPage(direction) {
+            const next = catalogPage + direction;
+            if (next < 0) return;
+            catalogPage = next;
+            catalogLoadedOnce = false;
+            await loadCatalogStock(true);
+        }
+
 
         async function saveCardSaleRate(table, cardId) {
             const input = document.getElementById(`saleRateInput_${cardId}`);
