@@ -865,12 +865,19 @@
             const sr = Number.isFinite(saleRate) ? saleRate : cr;
             const c = (category || 'Muslim Card').trim();
 
+            // हर schema के लिए पहले category सहित और फिर category के बिना payload रखा गया है।
+            // इससे जिस table में category column नहीं है, वहाँ upload फिर भी हो सकेगा।
             return [
                 {name:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {name:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
                 {title:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {title:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
                 {name:n, code:m, category:c, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
+                {name:n, code:m, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
                 {title:n, code:m, category:c, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
-                {name:n, category:c, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
+                {title:n, code:m, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
+                {name:n, category:c, image_url:imageUrl, rate:sr, price:sr, in_stock:true},
+                {name:n, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
             ];
         }
 
@@ -883,9 +890,11 @@
             for (const table of tables) {
                 for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category)) {
                     try {
-                        const { data, error } = await supabaseClient.from(table).insert(payload).select('*').single();
-                        if (!error && data) {
-                            return {table, data};
+                        // केवल INSERT करें; .select() लगाने से अलग SELECT/RLS permission के कारण
+                        // सफल INSERT भी failure जैसा दिख सकता है।
+                        const { error } = await supabaseClient.from(table).insert(payload);
+                        if (!error) {
+                            return {table, data: payload};
                         }
                         lastError = error;
                     } catch(e) {
