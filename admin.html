@@ -190,6 +190,8 @@
             #printableReceiptArea { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
         }
     
+        .receipt-meta{font-size:11px;margin-top:6px;color:#475569}.receipt-card-block h4{font-size:17px;margin-bottom:5px}.receipt-matter{border:1px solid #cbd5e1;border-top:0;background:#fff}.matter-section-title{background:#eef2ff;color:#1e3a8a;font-weight:900;padding:8px 10px;border-bottom:1px solid #cbd5e1}.matter-item{display:grid;grid-template-columns:190px 1fr;border-bottom:1px solid #e2e8f0}.matter-item:last-child{border-bottom:0}.matter-label{font-weight:800;background:#f8fafc;padding:9px 10px;border-right:1px solid #e2e8f0}.matter-value{padding:9px 10px;white-space:pre-wrap;word-break:break-word}.event-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.event-grid span{display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px;font-size:11px}.event-grid small{display:block;color:#64748b;font-weight:700;margin-bottom:2px}.matter-empty{padding:12px;color:#64748b}.paid{color:#15803d;font-weight:900}.due{color:#dc2626;font-weight:900}.receipt-footer{text-align:center;border-top:2px dashed #94a3b8;margin-top:16px;padding-top:10px;font-size:10px;color:#64748b;line-height:1.6}@media(max-width:600px){.matter-item{grid-template-columns:1fr}.matter-label{border-right:0;border-bottom:1px solid #e2e8f0}.event-grid{grid-template-columns:1fr 1fr}}
+
         .full-matter-table th {
             width: 22%;
             vertical-align: top;
@@ -1336,151 +1338,82 @@
         }
 
         function getCompleteOrderMatter(o) {
-            // केवल ऑर्डर फॉर्म में सेव किया गया टाइप किया हुआ मैटर।
-            // दूसरे database columns को receipt में बिल्कुल नहीं मिलाया जाएगा।
-            const matter = o.custom_notes;
-            return (matter === null || matter === undefined) ? '' : String(matter);
+            const keys = ['custom_notes','order_notes','orderNotes','notes','matter','custom_matter'];
+            for (const k of keys) {
+                if (o && o[k] !== undefined && o[k] !== null && String(o[k]).trim()) return String(o[k]).trim();
+            }
+            return '';
         }
 
-        function buildFullMatterRows(matter) {
+        function buildReceiptMatter(matter) {
             const text = String(matter || '').trim();
-            if (!text) {
-                return `<tr><th>मैटर</th><td colspan="3">ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।</td></tr>`;
-            }
-
-            const lines = text.split(/\r?\n/);
-            let html = '';
-            let pendingLabel = null;
-
-            lines.forEach(line => {
-                const raw = String(line || '').trim();
-                if (!raw) return;
-
-                // Section headings such as --- [वैवाहिक कार्यक्रम] ---
-                if (/^---\s*\[.*\]\s*---$/.test(raw)) {
-                    html += `<tr><th colspan="4" style="background:#f8fafc; text-align:left;">${escapeAdminReceiptText(raw.replace(/^---\s*\[|\]\s*---$/g,''))}</th></tr>`;
-                    pendingLabel = null;
+            if (!text) return '<div class="matter-empty">ऑर्डर फॉर्म में अतिरिक्त मैटर दर्ज नहीं है।</div>';
+            const lines = text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+            let html='', section='';
+            const esc=escapeAdminReceiptText;
+            lines.forEach(raw=>{
+                const sec=raw.match(/^---\s*\[([^\]]+)\]\s*---$/);
+                if(sec){ section=sec[1].trim(); html += `<div class="matter-section"><div class="matter-section-title">${esc(section)}</div></div>`; return; }
+                const ev=raw.match(/^कार्यक्रम\s*:\s*(.*?)\s*\|\s*तारीख\s*:\s*(.*?)\s*\|\s*दिन\s*:\s*(.*?)\s*\|\s*समय का भाग\s*:\s*(.*?)\s*\|\s*समय\s*:\s*(.*)$/);
+                if(ev){
+                    html += `<div class="matter-item event-item"><div class="matter-label">कार्यक्रम</div><div class="matter-value"><b>${esc(ev[1]||'-')}</b><div class="event-grid"><span><small>तारीख</small>${esc(ev[2]||'-')}</span><span><small>दिन</small>${esc(ev[3]||'-')}</span><span><small>समय का भाग</small>${esc(ev[4]||'-')}</span><span><small>समय</small>${esc(ev[5]||'-')}</span></div></div></div>`;
                     return;
                 }
-
-                // Pair format: "वर: ...", "कार्यक्रम: ...", etc.
-                const m = raw.match(/^([^:|]+):\s*(.*)$/);
-                if (m) {
-                    const label = m[1].trim();
-                    const value = m[2].trim();
-
-                    // Keep long event lines readable in a single full-width row.
-                    if (raw.includes(' | ')) {
-                        html += `<tr><th>${escapeAdminReceiptText(label)}</th><td colspan="3">${escapeAdminReceiptText(value)}</td></tr>`;
-                    } else {
-                        html += `<tr><th>${escapeAdminReceiptText(label)}</th><td colspan="3">${escapeAdminReceiptText(value || '-')}</td></tr>`;
-                    }
-                    pendingLabel = null;
+                const pair=raw.match(/^([^:|]+):\s*(.*)$/);
+                if(pair){
+                    const label=pair[1].trim(), value=pair[2].trim();
+                    html += `<div class="matter-item"><div class="matter-label">${esc(label)}</div><div class="matter-value">${esc(value||'-')}</div></div>`;
                 } else {
-                    // Lines without a colon are still shown, never discarded.
-                    html += `<tr><th>विवरण</th><td colspan="3">${escapeAdminReceiptText(raw)}</td></tr>`;
+                    html += `<div class="matter-item"><div class="matter-label">विवरण</div><div class="matter-value">${esc(raw)}</div></div>`;
                 }
             });
-
-            return html || `<tr><th>मैटर</th><td colspan="3">-</td></tr>`;
+            return html || '<div class="matter-empty">-</div>';
         }
 
-        function normalizeMatterForReceipt(text) {
-            return String(text || '')
-                .replace(/वर-?वधू/g, 'लड़का-लड़की')
-                .replace(/वर/g, 'लड़का')
-                .replace(/वधू/g, 'लड़की')
-                .replace(/दूल्हा/g, 'लड़का')
-                .replace(/दुल्हन/g, 'लड़की');
+        function findLocalOrderForReceipt(o) {
+            try {
+                const keys=['dp_all_orders','my_orders_list','user_orders','dp_my_orders'];
+                for(const key of keys){
+                    const list=JSON.parse(localStorage.getItem(key)||'[]');
+                    if(!Array.isArray(list)) continue;
+                    const m=list.find(x=>String(x.order_id||'')===String(o.order_id||'') || String(x.id||'')===String(o.id||'') || (String(x.mobile||x.phone||'')===String(o.mobile||o.phone||'') && String(x.customer_name||x.name||'')===String(o.customer_name||o.name||'')));
+                    if(m) return m;
+                }
+            }catch(e){}
+            return null;
         }
 
         function openOrderReceiptModal(orderIdentifier) {
-            const o = globalOrdersCache.find(x => String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier)) || {};
-
-            // केवल Order Form में बना हुआ custom_notes ही receipt में दिखाएँ।
-            // यदि पुराने cloud record में custom_notes खाली है, तो उसी order का
-            // local backup देखें। दूसरे database fields को matter में कभी न मिलाएँ।
-            let receiptOrderNotes = String(o.custom_notes || '').trim();
-            if (!receiptOrderNotes) {
-                try {
-                    const localLists = ['dp_all_orders','my_orders_list','user_orders','dp_my_orders'];
-                    for (const key of localLists) {
-                        const list = JSON.parse(localStorage.getItem(key) || '[]');
-                        if (!Array.isArray(list)) continue;
-                        const localMatch = list.find(x =>
-                            String(x.order_id || '') === String(o.order_id || '') ||
-                            String(x.id || '') === String(o.id || '')
-                        );
-                        if (localMatch && String(localMatch.custom_notes || '').trim()) {
-                            receiptOrderNotes = String(localMatch.custom_notes).trim();
-                            break;
-                        }
-                    }
-                } catch(e) {}
-            }
-
-            const cardImg = o.card_image || o.image || o.card_photo || '';
-            const receiptImg = o.payment_receipt || o.screenshot || '';
-            const total = parseFloat(o.total_amount || 0);
-            const adv = parseFloat(o.advance_paid || o.advance_amount || 0);
-            const bal = total - adv;
-
-            const area = document.getElementById('printableReceiptArea');
-            area.innerHTML = `
-                <div class="receipt-header">
-                    <h2>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p>शादी कार्ड, निमंत्रण पत्र, फ्लेक्स बैनर एवं ऑफसेट प्रिंटिंग सेवा</p>
-                    <p style="font-size:11px; margin-top:4px; color:#64748b;">
-                        <b>रसीद सं.:</b> #${o.order_id || o.id || 'DP-' + Date.now()} &nbsp;|&nbsp; 
-                        <b>तिथि:</b> ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : new Date().toLocaleDateString('hi-IN')}
-                    </p>
-                </div>
-                <div class="receipt-card-block">
-                    <img src="${cardImg || 'https://via.placeholder.com/100?text=Card'}" alt="Card">
-                    <div>
-                        <h4 style="font-size:16px; font-weight:800;">${o.card_title || o.card_name || 'शादी कार्ड'}</h4>
-                        <div style="font-size:12px;">मॉडल: <b>${o.card_model || o.model || 'Standard'}</b></div>
-                        <div style="font-size:12px;">मात्रा: <b>${o.quantity || o.qty || 100} पीस</b></div>
-                    </div>
-                </div>
-                <div class="r-table-title">1. ग्राहक विवरण</div>
-                <table class="r-table">
-                    <tr><th>नाम</th><td>${o.customer_name || o.name || '-'}</td><th>मोबाइल</th><td>${o.mobile || o.phone || '-'}</td></tr>
-                    <tr><th>पता</th><td colspan="3">${o.address || '-'}</td></tr>
-                </table>
-                <div class="r-table-title" style="background:#b91c1c;">2. वैवाहिक विवरण</div>
-                <table class="r-table">
-                    <tr><th>लड़का</th><td>${o.groom_name || o.groom || '-'}</td><th>लड़की</th><td>${o.bride_name || o.bride || '-'}</td></tr>
-                </table>
-                <div class="r-table-title" style="background:#15803d;">3. भुगतान विवरण</div>
-                <table class="r-table">
-                    <tr><th>कुल राशि</th><td>₹${total}</td><th>जमा एडवांस</th><td style="color:#15803d; font-weight:bold;">₹${adv}</td></tr>
-                    <tr><th>बकाया</th><td style="color:#dc2626; font-weight:bold;">₹${bal >= 0 ? bal : 0}</td><th>मोड</th><td>${o.payment_mode || 'Online'}</td></tr>
-                </table>
-                <div class="r-table-title" style="background:#7c3aed;">4. ऑर्डर फॉर्म के अनुसार पूरा भरा हुआ मैटर</div>
-                <table class="r-table full-matter-table">
-                    ${buildFullMatterRows(o.custom_notes || '')}
-                </table>
-
-                <div class="r-table-title" style="background:#475569;">5. भुगतान विवरण — UTR / स्क्रीनशॉट</div>
-                <table class="r-table">
-                    <tr>
-                        <th>UTR / Transaction ID</th>
-                        <td colspan="3"><code>${escapeAdminReceiptText(o.txn_id || o.utr_number || 'उपलब्ध नहीं')}</code></td>
-                    </tr>
-                </table>
-                <div class="receipt-screenshot-box">
-                    ${receiptImg ? `
-                        <a href="${escapeAdminReceiptText(receiptImg)}" target="_blank" rel="noopener" style="display:inline-block;">
-                            <img src="${escapeAdminReceiptText(receiptImg)}" alt="Payment Proof"
-                                 onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
-                            <span style="display:none;padding:10px 14px;background:#2563eb;color:#fff;border-radius:7px;font-weight:700;">
-                                📷 स्क्रीनशॉट खोलें
-                            </span>
-                        </a>` : `<p style="color:#64748b; font-size:12px;">कोई स्क्रीनशॉट नहीं है।</p>`}
-                </div>
-            `;
-            document.getElementById('orderModal').style.display = 'flex';
+            let o=globalOrdersCache.find(x=>String(x.id)===String(orderIdentifier)||String(x.order_id)===String(orderIdentifier)) || {};
+            const local=findLocalOrderForReceipt(o);
+            const dbMatter=getCompleteOrderMatter(o);
+            const localMatter=getCompleteOrderMatter(local||{});
+            const receiptMatter=(localMatter.length>dbMatter.length?localMatter:dbMatter);
+            const cardImg=o.card_image||o.image||o.card_photo||local?.card_image||'';
+            const receiptImg=o.payment_receipt||o.screenshot||o.payment_screenshot||local?.payment_receipt||local?.screenshot||'';
+            const total=parseFloat(o.total_amount ?? local?.total_amount ?? 0)||0;
+            const adv=parseFloat(o.advance_paid ?? o.advance_amount ?? local?.advance_paid ?? 0)||0;
+            const bal=Math.max(0,total-adv);
+            const esc=escapeAdminReceiptText;
+            const val=(a,b)=>esc((o[a]??local?.[a]??b));
+            const area=document.getElementById('printableReceiptArea');
+            area.innerHTML=`
+              <div class="receipt-header">
+                <h2>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
+                <p>शादी कार्ड, निमंत्रण पत्र, फ्लेक्स बैनर एवं ऑफसेट प्रिंटिंग सेवा</p>
+                <div class="receipt-meta"><b>रसीद सं.:</b> #${val('order_id',o.id||'')} &nbsp; | &nbsp; <b>तिथि:</b> ${o.created_at?new Date(o.created_at).toLocaleDateString('hi-IN'):new Date().toLocaleDateString('hi-IN')}</div>
+              </div>
+              <div class="receipt-card-block">
+                ${cardImg?`<img src="${esc(cardImg)}" alt="Card" onerror="this.style.display='none'">`:''}
+                <div><h4>${val('card_title',o.card_name||'शादी कार्ड')}</h4><div>मॉडल / कोड: <b>${val('card_model',o.model||'-')}</b></div><div>मात्रा: <b>${val('quantity',o.qty||'-')} पीस</b></div></div>
+              </div>
+              <div class="r-table-title">1. ग्राहक का पूरा विवरण</div><table class="r-table"><tr><th>ग्राहक का नाम</th><td>${val('customer_name',o.name||'-')}</td><th>मोबाइल / WhatsApp</th><td>${val('mobile',o.phone||'-')}</td></tr><tr><th>पूरा पता</th><td colspan="3">${val('address','-')}</td></tr></table>
+              <div class="r-table-title" style="background:#b91c1c;">2. लड़का / लड़की का पूरा विवरण</div><table class="r-table"><tr><th>लड़का / वर का नाम</th><td>${val('groom_name',o.groom||'-')}</td><th>लड़की / वधू का नाम</th><td>${val('bride_name',o.bride||'-')}</td></tr><tr><th>लड़के के पिता</th><td>${val('groom_father','-')}</td><th>लड़की के पिता</th><td>${val('bride_father','-')}</td></tr><tr><th>लड़के का पता</th><td>${val('groom_address','-')}</td><th>लड़की का पता</th><td>${val('bride_address','-')}</td></tr></table>
+              <div class="r-table-title" style="background:#2563eb;">3. ऑर्डर फॉर्म का पूरा मैटर — कैटेगरी अनुसार</div><div class="receipt-matter">${buildReceiptMatter(receiptMatter)}</div>
+              <div class="r-table-title" style="background:#15803d;">4. भुगतान विवरण</div><table class="r-table"><tr><th>कुल बिल</th><td>₹${total}</td><th>जमा एडवांस</th><td class="paid">₹${adv}</td></tr><tr><th>बाकी बकाया</th><td class="due">₹${bal}</td><th>पेमेंट मोड</th><td>${val('payment_mode','Online')}</td></tr></table>
+              <div class="r-table-title" style="background:#475569;">5. UTR / Transaction ID एवं भुगतान स्क्रीनशॉट</div><table class="r-table"><tr><th>UTR / Transaction ID</th><td colspan="3">${val('txn_id',o.utr_number||'-')}</td></tr></table><div class="receipt-screenshot-box">${receiptImg?`<a href="${esc(receiptImg)}" target="_blank" rel="noopener"><img src="${esc(receiptImg)}" alt="Payment Proof" onerror="this.style.display='none'"><span>📷 भुगतान स्क्रीनशॉट खोलें</span></a>`:'<p>कोई भुगतान स्क्रीनशॉट उपलब्ध नहीं है।</p>'}</div>
+              <div class="receipt-footer">यह रसीद ऑर्डर फॉर्म में दर्ज जानकारी के आधार पर तैयार की गई है।<br><b>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</b> • ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 • मो: 9304509464</div>`;
+            document.getElementById('orderModal').style.display='flex';
         }
 
         function closeOrderModal() {
