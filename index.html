@@ -549,7 +549,8 @@
         window.addEventListener('DOMContentLoaded', async () => {
             checkUserAuthUI();
             updateCartBadges();
-            await loadCatalog();
+            // Page पहले खुले; catalog background में load हो।
+            setTimeout(() => loadCatalog(), 0);
         });
 
         function checkUserAuthUI() {
@@ -577,19 +578,58 @@
         }
 
         /* 100% Admin Match Catalog Loader */
+        const FAST_CATALOG_LIMIT = 16;
+        const FAST_CATALOG_CACHE_KEY = 'dp_fast_catalog_cache_v3';
+
+        function getCatalogImage(card){
+            return card.image || card.image_url || card.photo || safeCardPlaceholder;
+        }
+
+        function saveFastCatalogCache(cards){
+            try{
+                localStorage.setItem(FAST_CATALOG_CACHE_KEY, JSON.stringify({
+                    time: Date.now(),
+                    data: cards
+                }));
+            }catch(e){}
+        }
+
+        function readFastCatalogCache(){
+            try{
+                const raw = localStorage.getItem(FAST_CATALOG_CACHE_KEY);
+                if(!raw) return null;
+                const obj = JSON.parse(raw);
+                if(!obj || !Array.isArray(obj.data)) return null;
+                return obj.data;
+            }catch(e){ return null; }
+        }
+
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
             if (!supabaseClient) {
-                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#ef4444;">डेटाबेस कनेक्ट नहीं हो पाया।</p>`;
+                container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#ef4444;">डेटाबेस कनेक्ट नहीं हो पाया।</p>`;
                 return;
             }
 
+            // पहले cache से तुरंत कार्ड दिखाएं, फिर background में नया data लें।
+            const cached = readFastCatalogCache();
+            if(cached && cached.length){
+                globalCards = cached;
+                renderCatalogCards(cached.slice(0, FAST_CATALOG_LIMIT), 0);
+            }
+
+            const columns = 'id,name,title,model,code,catalog_rate,original_rate,actual_rate,mrp,list_price,sale_rate,selling_price,selling_rate,current_rate,rate,price,image,image_url,photo,in_stock,category';
             const tables = ['catalog', 'cards', 'cards_catalog'];
             let fetchedData = null;
 
             for (const tbl of tables) {
                 try {
-                    const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
+                    const { data, error } = await supabaseClient
+                        .from(tbl)
+                        .select(columns)
+                        .order('id', { ascending: false })
+                        .limit(120);
+
                     if (!error && data && data.length > 0) {
                         fetchedData = data;
                         break;
@@ -598,12 +638,15 @@
             }
 
             if (!fetchedData || fetchedData.length === 0) {
-                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94a3b8;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+                if(!cached || !cached.length){
+                    container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#94a3b8;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+                }
                 return;
             }
 
             globalCards = fetchedData;
-            renderCatalogCards(fetchedData);
+            saveFastCatalogCache(fetchedData);
+            renderCatalogCards(fetchedData.slice(0, FAST_CATALOG_LIMIT), 0);
         }
 
         function getOriginalRate(card) {
@@ -627,20 +670,22 @@
             return 0;
         }
 
-        function renderCatalogCards(cards) {
+        function renderCatalogCards(cards, startIndex = 0) {
             const container = document.getElementById('catalogContainer');
             container.innerHTML = '';
 
-            cards.forEach((card, index) => {
+            const visibleCards = Array.isArray(cards) ? cards : [];
+            visibleCards.forEach((card, localIndex) => {
+                const index = startIndex + localIndex;
                 const name = card.name || card.title || 'शादी कार्ड';
                 const model = card.model || card.code || '';
                 const originalRate = getOriginalRate(card);
                 const saleRate = getSaleRate(card);
                 const discount = getDiscountPercent(card);
-                const img = card.image || card.image_url || card.photo || safeCardPlaceholder;
+                const img = getCatalogImage(card);
                 const inStock = card.in_stock !== false;
-                const stockBadge = inStock 
-                    ? `<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>` 
+                const stockBadge = inStock
+                    ? `<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>`
                     : `<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>`;
 
                 let priceHtml = '';
@@ -651,8 +696,7 @@
                             <span class="card-sale-price">₹${saleRate.toLocaleString('en-IN')}</span>
                             <span class="card-discount-badge">${discount}% OFF</span>
                         </div>
-                        <span class="card-price-note">असली रेट: ₹${originalRate.toLocaleString('en-IN')} • अभी: ₹${saleRate.toLocaleString('en-IN')} / पीस</span>
-                    `;
+                        <span class="card-price-note">असली रेट: ₹${originalRate.toLocaleString('en-IN')} • अभी: ₹${saleRate.toLocaleString('en-IN')} / पीस</span>`;
                 } else {
                     priceHtml = `<div class="card-price-tag">₹${saleRate.toLocaleString('en-IN')} / पीस</div>`;
                 }
@@ -661,14 +705,14 @@
                 cardDiv.className = 'card-sample';
                 cardDiv.innerHTML = `
                     <div class="img-box" onclick="openZoomModal(${index})">
-                        <img src="${img}" alt="${name}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                        <img src="${safeCardPlaceholder}" data-src="${String(img).replace(/"/g,'&quot;')}" loading="lazy" decoding="async" alt="${String(name).replace(/"/g,'&quot;')}" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';">
                         <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</div>
                     </div>
                     <div class="card-info">
                         <h4>${name}</h4>
                         <div class="model-text">${model}</div>
                         ${priceHtml}
-                        <div style="margin-bottom: 6px;">${stockBadge}</div>
+                        <div style="margin-bottom:6px;">${stockBadge}</div>
                         <div class="card-actions-row">
                             <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
                                 <i class="fa-solid fa-bolt"></i> ऑर्डर करें
@@ -677,10 +721,46 @@
                                 <i class="fa-solid fa-cart-plus"></i>
                             </button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 container.appendChild(cardDiv);
             });
+
+            lazyLoadCatalogImages();
+
+            // बाकी कार्डों को एक साथ DOM में डालने के बजाय छोटा "और देखें" बटन।
+            if(startIndex + visibleCards.length < globalCards.length){
+                const more = document.createElement('div');
+                more.style.cssText = 'grid-column:1/-1;text-align:center;padding:10px 0;';
+                more.innerHTML = `<button type="button" style="border:0;border-radius:22px;padding:10px 20px;background:#075fe5;color:#fff;font-weight:800;cursor:pointer;" onclick="loadMoreCatalogCards()">और कार्ड देखें (${globalCards.length - (startIndex + visibleCards.length)} बाकी)</button>`;
+                container.appendChild(more);
+            }
+        }
+
+        function lazyLoadCatalogImages(){
+            const imgs = document.querySelectorAll('#catalogContainer img[data-src]');
+            if('IntersectionObserver' in window){
+                const io = new IntersectionObserver((entries, observer)=>{
+                    entries.forEach(entry=>{
+                        if(entry.isIntersecting){
+                            const img = entry.target;
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                            observer.unobserve(img);
+                        }
+                    });
+                }, {rootMargin:'300px 0px'});
+                imgs.forEach(img=>io.observe(img));
+            }else{
+                imgs.forEach(img=>{
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                });
+            }
+        }
+
+        function loadMoreCatalogCards(){
+            const shown = Math.min((document.querySelectorAll('#catalogContainer .card-sample').length + FAST_CATALOG_LIMIT), globalCards.length);
+            renderCatalogCards(globalCards.slice(0, shown), 0);
         }
 
         function selectCardForOrder(cardIndex) {
@@ -745,7 +825,7 @@
 
         function filterCategory(categoryVal){
             if (!Array.isArray(globalCards)) return;
-            if(categoryVal === 'all'){ renderCatalogCards(globalCards); return; }
+            if(categoryVal === 'all'){ renderCatalogCards(globalCards.slice(0, FAST_CATALOG_LIMIT), 0); return; }
             const filtered = globalCards.filter(card => {
                 const text = `${card.name || ''} ${card.title || ''} ${card.model || ''} ${card.code || ''} ${card.category || ''}`.toLowerCase();
                 if(categoryVal === 'muslim') return /muslim|मुस्लिम|nikah|निकाह|islam|इस्लाम/.test(text);
@@ -753,7 +833,7 @@
                 if(categoryVal === 'banner') return /banner|flex|बैनर|फ्लेक्स/.test(text);
                 return true;
             });
-            renderCatalogCards(filtered);
+            renderCatalogCards(filtered.slice(0, FAST_CATALOG_LIMIT), 0);
         }
     </script>
 </body>
