@@ -113,6 +113,77 @@
         .receipt-screenshot-box { text-align: center; background: #f8fafc; border: 1px dashed #64748b; border-radius: 8px; padding: 12px; }
         .receipt-screenshot-box img { max-width: 100%; max-height: 500px; width: auto; height: auto; border-radius: 6px; border:1px solid #cbd5e1; object-fit:contain; }
 
+
+        .catalog-upload-box{
+            background:linear-gradient(135deg,#f8fafc,#ffffff);
+            border:1px solid #cbd5e1;
+            border-radius:14px;
+            padding:15px;
+            margin:0 0 15px;
+            box-shadow:0 8px 24px rgba(15,23,42,.06);
+        }
+        .catalog-upload-title{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+            margin-bottom:12px;
+            color:#0f172a;
+            font-weight:800;
+        }
+        .catalog-upload-title span{font-size:15px}
+        .catalog-upload-title span i{color:#2563eb;margin-right:5px}
+        .catalog-upload-title small{font-size:11px;color:#64748b;font-weight:700}
+        .catalog-upload-grid{
+            display:grid;
+            grid-template-columns:repeat(3,minmax(0,1fr));
+            gap:10px;
+            align-items:end;
+        }
+        .catalog-upload-grid .form-group{margin-bottom:0}
+        .catalog-upload-grid input[type=file]{
+            padding:7px;
+            background:#fff;
+        }
+        .catalog-upload-action button{
+            width:100%;
+            min-height:38px;
+            border:0;
+            border-radius:8px;
+            background:linear-gradient(135deg,#2563eb,#1d4ed8);
+            color:#fff;
+            font-weight:800;
+            cursor:pointer;
+            padding:9px 12px;
+        }
+        .catalog-upload-action button:disabled{
+            opacity:.6;
+            cursor:not-allowed;
+        }
+        .catalog-upload-preview{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-top:10px;
+            padding:8px 10px;
+            background:#fff;
+            border:1px dashed #94a3b8;
+            border-radius:9px;
+            font-size:12px;
+        }
+        .catalog-upload-preview img{
+            width:58px;height:58px;object-fit:cover;border-radius:7px;
+            border:1px solid #cbd5e1;background:#f8fafc;
+        }
+        #catalogUploadStatus{color:#64748b;margin-top:2px}
+        @media(max-width:800px){
+            .catalog-upload-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        }
+        @media(max-width:520px){
+            .catalog-upload-title{align-items:flex-start;flex-direction:column;}
+            .catalog-upload-grid{grid-template-columns:1fr;}
+        }
+
         @media print {
             body * { visibility: hidden; }
             #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
@@ -205,6 +276,51 @@
                     <h4 style="font-weight:800;">डेटाबेस से प्राप्त ग्राहक ऑर्डर्स</h4>
                     <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
                 </div>
+
+                <!-- CATALOG UPLOAD FORM -->
+                <div class="catalog-upload-box">
+                    <div class="catalog-upload-title">
+                        <span><i class="fa-solid fa-cloud-arrow-up"></i> नया कैटलॉग कार्ड अपलोड करें</span>
+                        <small>फोटो + नाम + मॉडल + रेट</small>
+                    </div>
+
+                    <div class="catalog-upload-grid">
+                        <div class="form-group">
+                            <label>कार्ड / डिजाइन फोटो *</label>
+                            <input type="file" id="catalogImageFile" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label>नाम *</label>
+                            <input type="text" id="catalogName" placeholder="जैसे: शादी कार्ड डिजाइन 101">
+                        </div>
+                        <div class="form-group">
+                            <label>मॉडल / कोड</label>
+                            <input type="text" id="catalogModel" placeholder="जैसे: DP-101">
+                        </div>
+                        <div class="form-group">
+                            <label>कैटलॉग रेट (₹/पीस)</label>
+                            <input type="number" id="catalogRate" min="0" step="0.5" placeholder="100">
+                        </div>
+                        <div class="form-group">
+                            <label>सेल रेट (₹/पीस)</label>
+                            <input type="number" id="catalogSaleRate" min="0" step="0.5" placeholder="80">
+                        </div>
+                        <div class="form-group catalog-upload-action">
+                            <button type="button" id="catalogUploadBtn" onclick="uploadCatalogCard()">
+                                <i class="fa-solid fa-upload"></i> कैटलॉग अपलोड करें
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="catalogUploadPreview" class="catalog-upload-preview" style="display:none;">
+                        <img id="catalogPreviewImg" alt="Preview">
+                        <div>
+                            <b id="catalogPreviewName"></b>
+                            <div id="catalogUploadStatus">अपलोड के लिए तैयार</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
                         <thead>
@@ -581,6 +697,177 @@
         }
         async function setCorrectionStatus(status){
           if(!correctionOrderId||!supabaseClient)return; try{const {data,error}=await supabaseClient.from('orders').update({correction_status:status}).eq('id',correctionOrderId).select().single();if(error)throw error;const o=globalOrdersCache.find(x=>String(x.id)===String(correctionOrderId));if(o)Object.assign(o,data);openCorrectionModal(correctionOrderId);renderOrdersTable(globalOrdersCache);alert(status==='approved'?'ग्राहक की स्वीकृति/ठीक है दर्ज हो गई।':'ग्राहक को और सुधार की जरूरत के रूप में दर्ज कर दिया गया।');}catch(e){alert('स्थिति अपडेट नहीं हुई। '+(e.message||e));}}
+
+
+        let catalogUploadPreviewUrl = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('catalogImageFile');
+            if (fileInput) {
+                fileInput.addEventListener('change', () => {
+                    const file = fileInput.files && fileInput.files[0];
+                    const box = document.getElementById('catalogUploadPreview');
+                    const img = document.getElementById('catalogPreviewImg');
+                    const name = document.getElementById('catalogPreviewName');
+                    const status = document.getElementById('catalogUploadStatus');
+
+                    if (catalogUploadPreviewUrl) {
+                        try { URL.revokeObjectURL(catalogUploadPreviewUrl); } catch(e) {}
+                        catalogUploadPreviewUrl = null;
+                    }
+
+                    if (!file) {
+                        if (box) box.style.display = 'none';
+                        return;
+                    }
+
+                    catalogUploadPreviewUrl = URL.createObjectURL(file);
+                    if (img) img.src = catalogUploadPreviewUrl;
+                    if (name) name.textContent = file.name;
+                    if (status) status.textContent = 'अपलोड के लिए तैयार';
+                    if (box) box.style.display = 'flex';
+                });
+            }
+        });
+
+        async function uploadCatalogImage(file, recordId) {
+            if (!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
+            if (!file) return '';
+
+            if (!file.type.startsWith('image/')) {
+                throw new Error('कृपया केवल JPG, PNG, WEBP आदि फोटो चुनें।');
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                throw new Error('फोटो 10 MB से छोटी रखें।');
+            }
+
+            const ext = (file.name.split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'jpg';
+            const safeId = String(recordId || Date.now()).replace(/[^a-zA-Z0-9_-]/g,'_');
+            const path = `catalog/${safeId}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+            // सामान्य bucket "catalog" पहले, फिर "cards" fallback.
+            const buckets = ['catalog', 'cards'];
+            let lastError = null;
+
+            for (const bucket of buckets) {
+                try {
+                    const { error } = await supabaseClient.storage.from(bucket).upload(path, file, {
+                        contentType: file.type,
+                        upsert: false
+                    });
+                    if (!error) {
+                        const { data } = supabaseClient.storage.from(bucket).getPublicUrl(path);
+                        if (data && data.publicUrl) return data.publicUrl;
+                    }
+                    lastError = error;
+                } catch(e) {
+                    lastError = e;
+                }
+            }
+
+            throw new Error(
+                'फोटो Storage में अपलोड नहीं हुई। Supabase में "catalog" या "cards" Storage bucket और उसकी upload policy जाँचें।' +
+                (lastError && lastError.message ? '\n' + lastError.message : '')
+            );
+        }
+
+        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl) {
+            const n = name.trim();
+            const m = model.trim();
+            const cr = Number.isFinite(catalogRate) ? catalogRate : 0;
+            const sr = Number.isFinite(saleRate) ? saleRate : cr;
+
+            return [
+                {name:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {title:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {name:n, code:m, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
+                {title:n, code:m, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
+                {name:n, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
+            ];
+        }
+
+        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl) {
+            if (!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
+
+            const tables = ['catalog', 'cards', 'cards_catalog'];
+            let lastError = null;
+
+            for (const table of tables) {
+                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl)) {
+                    try {
+                        const { data, error } = await supabaseClient.from(table).insert(payload).select('*').single();
+                        if (!error && data) {
+                            return {table, data};
+                        }
+                        lastError = error;
+                    } catch(e) {
+                        lastError = e;
+                    }
+                }
+            }
+
+            throw new Error(
+                'कैटलॉग रिकॉर्ड Database में सेव नहीं हुआ। ' +
+                (lastError && lastError.message ? lastError.message : 'Catalog/Cards table नहीं मिला या उसकी columns अलग हैं।')
+            );
+        }
+
+        async function uploadCatalogCard() {
+            const btn = document.getElementById('catalogUploadBtn');
+            const fileInput = document.getElementById('catalogImageFile');
+            const nameInput = document.getElementById('catalogName');
+            const modelInput = document.getElementById('catalogModel');
+            const catalogRateInput = document.getElementById('catalogRate');
+            const saleRateInput = document.getElementById('catalogSaleRate');
+            const status = document.getElementById('catalogUploadStatus');
+            const box = document.getElementById('catalogUploadPreview');
+
+            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+            const name = nameInput ? nameInput.value.trim() : '';
+            const model = modelInput ? modelInput.value.trim() : '';
+            const catalogRate = catalogRateInput ? parseFloat(catalogRateInput.value) : 0;
+            const enteredSaleRate = saleRateInput ? parseFloat(saleRateInput.value) : NaN;
+            const saleRate = Number.isFinite(enteredSaleRate) ? enteredSaleRate : catalogRate;
+
+            if (!file) { alert('पहले कैटलॉग की फोटो चुनें।'); return; }
+            if (!name) { alert('कैटलॉग का नाम दर्ज करें।'); if(nameInput) nameInput.focus(); return; }
+            if (!Number.isFinite(catalogRate) || catalogRate < 0) { alert('मान्य कैटलॉग रेट डालें।'); return; }
+            if (!Number.isFinite(saleRate) || saleRate < 0) { alert('मान्य सेल रेट डालें।'); return; }
+
+            try {
+                if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> अपलोड हो रहा है...'; }
+                if (status) status.textContent = 'फोटो अपलोड हो रही है...';
+
+                // पहले unique path के लिए timestamp इस्तेमाल किया जाता है।
+                const imageUrl = await uploadCatalogImage(file, 'card');
+
+                if (status) status.textContent = 'कैटलॉग Database में सेव हो रहा है...';
+                const result = await insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl);
+
+                if (status) status.textContent = `सफलतापूर्वक अपलोड • ${result.table}`;
+                alert('कैटलॉग कार्ड सफलतापूर्वक अपलोड हो गया।');
+
+                if (fileInput) fileInput.value = '';
+                if (nameInput) nameInput.value = '';
+                if (modelInput) modelInput.value = '';
+                if (catalogRateInput) catalogRateInput.value = '';
+                if (saleRateInput) saleRateInput.value = '';
+                if (box) box.style.display = 'none';
+
+                if (catalogUploadPreviewUrl) {
+                    try { URL.revokeObjectURL(catalogUploadPreviewUrl); } catch(e) {}
+                    catalogUploadPreviewUrl = null;
+                }
+
+                await loadCatalogStock();
+            } catch (e) {
+                console.error('Catalog upload error:', e);
+                if (status) status.textContent = 'अपलोड असफल';
+                alert('कैटलॉग अपलोड नहीं हुआ।\n\n' + (e.message || e));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-upload"></i> कैटलॉग अपलोड करें'; }
+            }
+        }
 
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
