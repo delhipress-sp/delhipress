@@ -525,7 +525,8 @@
             } else if (tab === 'customers') {
                 try { loadCustomerList(); } catch(e) {}
             } else if (tab === 'catalog') {
-                try { loadCatalogStock(); } catch(e) {}
+                catalogLoadedOnce = false;
+                try { loadCatalogStock(true); } catch(e) {}
             }
         }
 
@@ -1040,11 +1041,11 @@
             tbody.innerHTML = '<tr><td colspan="9">कैटलॉग लोड हो रहा है...</td></tr>';
 
             if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="8">Database connection उपलब्ध नहीं है।</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9">Database connection उपलब्ध नहीं है।</td></tr>';
                 return;
             }
 
-            const selectCols = 'id,name,title,model,code,image,image_url,catalog_rate,original_rate,mrp,sale_rate,selling_price,rate,price,in_stock';
+            const selectCols = 'id,name,title,model,code,image,image_url,catalog_rate,original_rate,mrp,sale_rate,selling_price,rate,price,in_stock,category';
 
             try {
                 // पहले catalog table को इस्तेमाल करें। केवल जरूरत पर fallback tables देखें।
@@ -1072,6 +1073,24 @@
                         .order('id', { ascending: false })
                         .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
                     catalogActiveTable = 'cards_catalog';
+                }
+
+                if (result.error) {
+                    const fallbackTables = ['catalog', 'cards_catalog', 'cards'];
+                    let fallbackResult = null;
+                    for (const tbl of fallbackTables) {
+                        try {
+                            const r = await supabaseClient.from(tbl).select('*', { count: 'exact' })
+                                .order('id', { ascending: false })
+                                .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+                            if (!r.error) {
+                                fallbackResult = r;
+                                catalogActiveTable = tbl;
+                                break;
+                            }
+                        } catch(e) {}
+                    }
+                    if (fallbackResult) result = fallbackResult;
                 }
 
                 if (result.error) throw result.error;
