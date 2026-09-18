@@ -803,20 +803,14 @@
         async function uploadCatalogImage(file, recordId) {
             if (!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
             if (!file) return '';
+            if (!file.type.startsWith('image/')) throw new Error('कृपया केवल JPG, PNG, WEBP आदि फोटो चुनें।');
+            if (file.size > 10 * 1024 * 1024) throw new Error('फोटो 10 MB से छोटी रखें।');
 
-            if (!file.type.startsWith('image/')) {
-                throw new Error('कृपया केवल JPG, PNG, WEBP आदि फोटो चुनें।');
-            }
-            if (file.size > 10 * 1024 * 1024) {
-                throw new Error('फोटो 10 MB से छोटी रखें।');
-            }
-
+            // पहले उपलब्ध Storage bucket में upload करने की कोशिश करें।
             const ext = (file.name.split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'jpg';
             const safeId = String(recordId || Date.now()).replace(/[^a-zA-Z0-9_-]/g,'_');
             const path = `catalog/${safeId}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-
-            // सामान्य bucket "catalog" पहले, फिर "cards" fallback.
-            const buckets = ['catalog', 'cards'];
+            const buckets = ['catalog', 'cards', 'order-corrections'];
             let lastError = null;
 
             for (const bucket of buckets) {
@@ -830,15 +824,38 @@
                         if (data && data.publicUrl) return data.publicUrl;
                     }
                     lastError = error;
-                } catch(e) {
-                    lastError = e;
-                }
+                } catch(e) { lastError = e; }
             }
 
-            throw new Error(
-                'फोटो Storage में अपलोड नहीं हुई। Supabase में "catalog" या "cards" Storage bucket और उसकी upload policy जाँचें।' +
-                (lastError && lastError.message ? '\n' + lastError.message : '')
-            );
+            // अगर Storage bucket मौजूद नहीं है, तो फोटो को छोटा करके Data URL बनाया जाता है।
+            // इससे अलग से Storage bucket बनाना जरूरी नहीं रहेगा; यही URL catalog table में image/image_url में सेव होगा।
+            try {
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(new Error('फोटो पढ़ी नहीं जा सकी।'));
+                    reader.readAsDataURL(file);
+                });
+
+                const compressed = await new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const maxSide = 1200;
+                        const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+                        canvas.height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.78));
+                    };
+                    img.onerror = () => resolve(dataUrl);
+                    img.src = dataUrl;
+                });
+                return compressed;
+            } catch(e) {
+                throw new Error('फोटो Storage में अपलोड नहीं हुई और फोटो को Database में सेव भी नहीं किया जा सका।\n' + (lastError && lastError.message ? lastError.message : 'Storage bucket उपलब्ध नहीं है।'));
+            }
         }
 
         function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category) {
@@ -890,6 +907,7 @@
             const modelInput = document.getElementById('catalogModel');
             const catalogRateInput = document.getElementById('catalogRate');
             const saleRateInput = document.getElementById('catalogSaleRate');
+            const categoryInput = document.getElementById('catalogCategory');
             const status = document.getElementById('catalogUploadStatus');
             const box = document.getElementById('catalogUploadPreview');
 
@@ -899,6 +917,7 @@
             const catalogRate = catalogRateInput ? parseFloat(catalogRateInput.value) : 0;
             const enteredSaleRate = saleRateInput ? parseFloat(saleRateInput.value) : NaN;
             const saleRate = Number.isFinite(enteredSaleRate) ? enteredSaleRate : catalogRate;
+            const category = categoryInput ? categoryInput.value.trim() : 'Muslim Card';
 
             if (!file) { alert('पहले कैटलॉग की फोटो चुनें।'); return; }
             if (!name) { alert('कैटलॉग का नाम दर्ज करें।'); if(nameInput) nameInput.focus(); return; }
@@ -923,6 +942,7 @@
                 if (modelInput) modelInput.value = '';
                 if (catalogRateInput) catalogRateInput.value = '';
                 if (saleRateInput) saleRateInput.value = '';
+                if (categoryInput) categoryInput.value = 'Muslim Card';
                 if (box) box.style.display = 'none';
 
                 if (catalogUploadPreviewUrl) {
