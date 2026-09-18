@@ -347,6 +347,13 @@
                             <input type="text" id="catalogName" placeholder="जैसे: शादी कार्ड डिजाइन 101">
                         </div>
                         <div class="form-group">
+                            <label>कैटेगरी *</label>
+                            <select id="catalogCategory">
+                                <option value="Muslim Card">Muslim Card</option>
+                                <option value="Hindu Card">Hindu Card</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>मॉडल / कोड</label>
                             <input type="text" id="catalogModel" placeholder="जैसे: DP-101">
                         </div>
@@ -461,7 +468,7 @@
 
         function verifyAdminPin() {
             const pinInput = document.getElementById('adminPin');
-            const entered = pinInput ? pinInput.value.trim() : '';
+            const entered = pinInput ? pinInput.value.trim().replace(/\s+/g,'') : '';
             const validPins = ["1234", "9304", "815352", "admin"];
 
             if (validPins.includes(entered)) {
@@ -471,7 +478,7 @@
                 } catch(e) {}
                 showDashboard();
             } else {
-                alert("गलत पिन! कृपया 1234 या 9304 दर्ज करें।");
+                alert("लॉगिन नहीं हुआ। सही Admin PIN दर्ज करें: 1234 / 9304 / 815352");
                 if (pinInput) {
                     pinInput.value = '';
                     pinInput.focus();
@@ -833,29 +840,30 @@
             );
         }
 
-        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl) {
+        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category) {
             const n = name.trim();
             const m = model.trim();
             const cr = Number.isFinite(catalogRate) ? catalogRate : 0;
             const sr = Number.isFinite(saleRate) ? saleRate : cr;
+            const c = (category || 'Muslim Card').trim();
 
             return [
-                {name:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
-                {title:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
-                {name:n, code:m, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
-                {title:n, code:m, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
-                {name:n, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
+                {name:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {title:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {name:n, code:m, category:c, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
+                {title:n, code:m, category:c, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
+                {name:n, category:c, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
             ];
         }
 
-        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl) {
+        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category) {
             if (!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
 
             const tables = ['catalog', 'cards', 'cards_catalog'];
             let lastError = null;
 
             for (const table of tables) {
-                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl)) {
+                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category)) {
                     try {
                         const { data, error } = await supabaseClient.from(table).insert(payload).select('*').single();
                         if (!error && data) {
@@ -904,7 +912,7 @@
                 const imageUrl = await uploadCatalogImage(file, 'card');
 
                 if (status) status.textContent = 'कैटलॉग Database में सेव हो रहा है...';
-                const result = await insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl);
+                const result = await insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category);
 
                 if (status) status.textContent = `सफलतापूर्वक अपलोड • ${result.table}`;
                 alert('कैटलॉग कार्ड सफलतापूर्वक अपलोड हो गया।');
@@ -1146,7 +1154,8 @@
                                             }
                                             window.__catalogImageObserver.unobserve(el);
                                         }
-                                    }, {rootMargin:'300px'});
+                                    });
+                                }, {rootMargin:'300px'});
                             }
                             window.__catalogImageObserver.observe(img);
                         } else {
