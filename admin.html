@@ -267,16 +267,69 @@
 
             <div class="nav-tabs">
                 <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स</button>
+                <button type="button" class="tab-btn" id="tabBtnCustomers" onclick="switchAdminTab('customers')"><i class="fa-solid fa-users"></i> ग्राहक लिस्ट</button>
                 <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग (रेट व स्टॉक)</button>
             </div>
-
-            <!-- TAB 1: ORDERS -->
-            <div id="tabOrdersSection">
+            <!-- Orders section hidden: Catalog is now the main admin section -->
+            <div id="tabOrdersSection" style="display:block;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h4 style="font-weight:800;">डेटाबेस से प्राप्त ग्राहक ऑर्डर्स</h4>
                     <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
                 </div>
 
+                
+
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID / दिनांक</th>
+                                <th>कार्ड विवरण</th>
+                                <th>ग्राहक</th>
+                                <th>लड़का-लड़की</th>
+                                <th>बिल / एडवांस</th>
+                                <th>पेमेंट मोड</th>
+                                <th style="width:145px;">स्टेटस बदलें</th>
+                                <th>रसीद (Receipt)</th>
+                                <th>हटाएं (Delete)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- TAB 2: CUSTOMER LIST -->
+            <div id="tabCustomersSection" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4 style="font-weight:800;">ग्राहक लिस्ट</h4>
+                    <button onclick="loadCustomerList()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">
+                        <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश
+                    </button>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ग्राहक नाम</th>
+                                <th>मोबाइल</th>
+                                <th>पता</th>
+                                <th>कुल ऑर्डर</th>
+                                <th>अंतिम ऑर्डर</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: CATALOG -->
+            <div id="tabCatalogSection" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4 style="font-weight:800;">कैटलॉग कार्ड्स (रेट और स्टॉक स्थिति)</h4>
+                    <button onclick="catalogPage=0; catalogLoadedOnce=false; loadCatalogStock(true)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
+                </div>
                 <!-- CATALOG UPLOAD FORM -->
                 <div class="catalog-upload-box">
                     <div class="catalog-upload-title">
@@ -292,6 +345,13 @@
                         <div class="form-group">
                             <label>नाम *</label>
                             <input type="text" id="catalogName" placeholder="जैसे: शादी कार्ड डिजाइन 101">
+                        </div>
+                        <div class="form-group">
+                            <label>कैटेगरी *</label>
+                            <select id="catalogCategory">
+                                <option value="Muslim Card">Muslim Card</option>
+                                <option value="Hindu Card">Hindu Card</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>मॉडल / कोड</label>
@@ -320,38 +380,12 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="admin-table-wrapper">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID / दिनांक</th>
-                                <th>कार्ड विवरण</th>
-                                <th>ग्राहक</th>
-                                <th>लड़का-लड़की</th>
-                                <th>बिल / एडवांस</th>
-                                <th>पेमेंट मोड</th>
-                                <th style="width:145px;">स्टेटस बदलें</th>
-                                <th>रसीद (Receipt)</th>
-                                <th>हटाएं (Delete)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 2: CATALOG -->
-            <div id="tabCatalogSection" style="display: none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h4 style="font-weight:800;">कैटलॉग कार्ड्स (रेट और स्टॉक स्थिति)</h4>
-                    <button onclick="loadCatalogStock()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
-                </div>
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
                         <thead>
                             <tr>
                                 <th>फोटो</th>
+                                <th>प्रिव्यू</th>
                                 <th>नाम</th>
                                 <th>मॉडल</th>
                                 <th style="width:125px;">कैटलॉग रेट<br>(₹/पीस)</th>
@@ -365,6 +399,23 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- CATALOG PREVIEW MODAL -->
+    <div class="modal-overlay" id="catalogPreviewModal" style="display:none; z-index:100000;" onclick="if(event.target===this) closeCatalogPreview()">
+        <div class="modal-content" style="max-width:650px; width:min(650px,96vw);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <h3 id="catalogPreviewTitle" style="color:var(--primary);font-size:18px;font-weight:800;">
+                    <i class="fa-solid fa-eye"></i> कैटलॉग प्रिव्यू
+                </h3>
+                <button type="button" onclick="closeCatalogPreview()" style="border:none;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer;font-weight:bold;font-size:20px;">&times;</button>
+            </div>
+            <div style="text-align:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
+                <img id="catalogPreviewLargeImg" alt="Catalog Preview"
+                     style="display:block;max-width:100%;max-height:65vh;width:auto;height:auto;margin:auto;object-fit:contain;border-radius:8px;">
+            </div>
+            <div id="catalogPreviewMeta" style="margin-top:10px;text-align:center;font-size:13px;color:#475569;"></div>
         </div>
     </div>
 
@@ -417,7 +468,7 @@
 
         function verifyAdminPin() {
             const pinInput = document.getElementById('adminPin');
-            const entered = pinInput ? pinInput.value.trim() : '';
+            const entered = pinInput ? pinInput.value.trim().replace(/\s+/g,'') : '';
             const validPins = ["1234", "9304", "815352", "admin"];
 
             if (validPins.includes(entered)) {
@@ -427,7 +478,7 @@
                 } catch(e) {}
                 showDashboard();
             } else {
-                alert("गलत पिन! कृपया 1234 या 9304 दर्ज करें।");
+                alert("लॉगिन नहीं हुआ। सही Admin PIN दर्ज करें: 1234 / 9304 / 815352");
                 if (pinInput) {
                     pinInput.value = '';
                     pinInput.focus();
@@ -449,15 +500,34 @@
             if (pinSection) pinSection.style.display = 'none';
             if (dashSection) dashSection.style.display = 'block';
 
-            try { loadAdminOrders(); } catch(e) {}
             try { loadCatalogStock(); } catch(e) {}
         }
 
         function switchAdminTab(tab) {
-            document.getElementById('tabOrdersSection').style.display = (tab === 'orders') ? 'block' : 'none';
-            document.getElementById('tabCatalogSection').style.display = (tab === 'catalog') ? 'block' : 'none';
-            document.getElementById('tabBtnOrders').classList.toggle('active', tab === 'orders');
-            document.getElementById('tabBtnCatalog').classList.toggle('active', tab === 'catalog');
+            const sections = {
+                orders: document.getElementById('tabOrdersSection'),
+                customers: document.getElementById('tabCustomersSection'),
+                catalog: document.getElementById('tabCatalogSection')
+            };
+            const buttons = {
+                orders: document.getElementById('tabBtnOrders'),
+                customers: document.getElementById('tabBtnCustomers'),
+                catalog: document.getElementById('tabBtnCatalog')
+            };
+
+            Object.keys(sections).forEach(key => {
+                if (sections[key]) sections[key].style.display = (key === tab) ? 'block' : 'none';
+                if (buttons[key]) buttons[key].classList.toggle('active', key === tab);
+            });
+
+            if (tab === 'orders') {
+                try { loadAdminOrders(); } catch(e) {}
+            } else if (tab === 'customers') {
+                try { loadCustomerList(); } catch(e) {}
+            } else if (tab === 'catalog') {
+                catalogLoadedOnce = false;
+                try { loadCatalogStock(true); } catch(e) {}
+            }
         }
 
         async function loadAdminOrders() {
@@ -771,29 +841,30 @@
             );
         }
 
-        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl) {
+        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category) {
             const n = name.trim();
             const m = model.trim();
             const cr = Number.isFinite(catalogRate) ? catalogRate : 0;
             const sr = Number.isFinite(saleRate) ? saleRate : cr;
+            const c = (category || 'Muslim Card').trim();
 
             return [
-                {name:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
-                {title:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
-                {name:n, code:m, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
-                {title:n, code:m, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
-                {name:n, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
+                {name:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {title:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                {name:n, code:m, category:c, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
+                {title:n, code:m, category:c, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
+                {name:n, category:c, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
             ];
         }
 
-        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl) {
+        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category) {
             if (!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
 
             const tables = ['catalog', 'cards', 'cards_catalog'];
             let lastError = null;
 
             for (const table of tables) {
-                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl)) {
+                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category)) {
                     try {
                         const { data, error } = await supabaseClient.from(table).insert(payload).select('*').single();
                         if (!error && data) {
@@ -842,7 +913,7 @@
                 const imageUrl = await uploadCatalogImage(file, 'card');
 
                 if (status) status.textContent = 'कैटलॉग Database में सेव हो रहा है...';
-                const result = await insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl);
+                const result = await insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category);
 
                 if (status) status.textContent = `सफलतापूर्वक अपलोड • ${result.table}`;
                 alert('कैटलॉग कार्ड सफलतापूर्वक अपलोड हो गया।');
@@ -869,60 +940,292 @@
             }
         }
 
-        async function loadCatalogStock() {
-            const tbody = document.getElementById('catalogTableBody');
+
+        async function loadCustomerList() {
+            const tbody = document.getElementById('customersTableBody');
             if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="8">कैटलॉग लोड हो रहा है...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5">ग्राहक लिस्ट लोड हो रही है...</td></tr>';
 
-            const tables = ['catalog', 'cards', 'cards_catalog'];
-            let fetchedData = [];
-            let activeTable = 'catalog';
+            let orders = Array.isArray(globalOrdersCache) ? globalOrdersCache.slice() : [];
 
-            if (supabaseClient) {
-                for (const tbl of tables) {
-                    try {
-                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
-                        if (!error && data && data.length > 0) {
-                            fetchedData = data;
-                            activeTable = tbl;
-                            break;
-                        }
-                    } catch (e) {}
-                }
+            // If cache is empty, fetch from Supabase/local backup.
+            if (!orders.length) {
+                try {
+                    if (supabaseClient) {
+                        const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+                        if (!error && Array.isArray(data)) orders = data;
+                    }
+                } catch(e) {}
             }
 
-            if (fetchedData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">कोई कार्ड नहीं मिला।</td></tr>';
+            if (!orders.length) {
+                try {
+                    orders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
+                    if (!Array.isArray(orders)) orders = [];
+                } catch(e) { orders = []; }
+            }
+
+            const customers = {};
+            orders.forEach(o => {
+                const name = String(o.customer_name || o.name || '').trim();
+                const mobile = String(o.mobile || o.phone || '').trim();
+                const address = String(o.address || '').trim();
+                const key = (mobile || name || address || 'unknown').toLowerCase();
+
+                if (!customers[key]) {
+                    customers[key] = {
+                        name: name || '-',
+                        mobile: mobile || '-',
+                        address: address || '-',
+                        count: 0,
+                        lastDate: o.created_at || ''
+                    };
+                }
+                customers[key].count++;
+                if (new Date(o.created_at || 0) > new Date(customers[key].lastDate || 0)) {
+                    customers[key].lastDate = o.created_at || customers[key].lastDate;
+                }
+            });
+
+            const list = Object.values(customers).sort((a,b) =>
+                new Date(b.lastDate || 0) - new Date(a.lastDate || 0)
+            );
+
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="5">कोई ग्राहक उपलब्ध नहीं है।</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = fetchedData.map(c => {
-                const catalogRate = parseFloat(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
-                const saleRate = parseFloat(c.sale_rate ?? c.selling_price ?? c.rate ?? c.price ?? catalogRate) || 0;
-                const discount = catalogRate > 0 && saleRate < catalogRate ? Math.round(((catalogRate - saleRate) / catalogRate) * 100) : 0;
-                const inStock = c.in_stock !== false;
-                return `
+            tbody.innerHTML = list.map(c => `
                 <tr>
-                    <td><img src="${c.image || c.image_url || 'https://via.placeholder.com/45'}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;"></td>
-                    <td><b>${c.name || c.title || '-'}</b></td>
-                    <td>${c.model || c.code || '-'}</td>
-                    <td><b style="color:#64748b;">₹${catalogRate.toLocaleString('en-IN')}</b></td>
-                    <td>
-                        <div style="display:flex; align-items:center; justify-content:center;">
-                            <input type="number" id="saleRateInput_${c.id}" value="${saleRate}" style="width:78px; text-align:center; padding:4px;" step="0.5" min="0">
-                            <button class="btn-save-rate" onclick="saveCardSaleRate('${activeTable}', '${c.id}')" title="सेल रेट सेव करें"><i class="fa-solid fa-floppy-disk"></i></button>
-                        </div>
-                    </td>
-                    <td>${discount > 0 ? `<b style="color:#dc2626;">${discount}% OFF</b>` : '<span style="color:#64748b;">0%</span>'}</td>
-                    <td>
-                        <button onclick="toggleCardStock('${activeTable}', '${c.id}', ${!inStock})" style="background:${inStock ? '#dcfce7':'#fee2e2'}; color:${inStock ? '#15803d':'#b91c1c'}; border:1px solid currentColor; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">
-                            ${inStock ? '✓ उपलब्ध' : '✕ समाप्त'}
-                        </button>
-                    </td>
-                    <td><button class="btn-del" onclick="deleteCatalogCard('${activeTable}', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    <td><b>${escapeAdminReceiptText(c.name)}</b></td>
+                    <td>${escapeAdminReceiptText(c.mobile)}</td>
+                    <td style="text-align:left;">${escapeAdminReceiptText(c.address)}</td>
+                    <td><b>${c.count}</b></td>
+                    <td>${c.lastDate ? new Date(c.lastDate).toLocaleDateString('hi-IN') : '-'}</td>
                 </tr>
-            `}).join('');
+            `).join('');
         }
+
+        let catalogPage = 0;
+        const CATALOG_PAGE_SIZE = 30;
+        let catalogActiveTable = 'catalog';
+        let catalogLoadedOnce = false;
+
+        function openCatalogPreview(imageUrl, title, model) {
+            const modal = document.getElementById('catalogPreviewModal');
+            const img = document.getElementById('catalogPreviewLargeImg');
+            const titleEl = document.getElementById('catalogPreviewTitle');
+            const meta = document.getElementById('catalogPreviewMeta');
+            if (!modal || !img) return;
+
+            img.src = imageUrl || 'https://via.placeholder.com/600x800?text=No+Image';
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-eye"></i> ' + escapeAdminReceiptText(title || 'कैटलॉग प्रिव्यू');
+            if (meta) meta.textContent = model ? ('मॉडल: ' + model) : '';
+            modal.style.display = 'flex';
+        }
+
+        function closeCatalogPreview() {
+            const modal = document.getElementById('catalogPreviewModal');
+            const img = document.getElementById('catalogPreviewLargeImg');
+            if (modal) modal.style.display = 'none';
+            if (img) img.removeAttribute('src');
+        }
+
+        async function loadCatalogStock(force = false) {
+            const tbody = document.getElementById('catalogTableBody');
+            if (!tbody) return;
+
+            if (catalogLoadedOnce && !force) return;
+
+            tbody.innerHTML = '<tr><td colspan="9">कैटलॉग लोड हो रहा है...</td></tr>';
+
+            if (!supabaseClient) {
+                tbody.innerHTML = '<tr><td colspan="9">Database connection उपलब्ध नहीं है।</td></tr>';
+                return;
+            }
+
+            const selectCols = 'id,name,title,model,code,image,image_url,catalog_rate,original_rate,mrp,sale_rate,selling_price,rate,price,in_stock,category';
+
+            try {
+                // पहले catalog table को इस्तेमाल करें। केवल जरूरत पर fallback tables देखें।
+                let result = await supabaseClient
+                    .from('catalog')
+                    .select(selectCols, { count: 'exact' })
+                    .order('id', { ascending: false })
+                    .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+
+                if (result.error) {
+                    result = await supabaseClient
+                        .from('cards')
+                        .select(selectCols, { count: 'exact' })
+                        .order('id', { ascending: false })
+                        .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+                    catalogActiveTable = 'cards';
+                } else {
+                    catalogActiveTable = 'catalog';
+                }
+
+                if (result.error) {
+                    result = await supabaseClient
+                        .from('cards_catalog')
+                        .select(selectCols, { count: 'exact' })
+                        .order('id', { ascending: false })
+                        .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+                    catalogActiveTable = 'cards_catalog';
+                }
+
+                if (result.error) {
+                    const fallbackTables = ['catalog', 'cards_catalog', 'cards'];
+                    let fallbackResult = null;
+                    for (const tbl of fallbackTables) {
+                        try {
+                            const r = await supabaseClient.from(tbl).select('*', { count: 'exact' })
+                                .order('id', { ascending: false })
+                                .range(catalogPage * CATALOG_PAGE_SIZE, (catalogPage + 1) * CATALOG_PAGE_SIZE - 1);
+                            if (!r.error) {
+                                fallbackResult = r;
+                                catalogActiveTable = tbl;
+                                break;
+                            }
+                        } catch(e) {}
+                    }
+                    if (fallbackResult) result = fallbackResult;
+                }
+
+                if (result.error) throw result.error;
+
+                const fetchedData = result.data || [];
+                const total = result.count || fetchedData.length;
+
+                if (!fetchedData.length) {
+                    tbody.innerHTML = '<tr><td colspan="9">कोई कार्ड नहीं मिला।</td></tr>';
+                    updateCatalogPager(0, 0);
+                    catalogLoadedOnce = true;
+                    return;
+                }
+
+                tbody.innerHTML = fetchedData.map(c => {
+                    const catalogRate = parseFloat(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
+                    const saleRate = parseFloat(c.sale_rate ?? c.selling_price ?? c.rate ?? c.price ?? catalogRate) || 0;
+                    const discount = catalogRate > 0 && saleRate < catalogRate
+                        ? Math.round(((catalogRate - saleRate) / catalogRate) * 100) : 0;
+                    const inStock = c.in_stock !== false;
+                    const img = c.image || c.image_url || 'https://via.placeholder.com/45';
+
+                    return `
+                    <tr>
+                        <td>
+                            <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+                                 data-src="${img}" loading="lazy" decoding="async"
+                                 style="width:45px;height:45px;object-fit:cover;border-radius:6px;background:#f8fafc;"
+                                 onload="if(this.dataset.src){const u=this.dataset.src;this.removeAttribute('data-src');this.src=u;}"
+                                 onerror="this.style.opacity='.35';">
+                        </td>
+                        <td>
+                            <button type="button" onclick="openCatalogPreview('${String(img).replace(/'/g, "\\'")}', '${String(c.name || c.title || 'कैटलॉग कार्ड').replace(/'/g, "\\'")}', '${String(c.model || c.code || '').replace(/'/g, "\\'")}')"
+                                style="background:#7c3aed;color:#fff;border:0;padding:6px 10px;border-radius:7px;cursor:pointer;font-weight:800;">
+                                <i class="fa-solid fa-eye"></i> प्रिव्यू
+                            </button>
+                        </td>
+                        <td><b>${c.name || c.title || '-'}</b></td>
+                        <td>${c.model || c.code || '-'}</td>
+                        <td><b style="color:#64748b;">₹${catalogRate.toLocaleString('en-IN')}</b></td>
+                        <td>
+                            <div style="display:flex;align-items:center;justify-content:center;">
+                                <input type="number" id="saleRateInput_${c.id}" value="${saleRate}" style="width:78px;text-align:center;padding:4px;" step="0.5" min="0">
+                                <button class="btn-save-rate" onclick="saveCardSaleRate('${catalogActiveTable}','${c.id}')">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>${discount > 0 ? `<b style="color:#dc2626;">${discount}% OFF</b>` : '<span style="color:#64748b;">0%</span>'}</td>
+                        <td>
+                            <button onclick="toggleCardStock('${catalogActiveTable}','${c.id}',${!inStock})"
+                                style="background:${inStock ? '#dcfce7':'#fee2e2'};color:${inStock ? '#15803d':'#b91c1c'};border:1px solid currentColor;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:bold;">
+                                ${inStock ? '✓ उपलब्ध' : '✕ समाप्त'}
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn-del" onclick="deleteCatalogCard('${catalogActiveTable}','${c.id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                updateCatalogPager(total, fetchedData.length);
+                catalogLoadedOnce = true;
+
+                // Lazy-load visible images without blocking table rendering.
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('#catalogTableBody img[data-src]').forEach(img => {
+                        if ('IntersectionObserver' in window) {
+                            if (!window.__catalogImageObserver) {
+                                window.__catalogImageObserver = new IntersectionObserver(entries => {
+                                    entries.forEach(entry => {
+                                        if (entry.isIntersecting) {
+                                            const el = entry.target;
+                                            const u = el.dataset.src;
+                                            if (u) {
+                                                el.src = u;
+                                                el.removeAttribute('data-src');
+                                            }
+                                            window.__catalogImageObserver.unobserve(el);
+                                        }
+                                    });
+                                }, {rootMargin:'300px'});
+                            }
+                            window.__catalogImageObserver.observe(img);
+                        } else {
+                            const u = img.dataset.src;
+                            if (u) { img.src = u; img.removeAttribute('data-src'); }
+                        }
+                    });
+                });
+
+            } catch (e) {
+                console.error('Catalog load error:', e);
+                tbody.innerHTML = `<tr><td colspan="9">कैटलॉग लोड नहीं हुआ।<br><small>${String(e.message || e)}</small></td></tr>`;
+            }
+        }
+
+        function updateCatalogPager(total, currentCount) {
+            let pager = document.getElementById('catalogPager');
+            if (!pager) {
+                const section = document.getElementById('tabCatalogSection');
+                if (!section) return;
+                pager = document.createElement('div');
+                pager.id = 'catalogPager';
+                pager.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;';
+                const wrapper = section.querySelector('.admin-table-wrapper');
+                if (wrapper) wrapper.after(pager);
+            }
+
+            const pages = Math.max(1, Math.ceil((total || currentCount || 0) / CATALOG_PAGE_SIZE));
+            const current = catalogPage + 1;
+
+            pager.innerHTML = `
+                <button type="button" onclick="changeCatalogPage(-1)" ${catalogPage <= 0 ? 'disabled' : ''}
+                    style="padding:7px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font-weight:bold;cursor:pointer;">
+                    ← पिछला
+                </button>
+                <span style="font-size:12px;font-weight:800;color:#475569;">पेज ${current} / ${pages}</span>
+                <button type="button" onclick="changeCatalogPage(1)" ${current >= pages ? 'disabled' : ''}
+                    style="padding:7px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font-weight:bold;cursor:pointer;">
+                    अगला →
+                </button>
+            `;
+        }
+
+        async function changeCatalogPage(direction) {
+            const next = catalogPage + direction;
+            if (next < 0) return;
+            catalogPage = next;
+            catalogLoadedOnce = false;
+            await loadCatalogStock(true);
+        }
+
 
         async function saveCardSaleRate(table, cardId) {
             const input = document.getElementById(`saleRateInput_${cardId}`);
@@ -964,12 +1267,34 @@
 
         async function deleteCatalogCard(table, id) {
             if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
-            if (supabaseClient) {
-                try {
-                    await supabaseClient.from(table).delete().eq('id', isNaN(id) ? id : Number(id));
-                } catch (e) {}
+
+            if (!supabaseClient) {
+                alert("Database connection उपलब्ध नहीं है।");
+                return;
             }
-            loadCatalogStock();
+
+            try {
+                const realId = isNaN(id) ? id : Number(id);
+
+                // पहले जिस table से card दिखा है उसी table में delete करें।
+                let { error } = await supabaseClient
+                    .from(table)
+                    .delete()
+                    .eq('id', realId);
+
+                // अगर RLS/table issue हो तो साफ error दिखाएं।
+                if (error) {
+                    throw error;
+                }
+
+                alert("कैटलॉग कार्ड सफलतापूर्वक डिलीट हो गया।");
+                catalogLoadedOnce = false;
+                await loadCatalogStock(true);
+
+            } catch (e) {
+                console.error("Catalog delete error:", e);
+                alert("कैटलॉग डिलीट नहीं हुआ।\n\n" + (e.message || e));
+            }
         }
 
         function escapeAdminReceiptText(value) {
