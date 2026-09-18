@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+]<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
@@ -1267,12 +1267,34 @@
 
         async function deleteCatalogCard(table, id) {
             if (!confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) return;
-            if (supabaseClient) {
-                try {
-                    await supabaseClient.from(table).delete().eq('id', isNaN(id) ? id : Number(id));
-                } catch (e) {}
+
+            if (!supabaseClient) {
+                alert("Database connection उपलब्ध नहीं है।");
+                return;
             }
-            loadCatalogStock();
+
+            try {
+                const realId = isNaN(id) ? id : Number(id);
+
+                // पहले जिस table से card दिखा है उसी table में delete करें।
+                let { error } = await supabaseClient
+                    .from(table)
+                    .delete()
+                    .eq('id', realId);
+
+                // अगर RLS/table issue हो तो साफ error दिखाएं।
+                if (error) {
+                    throw error;
+                }
+
+                alert("कैटलॉग कार्ड सफलतापूर्वक डिलीट हो गया।");
+                catalogLoadedOnce = false;
+                await loadCatalogStock(true);
+
+            } catch (e) {
+                console.error("Catalog delete error:", e);
+                alert("कैटलॉग डिलीट नहीं हुआ।\n\n" + (e.message || e));
+            }
         }
 
         function escapeAdminReceiptText(value) {
