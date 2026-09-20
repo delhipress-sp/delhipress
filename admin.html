@@ -400,6 +400,10 @@
                             <input type="text" id="catalogModel" placeholder="जैसे: DP-101">
                         </div>
                         <div class="form-group">
+                            <label>कार्ड का रंग / Color</label>
+                            <input type="text" id="catalogColor" placeholder="जैसे: लाल / Red">
+                        </div>
+                        <div class="form-group">
                             <label>कैटलॉग रेट (₹/पीस)</label>
                             <input type="number" id="catalogRate" min="0" step="0.5" placeholder="100">
                         </div>
@@ -438,6 +442,7 @@
                                 <th style="width:150px;">सेल रेट<br>(₹/पीस)</th>
                                 <th style="width:110px;">डिस्काउंट</th>
                                 <th style="width:120px;">स्टॉक स्थिति</th>
+                                <th style="width:170px;">अपडेट</th>
                                 <th>हटाएं</th>
                             </tr>
                         </thead>
@@ -463,6 +468,32 @@
             </div>
             <div id="catalogPreviewMeta" style="margin-top:10px;text-align:center;font-size:13px;color:#475569;"></div>
         </div>
+    </div>
+
+    <!-- CATALOG EDIT MODAL -->
+    <div class="modal-overlay" id="catalogEditModal" style="display:none;z-index:100001;" onclick="if(event.target===this) closeCatalogEdit()">
+      <div class="modal-content" style="max-width:760px;width:min(760px,96vw);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="color:var(--primary);font-size:18px;font-weight:800;"><i class="fa-solid fa-pen-to-square"></i> कैटलॉग अपडेट करें</h3>
+          <button type="button" onclick="closeCatalogEdit()" style="border:0;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:20px;">&times;</button>
+        </div>
+        <input type="hidden" id="editCatalogId"><input type="hidden" id="editCatalogTable">
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+          <div class="form-group"><label>नाम</label><input id="editCatalogName"></div>
+          <div class="form-group"><label>कैटेगरी</label><input id="editCatalogCategory"></div>
+          <div class="form-group"><label>मॉडल / कोड</label><input id="editCatalogModel"></div>
+          <div class="form-group"><label>कार्ड का रंग / Color</label><input id="editCatalogColor" placeholder="लाल / हरा / Blue"></div>
+          <div class="form-group"><label>कैटलॉग रेट (₹)</label><input type="number" id="editCatalogRate" min="0" step="0.5"></div>
+          <div class="form-group"><label>सेल रेट (₹)</label><input type="number" id="editCatalogSaleRate" min="0" step="0.5"></div>
+          <div class="form-group" style="grid-column:1/-1"><label>कैटलॉग विवरण / Description</label><textarea id="editCatalogDescription" rows="4" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;resize:vertical"></textarea></div>
+          <div class="form-group" style="grid-column:1/-1"><label>और फोटो जोड़ें (एक साथ कई फोटो)</label><input type="file" id="editCatalogPhotos" accept="image/*" multiple></div>
+        </div>
+        <div id="editCatalogExistingPhotos" style="display:flex;gap:8px;overflow-x:auto;padding:6px 0;flex-wrap:wrap;"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button type="button" onclick="closeCatalogEdit()" style="flex:1;padding:10px;border:0;border-radius:8px;background:#e2e8f0;font-weight:800;">रद्द करें</button>
+          <button type="button" id="saveCatalogEditBtn" onclick="saveCatalogEdit()" style="flex:2;padding:10px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-weight:800;"><i class="fa-solid fa-floppy-disk"></i> अपडेट सेव करें</button>
+        </div>
+      </div>
     </div>
 
     <!-- RECEIPT MODAL -->
@@ -905,36 +936,43 @@
             }
         }
 
-        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category, description, gallery) {
+        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category, description, gallery, color) {
             const n = name.trim(); const m = model.trim();
             const cr = Number.isFinite(catalogRate) ? catalogRate : 0;
             const sr = Number.isFinite(saleRate) ? saleRate : cr;
             const c = (category || 'Muslim Card').trim();
             const d = (description || '').trim();
+            const colorText = (color || '').trim();
+            const safeDescription = colorText ? (d ? d+'\n' : '')+'[[COLOR:'+colorText+']]' : d;
             const g = Array.isArray(gallery) ? gallery.filter(Boolean) : [];
             const galleryJson = JSON.stringify(g);
             const base = {name:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true};
-            const rich = {...base, description:d, images:galleryJson, gallery:galleryJson};
+            const variant = colorText ? {variant_color:colorText, color:colorText} : {};
+            const richMeta = colorText ? {variant_color:colorText, color:colorText} : {};
+            const rich = {...base, ...variant, description:safeDescription, images:galleryJson, gallery:galleryJson};
             return [
                 rich,
-                {...base, description:d, images:galleryJson},
-                {...base, description:d, gallery:galleryJson},
-                {...base, images:galleryJson},
-                {...base, gallery:galleryJson},
-                {...base, description:d},
+                {...base, ...variant, description:safeDescription, images:galleryJson},
+                {...base, ...variant, description:safeDescription, gallery:galleryJson},
+                {...base, ...variant, images:galleryJson},
+                {...base, ...variant, gallery:galleryJson},
+                {...base, ...variant, description:safeDescription},
+                {...base, description:safeDescription, images:galleryJson},
+                {...base, description:safeDescription},
+                rich,
                 base,
                 {name:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
-                {title:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
-                {name:n, code:m, category:c, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
-                {title:n, code:m, category:c, image_url:imageUrl, mrp:cr, price:sr, in_stock:true}
+                {title:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true, ...variant},
+                {name:n, code:m, category:c, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true, ...variant},
+                {title:n, code:m, category:c, image_url:imageUrl, mrp:cr, price:sr, in_stock:true, ...variant}
             ];
         }
 
-        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category, description, gallery) {
+        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category, description, gallery, color) {
             if (!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
             const tables = ['catalog', 'cards', 'cards_catalog']; let lastError = null;
             for (const table of tables) {
-                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category, description, gallery)) {
+                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category, description, gallery, color)) {
                     try { const {error}=await supabaseClient.from(table).insert(payload); if(!error) return {table,data:payload}; lastError=error; } catch(e){ lastError=e; }
                 }
             }
@@ -950,10 +988,11 @@
             const saleRateInput=document.getElementById('catalogSaleRate');
             const categoryInput=document.getElementById('catalogCategory');
             const descInput=document.getElementById('catalogDescription');
+            const colorInput=document.getElementById('catalogColor');
             const status=document.getElementById('catalogUploadStatus'); const box=document.getElementById('catalogUploadPreview');
             const files=Array.from(fileInput?.files||[]); const name=nameInput?.value.trim()||''; const model=modelInput?.value.trim()||'';
             const catalogRate=parseFloat(catalogRateInput?.value); const enteredSale=parseFloat(saleRateInput?.value); const saleRate=Number.isFinite(enteredSale)?enteredSale:catalogRate;
-            const category=categoryInput?.value.trim()||'Muslim Card'; const description=descInput?.value.trim()||'';
+            const category=categoryInput?.value.trim()||'Muslim Card'; const description=descInput?.value.trim()||''; const color=colorInput?.value.trim()||'';
             if(!files.length){alert('पहले कम से कम 1 कैटलॉग फोटो चुनें।');return} if(files.length>10){alert('एक कैटलॉग में अधिकतम 10 फोटो चुनें।');return}
             if(!name){alert('कैटलॉग का नाम दर्ज करें।');nameInput?.focus();return}
             if(!Number.isFinite(catalogRate)||catalogRate<0){alert('मान्य कैटलॉग रेट डालें।');return}
@@ -963,10 +1002,10 @@
                 const urls=[];
                 for(let i=0;i<files.length;i++){if(status)status.textContent=`फोटो ${i+1}/${files.length} अपलोड हो रही है...`;urls.push(await uploadCatalogImage(files[i],'card_'+Date.now()+'_'+i));}
                 if(status)status.textContent='कैटलॉग Database में सेव हो रहा है...';
-                const result=await insertCatalogRecord(name,model,catalogRate,saleRate,urls[0],category,description,urls);
+                const result=await insertCatalogRecord(name,model,catalogRate,saleRate,urls[0],category,description,urls,color);
                 if(status)status.textContent=`सफलतापूर्वक अपलोड • ${result.table} • ${urls.length} फोटो`;
                 alert(`कैटलॉग कार्ड सफलतापूर्वक अपलोड हो गया।\n${urls.length} फोटो सेव की गईं।`);
-                if(fileInput)fileInput.value=''; if(nameInput)nameInput.value=''; if(modelInput)modelInput.value=''; if(catalogRateInput)catalogRateInput.value=''; if(saleRateInput)saleRateInput.value=''; if(descInput)descInput.value=''; if(box)box.style.display='none';
+                if(fileInput)fileInput.value=''; if(nameInput)nameInput.value=''; if(modelInput)modelInput.value=''; if(colorInput)colorInput.value=''; if(catalogRateInput)catalogRateInput.value=''; if(saleRateInput)saleRateInput.value=''; if(descInput)descInput.value=''; if(box)box.style.display='none';
                 await loadCatalogStock();
             }catch(e){console.error(e);if(status)status.textContent='अपलोड असफल';alert('कैटलॉग अपलोड नहीं हुआ।\n\n'+(e.message||e));}
             finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-upload"></i> कैटलॉग अपलोड करें'}}
@@ -985,7 +1024,7 @@
                 return;
             }
 
-            const selectCols = 'id,name,title,model,code,image,image_url,catalog_rate,original_rate,mrp,sale_rate,selling_price,rate,price,in_stock,category';
+            const selectCols = '*';
 
             try {
                 // पहले catalog table को इस्तेमाल करें। केवल जरूरत पर fallback tables देखें।
@@ -1087,6 +1126,12 @@
                             </button>
                         </td>
                         <td>
+                            <button type="button" onclick='openCatalogEdit(${JSON.stringify(c).replace(/</g,"\u003c")})'
+                                style="background:#7c3aed;color:#fff;border:0;padding:6px 9px;border-radius:6px;cursor:pointer;font-weight:800;">
+                                <i class="fa-solid fa-pen"></i> एडिट / फोटो
+                            </button>
+                        </td>
+                        <td>
                             <button class="btn-del" onclick="deleteCatalogCard('${catalogActiveTable}','${c.id}')">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -1128,6 +1173,85 @@
                 console.error('Catalog load error:', e);
                 tbody.innerHTML = `<tr><td colspan="9">कैटलॉग लोड नहीं हुआ।<br><small>${String(e.message || e)}</small></td></tr>`;
             }
+        }
+
+        function editParseArray(v){
+            if(Array.isArray(v)) return v.filter(Boolean);
+            if(typeof v==='string' && v.trim()){
+                try{const j=JSON.parse(v);if(Array.isArray(j))return j.filter(Boolean);}catch(e){}
+                return v.split(/\s*,\s*\n?/).map(x=>x.trim()).filter(Boolean);
+            }
+            return [];
+        }
+        function editGetImages(c){
+            let a=[];['images','image_urls','gallery','photos','gallery_images','product_images','catalog_images'].forEach(k=>a.push(...editParseArray(c?.[k])));
+            ['image','image_url','photo','main_image'].forEach(k=>{if(typeof c?.[k]==='string'&&c[k].trim())a.push(c[k].trim())});
+            return [...new Set(a.filter(Boolean))];
+        }
+        function firstExistingKey(obj, keys){return keys.find(k=>Object.prototype.hasOwnProperty.call(obj,k));}
+        function setEditVal(id,v){const e=document.getElementById(id);if(e)e.value=v??'';}
+        function openCatalogEdit(card){
+            if(!card)return;
+            window.__editingCatalog=card;
+            setEditVal('editCatalogId',card.id); setEditVal('editCatalogTable',catalogActiveTable);
+            setEditVal('editCatalogName',card.name??card.title??''); setEditVal('editCatalogCategory',card.category??'');
+            setEditVal('editCatalogModel',card.model??card.code??''); setEditVal('editCatalogColor',card.variant_color??card.color??'');
+            setEditVal('editCatalogRate',card.catalog_rate??card.original_rate??card.mrp??card.rate??card.price??0);
+            setEditVal('editCatalogSaleRate',card.sale_rate??card.selling_price??card.rate??card.price??0);
+            setEditVal('editCatalogDescription',card.description??card.details??card.description_hi??card.matter??card.note??'');
+            const box=document.getElementById('editCatalogExistingPhotos'); const imgs=editGetImages(card);
+            if(box) box.innerHTML=imgs.length?imgs.map((u,i)=>`<div style="position:relative"><img src="${escAdmin(u)}" style="width:78px;height:78px;object-fit:cover;border:1px solid #cbd5e1;border-radius:7px" onerror="this.style.opacity='.3'"><small style="display:block;text-align:center;color:#64748b">फोटो ${i+1}</small></div>`).join(''):'<span style="color:#94a3b8;font-size:12px">अभी कोई फोटो नहीं</span>';
+            const f=document.getElementById('editCatalogPhotos');if(f)f.value='';
+            document.getElementById('catalogEditModal').style.display='flex';
+        }
+        function closeCatalogEdit(){const m=document.getElementById('catalogEditModal');if(m)m.style.display='none';window.__editingCatalog=null;}
+        async function updateCatalogRow(table,id,payload){
+            const {data,error}=await supabaseClient.from(table).update(payload).eq('id',isNaN(id)?id:Number(id)).select('*').maybeSingle();
+            if(error)throw error; return data||null;
+        }
+        async function saveCatalogEdit(){
+            const c=window.__editingCatalog, btn=document.getElementById('saveCatalogEditBtn'); if(!c||!supabaseClient)return;
+            const table=document.getElementById('editCatalogTable').value||catalogActiveTable, id=document.getElementById('editCatalogId').value;
+            const name=document.getElementById('editCatalogName').value.trim(), category=document.getElementById('editCatalogCategory').value.trim(), model=document.getElementById('editCatalogModel').value.trim();
+            const color=document.getElementById('editCatalogColor').value.trim(), description=document.getElementById('editCatalogDescription').value.trim();
+            const cr=parseFloat(document.getElementById('editCatalogRate').value), sr=parseFloat(document.getElementById('editCatalogSaleRate').value);
+            if(!name){alert('नाम दर्ज करें।');return} if(!Number.isFinite(cr)||cr<0||!Number.isFinite(sr)||sr<0){alert('दोनों रेट सही डालें।');return}
+            try{
+                if(btn){btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> सेव हो रहा है...';}
+                const newFiles=[...(document.getElementById('editCatalogPhotos')?.files||[])].slice(0,10);
+                const oldImgs=editGetImages(c); const newUrls=[];
+                for(let i=0;i<newFiles.length;i++) newUrls.push(await uploadCatalogImage(newFiles[i],String(id)+'_more_'+Date.now()+'_'+i));
+                const allImgs=[...new Set([...oldImgs,...newUrls])];
+                // Update only columns that the existing row actually has. This keeps old schemas working.
+                const payload={};
+                const key=(keys)=>firstExistingKey(c,keys);
+                const nameKey=key(['name','title']); if(nameKey)payload[nameKey]=name;
+                const modelKey=key(['model','code']); if(modelKey)payload[modelKey]=model;
+                const catKey=key(['category']); if(catKey)payload[catKey]=category;
+                const descKey=key(['description','details','description_hi','matter','note']);
+                const colorKey=key(['variant_color','color','card_color']);
+                if(descKey) payload[descKey]=colorKey ? description : (color ? (description ? description+'\n' : '')+'[[COLOR:'+color+']]' : description);
+                if(colorKey)payload[colorKey]=color;
+                const rateKey=key(['catalog_rate','original_rate','mrp','actual_rate','list_price']); if(rateKey)payload[rateKey]=cr;
+                const saleKeys=['sale_rate','selling_price','rate','price'].filter(k=>Object.prototype.hasOwnProperty.call(c,k)); saleKeys.forEach(k=>payload[k]=sr);
+                const imageKey=key(['image','image_url','photo','main_image']); if(imageKey&&newUrls.length)payload[imageKey]=allImgs[0];
+                const galleryKey=key(['images','image_urls','gallery','photos','gallery_images','product_images','catalog_images']);
+                if(galleryKey)payload[galleryKey]=JSON.stringify(allImgs);
+                // If this older record has no gallery column, try common gallery columns without disturbing the record.
+                if(!galleryKey && newUrls.length){
+                    for(const k of ['images','gallery','image_urls']){try{const test={};test[k]=JSON.stringify(allImgs);const updated=await updateCatalogRow(table,id,test);if(updated){c[k]=test[k];break}}catch(e){}}
+                }
+                if(Object.keys(payload).length) await updateCatalogRow(table,id,payload);
+                Object.assign(c,payload); if(galleryKey)c[galleryKey]=JSON.stringify(allImgs); if(colorKey)c[colorKey]=color;
+                alert(newUrls.length?`कैटलॉग अपडेट हो गया। ${newUrls.length} नई फोटो जोड़ी गईं।`:'कैटलॉग अपडेट हो गया।');
+                closeCatalogEdit(); catalogLoadedOnce=false; await loadCatalogStock(true);
+            }catch(e){console.error(e);alert('कैटलॉग अपडेट नहीं हुआ।\n\n'+(e.message||e));}
+            finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> अपडेट सेव करें';}}
+        }
+
+        async function updateCatalogColorOnly(table,id,color){
+            for(const k of ['variant_color','color','card_color']){try{const {error}=await supabaseClient.from(table).update({[k]:color}).eq('id',isNaN(id)?id:Number(id));if(!error)return true;}catch(e){}}
+            return false;
         }
 
         function updateCatalogPager(total, currentCount) {
