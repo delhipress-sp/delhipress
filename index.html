@@ -72,7 +72,7 @@
         .btn-login{background:linear-gradient(135deg,#e51e3b,#c8102e)!important;color:#fff!important;border-radius:20px!important;padding:7px 14px!important}
         .user-logged-box{display:none;align-items:center}
         .btn-my-orders{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff!important;border-radius:20px!important;padding:7px 14px!important;text-decoration:none}
-        .nav-right-cluster{display:flex;align-items:center;gap:8px}
+        .nav-right-cluster{display:none}
         .btn-cart-nav{
             position:relative;display:inline-flex;align-items:center;gap:7px;text-decoration:none;
             color:#fff;font-size:13px;font-weight:800;padding:9px 15px;border-radius:26px;
@@ -179,6 +179,16 @@
         }
         .notice-banner i{color:#ef5b18;font-size:23px}
 
+        .top-card-tools{background:#fff;border-radius:14px;padding:9px 12px;margin:0 0 10px;box-shadow:0 3px 12px rgba(0,0,0,.08);border:1px solid #e6edf5;position:relative;z-index:5}
+        .top-search-row{display:flex;justify-content:center}
+        .top-search-box{width:min(760px,100%);display:flex;align-items:center;gap:7px;background:#f5f8fc;border:1px solid #d7e1ee;border-radius:11px;padding:5px 6px}
+        .top-search-box>i{color:#ed1b40;font-size:18px;padding-left:7px}
+        .top-search-box input{flex:1;min-width:0;border:0;outline:0;background:#fff;border-radius:8px;padding:9px 11px;color:#152a5b;font-size:13px;font-weight:700}
+        .top-search-box input::placeholder{color:#8190a8;font-weight:600}
+        .top-search-box button{border:0;border-radius:8px;background:linear-gradient(135deg,#0869f1,#0753ce);color:#fff;padding:9px 18px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+        .top-card-categories{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+        .top-card-categories .simple-cat{border:1px solid #d7e1ee;background:#fff;color:#17325f;border-radius:18px;padding:6px 13px;font-size:12px;font-weight:800;cursor:pointer}
+        .top-card-categories .simple-cat.active{background:#0869f1;color:#fff;border-color:#0869f1}
         .showcase-box{
             background:rgba(255,255,255,.98);border-radius:19px;padding:18px 20px;margin-bottom:10px;
             box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.9)
@@ -322,13 +332,14 @@
             .top-bar{height:auto;padding:6px 10px;font-size:10px}.top-right{display:none}
             .navbar{padding:7px 10px;min-height:60px}.nav-brand{min-width:0}.nav-logo-box{width:43px;height:43px}
             .nav-brand-text h2{font-size:19px}.nav-brand-text p{font-size:9px}
-            .nav-menu{display:none}.nav-right-cluster{margin-left:auto}
+            .nav-menu{display:none}.nav-right-cluster{display:none}
             .btn-cart-nav{padding:7px 10px;font-size:11px}
             .container{width:100%;padding:0 7px;margin-top:7px}
             .hero{padding:10px;border-radius:16px}.hero-inner{grid-template-columns:1fr;gap:5px}
             .hero-cards{height:140px}.fake-card{width:90px;height:130px;font-size:12px}.fake-card small{font-size:8px}
             .fake-card.one{left:12%;top:8px}.fake-card.two{top:4px}.fake-card.three{right:12%;top:8px}
             .hero-content{padding:0 3px}.hero-brand{font-size:11px;padding:4px 12px}
+            .top-card-tools{padding:7px 8px}.top-search-box{width:100%}.top-search-box button{padding:9px 13px}.top-card-categories{gap:5px}.top-card-categories .simple-cat{padding:6px 10px;font-size:11px}
             .hero h1{font-size:24px}.hero p{font-size:11px;margin:5px 0 8px}.btn-main-order{font-size:12px;padding:10px 15px}
             .notice-banner{font-size:11px;padding:9px 10px;margin-bottom:7px}.notice-banner i{font-size:18px}
             .showcase-box{padding:12px;border-radius:14px}.catalog-head{align-items:flex-start;flex-direction:column}
@@ -346,6 +357,57 @@
             .footer-col h4{font-size:14px}.footer-col p{font-size:11px}.footer-bottom{font-size:10px;justify-content:center;text-align:center;flex-direction:column}
             .mobile-bottom-bar{display:flex}
         }
+
+        /* Flipkart-style mobile storefront — keeps the existing catalog/data logic unchanged */
+        .mobile-shop-shortcuts{display:none}
+        @media(max-width:768px){
+            body{background:linear-gradient(180deg,#d900ff 0,#c900e8 245px,#f6f6f6 410px);color:#202124;padding-bottom:78px}
+            .top-bar{display:none}
+            .navbar{position:sticky;top:0;z-index:1000;background:linear-gradient(135deg,#d400ff,#8d00d9);border:0;border-radius:0;box-shadow:0 4px 16px rgba(55,0,80,.25);padding:9px 12px;min-height:64px}
+            .nav-brand{width:100%;min-width:0;gap:9px}
+            .nav-logo-box{width:45px;height:45px;border:2px solid #fff;box-shadow:0 0 0 2px rgba(255,255,255,.18),0 4px 12px rgba(0,0,0,.18)}
+            .nav-brand-text h2{font-size:20px;line-height:1.05;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.2)}
+            .nav-brand-text p{font-size:9px;color:#ffe9ff;margin-top:3px}
+            .mobile-shop-shortcuts{display:flex;gap:8px;padding:10px 10px 8px;overflow-x:auto;background:linear-gradient(135deg,#d400ff,#c000e6);scrollbar-width:none}
+            .brand-location-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;margin-left:auto;flex:0 0 auto;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;border-radius:18px;padding:7px 9px;font-size:10px;font-weight:800;box-shadow:0 3px 8px rgba(50,0,80,.16);cursor:pointer}
+            .brand-location-btn i{font-size:16px}
+            .brand-location-btn span{font-size:9px}
+            .mobile-shop-shortcuts::-webkit-scrollbar{display:none}
+            .shop-shortcut{border:1px solid rgba(255,255,255,.75);background:#fff;border-radius:15px;min-width:108px;height:78px;padding:7px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;box-shadow:0 4px 12px rgba(70,0,90,.16);color:#242424}
+            .shop-shortcut.active{background:#ffe600;border-color:#fff}
+            .shortcut-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:21px;line-height:1;margin-bottom:5px;background:linear-gradient(135deg,#fff4a8,#ffe100);color:#5b2a00;box-shadow:0 3px 8px rgba(80,0,90,.16)}
+            .shop-shortcut b{font-size:13px;font-weight:900}.shop-shortcut small{font-size:10px;color:#555;margin-top:2px;font-weight:700}
+            .container{width:100%;padding:0 9px;margin-top:0}
+            .top-card-tools{padding:8px 0 5px;background:transparent}
+            .top-search-row{width:100%}.top-search-box{width:100%;height:50px;background:#fff;border:1px solid #ddd;border-radius:16px;padding:5px 7px;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+            .top-search-box>i{color:#222;font-size:22px}.top-search-box input{font-size:14px;padding:8px 7px}.top-search-box input::placeholder{color:#777}
+            .top-search-box button{display:none}
+            .top-card-categories{display:flex;gap:12px;overflow-x:auto;padding:8px 2px 4px;scrollbar-width:none}
+            .top-card-categories::-webkit-scrollbar{display:none}
+            .top-card-categories .simple-cat{flex:0 0 auto;border:0!important;background:transparent!important;color:#fff!important;padding:6px 9px!important;font-size:12px!important;border-radius:10px!important;box-shadow:none!important;font-weight:800}
+            .top-card-categories .simple-cat.active{background:rgba(255,255,255,.16)!important;border-bottom:3px solid #fff!important;border-radius:10px 10px 4px 4px!important}
+            .top-card-categories .simple-cat i{font-size:22px;display:block;margin-bottom:3px}
+            .hero.real-card-hero{margin:5px 0 10px;padding:0;border:0;border-radius:18px;background:linear-gradient(135deg,#ffb9f4,#fbd5ff);box-shadow:0 5px 15px rgba(72,0,90,.15);overflow:hidden}
+            .hero.real-card-hero .hero-inner{min-height:0;display:block;padding:0}
+            .hero.real-card-hero .hero-content{display:none}
+            .real-card-slider{height:210px!important;min-height:210px!important;width:100%;padding:0!important}
+            .real-card-track{height:100%!important}
+            .real-card-slide{height:100%!important;border-radius:0!important}
+            .real-card-slide img{height:100%!important;width:100%!important;object-fit:cover!important}
+            .real-card-slide .real-card-caption{bottom:8px!important;left:8px!important;right:8px!important}
+            .real-card-slide .real-card-caption h3{font-size:14px!important}.real-card-slide .real-card-caption p{font-size:10px!important}
+            .real-slider-btn{width:30px!important;height:30px!important;border-radius:50%!important}
+            .showcase-box{margin-top:8px;background:#ffdafa;border:0;border-radius:20px;padding:14px 10px;box-shadow:none}
+            .catalog-head{margin-bottom:9px}.catalog-heading{width:100%}.catalog-heading i{font-size:21px}.showcase-header-title{font-size:20px!important;color:#252525}.catalog-sub{display:none}
+            .catalog-head>.filter-box{display:none}.gallery-grid{grid-template-columns:repeat(2,1fr)!important;gap:9px!important}
+            .card-sample{border:1px solid #eee!important;border-radius:15px!important;box-shadow:0 2px 7px rgba(0,0,0,.08)!important;background:#fff!important;overflow:hidden}
+            .card-sample .img-box{height:145px!important;background:#f5f5f5!important}.card-info{padding:8px!important}.card-info h4{font-size:13px!important;color:#444!important}.card-price-tag,.card-sale-price{font-size:15px!important;color:#222!important}
+            .notice-banner,.benefit-grid,.info-card,.about-flex,.two-col,.terms-marquee{border-radius:15px}
+            .mobile-bottom-bar{height:70px!important;background:#fff!important;border:0!important;border-top:1px solid #ddd!important;border-radius:0!important;box-shadow:0 -3px 12px rgba(0,0,0,.08)!important}
+            .mobile-bottom-bar a{color:#333!important;font-size:10px!important;font-weight:700;flex:1}.mobile-bottom-bar a i{font-size:23px!important;color:#555!important}.mobile-bottom-bar a:first-child,.mobile-bottom-bar a:nth-child(2){color:#1267d8!important}.mobile-bottom-bar a:first-child i,.mobile-bottom-bar a:nth-child(2) i{color:#1267d8!important}
+            .main-footer{padding-bottom:92px}
+        }
+
         .terms-marquee{margin:8px 0 10px;background:#fff7cf;border:2px solid #ffb400;border-radius:12px;overflow:hidden;box-shadow:0 5px 15px rgba(255,180,0,.18);white-space:nowrap}
         .terms-marquee-inner{display:inline-block;padding:9px 0;font-weight:800;color:#8a2f00;animation:termsScroll 32s linear infinite}
         .terms-marquee-inner span{display:inline-block;margin-right:70px}
@@ -528,6 +590,26 @@
         .simple-cat.active{background:#147cf5;color:#fff;border-color:#147cf5}
         @media(max-width:700px){.simple-card-categories{gap:6px}.simple-cat{padding:7px 10px;font-size:10px}}
 
+
+        .location-strip{display:flex;align-items:center;gap:9px;width:min(760px,100%);margin:0 auto 7px;padding:6px 9px;border:1px solid #e0e7f0;border-radius:9px;background:#fff;box-shadow:0 2px 8px rgba(15,45,90,.07);cursor:pointer;min-height:34px}
+        .location-strip>i:first-child{color:#e91d3f;font-size:15px;flex:0 0 auto}
+        .location-strip-text{min-width:0;flex:1;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+        .location-strip-label{font-size:10px;font-weight:800;color:#66758c;flex:0 0 auto}
+        #locationAddressText{font-size:11px;font-weight:800;color:#172b59;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .location-strip-arrow{color:#8290a5;font-size:11px;flex:0 0 auto}
+        .user-greeting{display:inline-flex;align-items:center;white-space:nowrap;color:#fff;font-size:12px;font-weight:700;margin-right:8px}
+        .user-greeting b{font-weight:900;margin-left:3px}
+        .location-popup-overlay{position:fixed;inset:0;background:rgba(10,22,45,.48);display:none;align-items:center;justify-content:center;padding:18px;z-index:99999}
+        .location-popup-overlay.active{display:flex}
+        .location-popup{position:relative;width:min(390px,100%);background:#fff;border-radius:18px;padding:24px 20px 18px;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.25);animation:locationPopIn .2s ease-out}
+        .location-popup-close{position:absolute;right:11px;top:8px;border:0;background:transparent;font-size:26px;line-height:1;color:#7c8798;cursor:pointer}
+        .location-popup-icon{width:58px;height:58px;margin:0 auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff1f3;color:#e51c3e;font-size:25px}
+        .location-popup h3{margin:4px 0 8px;color:#172b59;font-size:19px}
+        .location-popup p{margin:0 auto 16px;color:#63718a;font-size:12px;line-height:1.65;max-width:310px}
+        .location-use-btn{width:100%;border:0;border-radius:10px;padding:11px 14px;background:linear-gradient(135deg,#0869f1,#0753ce);color:#fff;font-size:13px;font-weight:800;cursor:pointer}
+        .location-later-btn{border:0;background:transparent;color:#65738a;font-size:12px;font-weight:700;padding:11px;cursor:pointer}
+        @keyframes locationPopIn{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+        @media(max-width:768px){.location-strip{width:100%;margin:0 0 6px;border-radius:8px;min-height:31px;padding:5px 8px;box-shadow:none}.location-strip-label{font-size:9px}.location-strip #locationAddressText{font-size:10px}.user-greeting{font-size:10px}}
 </style>
 
 <style>
@@ -547,7 +629,6 @@
             <span><i class="fa-solid fa-envelope"></i>mdsajadans@gmail.com</span>
         </div>
         <div class="top-right">
-            <span style="margin-right:22px"><i class="fa-solid fa-location-dot"></i>जामताड़ा, झारखंड</span>
             <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         </div>
     </div>
@@ -559,34 +640,69 @@
             </div>
             <div class="nav-brand-text">
                 <h2>दिल्ली प्रेस</h2>
-                <p>सज्जाद प्रिंटर्स (Design • Print • Quality)</p>
+                <p>Design • Print • Quality</p>
             </div>
-        </a>
+</a>
 
         <ul class="nav-menu">
             <li><a href="index.html" class="home-link"><i class="fa-solid fa-house"></i> होम</a></li>
-            <li><a href="#showcaseSection">कैटलॉग</a></li>
             <li><a href="about.html">हमारे बारे में</a></li>
             <li><a href="payment-policy.html">भुगतान एवं रिफंड नीति</a></li>
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
             <li></li>
             <li id="authNavContainer"><a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> <span>लॉगिन</span></a></li>
-            <li class="user-logged-box" id="userLoggedBox"><a href="my_orders.html" class="btn-my-orders"><i class="fa-solid fa-box-archive"></i> <span>मेरे ऑर्डर्स</span></a></li>
+            <li class="user-logged-box" id="userLoggedBox"><span class="user-greeting" id="userGreetingText">हेलो, <b id="userGreetingName">ग्राहक</b></span><a href="my_orders.html" class="btn-my-orders"><i class="fa-solid fa-box-archive"></i> <span>मेरे ऑर्डर्स</span></a></li>
         </ul>
 
-        <div class="nav-right-cluster">
-            <a href="cart.html" class="btn-cart-nav">
-                <i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span>
-                <span class="cart-badge-count" id="navCartBadge">0</span>
-            </a>
-        </div>
+
     </nav>
 
+    <div class="mobile-shop-shortcuts" aria-label="कार्ड श्रेणियां">
+        <button type="button" class="shop-shortcut active" onclick="filterCategory('all');setSimpleCat(document.querySelector('.simple-cat'))">
+            <span class="shortcut-icon"><i class="fa-solid fa-layer-group"></i></span><b>सभी कार्ड</b><small>All Cards</small>
+        </button>
+        <button type="button" class="shop-shortcut" onclick="filterCategory('muslim');setSimpleCat(document.querySelectorAll('.simple-cat')[1])">
+            <span class="shortcut-icon"><i class="fa-solid fa-mosque"></i></span><b>मुस्लिम कार्ड</b><small>Muslim</small>
+        </button>
+        <button type="button" class="shop-shortcut" onclick="filterCategory('hindu');setSimpleCat(document.querySelectorAll('.simple-cat')[2])">
+            <span class="shortcut-icon"><i class="fa-solid fa-om"></i></span><b>हिंदू कार्ड</b><small>Hindu</small>
+        </button>
+    </div>
+
+
+
     <div class="container">
+        <section class="top-card-tools" aria-label="कार्ड खोज और श्रेणी">
+            <div class="location-strip" id="locationStrip" role="button" tabindex="0" onclick="openLocationPopup()" onkeydown="if(event.key==='Enter'||event.key===' ')openLocationPopup()">
+                <i class="fa-solid fa-location-dot"></i>
+                <div class="location-strip-text">
+                    <span class="location-strip-label">आपका लोकेशन</span>
+                    <span id="locationAddressText">लोकेशन प्राप्त हो रही है...</span>
+                </div>
+                <i class="fa-solid fa-chevron-right location-strip-arrow"></i>
+            </div>
+            <div class="top-search-row">
+                <div class="top-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="catalogSearchInputTop" type="search" list="priceSearchSamplesTop" placeholder="कार्ड / मॉडल / रेट खोजें..." onkeydown="if(event.key==='Enter') searchCatalogTop()">
+                    <datalist id="priceSearchSamplesTop">
+                        <option value="9">₹9</option>
+                        <option value="10">₹10</option>
+                        <option value="9-10">₹9 - ₹10</option>
+                    </datalist>
+                    <button type="button" onclick="searchCatalogTop()">खोजें</button>
+                </div>
+            </div>
+            <div class="top-card-categories">
+                <button type="button" class="simple-cat active" onclick="filterCategory('all'); setSimpleCat(this)"><i class="fa-solid fa-grip"></i> सभी कार्ड</button>
+                <button type="button" class="simple-cat" onclick="filterCategory('muslim'); setSimpleCat(this)"><i class="fa-solid fa-mosque"></i> मुस्लिम कार्ड</button>
+                <button type="button" class="simple-cat" onclick="filterCategory('hindu'); setSimpleCat(this)"><i class="fa-solid fa-om"></i> हिंदू कार्ड</button>
+            </div>
+        </section>
+
         <section class="hero real-card-hero" aria-label="कार्ड सैंपल">
             <div class="hero-inner">
                 <div class="hero-content">
-                    <div class="hero-brand">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</div>
                     <h1>खास मौकों के लिए<br>खास कार्ड</h1>
                     <p>शादी • निकाह • अकीका • निमंत्रण<br>और भी बहुत कुछ...</p>
                     <div style="display:inline-block;background:linear-gradient(135deg,#d71939,#b20f2c);color:#fff;border-radius:24px;padding:7px 18px;font-size:13px;font-weight:800;box-shadow:0 4px 10px rgba(183,15,44,.25);">
@@ -630,30 +746,7 @@
                     </div>
                     <p class="catalog-sub">कार्ड पर टच करें और पूरा विवरण देखने के लिए <b>Catalog Details</b> खोलें।</p>
                 </div>
-                <div>
-                    <div class="catalog-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input id="catalogSearchInput" type="search" list="priceSearchSamples" placeholder="कार्ड / मॉडल / रेट जैसे 9 या 9-10 खोजें" onkeydown="if(event.key==='Enter') searchCatalog()">
-                        <datalist id="priceSearchSamples">
-                            <option value="9">₹9</option>
-                            <option value="10">₹10</option>
-                            <option value="9-10">₹9 - ₹10</option>
-                        </datalist>
-                        <button type="button" onclick="searchCatalog()"><i class="fa-solid fa-filter"></i> खोजें</button>
-                    </div>
-                    <span class="search-sample">उदाहरण: <b>9</b> लिखें तो ₹9 वाला कार्ड, <b>9-10</b> लिखें तो ₹9 से ₹10 तक के कार्ड।</span>
-                    <div class="simple-card-categories" aria-label="कार्ड कैटेगरी">
-                        <button type="button" class="simple-cat active" onclick="filterCategory('all'); setSimpleCat(this)">
-                            <i class="fa-solid fa-layer-group"></i> सभी कार्ड
-                        </button>
-                        <button type="button" class="simple-cat" onclick="filterCategory('muslim'); setSimpleCat(this)">
-                            <i class="fa-solid fa-mosque"></i> मुस्लिम कार्ड
-                        </button>
-                        <button type="button" class="simple-cat" onclick="filterCategory('hindu'); setSimpleCat(this)">
-                            <i class="fa-solid fa-om"></i> हिंदू कार्ड
-                        </button>
-                    </div>
-                </div>
+
             </div>
             <div class="gallery-grid" id="catalogContainer"></div>
         </section>
@@ -696,6 +789,14 @@
 
         const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='185' height='155' viewBox='0 0 185 155'><rect width='185' height='155' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='12' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Image</text></svg>";
 
+        // HTML text सुरक्षित रखने के लिए; initial catalog render में यही missing था,
+        // जिसकी वजह से esc(...) error आते ही बाकी catalog render रुक जाता था।
+        function esc(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);
+            });
+        }
+
         function isUserLoggedIn() {
             return !!(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user'));
         }
@@ -722,6 +823,7 @@
 
         function startCatalogLoading() {
             try { checkUserAuthUI(); } catch(e) {}
+            try { initLocationUI(); } catch(e) {}
             try { updateCartBadges(); } catch(e) {}
             // DOMContentLoaded/Load दोनों जगह से बुलाने पर भी loadCatalog() single-flight guard के कारण एक ही बार चलेगा।
             loadCatalog();
@@ -735,20 +837,25 @@
             const loggedBox = document.getElementById('userLoggedBox');
             const mobLink = document.getElementById('mobileAuthLink');
             const mobText = document.getElementById('mobileAuthText');
+            const mobIcon = mobLink ? mobLink.querySelector('i') : null;
 
             if (user) {
                 if (authNav) authNav.style.display = 'none';
                 if (loggedBox) loggedBox.style.display = 'flex';
                 if (mobLink) {
                     mobLink.href = 'my_orders.html';
-                    if (mobText) mobText.textContent = "मेरे ऑर्डर्स";
+                    if (mobText) mobText.textContent = 'माय ऑर्डर';
+                    if (mobIcon) mobIcon.className = 'fa-solid fa-box-archive';
+                    mobLink.setAttribute('aria-label','माय ऑर्डर');
                 }
             } else {
                 if (authNav) authNav.style.display = 'block';
                 if (loggedBox) loggedBox.style.display = 'none';
                 if (mobLink) {
                     mobLink.href = 'login.html';
-                    if (mobText) mobText.textContent = "लॉगिन";
+                    if (mobText) mobText.textContent = 'लॉगिन';
+                    if (mobIcon) mobIcon.className = 'fa-solid fa-user';
+                    mobLink.setAttribute('aria-label','लॉगिन');
                 }
             }
         }
@@ -793,7 +900,7 @@
                     if (Array.isArray(cachedCards) && cachedCards.length) {
                         hadCache = true;
                         globalCards = cachedCards;
-                        renderRealCardsFromCatalog(cachedCards);
+                        try { renderRealCardsFromCatalog(cachedCards); } catch (e) { console.error('Hero cache render:', e); }
                         renderCatalogCards(cachedCards);
                     }
                 }
@@ -871,7 +978,7 @@
             globalCards = fetchedData;
             try { sessionStorage.setItem('dp_index_catalog_cache_v2', JSON.stringify(fetchedData)); } catch (e) {}
 
-            renderRealCardsFromCatalog(fetchedData);
+            try { renderRealCardsFromCatalog(fetchedData); } catch (e) { console.error('Hero catalog render:', e); }
             renderCatalogCards(fetchedData);
         }
 
@@ -1075,6 +1182,106 @@
             }, 5000);
         });
 
+        function searchCatalogTop(){
+            const topInput = document.getElementById('catalogSearchInputTop');
+            const oldInput = document.getElementById('catalogSearchInput');
+            if (oldInput && topInput) oldInput.value = topInput.value;
+            searchCatalog();
+            const section = document.getElementById('showcaseSection');
+            if (section) section.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+        function getStoredUserObject(){
+            try { return JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}') || {}; }
+            catch(e){ return {}; }
+        }
+
+        function getFirstName(name){
+            const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+            if (!parts.length) return 'ग्राहक';
+            const first = parts[0].replace(/[.,]/g,'').toLowerCase();
+            const titles = ['md','md.','mohd','mohd.','mohammad','mohammed'];
+            if (titles.includes(first) && parts[1]) return parts[1];
+            return parts[0];
+        }
+
+        function updateUserGreeting(){
+            const user = getStoredUserObject();
+            const el = document.getElementById('userGreetingName');
+            if (!el) return;
+            const name = user.name || user.full_name || user.customer_name || user.username || '';
+            el.textContent = getFirstName(name);
+        }
+
+        function setLocationAddress(text){
+            const el = document.getElementById('locationAddressText');
+            if (el) el.textContent = text || 'लोकेशन सेट करें';
+        }
+
+        function openLocationPopup(){
+            const overlay = document.getElementById('locationPopupOverlay');
+            if (!overlay) return;
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden','false');
+        }
+
+        function closeLocationPopup(){
+            const overlay = document.getElementById('locationPopupOverlay');
+            if (!overlay) return;
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden','true');
+        }
+
+        async function reverseGeocodeLocation(lat,lng){
+            try{
+                const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng)+'&zoom=18&addressdetails=1&accept-language=hi';
+                const res = await fetch(url, {headers:{'Accept':'application/json'}});
+                if (!res.ok) throw new Error('reverse geocode failed');
+                const data = await res.json();
+                const a = data.address || {};
+                const pieces = [a.house_number, a.road, a.neighbourhood || a.suburb || a.village || a.town || a.city, a.district, a.state, a.postcode].filter(Boolean);
+                return pieces.join(', ') || data.display_name || '';
+            }catch(e){ return ''; }
+        }
+
+        function requestLocationAccess(closeAfter){
+            if (!navigator.geolocation) {
+                setLocationAddress('इस डिवाइस में लोकेशन उपलब्ध नहीं है');
+                if(closeAfter) closeLocationPopup();
+                return;
+            }
+            setLocationAddress('आपकी लोकेशन प्राप्त हो रही है...');
+            navigator.geolocation.getCurrentPosition(
+                async function(pos){
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    let address = await reverseGeocodeLocation(lat,lng);
+                    if (!address) address = lat.toFixed(5) + ', ' + lng.toFixed(5);
+                    setLocationAddress(address);
+                    try { localStorage.setItem('dp_user_location', JSON.stringify({lat,lng,address,at:Date.now()})); } catch(e) {}
+                    closeLocationPopup();
+                },
+                function(){
+                    setLocationAddress('लोकेशन अनुमति नहीं मिली • यहाँ टैप करके सेट करें');
+                    if(closeAfter) closeLocationPopup();
+                },
+                {enableHighAccuracy:true, timeout:12000, maximumAge:300000}
+            );
+        }
+
+        function initLocationUI(){
+            updateUserGreeting();
+            try{
+                const saved = JSON.parse(localStorage.getItem('dp_user_location') || 'null');
+                if(saved && saved.address) setLocationAddress(saved.address);
+                else setLocationAddress('लोकेशन सेट करें');
+            }catch(e){ setLocationAddress('लोकेशन सेट करें'); }
+            const asked = localStorage.getItem('dp_location_popup_seen');
+            if (!asked && !localStorage.getItem('dp_user_location')) {
+                setTimeout(()=>{ openLocationPopup(); localStorage.setItem('dp_location_popup_seen','1'); }, 650);
+            }
+        }
+
         function searchCatalog(){
             if (!Array.isArray(globalCards)) return;
             const input = (document.getElementById('catalogSearchInput')?.value || '').trim().toLowerCase();
@@ -1118,12 +1325,24 @@
     </script>
 
 
+    <div class="location-popup-overlay" id="locationPopupOverlay" aria-hidden="true">
+        <div class="location-popup" role="dialog" aria-modal="true" aria-labelledby="locationPopupTitle">
+            <button type="button" class="location-popup-close" onclick="closeLocationPopup()" aria-label="बंद करें">&times;</button>
+            <div class="location-popup-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <h3 id="locationPopupTitle">अपना लोकेशन सेट करें</h3>
+            <p>आपके आसपास के अनुसार पता दिखाने के लिए अपनी वर्तमान लोकेशन की अनुमति दें।</p>
+            <button type="button" class="location-use-btn" onclick="requestLocationAccess(true)"><i class="fa-solid fa-location-crosshairs"></i> वर्तमान लोकेशन इस्तेमाल करें</button>
+            <button type="button" class="location-later-btn" onclick="closeLocationPopup()">अभी नहीं</button>
+        </div>
+    </div>
+
     <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="मोबाइल नेविगेशन">
         <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
-        <a href="#catalogSection"><i class="fa-solid fa-layer-group"></i><span>कैटलॉग</span></a>
-        <a href="my_orders.html" id="mobileOrdersLink"><i class="fa-solid fa-box-archive"></i><span>माय ऑर्डर</span></a>
+        <a href="#showcaseSection"><i class="fa-solid fa-grip"></i><span>कैटेगरी</span></a>
         <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user"></i><span id="mobileAuthText">लॉगिन</span></a>
-        <a href="payment.html"><i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span><b id="mobileCartBadge" class="cart-badge-count">0</b></a>
+        <a href="cart.html" id="mobileCartLink" class="mobile-cart-link" aria-label="कार्ट">
+            <i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span><span class="cart-badge-count" id="navCartBadge">0</span>
+        </a>
     </nav>
 
 <footer class="main-footer">
