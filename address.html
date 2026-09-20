@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Address</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Mukta:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#212121;font-family:Inter,Mukta,Arial,sans-serif}
+.page{max-width:700px;margin:0 auto;min-height:100vh;padding-bottom:96px}
+.top{height:70px;display:flex;align-items:center;padding:0 20px;gap:18px;font-size:20px;border-bottom:0}
+.back{font-size:34px;line-height:1;color:#222;text-decoration:none}
+.title{font-size:26px;font-weight:500}
+.steps{height:108px;display:flex;align-items:flex-start;padding:10px 28px 0;position:relative;box-shadow:0 5px 13px rgba(0,0,0,.10)}
+.steps:before{content:"";position:absolute;top:31px;left:76px;right:76px;height:2px;background:#ddd}
+.step{position:relative;z-index:1;flex:1;text-align:center;font-size:16px;color:#999}
+.circle{width:40px;height:40px;border-radius:50%;background:#fff;border:2px solid #e5e5e5;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+.active{color:#1976d2;font-weight:700}.active .circle{background:#1976d2;color:#fff;border-color:#1976d2}
+.done .circle{border-color:#1976d2;color:#1976d2;background:#fff}
+.section{padding:28px 28px 0}
+.heading{font-size:28px;font-weight:800;margin:0 0 18px}
+.form-card{background:#f7f7f7;border-radius:22px;padding:20px 20px 22px}
+.row{display:flex;gap:12px}.field{flex:1}
+label{display:block;font-size:14px;font-weight:700;margin:0 0 7px}
+input,textarea{width:100%;border:1px solid #ddd;background:#fff;border-radius:10px;padding:13px;font-size:15px;outline:none;font-family:inherit}
+textarea{min-height:82px;resize:vertical}
+input:focus,textarea:focus{border-color:#1976d2}
+.divider{height:1px;background:#e5e5e5;margin:28px 0}
+.info{font-size:13px;color:#666;margin-top:14px}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;box-shadow:0 -3px 14px rgba(0,0,0,.10);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:20}
+.bottom-inner{max-width:700px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.price{font-size:22px;font-weight:800}.price small{display:block;color:#888;font-size:12px;font-weight:500}
+.continue{border:0;background:#ffc900;color:#111;font-size:18px;font-weight:800;border-radius:16px;padding:17px 42px;min-width:190px}
+@media(max-width:600px){
+ .top{height:68px;padding:0 18px}.title{font-size:23px}
+ .steps{height:104px;padding:9px 16px 0}.steps:before{left:55px;right:55px}
+ .step{font-size:14px}.circle{width:38px;height:38px}
+ .section{padding:28px 18px 0}.heading{font-size:25px}
+ .form-card{padding:17px;border-radius:20px}
+ .row{flex-direction:column;gap:14px}
+ .bottom{padding-left:8px;padding-right:8px}.price{font-size:20px}
+ .continue{min-width:170px;padding:16px 30px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <a class="back" href="order.html" aria-label="Back">←</a>
+    <div class="title">Address</div>
+  </div>
+
+  <div class="steps">
+    <div class="step active"><div class="circle">1</div><div>Address</div></div>
+    <div class="step"><div class="circle">2</div><div>Confirm details</div></div>
+    <div class="step"><div class="circle">3</div><div>Payment</div></div>
+  </div>
+
+  <section class="section">
+    <h1 class="heading">Delivering to</h1>
+    <form id="addressForm" onsubmit="saveAddress(event)">
+      <div class="form-card">
+        <div class="row">
+          <div class="field">
+            <label>पूरा नाम *</label>
+            <input id="fullName" required>
+          </div>
+          <div class="field">
+            <label>मोबाइल नंबर *</label>
+            <input id="mobile" type="tel" inputmode="numeric" maxlength="10" required>
+          </div>
+        </div>
+
+        <label style="margin-top:15px">पूरा पता *</label>
+        <textarea id="address" placeholder="गाँव/मोहल्ला, घर/रोड आदि" required></textarea>
+
+        <div class="row" style="margin-top:14px">
+          <div class="field"><label>पोस्ट *</label><input id="post" required></div>
+          <div class="field"><label>थाना *</label><input id="police" required></div>
+        </div>
+
+        <div class="row" style="margin-top:14px">
+          <div class="field"><label>जिला *</label><input id="district" required></div>
+          <div class="field"><label>राज्य *</label><input id="state" value="Jharkhand" required></div>
+        </div>
+
+        <label style="margin-top:15px">पिन कोड *</label>
+        <input id="pincode" inputmode="numeric" maxlength="6" required>
+
+        <div class="info">आपकी जानकारी अगले चरण <b>Confirm details</b> में दिखाई जाएगी।</div>
+      </div>
+    </form>
+  </section>
+</div>
+
+<div class="bottom">
+  <div class="bottom-inner">
+    <div class="price"><small>Delivery address</small>Confirm</div>
+    <button class="continue" type="button" onclick="document.getElementById('addressForm').requestSubmit()">Continue</button>
+  </div>
+</div>
+
+<script>
+function setv(id,v){const e=document.getElementById(id);if(e)e.value=v||''}
+function getv(id){return document.getElementById(id)?.value.trim()||''}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  try{
+    const d=JSON.parse(localStorage.getItem('dp_delivery_address')||'{}');
+    setv('fullName',d.fullName); setv('mobile',d.mobile); setv('address',d.address);
+    setv('post',d.post); setv('police',d.police); setv('district',d.district);
+    setv('state',d.state||'Jharkhand'); setv('pincode',d.pincode);
+  }catch(e){}
+  try{
+    const o=JSON.parse(localStorage.getItem('dp_temp_order')||'{}');
+    if(!getv('fullName'))setv('fullName',o.customer_name||o.name);
+    if(!getv('mobile'))setv('mobile',o.mobile||o.phone);
+    if(!getv('address'))setv('address',o.address||o.delivery_address);
+  }catch(e){}
+});
+
+function saveAddress(ev){
+  ev.preventDefault();
+  const data={
+    fullName:getv('fullName'), mobile:getv('mobile'), address:getv('address'),
+    post:getv('post'), police:getv('police'), district:getv('district'),
+    state:getv('state'), pincode:getv('pincode'), updated_at:new Date().toISOString()
+  };
+  localStorage.setItem('dp_delivery_address',JSON.stringify(data));
+
+  let o={};
+  try{o=JSON.parse(localStorage.getItem('dp_temp_order')||'{}')||{}}catch(e){}
+  o.customer_name=data.fullName; o.name=data.fullName;
+  o.mobile=data.mobile; o.phone=data.mobile;
+  o.address=data.address; o.delivery_address=data.address;
+  o.delivery_post=data.post; o.delivery_police=data.police;
+  o.delivery_district=data.district; o.delivery_state=data.state;
+  o.delivery_pincode=data.pincode; o.updated_at=data.updated_at;
+  localStorage.setItem('dp_temp_order',JSON.stringify(o));
+  window.location.href='confirm-details.html';
+}
+</script>
+</body>
+</html>
