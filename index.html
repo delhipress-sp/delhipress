@@ -736,8 +736,13 @@
         function openCatalogDetail(index) {
             const card = globalCards[index];
             if (!card) return;
-            const id = card.id ?? '';
-            window.location.href = `catalog-detail.html?id=${encodeURIComponent(id)}`;
+            try { localStorage.setItem('dp_catalog_detail_fallback', JSON.stringify(card)); } catch(e) {}
+            const id = card.id ?? card.catalog_id ?? '';
+            if (id !== '') {
+                window.location.href = `catalog-detail.html?id=${encodeURIComponent(id)}`;
+            } else {
+                window.location.href = 'catalog-detail.html';
+            }
         }
 
         function openZoomModal(index) {
