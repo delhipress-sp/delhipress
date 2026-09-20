@@ -1017,10 +1017,28 @@
 
             recommendedCards = fetched;
             container.innerHTML = fetched.map((c, idx) => {
-                const name = c.name || c.title || 'शादी कार्ड';
-                const model = c.model || c.code || '';
-                const rate = c.rate || c.price || 0;
-                const img = c.image || c.image_url || safeCardPlaceholder;
+                const name = c.name || c.title || c.card_name || c.product_name || 'शादी कार्ड';
+                const model = c.model || c.code || c.card_model || c.model_no || '';
+
+                // Catalog में अलग-अलग नाम से price save हो सकता है।
+                // 0/empty value को valid price न मानकर दूसरे price fields भी check करें।
+                const getCatalogPrice = (card) => {
+                    const priceKeys = [
+                        'rate', 'price', 'amount', 'catalog_price', 'card_price',
+                        'selling_price', 'sale_price', 'unit_price', 'per_piece_price',
+                        'price_per_piece', 'printing_price', 'mrp'
+                    ];
+                    for (const key of priceKeys) {
+                        const raw = card?.[key];
+                        if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
+                            const n = Number(String(raw).replace(/[₹,\\s]/g, ''));
+                            if (Number.isFinite(n) && n > 0) return n;
+                        }
+                    }
+                    return 0;
+                };
+                const rate = getCatalogPrice(c);
+                const img = c.image || c.image_url || c.card_image || c.photo || safeCardPlaceholder;
 
                 return `
                     <div class="card-sample">
@@ -1047,8 +1065,22 @@
                 id: c.id || '',
                 name: c.name || c.title || 'शादी कार्ड',
                 model: c.model || c.code || '',
-                rate: parseFloat(c.rate || c.price) || 0,
-                image: c.image || c.image_url || ''
+                rate: (() => {
+                    const keys = [
+                        'rate', 'price', 'amount', 'catalog_price', 'card_price',
+                        'selling_price', 'sale_price', 'unit_price', 'per_piece_price',
+                        'price_per_piece', 'printing_price', 'mrp'
+                    ];
+                    for (const key of keys) {
+                        const raw = c?.[key];
+                        if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
+                            const n = Number(String(raw).replace(/[₹,\\s]/g, ''));
+                            if (Number.isFinite(n) && n > 0) return n;
+                        }
+                    }
+                    return 0;
+                })(),
+                image: c.image || c.image_url || c.card_image || c.photo || ''
             };
             localStorage.setItem('order_selected_card', JSON.stringify(cardData));
             window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
