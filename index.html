@@ -655,9 +655,7 @@
                     </div>
                 </div>
             </div>
-            <div class="gallery-grid" id="catalogContainer">
-                <p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b"><i class="fa-solid fa-spinner fa-spin"></i><br>कैटलॉग लोड हो रहा है...</p>
-            </div>
+            <div class="gallery-grid" id="catalogContainer"></div>
         </section>
 
         <div class="benefit-grid">
@@ -722,11 +720,14 @@
             } catch (e) {}
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            checkUserAuthUI();
-            updateCartBadges();
-            await loadCatalog();
-        });
+        function startCatalogLoading() {
+            try { checkUserAuthUI(); } catch(e) {}
+            try { updateCartBadges(); } catch(e) {}
+            // DOMContentLoaded/Load दोनों जगह से बुलाने पर भी loadCatalog() single-flight guard के कारण एक ही बार चलेगा।
+            loadCatalog();
+        }
+        window.addEventListener('DOMContentLoaded', startCatalogLoading);
+        window.addEventListener('load', startCatalogLoading);
 
         function checkUserAuthUI() {
             const user = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
@@ -779,16 +780,18 @@
             }
         }
 
-        async function loadCatalog() {
+        async function loadCatalogOnce() {
             const container = document.getElementById('catalogContainer');
             if (!container) return;
 
-            // पहले पिछली बार का कैटलॉग तुरंत दिखाएँ, फिर Supabase से ताज़ा डेटा लें।
+            // Spinner जानबूझकर नहीं रखा गया है। पहले उपलब्ध cache तुरंत दिखाएँ।
+            let hadCache = false;
             try {
                 const cached = sessionStorage.getItem('dp_index_catalog_cache_v2');
                 if (cached) {
                     const cachedCards = JSON.parse(cached);
                     if (Array.isArray(cachedCards) && cachedCards.length) {
+                        hadCache = true;
                         globalCards = cachedCards;
                         renderRealCardsFromCatalog(cachedCards);
                         renderCatalogCards(cachedCards);
@@ -797,28 +800,47 @@
             } catch (e) {}
 
             if (!supabaseClient) {
-                if (!globalCards.length) {
-                    container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#ef4444;">डेटाबेस कनेक्ट नहीं हो पाया।</p>`;
+                if (!hadCache) {
+                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">कैटलॉग उपलब्ध नहीं है।</p>';
                 }
                 return;
             }
 
-            // तीनों tables एक साथ पढ़ें, जिससे मोबाइल पर लोडिंग काफी तेज हो।
             const tables = ['catalog', 'cards', 'cards_catalog'];
-            const results = await Promise.all(tables.map(async tbl => {
+            const fetchTable = async (tbl) => {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 3500);
                 try {
-                    const { data, error } = await supabaseClient
-                        .from(tbl).select('*').order('id', { ascending: false });
-                    return (!error && Array.isArray(data))
-                        ? data.map(row => ({ ...row, _source_table: tbl })) : [];
-                } catch (e) { return []; }
-            }));
+                    // Supabase SDK के बजाय direct REST request: इससे page-load पर SDK/request अटकने की समस्या नहीं होगी।
+                    const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
+                    const res = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Accept': 'application/json'
+                        },
+                        signal: controller.signal,
+                        cache: 'no-store'
+                    });
+                    if (!res.ok) return [];
+                    const data = await res.json();
+                    return Array.isArray(data) ? data.map(row => ({ ...row, _source_table: tbl })) : [];
+                } catch (e) {
+                    return [];
+                } finally {
+                    clearTimeout(timer);
+                }
+            };
 
+            // तीनों tables को एक साथ पढ़ें; जो data पहले/सफल मिले उसे catalog में मिलाएँ।
+            const results = await Promise.all(tables.map(fetchTable));
             let fetchedData = results.flat();
 
             if (!fetchedData.length) {
-                if (!globalCards.length) {
-                    container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#94a3b8;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+                // कोई spinner नहीं — cache हो तो वही दिखता रहेगा, नहीं तो साफ संदेश।
+                if (!hadCache) {
+                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
                 }
                 return;
             }
@@ -849,8 +871,16 @@
             globalCards = fetchedData;
             try { sessionStorage.setItem('dp_index_catalog_cache_v2', JSON.stringify(fetchedData)); } catch (e) {}
 
-            renderRealCardsFromCatalog(globalCards);
+            renderRealCardsFromCatalog(fetchedData);
             renderCatalogCards(fetchedData);
+        }
+
+        let catalogLoadPromise = null;
+        async function loadCatalog() {
+            if (catalogLoadPromise) return catalogLoadPromise;
+            catalogLoadPromise = loadCatalogOnce();
+            try { return await catalogLoadPromise; }
+            finally { catalogLoadPromise = null; }
         }
 
         function getOriginalRate(card) {
@@ -1137,18 +1167,10 @@ function setSimpleCat(btn){
 
 
 <div id="quickContact" class="quick-contact" aria-label="ग्राहक संपर्क">
-  <a href="tel:+919661527694" class="quick-call" aria-label="कॉल करें"><i class="fa-solid fa-phone"></i><span>कॉल</span></a>
-  <a href="https://wa.me/919661527694?text=नमस्ते%20दिल्ली%20प्रेस%2C%20मुझे%20कार्ड%20के%20बारे%20में%20जानकारी%20चाहिए।" target="_blank" rel="noopener" class="quick-wa" aria-label="WhatsApp पर बात करें"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+  <a href="tel:+919304509464" class="quick-call" aria-label="कॉल करें"><i class="fa-solid fa-phone"></i><span>कॉल</span></a>
+  <a href="https://wa.me/919304509464?text=नमस्ते%20दिल्ली%20प्रेस%2C%20मुझे%20कार्ड%20के%20बारे%20में%20जानकारी%20चाहिए।" target="_blank" rel="noopener" class="quick-wa" aria-label="WhatsApp पर बात करें"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
 </div>
 
-<script id="catalogAutoLoadFix">
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(function(){
-    if(typeof loadCatalog === 'function'){
-      try { loadCatalog(); } catch(e) { console.error(e); }
-    }
-  }, 50);
-});
-</script>
+
 </body>
 </html>
