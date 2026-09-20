@@ -100,18 +100,60 @@
             border-radius: 16px; overflow-y: auto; padding: 20px; position: relative;
         }
 
-        .receipt-container { border: 2px solid #0f172a; padding: 20px; border-radius: 10px; background: #fff; color: #0f172a; }
-        .receipt-header { text-align: center; border-bottom: 2px dashed #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
-        .receipt-header h2 { font-size: 24px; font-weight: 900; color: #dc2626; }
-        .receipt-card-block { display: flex; gap: 16px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 16px; }
-        .receipt-card-block img { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #94a3b8; background: #fff; }
-
-        .r-table-title { font-size: 13px; font-weight: 800; background: #0f172a; color: #ffffff; padding: 6px 10px; border-radius: 6px 6px 0 0; margin-top: 14px; }
-        .r-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; background: #ffffff; }
-        .r-table th, .r-table td { border: 1px solid #334155; padding: 8px 10px; font-size: 12px; text-align: left; }
-        .r-table th { background: #f1f5f9; color: #0f172a; font-weight: 800; }
-        .receipt-screenshot-box { text-align: center; background: #f8fafc; border: 1px dashed #64748b; border-radius: 8px; padding: 12px; }
-        .receipt-screenshot-box img { max-width: 100%; max-height: 500px; width: auto; height: auto; border-radius: 6px; border:1px solid #cbd5e1; object-fit:contain; }
+        .receipt-container {
+            border: 1px solid #cbd5e1; padding: 0; border-radius: 14px; background: #fff;
+            color: #0f172a; overflow: hidden; box-shadow: 0 12px 35px rgba(15,23,42,.10);
+        }
+        .receipt-header {
+            text-align: center; padding: 18px 18px 14px; margin: 0;
+            background: linear-gradient(135deg,#fff7ed,#ffffff 45%,#eff6ff);
+            border-bottom: 3px solid #dc2626;
+        }
+        .receipt-header .brand-line {font-size:28px;font-weight:900;color:#b91c1c;letter-spacing:.2px}
+        .receipt-header .sub-line {font-size:13px;font-weight:700;color:#334155;margin-top:2px}
+        .receipt-header .address-line {font-size:12px;color:#475569;margin-top:5px}
+        .receipt-header .receipt-meta {
+            display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+            margin-top:11px;padding:7px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;
+            font-size:11px;text-align:left
+        }
+        .receipt-card-block {
+            display:grid; grid-template-columns:110px 1fr; gap:15px; align-items:center;
+            background:#fff; padding:14px; border-bottom:1px solid #e2e8f0; margin:0;
+        }
+        .receipt-card-block img {
+            width:110px;height:130px;object-fit:contain;border-radius:9px;border:1px solid #cbd5e1;
+            background:#f8fafc;padding:3px;
+        }
+        .receipt-card-info h4{font-size:18px;font-weight:900;color:#0f172a;margin-bottom:5px}
+        .receipt-card-info .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:800;margin:2px 4px 2px 0}
+        .r-section {padding:0 14px}
+        .r-table-title {
+            font-size:13px;font-weight:900;color:#fff;padding:7px 10px;border-radius:7px 7px 0 0;
+            margin-top:14px;letter-spacing:.1px
+        }
+        .r-table {width:100%;border-collapse:collapse;margin-bottom:0;background:#fff}
+        .r-table th,.r-table td {border:1px solid #cbd5e1;padding:7px 9px;font-size:12px;text-align:left;vertical-align:top}
+        .r-table th {background:#f8fafc;color:#0f172a;font-weight:900;width:18%}
+        .r-table td {white-space:pre-wrap;word-break:break-word;line-height:1.5}
+        .matter-heading{background:#f1f5f9!important;font-weight:900!important;color:#334155!important;font-size:12px!important}
+        .matter-label{background:#fff7ed!important;color:#7c2d12!important;width:22%!important}
+        .payment-footer{
+            margin-top:16px;padding:15px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff
+        }
+        .payment-footer-title{font-size:15px;font-weight:900;margin-bottom:9px}
+        .payment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .payment-box{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:9px}
+        .payment-box small{display:block;font-size:10px;color:#cbd5e1}
+        .payment-box b{font-size:17px}
+        .receipt-screenshot-box{text-align:center;background:#f8fafc;border:1px dashed #94a3b8;border-radius:8px;padding:12px;margin-top:10px}
+        .receipt-screenshot-box img{max-width:100%;max-height:520px;width:auto;height:auto;border-radius:8px;border:1px solid #cbd5e1;object-fit:contain}
+        .receipt-footer-note{text-align:center;padding:12px 14px;font-size:10px;color:#64748b;background:#f8fafc;border-top:1px solid #e2e8f0}
+        @media(max-width:600px){
+            .receipt-card-block{grid-template-columns:85px 1fr}.receipt-card-block img{width:85px;height:105px}
+            .receipt-header .brand-line{font-size:23px}.payment-grid{grid-template-columns:1fr}
+            .r-table th,.r-table td{font-size:11px;padding:6px 7px}
+        }
 
 
         .catalog-upload-box{
@@ -190,8 +232,6 @@
             #printableReceiptArea { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
         }
     
-        .receipt-meta{font-size:11px;margin-top:6px;color:#475569}.receipt-card-block h4{font-size:17px;margin-bottom:5px}.receipt-matter{border:1px solid #cbd5e1;border-top:0;background:#fff}.matter-section-title{background:#eef2ff;color:#1e3a8a;font-weight:900;padding:8px 10px;border-bottom:1px solid #cbd5e1}.matter-item{display:grid;grid-template-columns:190px 1fr;border-bottom:1px solid #e2e8f0}.matter-item:last-child{border-bottom:0}.matter-label{font-weight:800;background:#f8fafc;padding:9px 10px;border-right:1px solid #e2e8f0}.matter-value{padding:9px 10px;white-space:pre-wrap;word-break:break-word}.event-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.event-grid span{display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px;font-size:11px}.event-grid small{display:block;color:#64748b;font-weight:700;margin-bottom:2px}.matter-empty{padding:12px;color:#64748b}.paid{color:#15803d;font-weight:900}.due{color:#dc2626;font-weight:900}.receipt-footer{text-align:center;border-top:2px dashed #94a3b8;margin-top:16px;padding-top:10px;font-size:10px;color:#64748b;line-height:1.6}@media(max-width:600px){.matter-item{grid-template-columns:1fr}.matter-label{border-right:0;border-bottom:1px solid #e2e8f0}.event-grid{grid-template-columns:1fr 1fr}}
-
         .full-matter-table th {
             width: 22%;
             vertical-align: top;
@@ -251,7 +291,7 @@
             <h3 style="color: var(--dark); margin-bottom: 16px; font-weight:800;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
             <div class="form-group" style="text-align: left;">
                 <label>सुरक्षा पिन (PIN):</label>
-                <input type="password" id="adminPin" placeholder="पिन दर्ज करें" autofocus>
+                <input type="password" id="adminPin" placeholder="पिन दर्ज करें (उदा: 1234)" autofocus>
             </div>
             <button type="button" id="loginBtn" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size:15px;">
                 <i class="fa-solid fa-arrow-right-to-bracket"></i> प्रवेश करें
@@ -336,13 +376,13 @@
                 <div class="catalog-upload-box">
                     <div class="catalog-upload-title">
                         <span><i class="fa-solid fa-cloud-arrow-up"></i> नया कैटलॉग कार्ड अपलोड करें</span>
-                        <small>फोटो + नाम + मॉडल + रेट</small>
+                        <small>1–10 फोटो + नाम + मॉडल + रेट + विवरण</small>
                     </div>
 
                     <div class="catalog-upload-grid">
                         <div class="form-group">
                             <label>कार्ड / डिजाइन फोटो *</label>
-                            <input type="file" id="catalogImageFile" accept="image/*">
+                            <input type="file" id="catalogImageFile" accept="image/*" multiple>
                         </div>
                         <div class="form-group">
                             <label>नाम *</label>
@@ -366,6 +406,10 @@
                         <div class="form-group">
                             <label>सेल रेट (₹/पीस)</label>
                             <input type="number" id="catalogSaleRate" min="0" step="0.5" placeholder="80">
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1;">
+                            <label>कैटलॉग विवरण / Description</label>
+                            <textarea id="catalogDescription" rows="3" placeholder="कार्ड का पूरा विवरण, विशेषता, कागज, साइज आदि लिखें..." style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;resize:vertical;"></textarea>
                         </div>
                         <div class="form-group catalog-upload-action">
                             <button type="button" id="catalogUploadBtn" onclick="uploadCatalogCard()">
@@ -471,7 +515,7 @@
         function verifyAdminPin() {
             const pinInput = document.getElementById('adminPin');
             const entered = pinInput ? pinInput.value.trim().replace(/\s+/g,'') : '';
-            const validPins = ["1095", "9304", "815352", "admin"];
+            const validPins = ["1234", "9304", "815352", "admin"];
 
             if (validPins.includes(entered)) {
                 try {
@@ -480,7 +524,7 @@
                 } catch(e) {}
                 showDashboard();
             } else {
-                alert("लॉगिन नहीं हुआ। सही Admin PIN दर्ज करें।");
+                alert("लॉगिन नहीं हुआ। सही Admin PIN दर्ज करें: 1234 / 9304 / 815352");
                 if (pinInput) {
                     pinInput.value = '';
                     pinInput.focus();
@@ -778,6 +822,7 @@
             if (fileInput) {
                 fileInput.addEventListener('change', () => {
                     const file = fileInput.files && fileInput.files[0];
+                    const fileCount = fileInput.files ? fileInput.files.length : 0;
                     const box = document.getElementById('catalogUploadPreview');
                     const img = document.getElementById('catalogPreviewImg');
                     const name = document.getElementById('catalogPreviewName');
@@ -795,7 +840,7 @@
 
                     catalogUploadPreviewUrl = URL.createObjectURL(file);
                     if (img) img.src = catalogUploadPreviewUrl;
-                    if (name) name.textContent = file.name;
+                    if (name) name.textContent = fileCount > 1 ? `${file.name} + ${fileCount-1} और फोटो` : file.name;
                     if (status) status.textContent = 'अपलोड के लिए तैयार';
                     if (box) box.style.display = 'flex';
                 });
@@ -860,207 +905,71 @@
             }
         }
 
-        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category) {
-            const n = name.trim();
-            const m = model.trim();
+        function buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category, description, gallery) {
+            const n = name.trim(); const m = model.trim();
             const cr = Number.isFinite(catalogRate) ? catalogRate : 0;
             const sr = Number.isFinite(saleRate) ? saleRate : cr;
             const c = (category || 'Muslim Card').trim();
-
-            // हर schema के लिए पहले category सहित और फिर category के बिना payload रखा गया है।
-            // इससे जिस table में category column नहीं है, वहाँ upload फिर भी हो सकेगा।
+            const d = (description || '').trim();
+            const g = Array.isArray(gallery) ? gallery.filter(Boolean) : [];
+            const galleryJson = JSON.stringify(g);
+            const base = {name:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true};
+            const rich = {...base, description:d, images:galleryJson, gallery:galleryJson};
             return [
-                {name:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
+                rich,
+                {...base, description:d, images:galleryJson},
+                {...base, description:d, gallery:galleryJson},
+                {...base, images:galleryJson},
+                {...base, gallery:galleryJson},
+                {...base, description:d},
+                base,
                 {name:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
                 {title:n, model:m, category:c, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
-                {title:n, model:m, image:imageUrl, catalog_rate:cr, sale_rate:sr, in_stock:true},
                 {name:n, code:m, category:c, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
-                {name:n, code:m, image_url:imageUrl, original_rate:cr, selling_price:sr, in_stock:true},
-                {title:n, code:m, category:c, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
-                {title:n, code:m, image_url:imageUrl, mrp:cr, price:sr, in_stock:true},
-                {name:n, category:c, image_url:imageUrl, rate:sr, price:sr, in_stock:true},
-                {name:n, image_url:imageUrl, rate:sr, price:sr, in_stock:true}
+                {title:n, code:m, category:c, image_url:imageUrl, mrp:cr, price:sr, in_stock:true}
             ];
         }
 
-        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category) {
+        async function insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category, description, gallery) {
             if (!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
-
-            const tables = ['catalog', 'cards', 'cards_catalog'];
-            let lastError = null;
-
+            const tables = ['catalog', 'cards', 'cards_catalog']; let lastError = null;
             for (const table of tables) {
-                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category)) {
-                    try {
-                        // केवल INSERT करें; .select() लगाने से अलग SELECT/RLS permission के कारण
-                        // सफल INSERT भी failure जैसा दिख सकता है।
-                        const { error } = await supabaseClient.from(table).insert(payload);
-                        if (!error) {
-                            return {table, data: payload};
-                        }
-                        lastError = error;
-                    } catch(e) {
-                        lastError = e;
-                    }
+                for (const payload of buildCatalogInsertPayloads(name, model, catalogRate, saleRate, imageUrl, category, description, gallery)) {
+                    try { const {error}=await supabaseClient.from(table).insert(payload); if(!error) return {table,data:payload}; lastError=error; } catch(e){ lastError=e; }
                 }
             }
-
-            throw new Error(
-                'कैटलॉग रिकॉर्ड Database में सेव नहीं हुआ। ' +
-                (lastError && lastError.message ? lastError.message : 'Catalog/Cards table नहीं मिला या उसकी columns अलग हैं।')
-            );
+            throw new Error('कैटलॉग रिकॉर्ड Database में सेव नहीं हुआ। '+(lastError?.message||'Catalog table/columns उपलब्ध नहीं हैं।'));
         }
 
         async function uploadCatalogCard() {
-            const btn = document.getElementById('catalogUploadBtn');
-            const fileInput = document.getElementById('catalogImageFile');
-            const nameInput = document.getElementById('catalogName');
-            const modelInput = document.getElementById('catalogModel');
-            const catalogRateInput = document.getElementById('catalogRate');
-            const saleRateInput = document.getElementById('catalogSaleRate');
-            const categoryInput = document.getElementById('catalogCategory');
-            const status = document.getElementById('catalogUploadStatus');
-            const box = document.getElementById('catalogUploadPreview');
-
-            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
-            const name = nameInput ? nameInput.value.trim() : '';
-            const model = modelInput ? modelInput.value.trim() : '';
-            const catalogRate = catalogRateInput ? parseFloat(catalogRateInput.value) : 0;
-            const enteredSaleRate = saleRateInput ? parseFloat(saleRateInput.value) : NaN;
-            const saleRate = Number.isFinite(enteredSaleRate) ? enteredSaleRate : catalogRate;
-            const category = categoryInput ? categoryInput.value.trim() : 'Muslim Card';
-
-            if (!file) { alert('पहले कैटलॉग की फोटो चुनें।'); return; }
-            if (!name) { alert('कैटलॉग का नाम दर्ज करें।'); if(nameInput) nameInput.focus(); return; }
-            if (!Number.isFinite(catalogRate) || catalogRate < 0) { alert('मान्य कैटलॉग रेट डालें।'); return; }
-            if (!Number.isFinite(saleRate) || saleRate < 0) { alert('मान्य सेल रेट डालें।'); return; }
-
-            try {
-                if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> अपलोड हो रहा है...'; }
-                if (status) status.textContent = 'फोटो अपलोड हो रही है...';
-
-                // पहले unique path के लिए timestamp इस्तेमाल किया जाता है।
-                const imageUrl = await uploadCatalogImage(file, 'card');
-
-                if (status) status.textContent = 'कैटलॉग Database में सेव हो रहा है...';
-                const result = await insertCatalogRecord(name, model, catalogRate, saleRate, imageUrl, category);
-
-                if (status) status.textContent = `सफलतापूर्वक अपलोड • ${result.table}`;
-                alert('कैटलॉग कार्ड सफलतापूर्वक अपलोड हो गया।');
-
-                if (fileInput) fileInput.value = '';
-                if (nameInput) nameInput.value = '';
-                if (modelInput) modelInput.value = '';
-                if (catalogRateInput) catalogRateInput.value = '';
-                if (saleRateInput) saleRateInput.value = '';
-                if (categoryInput) categoryInput.value = 'Muslim Card';
-                if (box) box.style.display = 'none';
-
-                if (catalogUploadPreviewUrl) {
-                    try { URL.revokeObjectURL(catalogUploadPreviewUrl); } catch(e) {}
-                    catalogUploadPreviewUrl = null;
-                }
-
+            const btn=document.getElementById('catalogUploadBtn');
+            const fileInput=document.getElementById('catalogImageFile');
+            const nameInput=document.getElementById('catalogName');
+            const modelInput=document.getElementById('catalogModel');
+            const catalogRateInput=document.getElementById('catalogRate');
+            const saleRateInput=document.getElementById('catalogSaleRate');
+            const categoryInput=document.getElementById('catalogCategory');
+            const descInput=document.getElementById('catalogDescription');
+            const status=document.getElementById('catalogUploadStatus'); const box=document.getElementById('catalogUploadPreview');
+            const files=Array.from(fileInput?.files||[]); const name=nameInput?.value.trim()||''; const model=modelInput?.value.trim()||'';
+            const catalogRate=parseFloat(catalogRateInput?.value); const enteredSale=parseFloat(saleRateInput?.value); const saleRate=Number.isFinite(enteredSale)?enteredSale:catalogRate;
+            const category=categoryInput?.value.trim()||'Muslim Card'; const description=descInput?.value.trim()||'';
+            if(!files.length){alert('पहले कम से कम 1 कैटलॉग फोटो चुनें।');return} if(files.length>10){alert('एक कैटलॉग में अधिकतम 10 फोटो चुनें।');return}
+            if(!name){alert('कैटलॉग का नाम दर्ज करें।');nameInput?.focus();return}
+            if(!Number.isFinite(catalogRate)||catalogRate<0){alert('मान्य कैटलॉग रेट डालें।');return}
+            if(!Number.isFinite(saleRate)||saleRate<0){alert('मान्य सेल रेट डालें।');return}
+            try{
+                if(btn){btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> अपलोड हो रहा है...'}
+                const urls=[];
+                for(let i=0;i<files.length;i++){if(status)status.textContent=`फोटो ${i+1}/${files.length} अपलोड हो रही है...`;urls.push(await uploadCatalogImage(files[i],'card_'+Date.now()+'_'+i));}
+                if(status)status.textContent='कैटलॉग Database में सेव हो रहा है...';
+                const result=await insertCatalogRecord(name,model,catalogRate,saleRate,urls[0],category,description,urls);
+                if(status)status.textContent=`सफलतापूर्वक अपलोड • ${result.table} • ${urls.length} फोटो`;
+                alert(`कैटलॉग कार्ड सफलतापूर्वक अपलोड हो गया।\n${urls.length} फोटो सेव की गईं।`);
+                if(fileInput)fileInput.value=''; if(nameInput)nameInput.value=''; if(modelInput)modelInput.value=''; if(catalogRateInput)catalogRateInput.value=''; if(saleRateInput)saleRateInput.value=''; if(descInput)descInput.value=''; if(box)box.style.display='none';
                 await loadCatalogStock();
-            } catch (e) {
-                console.error('Catalog upload error:', e);
-                if (status) status.textContent = 'अपलोड असफल';
-                alert('कैटलॉग अपलोड नहीं हुआ।\n\n' + (e.message || e));
-            } finally {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-upload"></i> कैटलॉग अपलोड करें'; }
-            }
-        }
-
-
-        async function loadCustomerList() {
-            const tbody = document.getElementById('customersTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="5">ग्राहक लिस्ट लोड हो रही है...</td></tr>';
-
-            let orders = Array.isArray(globalOrdersCache) ? globalOrdersCache.slice() : [];
-
-            // If cache is empty, fetch from Supabase/local backup.
-            if (!orders.length) {
-                try {
-                    if (supabaseClient) {
-                        const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
-                        if (!error && Array.isArray(data)) orders = data;
-                    }
-                } catch(e) {}
-            }
-
-            if (!orders.length) {
-                try {
-                    orders = JSON.parse(localStorage.getItem('dp_all_orders') || localStorage.getItem('my_orders_list') || '[]');
-                    if (!Array.isArray(orders)) orders = [];
-                } catch(e) { orders = []; }
-            }
-
-            const customers = {};
-            orders.forEach(o => {
-                const name = String(o.customer_name || o.name || '').trim();
-                const mobile = String(o.mobile || o.phone || '').trim();
-                const address = String(o.address || '').trim();
-                const key = (mobile || name || address || 'unknown').toLowerCase();
-
-                if (!customers[key]) {
-                    customers[key] = {
-                        name: name || '-',
-                        mobile: mobile || '-',
-                        address: address || '-',
-                        count: 0,
-                        lastDate: o.created_at || ''
-                    };
-                }
-                customers[key].count++;
-                if (new Date(o.created_at || 0) > new Date(customers[key].lastDate || 0)) {
-                    customers[key].lastDate = o.created_at || customers[key].lastDate;
-                }
-            });
-
-            const list = Object.values(customers).sort((a,b) =>
-                new Date(b.lastDate || 0) - new Date(a.lastDate || 0)
-            );
-
-            if (!list.length) {
-                tbody.innerHTML = '<tr><td colspan="5">कोई ग्राहक उपलब्ध नहीं है।</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = list.map(c => `
-                <tr>
-                    <td><b>${escapeAdminReceiptText(c.name)}</b></td>
-                    <td>${escapeAdminReceiptText(c.mobile)}</td>
-                    <td style="text-align:left;">${escapeAdminReceiptText(c.address)}</td>
-                    <td><b>${c.count}</b></td>
-                    <td>${c.lastDate ? new Date(c.lastDate).toLocaleDateString('hi-IN') : '-'}</td>
-                </tr>
-            `).join('');
-        }
-
-        let catalogPage = 0;
-        const CATALOG_PAGE_SIZE = 30;
-        let catalogActiveTable = 'catalog';
-        let catalogLoadedOnce = false;
-
-        function openCatalogPreview(imageUrl, title, model) {
-            const modal = document.getElementById('catalogPreviewModal');
-            const img = document.getElementById('catalogPreviewLargeImg');
-            const titleEl = document.getElementById('catalogPreviewTitle');
-            const meta = document.getElementById('catalogPreviewMeta');
-            if (!modal || !img) return;
-
-            img.src = imageUrl || 'https://via.placeholder.com/600x800?text=No+Image';
-            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-eye"></i> ' + escapeAdminReceiptText(title || 'कैटलॉग प्रिव्यू');
-            if (meta) meta.textContent = model ? ('मॉडल: ' + model) : '';
-            modal.style.display = 'flex';
-        }
-
-        function closeCatalogPreview() {
-            const modal = document.getElementById('catalogPreviewModal');
-            const img = document.getElementById('catalogPreviewLargeImg');
-            if (modal) modal.style.display = 'none';
-            if (img) img.removeAttribute('src');
+            }catch(e){console.error(e);if(status)status.textContent='अपलोड असफल';alert('कैटलॉग अपलोड नहीं हुआ।\n\n'+(e.message||e));}
+            finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-upload"></i> कैटलॉग अपलोड करें'}}
         }
 
         async function loadCatalogStock(force = false) {
@@ -1338,82 +1247,293 @@
         }
 
         function getCompleteOrderMatter(o) {
-            const keys = ['custom_notes','order_notes','orderNotes','notes','matter','custom_matter'];
-            for (const k of keys) {
-                if (o && o[k] !== undefined && o[k] !== null && String(o[k]).trim()) return String(o[k]).trim();
-            }
-            return '';
+            // केवल ऑर्डर फॉर्म में सेव किया गया टाइप किया हुआ मैटर।
+            // दूसरे database columns को receipt में बिल्कुल नहीं मिलाया जाएगा।
+            const matter = o.custom_notes;
+            return (matter === null || matter === undefined) ? '' : String(matter);
         }
 
-        function buildReceiptMatter(matter) {
+        function buildFullMatterRows(matter) {
             const text = String(matter || '').trim();
-            if (!text) return '<div class="matter-empty">ऑर्डर फॉर्म में अतिरिक्त मैटर दर्ज नहीं है।</div>';
-            const lines = text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-            let html='', section='';
-            const esc=escapeAdminReceiptText;
-            lines.forEach(raw=>{
-                const sec=raw.match(/^---\s*\[([^\]]+)\]\s*---$/);
-                if(sec){ section=sec[1].trim(); html += `<div class="matter-section"><div class="matter-section-title">${esc(section)}</div></div>`; return; }
-                const ev=raw.match(/^कार्यक्रम\s*:\s*(.*?)\s*\|\s*तारीख\s*:\s*(.*?)\s*\|\s*दिन\s*:\s*(.*?)\s*\|\s*समय का भाग\s*:\s*(.*?)\s*\|\s*समय\s*:\s*(.*)$/);
-                if(ev){
-                    html += `<div class="matter-item event-item"><div class="matter-label">कार्यक्रम</div><div class="matter-value"><b>${esc(ev[1]||'-')}</b><div class="event-grid"><span><small>तारीख</small>${esc(ev[2]||'-')}</span><span><small>दिन</small>${esc(ev[3]||'-')}</span><span><small>समय का भाग</small>${esc(ev[4]||'-')}</span><span><small>समय</small>${esc(ev[5]||'-')}</span></div></div></div>`;
+            if (!text) {
+                return `<tr><th>मैटर</th><td colspan="3">ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।</td></tr>`;
+            }
+
+            const lines = text.split(/\r?\n/);
+            let html = '';
+            let pendingLabel = null;
+
+            lines.forEach(line => {
+                const raw = String(line || '').trim();
+                if (!raw) return;
+
+                // Section headings such as --- [वैवाहिक कार्यक्रम] ---
+                if (/^---\s*\[.*\]\s*---$/.test(raw)) {
+                    html += `<tr><th colspan="4" style="background:#f8fafc; text-align:left;">${escapeAdminReceiptText(raw.replace(/^---\s*\[|\]\s*---$/g,''))}</th></tr>`;
+                    pendingLabel = null;
                     return;
                 }
-                const pair=raw.match(/^([^:|]+):\s*(.*)$/);
-                if(pair){
-                    const label=pair[1].trim(), value=pair[2].trim();
-                    html += `<div class="matter-item"><div class="matter-label">${esc(label)}</div><div class="matter-value">${esc(value||'-')}</div></div>`;
+
+                // Pair format: "वर: ...", "कार्यक्रम: ...", etc.
+                const m = raw.match(/^([^:|]+):\s*(.*)$/);
+                if (m) {
+                    const label = m[1].trim();
+                    const value = m[2].trim();
+
+                    // Keep long event lines readable in a single full-width row.
+                    if (raw.includes(' | ')) {
+                        html += `<tr><th>${escapeAdminReceiptText(label)}</th><td colspan="3">${escapeAdminReceiptText(value)}</td></tr>`;
+                    } else {
+                        html += `<tr><th>${escapeAdminReceiptText(label)}</th><td colspan="3">${escapeAdminReceiptText(value || '-')}</td></tr>`;
+                    }
+                    pendingLabel = null;
                 } else {
-                    html += `<div class="matter-item"><div class="matter-label">विवरण</div><div class="matter-value">${esc(raw)}</div></div>`;
+                    // Lines without a colon are still shown, never discarded.
+                    html += `<tr><th>विवरण</th><td colspan="3">${escapeAdminReceiptText(raw)}</td></tr>`;
                 }
             });
-            return html || '<div class="matter-empty">-</div>';
+
+            return html || `<tr><th>मैटर</th><td colspan="3">-</td></tr>`;
         }
 
-        function findLocalOrderForReceipt(o) {
-            try {
-                const keys=['dp_all_orders','my_orders_list','user_orders','dp_my_orders'];
-                for(const key of keys){
-                    const list=JSON.parse(localStorage.getItem(key)||'[]');
-                    if(!Array.isArray(list)) continue;
-                    const m=list.find(x=>String(x.order_id||'')===String(o.order_id||'') || String(x.id||'')===String(o.id||'') || (String(x.mobile||x.phone||'')===String(o.mobile||o.phone||'') && String(x.customer_name||x.name||'')===String(o.customer_name||o.name||'')));
-                    if(m) return m;
-                }
-            }catch(e){}
-            return null;
+        function normalizeMatterForReceipt(text) {
+            return String(text || '')
+                .replace(/वर-?वधू/g, 'लड़का-लड़की')
+                .replace(/वर/g, 'लड़का')
+                .replace(/वधू/g, 'लड़की')
+                .replace(/दूल्हा/g, 'लड़का')
+                .replace(/दुल्हन/g, 'लड़की');
         }
 
         function openOrderReceiptModal(orderIdentifier) {
-            let o=globalOrdersCache.find(x=>String(x.id)===String(orderIdentifier)||String(x.order_id)===String(orderIdentifier)) || {};
-            const local=findLocalOrderForReceipt(o);
-            const dbMatter=getCompleteOrderMatter(o);
-            const localMatter=getCompleteOrderMatter(local||{});
-            const receiptMatter=(localMatter.length>dbMatter.length?localMatter:dbMatter);
-            const cardImg=o.card_image||o.image||o.card_photo||local?.card_image||'';
-            const receiptImg=o.payment_receipt||o.screenshot||o.payment_screenshot||local?.payment_receipt||local?.screenshot||'';
-            const total=parseFloat(o.total_amount ?? local?.total_amount ?? 0)||0;
-            const adv=parseFloat(o.advance_paid ?? o.advance_amount ?? local?.advance_paid ?? 0)||0;
-            const bal=Math.max(0,total-adv);
-            const esc=escapeAdminReceiptText;
-            const val=(a,b)=>esc((o[a]??local?.[a]??b));
-            const area=document.getElementById('printableReceiptArea');
-            area.innerHTML=`
-              <div class="receipt-header">
-                <h2>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                <p>शादी कार्ड, निमंत्रण पत्र, फ्लेक्स बैनर एवं ऑफसेट प्रिंटिंग सेवा</p>
-                <div class="receipt-meta"><b>रसीद सं.:</b> #${val('order_id',o.id||'')} &nbsp; | &nbsp; <b>तिथि:</b> ${o.created_at?new Date(o.created_at).toLocaleDateString('hi-IN'):new Date().toLocaleDateString('hi-IN')}</div>
-              </div>
-              <div class="receipt-card-block">
-                ${cardImg?`<img src="${esc(cardImg)}" alt="Card" onerror="this.style.display='none'">`:''}
-                <div><h4>${val('card_title',o.card_name||'शादी कार्ड')}</h4><div>मॉडल / कोड: <b>${val('card_model',o.model||'-')}</b></div><div>मात्रा: <b>${val('quantity',o.qty||'-')} पीस</b></div></div>
-              </div>
-              <div class="r-table-title">1. ग्राहक का पूरा विवरण</div><table class="r-table"><tr><th>ग्राहक का नाम</th><td>${val('customer_name',o.name||'-')}</td><th>मोबाइल / WhatsApp</th><td>${val('mobile',o.phone||'-')}</td></tr><tr><th>पूरा पता</th><td colspan="3">${val('address','-')}</td></tr></table>
-              <div class="r-table-title" style="background:#b91c1c;">2. लड़का / लड़की का पूरा विवरण</div><table class="r-table"><tr><th>लड़का / वर का नाम</th><td>${val('groom_name',o.groom||'-')}</td><th>लड़की / वधू का नाम</th><td>${val('bride_name',o.bride||'-')}</td></tr><tr><th>लड़के के पिता</th><td>${val('groom_father','-')}</td><th>लड़की के पिता</th><td>${val('bride_father','-')}</td></tr><tr><th>लड़के का पता</th><td>${val('groom_address','-')}</td><th>लड़की का पता</th><td>${val('bride_address','-')}</td></tr></table>
-              <div class="r-table-title" style="background:#2563eb;">3. ऑर्डर फॉर्म का पूरा मैटर — कैटेगरी अनुसार</div><div class="receipt-matter">${buildReceiptMatter(receiptMatter)}</div>
-              <div class="r-table-title" style="background:#15803d;">4. भुगतान विवरण</div><table class="r-table"><tr><th>कुल बिल</th><td>₹${total}</td><th>जमा एडवांस</th><td class="paid">₹${adv}</td></tr><tr><th>बाकी बकाया</th><td class="due">₹${bal}</td><th>पेमेंट मोड</th><td>${val('payment_mode','Online')}</td></tr></table>
-              <div class="r-table-title" style="background:#475569;">5. UTR / Transaction ID एवं भुगतान स्क्रीनशॉट</div><table class="r-table"><tr><th>UTR / Transaction ID</th><td colspan="3">${val('txn_id',o.utr_number||'-')}</td></tr></table><div class="receipt-screenshot-box">${receiptImg?`<a href="${esc(receiptImg)}" target="_blank" rel="noopener"><img src="${esc(receiptImg)}" alt="Payment Proof" onerror="this.style.display='none'"><span>📷 भुगतान स्क्रीनशॉट खोलें</span></a>`:'<p>कोई भुगतान स्क्रीनशॉट उपलब्ध नहीं है।</p>'}</div>
-              <div class="receipt-footer">यह रसीद ऑर्डर फॉर्म में दर्ज जानकारी के आधार पर तैयार की गई है।<br><b>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</b> • ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 • मो: 9304509464</div>`;
-            document.getElementById('orderModal').style.display='flex';
+            const o = globalOrdersCache.find(x =>
+                String(x.id) === String(orderIdentifier) || String(x.order_id) === String(orderIdentifier)
+            ) || {};
+
+            // Receipt में वही matter लिया जाएगा जो Order Form से save हुआ है।
+            let notes = String(o.custom_notes ?? o.order_notes ?? o.orderNotes ?? o.notes ?? o.matter ?? '').trim();
+            if (!notes) {
+                try {
+                    const keys = ['dp_all_orders','my_orders_list','user_orders','dp_my_orders','dp_temp_order'];
+                    for (const key of keys) {
+                        const list = JSON.parse(localStorage.getItem(key) || '[]');
+                        if (!Array.isArray(list)) continue;
+                        const m = list.find(x =>
+                            String(x.order_id || '') === String(o.order_id || '') ||
+                            String(x.id || '') === String(o.id || '')
+                        );
+                        const localNotes = String(m?.custom_notes ?? m?.order_notes ?? m?.orderNotes ?? m?.notes ?? m?.matter ?? '').trim();
+                        if (localNotes && localNotes.length > notes.length) {
+                            notes = localNotes;
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // यदि किसी record में custom_notes नहीं आया, तो Order Form के मुख्य typed fields से भी matter बनाएं।
+            if (!notes) {
+                const fallback = [];
+                const addFallback = (label, value) => { const v = String(value ?? '').trim(); if (v) fallback.push(label + ': ' + v); };
+                addFallback('लड़का / दूल्हा', o.groom_name || o.groom);
+                addFallback('लड़का के पिता', o.groom_father);
+                addFallback('लड़का का पता', o.groom_address);
+                addFallback('लड़की / दुल्हन', o.bride_name || o.bride);
+                addFallback('लड़की के पिता', o.bride_father);
+                addFallback('लड़की का पता', o.bride_address);
+                notes = fallback.join('\n');
+            }
+
+            const esc = escapeAdminReceiptText;
+            const val = x => esc(x === null || x === undefined || x === '' ? '-' : x);
+            const total = parseFloat(o.total_amount || 0) || 0;
+            const advance = parseFloat(o.advance_paid ?? o.advance_amount ?? 0) || 0;
+            const balance = Math.max(0, total - advance);
+            const cardImg = o.card_image || o.image || o.card_photo || '';
+            const paymentImg = o.payment_receipt || o.screenshot || o.payment_screenshot || '';
+            const utr = o.txn_id || o.utr_number || o.utr || o.transaction_id || '';
+
+            function sectionRows(text) {
+                const lines = String(text || '').split(/\r?\n/);
+                let out = '';
+                let currentSection = '';
+                let sections = [];
+                let currentRows = [];
+
+                const pushSection = () => {
+                    if (currentSection || currentRows.length) {
+                        sections.push({ title: currentSection, rows: currentRows.slice() });
+                    }
+                    currentRows = [];
+                };
+
+                lines.forEach(rawLine => {
+                    const raw = String(rawLine || '').trim();
+                    if (!raw) return;
+
+                    const heading = raw.match(/^---\s*\[(.*?)\]\s*---$/);
+                    if (heading) {
+                        pushSection();
+                        currentSection = heading[1].trim();
+                        return;
+                    }
+
+                    const pair = raw.match(/^जोड़ा\s*#?\s*(\d+)\s*:?\s*$/);
+                    if (pair) {
+                        pushSection();
+                        currentSection = 'अतिरिक्त दूल्हा-दुल्हन — जोड़ा #' + pair[1];
+                        return;
+                    }
+
+                    if (raw.startsWith('कार्यक्रम:')) {
+                        // कार्यक्रम की line को हमेशा अलग-अलग कॉलम में दिखाएँ।
+                        const parts = raw.split(/\s*\|\s*/);
+                        const eventRows = [];
+                        parts.forEach(part => {
+                            const m = part.match(/^([^:]+):\s*(.*)$/);
+                            if (m) eventRows.push({ label: m[1].trim(), value: m[2].trim() });
+                        });
+                        currentRows.push(...eventRows);
+                        return;
+                    }
+
+                    const m = raw.match(/^([^:|]+):\s*(.*)$/);
+                    if (m) currentRows.push({ label: m[1].trim(), value: m[2].trim() });
+                    else currentRows.push({ label: 'विवरण', value: raw });
+                });
+                pushSection();
+
+                // वैवाहिक कार्यक्रम को हमेशा स्पष्ट category के रूप में दिखाएँ।
+                // इससे heading अकेली होने पर भी गायब नहीं होगी।
+                let program = null;
+                const other = [];
+                sections.forEach(sec => {
+                    const isProgram = /वैवाहिक कार्यक्रम|कार्यक्रम/.test(sec.title || '');
+                    if (isProgram) {
+                        if (!program) program = { title: 'वैवाहिक कार्यक्रम', rows: [] };
+                        program.rows.push(...sec.rows);
+                    } else {
+                        other.push(sec);
+                    }
+                });
+
+                const renderSection = sec => {
+                    out += `<tr><th colspan="4" class="matter-heading">▣ ${esc(sec.title || 'ऑर्डर मैटर')}</th></tr>`;
+                    if (sec.rows.length) {
+                        sec.rows.forEach(item => {
+                            out += `<tr><th class="matter-label">${esc(item.label)}</th><td colspan="3">${esc(item.value || '-')}</td></tr>`;
+                        });
+                    } else {
+                        out += `<tr><th class="matter-label">कार्यक्रम</th><td colspan="3">कोई कार्यक्रम विवरण दर्ज नहीं है।</td></tr>`;
+                    }
+                };
+
+                if (program) renderSection(program);
+                // अगर Order Form ने कार्यक्रम heading तो सेव की लेकिन कोई line नहीं मिली,
+                // तब भी category दिखेगी। नए order में यही section सबसे पहले आएगा।
+                else renderSection({ title: 'वैवाहिक कार्यक्रम', rows: [] });
+
+                other.forEach(sec => renderSection(sec));
+
+                return out || `<tr><th colspan="4" class="matter-heading">▣ ऑर्डर फॉर्म का पूरा मैटर</th></tr><tr><th class="matter-label">मैटर</th><td colspan="3">-</td></tr>`;
+            }
+
+            const area = document.getElementById('printableReceiptArea');
+            area.innerHTML = `
+                <div class="receipt-header">
+                    <div class="brand-line">सज्जाद प्रिंटर्स</div>
+                    <div class="sub-line">दिल्ली प्रेस • शादी कार्ड एवं प्रिंटिंग सेंटर</div>
+                    <div class="address-line">
+                        शादी कार्ड • फ्लेक्स बैनर • कैलेंडर • विज़िटिंग कार्ड • स्टाम्प
+                    </div>
+                    <div class="address-line"><b>पता:</b> Murli Pahadi Road, Chhaytand / Chhaytand Mode, Karmatand, Jamtara, Jharkhand</div>
+                    <div class="receipt-meta">
+                        <span><b>रसीद / ऑर्डर नं.:</b> #${val(o.order_id || o.id)}</span>
+                        <span><b>दिनांक:</b> ${val(o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : new Date().toLocaleDateString('hi-IN'))}</span>
+                        <span><b>स्थिति:</b> ${val(o.status || 'Pending')}</span>
+                    </div>
+                </div>
+
+                <div class="receipt-card-block">
+                    ${cardImg
+                        ? `<img src="${esc(cardImg)}" alt="चयनित शादी कार्ड डिजाइन" onerror="this.style.display='none';">`
+                        : `<div style="width:110px;height:130px;border:1px dashed #94a3b8;border-radius:9px;display:grid;place-items:center;background:#f8fafc;color:#64748b;font-size:11px;text-align:center;">कार्ड डिजाइन<br>उपलब्ध नहीं</div>`}
+                    <div class="receipt-card-info">
+                        <h4>${val(o.card_title || o.card_name || 'शादी कार्ड')}</h4>
+                        <span class="pill">मॉडल: ${val(o.card_model || o.model || 'Standard')}</span>
+                        <span class="pill">मात्रा: ${val(o.quantity || o.qty || 0)} पीस</span>
+                        <span class="pill">कार्ड रेट: ₹${val(o.card_rate || o.rate || o.sale_rate || '')}</span>
+                        <div style="margin-top:7px;font-size:12px;color:#475569;">
+                            <b>चयनित डिजाइन:</b> ऊपर दिया गया वही कार्ड प्रिंट/टाइपिंग के समय पहचान के लिए दिखाया गया है।
+                        </div>
+                    </div>
+                </div>
+
+                <div class="r-section">
+                    <div class="r-table-title" style="background:#0f172a;">1. ग्राहक का पूरा विवरण</div>
+                    <table class="r-table">
+                        <tr><th>ग्राहक का नाम</th><td>${val(o.customer_name || o.name)}</td><th>मोबाइल / WhatsApp</th><td>${val(o.mobile || o.phone)}</td></tr>
+                        <tr><th>पूरा पता</th><td colspan="3">${val(o.address)}</td></tr>
+                    </table>
+
+                    <div class="r-table-title" style="background:#b91c1c;">2. लड़की / दुल्हन का पूरा विवरण</div>
+                    <table class="r-table">
+                        <tr><th>लड़की / वधू का नाम</th><td>${val(o.bride_name || o.bride)}</td><th>पिता का नाम</th><td>${val(o.bride_father)}</td></tr>
+                        <tr><th>लड़की का पता</th><td colspan="3">${val(o.bride_address)}</td></tr>
+                    </table>
+
+                    <div class="r-table-title" style="background:#7c2d12;">3. लड़का / दूल्हा का पूरा विवरण</div>
+                    <table class="r-table">
+                        <tr><th>लड़का / वर का नाम</th><td>${val(o.groom_name || o.groom)}</td><th>पिता का नाम</th><td>${val(o.groom_father)}</td></tr>
+                        <tr><th>लड़के का पता</th><td colspan="3">${val(o.groom_address)}</td></tr>
+                    </table>
+
+                    <div class="r-table-title" style="background:#2563eb;">4. ऑर्डर फॉर्म में टाइप किया हुआ पूरा मैटर — कैटेगरी अनुसार</div>
+                    <table class="r-table full-matter-table">
+                        ${sectionRows(notes)}
+                    </table>
+
+                    <div class="r-table-title" style="background:#059669;">5. ऑर्डर की भुगतान जानकारी</div>
+                    <table class="r-table">
+                        <tr>
+                            <th>कुल बिल</th><td><b>₹${total.toLocaleString('en-IN')}</b></td>
+                            <th>जमा / एडवांस</th><td style="color:#15803d;font-weight:900;">₹${advance.toLocaleString('en-IN')}</td>
+                        </tr>
+                        <tr>
+                            <th>बाकी / बकाया</th><td style="color:#dc2626;font-weight:900;">₹${balance.toLocaleString('en-IN')}</td>
+                            <th>पेमेंट मोड</th><td>${val(o.payment_mode || 'Online')}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="payment-footer">
+                    <div class="payment-footer-title">💳 भुगतान प्रमाण / Transaction Details</div>
+                    <div class="payment-grid">
+                        <div class="payment-box"><small>कुल राशि</small><b>₹${total.toLocaleString('en-IN')}</b></div>
+                        <div class="payment-box"><small>जमा राशि</small><b>₹${advance.toLocaleString('en-IN')}</b></div>
+                        <div class="payment-box"><small>बकाया</small><b>₹${balance.toLocaleString('en-IN')}</b></div>
+                    </div>
+                    <div style="margin-top:10px;padding:9px;background:rgba(255,255,255,.08);border-radius:8px;font-size:11px;">
+                        <b>UTR / Transaction ID:</b>
+                        <span style="font-family:monospace;word-break:break-all;">${val(utr || 'उपलब्ध नहीं')}</span>
+                    </div>
+                    <div class="receipt-screenshot-box">
+                        ${paymentImg
+                            ? `<a href="${esc(paymentImg)}" target="_blank" rel="noopener">
+                                <img src="${esc(paymentImg)}" alt="Payment Screenshot"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+                                <span style="display:none;padding:9px 14px;background:#2563eb;color:#fff;border-radius:7px;font-weight:800;">📷 स्क्रीनशॉट खोलें</span>
+                               </a>`
+                            : `<div style="color:#64748b;font-size:11px;">पेमेंट स्क्रीनशॉट उपलब्ध नहीं है।</div>`}
+                    </div>
+                </div>
+
+                <div class="receipt-footer-note">
+                    <b>Terms & Conditions:</b> ऑर्डर में ग्राहक द्वारा दिया गया नाम, पता, मोबाइल और पूरा मैटर प्रिंट/टाइपिंग के लिए इसी रसीद के अनुसार लिया जाएगा।
+                    किसी भी सुधार के लिए प्रिंट से पहले जाँच/स्वीकृति आवश्यक है।
+                    <br><b>धन्यवाद — सज्जाद प्रिंटर्स / दिल्ली प्रेस</b>
+                </div>
+            `;
+            document.getElementById('orderModal').style.display = 'flex';
         }
 
         function closeOrderModal() {
@@ -1456,7 +1576,12 @@
       .btn-corr-approve{background:#10b981;}
       .btn-corr-more{background:#f59e0b;}
       @media(max-width:520px){.corr-modal{padding:8px}.corr-panel{max-height:94vh;border-radius:15px}.corr-thread{max-height:270px}.corr-actions{grid-template-columns:1fr}.btn-corr-send{grid-column:auto}}
-    </style>
+    
+        .full-matter-table { table-layout: fixed; }
+        .full-matter-table .matter-heading { background:#eef4ff !important; color:#0f172a; font-weight:900; text-align:left; }
+        .full-matter-table .matter-label { width:30%; vertical-align:top; font-weight:800; background:#f8fafc; }
+        .full-matter-table td { white-space:pre-wrap; word-break:break-word; line-height:1.55; }
+</style>
 
     <div id="correctionModal" class="corr-modal" onclick="if(event.target===this) closeCorrectionModal()">
       <div class="corr-panel wa-panel">
