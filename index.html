@@ -28,7 +28,7 @@
         *{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif;-webkit-tap-highlight-color:transparent}
         html{scroll-behavior:smooth}
         body{
-            min-height:100vh;color:#10245c;line-height:1.45;padding-bottom:78px;
+            min-height:100vh;color:#10245c;line-height:1.45;padding-bottom:90px;
             background:
                 radial-gradient(circle at 0% 5%,rgba(229,30,59,.30),transparent 23%),
                 radial-gradient(circle at 100% 15%,rgba(0,115,255,.28),transparent 28%),
@@ -94,16 +94,65 @@
         .hero:before{width:250px;height:250px;left:-130px;top:-120px;background:rgba(229,30,59,.10)}
         .hero:after{width:250px;height:250px;right:-130px;bottom:-140px;background:rgba(5,95,229,.10)}
         .hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr 1.65fr .9fr;align-items:center;gap:18px}
-        .hero-cards{height:215px;position:relative;display:flex;align-items:center;justify-content:center}
+        .hero-cards{height:215px;position:relative;display:flex;align-items:center;justify-content:center;gap:8px}
         .fake-card{
-            position:absolute;width:120px;height:178px;border-radius:7px;box-shadow:0 10px 20px rgba(0,0,0,.24);
-            display:flex;align-items:center;justify-content:center;text-align:center;font-family:serif;
-            border:5px solid rgba(255,255,255,.78);font-size:16px;font-weight:700
+            position:absolute;width:126px;height:182px;border-radius:8px;overflow:hidden;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            text-align:center;font-family:'Mukta','Poppins',sans-serif;line-height:1.25;padding:13px 9px;
+            box-shadow:0 10px 24px rgba(0,0,0,.22);
+            border:5px double rgba(255,255,255,.9);
+            background:#fff;
         }
-        .fake-card small{display:block;font-size:10px;margin-top:8px;font-family:'Mukta'}
-        .fake-card.one{background:linear-gradient(145deg,#6f0014,#e62b39 65%,#ffc76a);transform:rotate(-12deg);left:10px;top:24px;color:#ffd78b}
-        .fake-card.two{background:linear-gradient(145deg,#fffaf0,#ffe1bd 55%,#e34d2e);transform:rotate(2deg);z-index:2;color:#bd2934}
-        .fake-card.three{background:linear-gradient(145deg,#063b2e,#0d6a54 60%,#d2a33e);transform:rotate(12deg);right:10px;top:25px;color:#f5d77a}
+        .fake-card:before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.42;border-radius:5px;pointer-events:none}
+        .fake-card:after{content:"✦  ❖  ✦";position:absolute;top:13px;left:0;right:0;font-size:11px;letter-spacing:4px;opacity:.75}
+        .fake-card small{display:block;font-size:10px;margin-top:10px;font-weight:700;letter-spacing:.3px;opacity:.8}
+        .fake-card .card-topline{
+            font-size:8px;line-height:1.2;font-weight:800;opacity:.78;
+            margin-bottom:2px;white-space:nowrap
+        }
+        .fake-card .card-title{
+            font-family:Georgia,'Noto Serif Devanagari',serif;
+            font-size:20px;font-weight:800;letter-spacing:.2px;margin-top:8px
+        }
+        .fake-card .card-subtitle{font-size:12px;font-weight:800;margin-top:5px}
+        .fake-card .card-ornament{font-size:12px;margin-top:8px;letter-spacing:3px;opacity:.8}
+        .fake-card{
+            width:128px;height:184px;border-radius:9px;
+            box-shadow:0 12px 24px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.85);
+            border:2px solid rgba(255,255,255,.9);
+            overflow:hidden;
+        }
+        .fake-card:before{
+            content:"";position:absolute;inset:6px;border:1px solid currentColor;
+            opacity:.28;border-radius:6px;pointer-events:none
+        }
+        .fake-card:after{
+            content:"✦  ❈  ✦";position:absolute;bottom:11px;left:0;right:0;
+            font-size:9px;letter-spacing:4px;opacity:.55
+        }
+        .fake-card.one{
+            transform:rotate(-6deg);left:2px;top:19px;color:#8a4b20;
+            background:linear-gradient(145deg,#fffdf7 0%,#f9ecd8 55%,#fff8ea 100%);
+            border-color:#d8b27a
+        }
+        .fake-card.two{
+            transform:rotate(0deg);z-index:3;color:#11654e;
+            background:linear-gradient(145deg,#fbfffc 0%,#e4f2e9 55%,#f9fff9 100%);
+            border-color:#a9cbb7
+        }
+        .fake-card.three{
+            transform:rotate(6deg);right:2px;top:19px;color:#75521a;
+            background:linear-gradient(145deg,#fffdf4 0%,#f3e5bd 55%,#fffaf0 100%);
+            border-color:#cdb06b
+        }
+
+        .fake-card .card-ornament{font-size:12px;margin-top:9px;letter-spacing:3px;opacity:.75}
+        .fake-card.one{transform:rotate(-7deg);left:5px;top:20px;color:#8b2032;background:linear-gradient(145deg,#fffdf8,#f8eadc)}
+        .fake-card.two{transform:rotate(0deg);z-index:2;color:#8a5a19;background:linear-gradient(145deg,#fffdf4,#f4dfb0);border-color:#b9914d}
+        .fake-card.three{transform:rotate(7deg);right:5px;top:20px;color:#075b48;background:linear-gradient(145deg,#f8fff9,#dcefe7)}
+        .fake-card .card-title{font-family:Georgia,serif;font-size:18px;font-weight:800;margin-top:16px}
+        .fake-card .card-subtitle{font-size:13px;font-weight:800;margin-top:3px}
+
         .hero-content{text-align:center}
         .hero-brand{
             display:inline-block;background:linear-gradient(135deg,#ed163b,#cf1735);color:#fff;
@@ -143,6 +192,12 @@
             display:flex;align-items:center;gap:9px;background:#f0f5fb;border-radius:11px;padding:7px 11px;
             border:1px solid #d9e4ef;min-width:285px
         }
+        .catalog-search{display:flex;align-items:center;gap:7px;background:#f0f5fb;border:1px solid #d9e4ef;border-radius:12px;padding:6px 7px;min-width:360px}
+        .catalog-search i{color:#ed1b40;font-size:18px;padding-left:5px}
+        .catalog-search input{flex:1;min-width:0;border:0;outline:0;background:#fff;border-radius:8px;padding:9px 10px;color:#152a5b;font-size:13px;font-weight:700}
+        .catalog-search input::placeholder{color:#8190a8;font-weight:600}
+        .catalog-search button{border:0;border-radius:8px;background:linear-gradient(135deg,#0869f1,#0753ce);color:#fff;padding:9px 15px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+        .search-sample{display:block;margin-top:5px;color:#6b7b95;font-size:10px;font-weight:600}
         .filter-box>i{color:#ed1b40;font-size:20px}
         .filter-box label{font-size:13px;font-weight:800;white-space:nowrap}
         .category-select{
@@ -159,10 +214,6 @@
         .card-sample .img-box{position:relative;overflow:hidden;cursor:pointer;background:#f3f6fa;height:155px}
         .card-sample .img-box img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
         .card-sample .img-box:hover img{transform:scale(1.05)}
-        .zoom-hint{
-            position:absolute;right:7px;bottom:7px;background:rgba(4,12,30,.84);color:#fff;
-            padding:4px 9px;border-radius:15px;font-size:10px;font-weight:800
-        }
         .card-info{padding:9px 10px 10px;text-align:left}
         .card-info h4{font-size:16px;color:#13265a;margin-bottom:1px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .model-text{font-size:12px;color:#344c77;margin-bottom:2px}
@@ -173,18 +224,17 @@
         .card-discount-badge{display:inline-block;background:#08a86a;color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:12px;margin-left:5px;vertical-align:2px}
         .card-price-note{display:block;color:#52647f;font-size:10px;font-weight:700;margin-top:2px}
 
+        
+        .card-rating-row{
+            display:flex;align-items:center;gap:5px;margin:4px 0 7px;
+            font-size:11px;line-height:1
+        }
+        .rating-stars{color:#f5a623;letter-spacing:1px;font-size:12px}
+        .rating-text{font-weight:800;color:#1e3a68}
+        .rating-label{color:#718096;font-weight:700}
+
         .stock-badge{display:inline-block;font-size:11px;padding:4px 13px;border-radius:20px;font-weight:800}
         .in-stock{background:#d7f6e8;color:#12945e}.out-stock{background:#ffdfe4;color:#d61c43}
-        .card-actions-row{display:flex;gap:7px;margin-top:8px}
-        .btn-select-card{
-            flex:1.55;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;
-            border:0;border-radius:7px;background:linear-gradient(135deg,#0869f1,#0753ce);color:#fff!important;
-            font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 4px 9px rgba(7,91,221,.22)
-        }
-        .btn-add-cart-single{
-            flex:.45;display:flex;align-items:center;justify-content:center;border-radius:7px;
-            background:#f2f6fa;border:1px solid #cbd9e8;color:#122b59;font-size:16px;cursor:pointer
-        }
 
         .benefit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
         .benefit{
@@ -251,16 +301,12 @@
         .mobile-bottom-bar a i{font-size:19px;color:#fff}
         .mobile-bottom-bar .cart-badge-count{position:absolute;top:-7px;right:-10px}
 
-        .zoom-modal{display:none;position:fixed;inset:0;background:rgba(3,10,27,.96);z-index:9999;flex-direction:column;justify-content:space-between;align-items:center}
-        .zoom-modal.active{display:flex}
-        .zoom-header{width:100%;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;color:#fff}
-        .zoom-title{font-size:16px;font-weight:800}
-        .btn-zoom-close{background:#ef334e;color:#fff;border:0;width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer}
-        .zoom-body{width:100%;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
-        .zoom-img{max-width:90%;max-height:78vh;object-fit:contain;border-radius:10px;box-shadow:0 12px 35px rgba(0,0,0,.55);transition:.15s}
-        .zoom-controls{padding:13px 20px;display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap}
-        .zoom-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);width:41px;height:41px;border-radius:50%;cursor:pointer}
-        .zoom-select-btn{background:linear-gradient(135deg,#08b977,#07945f);color:#fff;border:0;padding:10px 19px;border-radius:24px;font-weight:800;cursor:pointer}
+        
+        .main-footer{padding-bottom:34px}
+        @media(max-width:768px){
+            .main-footer{padding-bottom:102px}
+            .footer-grid{padding-bottom:6px}
+        }
 
         @media(max-width:980px){
             .navbar{padding:8px 15px}.nav-brand{min-width:240px}.nav-menu{gap:0}
@@ -282,10 +328,10 @@
             .notice-banner{font-size:11px;padding:9px 10px;margin-bottom:7px}.notice-banner i{font-size:18px}
             .showcase-box{padding:12px;border-radius:14px}.catalog-head{align-items:flex-start;flex-direction:column}
             .showcase-header-title{font-size:19px}.catalog-heading i{font-size:24px}.catalog-sub{font-size:11px}
-            .filter-box{width:100%;min-width:0}.category-select{flex:1;width:auto}
+            .filter-box{width:100%;min-width:0}.category-select{flex:1;width:auto}.catalog-search{width:100%;min-width:0}.catalog-search input{font-size:12px}.catalog-search button{padding:9px 13px}
             .gallery-grid{grid-template-columns:repeat(2,1fr);gap:8px}.card-sample .img-box{height:122px}
             .card-info{padding:7px}.card-info h4{font-size:13px}.model-text{font-size:10px}.card-price-tag{font-size:15px}.card-sale-price{font-size:15px}.card-original-price{font-size:10px}.card-discount-badge{font-size:9px;padding:2px 5px}.card-price-note{font-size:9px}
-            .stock-badge{font-size:9px;padding:3px 8px}.btn-select-card{font-size:10px;padding:7px 4px}.btn-add-cart-single{font-size:14px}
+            .stock-badge{font-size:9px;padding:3px 8px}
             .benefit-grid{grid-template-columns:repeat(3,1fr);gap:6px}.benefit{padding:8px 5px;gap:6px;flex-direction:column;text-align:center}
             .benefit-icon{width:38px;height:38px;font-size:17px}.benefit h4{font-size:11px}.benefit p{font-size:8px;line-height:1.2}
             .info-card{padding:12px;border-radius:14px}.info-card-header{font-size:18px}.about-flex{gap:5px}.about-copy p{font-size:12px}
@@ -295,6 +341,12 @@
             .footer-col h4{font-size:14px}.footer-col p{font-size:11px}.footer-bottom{font-size:10px;justify-content:center;text-align:center;flex-direction:column}
             .mobile-bottom-bar{display:flex}
         }
+        .terms-marquee{margin:8px 0 10px;background:#fff7cf;border:2px solid #ffb400;border-radius:12px;overflow:hidden;box-shadow:0 5px 15px rgba(255,180,0,.18);white-space:nowrap}
+        .terms-marquee-inner{display:inline-block;padding:9px 0;font-weight:800;color:#8a2f00;animation:termsScroll 32s linear infinite}
+        .terms-marquee-inner span{display:inline-block;margin-right:70px}
+        .terms-marquee-inner i{color:#e51e3b;margin:0 7px}
+        @keyframes termsScroll{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+        @media(prefers-reduced-motion:reduce){.terms-marquee-inner{animation:none;transform:none;display:block;text-align:center}}
     </style>
 </head>
 
@@ -345,9 +397,27 @@
         <section class="hero">
             <div class="hero-inner">
                 <div class="hero-cards" aria-hidden="true">
-                    <div class="fake-card one">शुभ<br>विवाह<small>Wedding</small></div>
-                    <div class="fake-card two">Wedding<br>Invitation<small>दिल्ली प्रेस</small></div>
-                    <div class="fake-card three">निकाह<br>मुबारक<small>دعوت نامہ</small></div>
+                    <div class="fake-card one">
+                        <div class="card-topline">॥ श्री गणेशाय नमः ॥</div>
+                        <div class="card-title">शुभ विवाह</div>
+                        <div class="card-ornament">❈ ✦ ❈</div>
+                        <div class="card-subtitle">विवाह निमंत्रण</div>
+                        <small>सादर आमंत्रण</small>
+                    </div>
+                    <div class="fake-card two">
+                        <div class="card-topline">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِیْمِ</div>
+                        <div class="card-title">निकाह</div>
+                        <div class="card-ornament">☾ ✦ ☽</div>
+                        <div class="card-subtitle">دعوت نامہ</div>
+                        <small>सादर आमंत्रण</small>
+                    </div>
+                    <div class="fake-card three">
+                        <div class="card-topline">بِسْمِ اللّٰهِ</div>
+                        <div class="card-title">अकीका</div>
+                        <div class="card-ornament">✦ ❖ ✦</div>
+                        <div class="card-subtitle">मसनून दावत</div>
+                        <small>सादर आमंत्रण</small>
+                    </div>
                 </div>
                 <div class="hero-content">
                     <div class="hero-brand">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</div>
@@ -370,27 +440,37 @@
 
         <div class="notice-banner">
             <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>नोट: कार्ड छापने से पहले पूरा मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
+            <span><b>महत्वपूर्ण सूचना:</b> कार्ड का Matter, नाम, तारीख, समय और अन्य विवरण छपाई से पहले ध्यान से जाँच लें। अंतिम स्वीकृति के बाद किसी गलती/वर्तनी/नाम/तारीख की जिम्मेदारी ग्राहक की होगी। कार्ड की छपाई शुरू होने के बाद बदलाव की जिम्मेदारी भी ग्राहक की होगी।</span>
         </div>
 
-        <section class="showcase-box" id="showcaseSection">
+                <div class="terms-marquee" role="note" aria-label="कार्ड के बारे में महत्वपूर्ण सूचना">
+            <div class="terms-marquee-inner">
+                <span><i class="fa-solid fa-triangle-exclamation"></i> महत्वपूर्ण सूचना: कार्ड की छपाई से पहले नाम, तारीख, समय और पूरा Matter ध्यान से जाँच लें।</span>
+                <span><i class="fa-solid fa-circle-check"></i> अंतिम स्वीकृति के बाद नाम/तारीख/वर्तनी/Matter की गलती की जिम्मेदारी ग्राहक की होगी।</span>
+                <span><i class="fa-solid fa-truck"></i> डिलीवरी अधिकतम 1 सप्ताह (7 दिन) के भीतर करने का प्रयास किया जाएगा।</span>
+            </div>
+        </div>
+<section class="showcase-box" id="showcaseSection">
             <div class="catalog-head">
                 <div>
                     <div class="catalog-heading">
                         <i class="fa-solid fa-layer-group"></i>
                         <h3 class="showcase-header-title">शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग</h3>
                     </div>
-                    <p class="catalog-sub">(बड़ा देखने व ज़ूम करने के लिए <b>फ़ोटो पर क्लिक करें</b>)</p>
+                    <p class="catalog-sub">कार्ड पर टच करें और पूरा विवरण देखने के लिए <b>Catalog Details</b> खोलें।</p>
                 </div>
-                <div class="filter-box">
-                    <i class="fa-solid fa-filter"></i>
-                    <label>श्रेणी चुनें:</label>
-                    <select id="categoryFilterDropdown" class="category-select" onchange="filterCategory(this.value)">
-                        <option value="all">🌟 सभी कार्ड्स (All Cards)</option>
-                        <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
-                        <option value="hindu">🪔 हिंदू शादी कार्ड</option>
-                        <option value="banner">🖼️ फ्लेक्स व बैनर</option>
-                    </select>
+                <div>
+                    <div class="catalog-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="catalogSearchInput" type="search" list="priceSearchSamples" placeholder="कार्ड / मॉडल / रेट जैसे 9 या 9-10 खोजें" onkeydown="if(event.key==='Enter') searchCatalog()">
+                        <datalist id="priceSearchSamples">
+                            <option value="9">₹9</option>
+                            <option value="10">₹10</option>
+                            <option value="9-10">₹9 - ₹10</option>
+                        </datalist>
+                        <button type="button" onclick="searchCatalog()"><i class="fa-solid fa-filter"></i> खोजें</button>
+                    </div>
+                    <span class="search-sample">उदाहरण: <b>9</b> लिखें तो ₹9 वाला कार्ड, <b>9-10</b> लिखें तो ₹9 से ₹10 तक के कार्ड।</span>
                 </div>
             </div>
             <div class="gallery-grid" id="catalogContainer">
@@ -418,62 +498,6 @@
         </section>
     </div>
 
-    <div id="imageZoomModal" class="zoom-modal">
-        <div class="zoom-header">
-            <div class="zoom-title" id="zoomModalTitle">कार्ड विवरण</div>
-            <button type="button" class="btn-zoom-close" onclick="closeZoomModal()">&times;</button>
-        </div>
-        <div class="zoom-body" id="zoomBody"><img id="zoomModalImg" class="zoom-img" src="" alt="Zoom Image"></div>
-        <div class="zoom-controls">
-            <button type="button" class="zoom-btn" onclick="applyZoom(0.25)" title="ज़ूम इन"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-            <button type="button" class="zoom-btn" onclick="applyZoom(-0.25)" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-            <button type="button" class="zoom-btn" onclick="resetZoom()" title="सामान्य आकार"><i class="fa-solid fa-rotate-left"></i></button>
-            <button type="button" class="zoom-select-btn" onclick="addCurrentZoomToCart()" style="background:#2563eb"><i class="fa-solid fa-cart-plus"></i> <span>कार्ट में जोड़ें</span></button>
-            <button type="button" id="zoomOrderBtn" class="zoom-select-btn" onclick="redirectToOrderFromZoom()"><i class="fa-solid fa-pen-to-square"></i> <span>यह कार्ड ऑर्डर करें</span></button>
-        </div>
-    </div>
-
-    <div class="mobile-bottom-bar">
-        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
-        <a href="#showcaseSection"><i class="fa-solid fa-images"></i><span>कैटलॉग</span></a>
-        <a href="cart.html"><i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span><span class="cart-badge-count" id="mobileCartBadge" style="position:absolute;top:-7px;right:-10px">0</span></a>
-        <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()"><i class="fa-solid fa-file-pen"></i><span>ऑर्डर</span></a>
-        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user"></i><span id="mobileAuthText">लॉगिन</span></a>
-    </div>
-
-    <footer class="main-footer">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
-                <p><a href="https://share.google/8lCHKltM8SpeKMCHd" target="_blank" style="color:#cbd5e1;text-decoration:none"><i class="fa-solid fa-location-dot"></i><span>ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</span></a></p>
-                <p><i class="fa-solid fa-phone"></i>9304509464</p>
-                <p><i class="fa-solid fa-envelope"></i>mdsajadans@gmail.com</p>
-            </div>
-            <div class="footer-col">
-                <h4>हमारी सेवाएं</h4>
-                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
-            </div>
-            <div class="footer-col">
-                <h4>संपर्क एवं सहायता</h4>
-                <p><i class="fa-solid fa-phone"></i> सीधे हमसे संपर्क करें</p>
-                <p><i class="fa-solid fa-clock"></i> समय पर प्रिंटिंग सेवा</p>
-                <p><i class="fa-solid fa-shield"></i> विश्वसनीय प्रिंटिंग सेवा</p>
-            </div>
-            <div class="footer-col">
-                <h4>महत्वपूर्ण जानकारी</h4>
-                <div class="footer-page-btns">
-                    <a href="payment-policy.html" class="footer-page-btn"><i class="fa-solid fa-shield-halved"></i> भुगतान एवं रिफंड नीति</a>
-                    <a href="proofreading.html" class="footer-page-btn"><i class="fa-solid fa-file-circle-check"></i> कार्ड ऑर्डर से पहले जाँच</a>
-                    <a href="about.html" class="footer-page-btn"><i class="fa-solid fa-circle-info"></i> हमारे बारे में</a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
-            <a href="admin.html"><i class="fa-solid fa-lock"></i> <span>एडमिन</span></a>
-        </div>
-    </footer>
-
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
@@ -486,8 +510,6 @@
         } catch (e) {}
 
         let globalCards = [];
-        let currentZoomCard = null;
-        let currentScale = 1;
 
         const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='185' height='155' viewBox='0 0 185 155'><rect width='185' height='155' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='12' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Image</text></svg>";
 
@@ -513,37 +535,6 @@
                 if (navBadge) navBadge.innerText = count;
                 if (mobBadge) mobBadge.innerText = count;
             } catch (e) {}
-        }
-
-        function addToCart(index) {
-            const card = globalCards[index];
-            if (!card) return;
-
-            try {
-                let cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
-                const existing = cart.find(item => String(item.id) === String(card.id));
-                if (existing) {
-                    existing.quantity = (existing.quantity || 100) + 100;
-                } else {
-                    cart.push({
-                        id: card.id || Date.now(),
-                        name: card.name || card.title || 'शादी कार्ड',
-                        model: card.model || card.code || '',
-                        rate: getSaleRate(card),
-                        image: card.image || card.image_url || card.photo || '',
-                        quantity: 100
-                    });
-                }
-                localStorage.setItem('dp_cart_items', JSON.stringify(cart));
-                updateCartBadges();
-                alert("कार्ड कार्ट में सुरक्षित जोड़ दिया गया है!");
-            } catch (e) {}
-        }
-
-        function addCurrentZoomToCart() {
-            if (!currentZoomCard) return;
-            const index = globalCards.indexOf(currentZoomCard);
-            if (index !== -1) addToCart(index);
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -685,24 +676,23 @@
 
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'card-sample';
+                cardDiv.style.cursor = 'pointer';
+                cardDiv.title = 'कैटलॉग विवरण खोलें';
+                cardDiv.onclick = () => openCatalogDetail(index);
                 cardDiv.innerHTML = `
-                    <div class="img-box" onclick="openCatalogDetail(${index})" title="कैटलॉग विवरण खोलें">
+                    <div class="img-box">
                         <img src="${safeCardPlaceholder}" data-fast-src="${String(img).replace(/"/g,'&quot;')}" alt="${String(name).replace(/"/g,'&quot;')}" loading="eager" decoding="async" fetchpriority="high" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
-                        <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</div>
                     </div>
                     <div class="card-info">
                         <h4>${name}</h4>
                         <div class="model-text">${model}</div>
                         ${priceHtml}
-                        <div style="margin-bottom: 6px;">${stockBadge}</div>
-                        <div class="card-actions-row">
-                            <button type="button" class="btn-select-card" onclick="selectCardForOrder(${index})">
-                                <i class="fa-solid fa-bolt"></i> ऑर्डर करें
-                            </button>
-                            <button type="button" class="btn-add-cart-single" onclick="addToCart(${index})" title="कार्ट में जोड़ें">
-                                <i class="fa-solid fa-cart-plus"></i>
-                            </button>
+                        <div class="card-rating-row">
+                            <span class="rating-stars">★★★★★</span>
+                            <span class="rating-text">${Number(card.rating ?? card.stars ?? 5).toFixed(1)}</span>
+                            <span class="rating-label">रेटिंग</span>
                         </div>
+                        <div style="margin-bottom: 6px;">${stockBadge}</div>
                     </div>
                 `;
                 container.appendChild(cardDiv);
@@ -745,41 +735,32 @@
             }
         }
 
-        function openZoomModal(index) {
-            const card = globalCards[index];
-            if (!card) return;
-            currentZoomCard = card;
-            currentScale = 1;
+        function searchCatalog(){
+            if (!Array.isArray(globalCards)) return;
+            const input = (document.getElementById('catalogSearchInput')?.value || '').trim().toLowerCase();
+            if (!input) { renderCatalogCards(globalCards); return; }
 
-            const modal = document.getElementById('imageZoomModal');
-            const img = document.getElementById('zoomModalImg');
-            const title = document.getElementById('zoomModalTitle');
+            // Price search: 9, ₹9, 9-10, ₹9-₹10 आदि
+            const nums = input.replace(/₹/g,'').match(/\d+(?:\.\d+)?/g) || [];
+            let priceMin = null, priceMax = null;
+            if (nums.length >= 2 && /[-–—]/.test(input)) {
+                priceMin = parseFloat(nums[0]); priceMax = parseFloat(nums[1]);
+                if (priceMin > priceMax) [priceMin, priceMax] = [priceMax, priceMin];
+            } else if (nums.length === 1 && (/^₹?\s*\d+(?:\.\d+)?\s*$/.test(input) || /^(?:rs|inr)\s*\d+(?:\.\d+)?$/.test(input))) {
+                priceMin = priceMax = parseFloat(nums[0]);
+            }
 
-            img.src = card.image || card.image_url || card.photo || safeCardPlaceholder;
-            img.style.transform = `scale(1)`;
-            title.innerText = `${card.name || 'शादी कार्ड'} ${card.model ? '(' + card.model + ')' : ''}`;
+            const filtered = globalCards.filter(card => {
+                const text = `${card.name || ''} ${card.title || ''} ${card.model || ''} ${card.code || ''} ${card.category || ''}`.toLowerCase();
+                const sale = getSaleRate(card);
+                if (priceMin !== null) return sale >= priceMin && sale <= priceMax;
+                return text.includes(input);
+            });
 
-            modal.classList.add('active');
-        }
-
-        function closeZoomModal() {
-            document.getElementById('imageZoomModal').classList.remove('active');
-        }
-
-        function applyZoom(delta) {
-            currentScale = Math.min(Math.max(1, currentScale + delta), 3.5);
-            document.getElementById('zoomModalImg').style.transform = `scale(${currentScale})`;
-        }
-
-        function resetZoom() {
-            currentScale = 1;
-            document.getElementById('zoomModalImg').style.transform = `scale(1)`;
-        }
-
-        function redirectToOrderFromZoom() {
-            if (!currentZoomCard) return;
-            const index = globalCards.indexOf(currentZoomCard);
-            if (index !== -1) selectCardForOrder(index);
+            renderCatalogCards(filtered);
+            if (!filtered.length) {
+                document.getElementById('catalogContainer').innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:24px;color:#64748b"><i class="fa-solid fa-magnifying-glass"></i><br>इस खोज के अनुसार कोई कार्ड नहीं मिला।</p>`;
+            }
         }
 
         function filterCategory(categoryVal){
