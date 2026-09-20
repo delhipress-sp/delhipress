@@ -1023,10 +1023,13 @@
                 // Catalog में अलग-अलग नाम से price save हो सकता है।
                 // 0/empty value को valid price न मानकर दूसरे price fields भी check करें।
                 const getCatalogPrice = (card) => {
+                    // Admin catalog में असली Catalog Price `catalog_rate` में है।
+                    // इसे सबसे पहले लें; `sale_rate`/`selling_price` को Catalog Price न दिखाएँ।
                     const priceKeys = [
-                        'rate', 'price', 'amount', 'catalog_price', 'card_price',
-                        'selling_price', 'sale_price', 'unit_price', 'per_piece_price',
-                        'price_per_piece', 'printing_price', 'mrp'
+                        'catalog_rate', 'catalog_price', 'original_rate', 'mrp',
+                        'rate', 'price', 'amount', 'card_price',
+                        'unit_price', 'per_piece_price', 'price_per_piece',
+                        'printing_price'
                     ];
                     for (const key of priceKeys) {
                         const raw = card?.[key];
@@ -1067,9 +1070,10 @@
                 model: c.model || c.code || '',
                 rate: (() => {
                     const keys = [
-                        'rate', 'price', 'amount', 'catalog_price', 'card_price',
-                        'selling_price', 'sale_price', 'unit_price', 'per_piece_price',
-                        'price_per_piece', 'printing_price', 'mrp'
+                        'catalog_rate', 'catalog_price', 'original_rate', 'mrp',
+                        'rate', 'price', 'amount', 'card_price',
+                        'unit_price', 'per_piece_price', 'price_per_piece',
+                        'printing_price'
                     ];
                     for (const key of keys) {
                         const raw = c?.[key];
