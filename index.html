@@ -368,6 +368,7 @@
             .nav-logo-box{width:45px;height:45px;border:2px solid #fff;box-shadow:0 0 0 2px rgba(255,255,255,.18),0 4px 12px rgba(0,0,0,.18)}
             .nav-brand-text h2{font-size:20px;line-height:1.05;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.2)}
             .nav-brand-text p{font-size:9px;color:#ffe9ff;margin-top:3px}
+            .nav-welcome-greeting{display:none;font-size:10px;margin-left:auto;margin-right:0;padding:5px 7px;border-radius:14px;max-width:105px;overflow:hidden;text-overflow:ellipsis}
             .mobile-shop-shortcuts{display:flex;gap:8px;padding:10px 10px 8px;overflow-x:auto;background:linear-gradient(135deg,#d400ff,#c000e6);scrollbar-width:none}
             .brand-location-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;margin-left:auto;flex:0 0 auto;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;border-radius:18px;padding:7px 9px;font-size:10px;font-weight:800;box-shadow:0 3px 8px rgba(50,0,80,.16);cursor:pointer}
             .brand-location-btn i{font-size:16px}
@@ -597,6 +598,8 @@
         .location-strip-label{font-size:10px;font-weight:800;color:#66758c;flex:0 0 auto}
         #locationAddressText{font-size:11px;font-weight:800;color:#172b59;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .location-strip-arrow{color:#8290a5;font-size:11px;flex:0 0 auto}
+        .nav-welcome-greeting{display:none;align-items:center;white-space:nowrap;color:#fff;font-size:13px;font-weight:800;margin-left:auto;margin-right:8px;padding:6px 10px;border-radius:18px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18)}
+        .nav-welcome-greeting b{color:#ffd21c;font-weight:900;margin-left:4px}
         .user-greeting{display:inline-flex;align-items:center;white-space:nowrap;color:#fff;font-size:12px;font-weight:700;margin-right:8px}
         .user-greeting b{font-weight:900;margin-left:3px}
         .location-popup-overlay{position:fixed;inset:0;background:rgba(10,22,45,.48);display:none;align-items:center;justify-content:center;padding:18px;z-index:99999}
@@ -643,6 +646,7 @@
                 <p>Design • Print • Quality</p>
             </div>
 </a>
+        <div class="nav-welcome-greeting" id="navWelcomeGreeting" aria-live="polite">हेलो, <b id="navWelcomeName">ग्राहक</b></div>
 
         <ul class="nav-menu">
             <li><a href="index.html" class="home-link"><i class="fa-solid fa-house"></i> होम</a></li>
@@ -833,6 +837,7 @@
 
         function checkUserAuthUI() {
             const user = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+            try { updateUserGreeting(); } catch(e) {}
             const authNav = document.getElementById('authNavContainer');
             const loggedBox = document.getElementById('userLoggedBox');
             const mobLink = document.getElementById('mobileAuthLink');
@@ -894,7 +899,7 @@
             // Spinner जानबूझकर नहीं रखा गया है। पहले उपलब्ध cache तुरंत दिखाएँ।
             let hadCache = false;
             try {
-                const cached = sessionStorage.getItem('dp_index_catalog_cache_v2');
+                const cached = sessionStorage.getItem('dp_index_catalog_cache_v3');
                 if (cached) {
                     const cachedCards = JSON.parse(cached);
                     if (Array.isArray(cachedCards) && cachedCards.length) {
@@ -919,7 +924,7 @@
                 const timer = setTimeout(() => controller.abort(), 3500);
                 try {
                     // Supabase SDK के बजाय direct REST request: इससे page-load पर SDK/request अटकने की समस्या नहीं होगी।
-                    const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
+                    const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*&_dp_refresh=${Date.now()}`;
                     const res = await fetch(url, {
                         method: 'GET',
                         headers: {
@@ -929,6 +934,7 @@
                         },
                         signal: controller.signal,
                         cache: 'no-store'
+                        ,credentials: 'omit'
                     });
                     if (!res.ok) return [];
                     const data = await res.json();
@@ -954,12 +960,16 @@
 
             const seen = new Set();
             fetchedData = fetchedData.filter(card => {
-                const key = [
+                const source = String(card._source_table || 'unknown');
+                const id = String(card.id ?? '');
+                const signature = [
                     String(card.name ?? card.title ?? '').trim().toLowerCase(),
                     String(card.model ?? card.code ?? '').trim().toLowerCase(),
                     String(card.image ?? card.image_url ?? card.photo ?? '').trim()
                 ].join('|');
-                if (!key.replace(/\|/g, '')) return true;
+                // अलग Supabase table के records को केवल समान नाम के कारण आपस में मत हटाएँ।
+                const key = id ? `${source}:id:${id}` : `${source}:sig:${signature}`;
+                if (!key.replace(/[:|]/g, '')) return true;
                 if (seen.has(key)) return false;
                 seen.add(key);
                 return true;
@@ -967,8 +977,8 @@
 
             fetchedData.forEach((row, i) => row._load_order = i);
             fetchedData.sort((a, b) => {
-                const ta = Date.parse(a.created_at || a.updated_at || '') || 0;
-                const tb = Date.parse(b.created_at || b.updated_at || '') || 0;
+                const ta = Date.parse(a.created_at || a.updated_at || a.inserted_at || a.createdAt || '') || 0;
+                const tb = Date.parse(b.created_at || b.updated_at || b.inserted_at || b.createdAt || '') || 0;
                 if (tb !== ta) return tb - ta;
                 const na = Number(a.id), nb = Number(b.id);
                 if (Number.isFinite(na) && Number.isFinite(nb) && nb !== na) return nb - na;
@@ -976,7 +986,7 @@
             });
 
             globalCards = fetchedData;
-            try { sessionStorage.setItem('dp_index_catalog_cache_v2', JSON.stringify(fetchedData)); } catch (e) {}
+            try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(fetchedData)); try { sessionStorage.removeItem('dp_index_catalog_cache_v2'); } catch(e) {}; } catch (e) {}
 
             try { renderRealCardsFromCatalog(fetchedData); } catch (e) { console.error('Hero catalog render:', e); }
             renderCatalogCards(fetchedData);
@@ -1207,10 +1217,14 @@
 
         function updateUserGreeting(){
             const user = getStoredUserObject();
-            const el = document.getElementById('userGreetingName');
-            if (!el) return;
             const name = user.name || user.full_name || user.customer_name || user.username || '';
-            el.textContent = getFirstName(name);
+            const firstName = getFirstName(name);
+            const el = document.getElementById('userGreetingName');
+            const navEl = document.getElementById('navWelcomeName');
+            const navBox = document.getElementById('navWelcomeGreeting');
+            if (el) el.textContent = firstName;
+            if (navEl) navEl.textContent = firstName;
+            if (navBox) navBox.style.display = name ? 'inline-flex' : 'none';
         }
 
         function setLocationAddress(text){
