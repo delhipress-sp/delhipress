@@ -252,6 +252,26 @@
         .card-preview-box { display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 6px; }
         .card-preview-box img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; background: #e2e8f0; flex-shrink: 0; }
 
+        .btn-rate-order {
+            background: linear-gradient(135deg,#f59e0b,#ea580c); color:#fff; border:none; padding:8px 14px;
+            font-size:12px; font-weight:800; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+        }
+        .rating-modal { position:fixed; inset:0; z-index:100000; display:none; align-items:center; justify-content:center; padding:14px; background:rgba(15,23,42,.72); backdrop-filter:blur(5px); }
+        .rating-panel { width:min(520px,100%); max-height:92vh; overflow:auto; background:#fff; border-radius:18px; padding:20px; box-shadow:0 25px 70px rgba(0,0,0,.28); }
+        .rating-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+        .rating-head h3 { margin:0; color:#0f2f70; font-size:19px; }
+        .rating-close { border:0; width:34px; height:34px; border-radius:50%; background:#ef4444; color:#fff; font-size:20px; cursor:pointer; }
+        .order-rating-stars { display:flex; justify-content:center; gap:6px; margin:12px 0 16px; }
+        .order-rating-star { border:0; background:transparent; color:#cbd5e1; font-size:40px; line-height:1; cursor:pointer; padding:0 2px; }
+        .order-rating-star.selected { color:#f59e0b; }
+        .rating-panel input,.rating-panel textarea { width:100%; border:1px solid #d5dce5; border-radius:8px; padding:10px; margin-bottom:10px; outline:none; }
+        .rating-panel textarea { min-height:95px; resize:vertical; }
+        .rating-image-upload { display:flex; align-items:center; justify-content:center; gap:7px; border:1px dashed #94a3b8; border-radius:9px; padding:11px; margin-bottom:9px; color:#2563eb; font-weight:800; background:#f8fbff; cursor:pointer; }
+        .rating-image-preview { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+        .rating-image-preview img { width:64px; height:64px; object-fit:cover; border-radius:7px; border:1px solid #e2e8f0; }
+        .btn-submit-rating { width:100%; border:0; border-radius:9px; padding:12px; background:linear-gradient(135deg,#f59e0b,#ea580c); color:#fff; font-weight:800; cursor:pointer; }
+        .rating-note { font-size:11px; color:#64748b; margin-bottom:8px; }
+
         .mobile-bottom-bar {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(14px);
@@ -715,6 +735,9 @@
                         <div class="order-card-footer">
                             <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <div class="footer-action-buttons">
+                                <button class="btn-rate-order" onclick="openOrderRating(${index})">
+                                    <i class="fa-solid fa-star"></i> रेटिंग दें
+                                </button>
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
@@ -728,6 +751,74 @@
                     </div>
                 `;
             }).join('');
+        }
+
+
+        let orderRatingIndex = null;
+        let orderRatingValue = 0;
+
+        function openOrderRating(index){
+            const ord=fetchedOrdersList[index];
+            if(!ord) return;
+            orderRatingIndex=index; orderRatingValue=0;
+            const info=document.getElementById('ratingOrderInfo');
+            if(info) info.innerHTML=`ऑर्डर #${escapeHtml(ord.order_id||ord.id||'-')} • ${escapeHtml(ord.card_title||ord.card_name||'शादी कार्ड')}`;
+            const name=document.getElementById('orderRatingName');
+            let u={}; try{u=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}')}catch(e){}
+            if(name) name.value=u.name||ord.customer_name||'';
+            document.getElementById('orderRatingText').value='';
+            document.getElementById('orderRatingImages').value='';
+            document.getElementById('orderRatingImagePreview').innerHTML='';
+            updateOrderRatingStars();
+            document.getElementById('orderRatingModal').style.display='flex';
+        }
+        function closeOrderRating(){ orderRatingIndex=null; orderRatingValue=0; const m=document.getElementById('orderRatingModal'); if(m)m.style.display='none'; }
+        function updateOrderRatingStars(){ document.querySelectorAll('.order-rating-star').forEach(b=>b.classList.toggle('selected',Number(b.dataset.star)<=orderRatingValue)); }
+        document.addEventListener('click',e=>{const b=e.target.closest('.order-rating-star');if(b){orderRatingValue=Number(b.dataset.star)||0;updateOrderRatingStars();}});
+        document.addEventListener('change',e=>{
+            if(e.target.id!=='orderRatingImages') return;
+            const files=[...e.target.files].filter(f=>f.type.startsWith('image/')).slice(0,5);
+            const box=document.getElementById('orderRatingImagePreview'); box.innerHTML='';
+            files.forEach(f=>{const img=document.createElement('img');img.src=URL.createObjectURL(f);box.appendChild(img);});
+            if(e.target.files.length>5) alert('अधिकतम 5 फोटो ही अपलोड की जाएंगी।');
+        });
+        async function uploadOrderReviewImages(files,orderId){
+            const urls=[]; if(!supabaseClient) return urls;
+            for(const file of files.slice(0,5)){
+                if(file.size>8*1024*1024) continue;
+                const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
+                const path=`${orderId}/review_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+                try{const up=await supabaseClient.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(up.error)continue;const pub=supabaseClient.storage.from('review-images').getPublicUrl(path);if(pub.data?.publicUrl)urls.push(pub.data.publicUrl);}catch(e){}
+            }
+            return urls;
+        }
+        async function submitOrderRating(){
+            if(orderRatingIndex===null) return;
+            if(!orderRatingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return;}
+            const ord=await resolveCustomerOrder(orderRatingIndex);
+            if(!ord){alert('ऑर्डर का रिकॉर्ड नहीं मिला। पहले रिफ्रेश करें।');return;}
+            const catalogId=ord.catalog_id||ord.card_id||ord.product_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'';
+            const name=(document.getElementById('orderRatingName').value||'').trim()||ord.customer_name||'ग्राहक';
+            const text=(document.getElementById('orderRatingText').value||'').trim();
+            const files=[...(document.getElementById('orderRatingImages').files||[])].slice(0,5);
+            const orderId=ord.id||ord.order_id||('local_'+Date.now());
+            let imageUrls=await uploadOrderReviewImages(files,orderId);
+            const row={catalog_id:catalogId||null,order_id:ord.order_id||null,order_db_id:ord.id||null,rating:orderRatingValue,stars:orderRatingValue,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:new Date().toISOString()};
+            let saved=false;
+            if(supabaseClient){
+                const payloads=[row,{catalog_id:catalogId||null,rating:orderRatingValue,name,feedback:text,review_images:imageUrls,created_at:row.created_at},{catalog_id:catalogId||null,rating:orderRatingValue,name,feedback:text,created_at:row.created_at}];
+                for(const payload of payloads){
+                    for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){
+                        try{const {error}=await supabaseClient.from(tbl).insert(payload);if(!error){saved=true;break;}}catch(e){}
+                    }
+                    if(saved)break;
+                }
+            }
+            const key='dp_order_rating_'+String(ord.id||ord.order_id||orderRatingIndex);
+            localStorage.setItem(key,JSON.stringify(row));
+            closeOrderRating();
+            alert(saved?'आपकी रेटिंग और रिव्यू सफलतापूर्वक सेव हो गया।':'रेटिंग इस डिवाइस में सेव हो गई।');
+            renderOrdersUI();
         }
 
         function parseJsonArray(value){ try{ const a=typeof value==='string'?JSON.parse(value||'[]'):value; return Array.isArray(a)?a:[]; }catch(e){ return []; } }
@@ -1173,5 +1264,32 @@
             window.location.replace("index.html");
         }
     </script>
+
+    <div class="rating-modal" id="orderRatingModal">
+        <div class="rating-panel">
+            <div class="rating-head">
+                <h3><i class="fa-solid fa-star" style="color:#f59e0b"></i> ऑर्डर की रेटिंग दें</h3>
+                <button class="rating-close" type="button" onclick="closeOrderRating()">×</button>
+            </div>
+            <div id="ratingOrderInfo" style="font-size:13px;color:#475569;font-weight:700;background:#f8fafc;padding:9px;border-radius:8px;"></div>
+            <div class="order-rating-stars" id="orderRatingStars">
+                <button class="order-rating-star" type="button" data-star="1">★</button>
+                <button class="order-rating-star" type="button" data-star="2">★</button>
+                <button class="order-rating-star" type="button" data-star="3">★</button>
+                <button class="order-rating-star" type="button" data-star="4">★</button>
+                <button class="order-rating-star" type="button" data-star="5">★</button>
+            </div>
+            <input id="orderRatingName" type="text" placeholder="आपका नाम">
+            <textarea id="orderRatingText" placeholder="अपने अनुभव के बारे में लिखें..."></textarea>
+            <label class="rating-image-upload">
+                <i class="fa-solid fa-camera"></i> फोटो अपलोड करें (अधिकतम 5)
+                <input id="orderRatingImages" type="file" accept="image/*" multiple hidden>
+            </label>
+            <div class="rating-image-preview" id="orderRatingImagePreview"></div>
+            <div class="rating-note">फोटो लगाना वैकल्पिक है। रेटिंग और रिव्यू आपके इसी ऑर्डर से जोड़े जाएंगे।</div>
+            <button class="btn-submit-rating" type="button" onclick="submitOrderRating()"><i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें</button>
+        </div>
+    </div>
+
 </body>
 </html>
