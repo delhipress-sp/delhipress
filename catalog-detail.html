@@ -165,7 +165,7 @@ async function loadFeedback(){feedbackRows=[];if(sb&&activeId){for(const tbl of 
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
 function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
-function render(){const c=product;images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
+function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
 function renderGallery(){const t=document.getElementById('thumbs');t.innerHTML=images.map((u,i)=>`<button class="thumb ${i===imageIndex?'active':''}" onclick="setImage(${i})"><img src="${esc(u)}" onerror="this.src='${placeholder}'"></button>`).join('');setImage(imageIndex)}
 function setImage(i){imageIndex=(i+images.length)%images.length;document.getElementById('mainImage').src=images[imageIndex];document.getElementById('imageCount').textContent=(imageIndex+1)+' / '+images.length;document.querySelectorAll('.thumb').forEach((x,n)=>x.classList.toggle('active',n===imageIndex))}
 function prevImage(){setImage(imageIndex-1)}function nextImage(){setImage(imageIndex+1)}
@@ -218,56 +218,13 @@ function openRecommended(rid){
     const pools=[window._recommendedRows||[],window._recentRows||[],window._updatedRows||[]];
     let c=null;
     for(const p of pools){c=p.find(x=>String(x.id)===String(rid));if(c)break;}
-    if(c)localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));
+    if(c){
+      localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));
+      saveRecentlyViewed(c);
+    }
   }catch(e){}
   location.href='catalog-detail.html?id='+encodeURIComponent(rid);
 }
-function saveRecentlyViewed(c){
-  if(!c || c.id==null)return;
-  try{
-    const key='dp_recently_viewed_catalog';
-    let rows=JSON.parse(localStorage.getItem(key)||'[]');
-    const clean={id:c.id,name:c.name||c.title||'शादी कार्ड',title:c.title||'',model:c.model||c.code||'',category:c.category||'',image:c.image||c.image_url||'',catalog_rate:c.catalog_rate||c.original_rate||c.mrp||0,sale_rate:c.sale_rate||c.selling_price||c.price||0,viewed_at:Date.now()};
-    rows=[clean,...rows.filter(x=>String(x.id)!==String(c.id))].slice(0,12);
-    localStorage.setItem(key,JSON.stringify(rows));
-  }catch(e){}
-}
-function renderSmallCatalogCards(boxId,rows,emptyText){
-  const box=document.getElementById(boxId);if(!box)return;
-  if(!rows.length){box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">'+esc(emptyText)+'</div>';return;}
-  box.innerHTML=rows.map((c,i)=>{
-    const name=esc(c.name||c.title||'शादी कार्ड'),model=esc(c.model||c.code||'');
-    const img=getImages(c)[0]||c.image||c.image_url||placeholder;
-    const rate=sale(c)||original(c);
-    return `<div class="rec-card" onclick="openRecommended('${esc(c.id??i)}')"><div class="rec-img"><img src="${esc(img)}" alt="${name}" onerror="this.onerror=null;this.src='${placeholder}'"></div><div class="rec-body"><div class="rec-name">${name}</div><div class="rec-model">${model}</div><div class="rec-price">₹${Number(rate||0).toLocaleString('en-IN')}</div><button type="button" class="rec-btn" onclick="event.stopPropagation();openRecommended('${esc(c.id??i)}')">विवरण देखें</button></div></div>`;
-  }).join('');
-}
-function loadRecentlyViewed(){
-  try{
-    const rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]').filter(x=>String(x.id)!==String(product?.id??id)).slice(0,8);
-    window._recentRows=rows;renderSmallCatalogCards('recentCatalog',rows,'हाल ही में देखा गया कोई कार्ड नहीं है।');
-  }catch(e){renderSmallCatalogCards('recentCatalog',[],'हाल ही में देखा गया कोई कार्ड नहीं है।');}
-}
-async function loadMoreUpdatedCards(){
-  const box=document.getElementById('updatedCatalog');if(!box)return;
-  let all=[];
-  if(sb){
-    for(const tbl of ['catalog','cards','cards_catalog']){
-      try{
-        const {data,error}=await sb.from(tbl).select('*').order('id',{ascending:false}).limit(60);
-        if(!error&&Array.isArray(data))all.push(...data.map(x=>({...x,_source_table:tbl})));
-      }catch(e){}
-    }
-  }
-  const seen=new Set();
-  const rows=all.filter(x=>{
-    const key=String(x._source_table)+':'+String(x.id);
-    if(seen.has(key)||(product?.id!=null&&String(x.id)===String(product.id)))return false;
-    seen.add(key);return true;
-  }).slice(0,12);
-  window._updatedRows=rows;renderSmallCatalogCards('updatedCatalog',rows,'अभी कोई अन्य अपडेटेड कार्ड उपलब्ध नहीं है।');
-}
-
 function orderNow(){const logged=localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user');if(!logged){alert('ऑर्डर करने के लिए कृपया पहले लॉगिन करें।');location.href='login.html';return}const data={id:product.id||'',name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||''};localStorage.setItem('order_selected_card',JSON.stringify(data));location.href='order.html?id='+encodeURIComponent(data.id)}
 document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
 async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
