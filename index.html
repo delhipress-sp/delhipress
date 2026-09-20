@@ -686,7 +686,7 @@
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'card-sample';
                 cardDiv.innerHTML = `
-                    <div class="img-box" onclick="openZoomModal(${index})">
+                    <div class="img-box" onclick="openCatalogDetail(${index})" title="कैटलॉग विवरण खोलें">
                         <img src="${safeCardPlaceholder}" data-fast-src="${String(img).replace(/"/g,'&quot;')}" alt="${String(name).replace(/"/g,'&quot;')}" loading="eager" decoding="async" fetchpriority="high" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
                         <div class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> बड़ा देखें</div>
                     </div>
@@ -731,6 +731,13 @@
 
             localStorage.setItem('order_selected_card', JSON.stringify(cardData));
             window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
+        }
+
+        function openCatalogDetail(index) {
+            const card = globalCards[index];
+            if (!card) return;
+            const id = card.id ?? '';
+            window.location.href = `catalog-detail.html?id=${encodeURIComponent(id)}`;
         }
 
         function openZoomModal(index) {
