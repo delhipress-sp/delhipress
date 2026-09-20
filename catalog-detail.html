@@ -53,7 +53,7 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:30px}
       </div>
     </section>
     <section class="section"><h2>रेटिंग और रिव्यू</h2><div class="rating-grid"><div class="big-rating"><strong id="bigRating">0.0</strong><div class="stars" id="bigStars">★★★★★</div><div class="reviews-count" id="bigReviewCount">0 Reviews</div></div><div class="bars"><div class="barrow"><span>5★</span><div class="bar"><i id="b5" style="width:0%"></i></div><span id="c5">0</span></div><div class="barrow"><span>4★</span><div class="bar"><i id="b4" style="width:0%"></i></div><span id="c4">0</span></div><div class="barrow"><span>3★</span><div class="bar"><i id="b3" style="width:0%"></i></div><span id="c3">0</span></div><div class="barrow"><span>2★</span><div class="bar"><i id="b2" style="width:0%"></i></div><span id="c2">0</span></div><div class="barrow"><span>1★</span><div class="bar"><i id="b1" style="width:0%"></i></div><span id="c1">0</span></div></div></div></section>
-    <section class="section feedback"><div><h2>ग्राहक प्रतिक्रिया</h2><div id="reviewList" class="review-list"><div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div></div></div><form onsubmit="submitFeedback(event)"><h2>अपनी रेटिंग दें</h2><div class="stars-select" id="starSelect"><button type="button" class="star-btn" data-star="1">★</button><button type="button" class="star-btn" data-star="2">★</button><button type="button" class="star-btn" data-star="3">★</button><button type="button" class="star-btn" data-star="4">★</button><button type="button" class="star-btn" data-star="5">★</button></div><input id="feedbackName" placeholder="आपका नाम" maxlength="60"><textarea id="feedbackText" placeholder="अपना अनुभव / सुझाव लिखें..." maxlength="500"></textarea><label class="review-upload"><i class="fa-solid fa-image"></i> फोटो अपलोड करें <input id="feedbackImages" type="file" accept="image/*" multiple hidden onchange="previewFeedbackImages(event)"></label><div id="feedbackImagePreview" class="feedback-image-preview"></div><button class="submit" type="submit">फीडबैक भेजें</button></form></section>
+    <section class="section feedback"><div style="grid-column:1/-1"><h2>ग्राहक रेटिंग और रिव्यू</h2><div id="reviewList" class="review-list"><div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div></div></div></section>
   </main>
     <section class="section recommended-section" id="recommendedSection">
       <div class="recommended-head"><h2>More Recommended Catalog</h2><span>और कैटलॉग देखें</span></div>
@@ -96,38 +96,52 @@ let touchStartX=0;document.getElementById('mainImageBox')?.addEventListener('tou
 function addToCart(){if(!product)return;let cart=JSON.parse(localStorage.getItem('dp_cart_items')||'[]');let item=cart.find(x=>String(x.id)===String(product.id));if(item)item.quantity=(item.quantity||100)+100;else cart.push({id:product.id,name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||'',quantity:100});localStorage.setItem('dp_cart_items',JSON.stringify(cart));updateCart();showToast('कार्ड कार्ट में जोड़ दिया गया है!')}
 function updateCart(){try{document.getElementById('cartCount').textContent=JSON.parse(localStorage.getItem('dp_cart_items')||'[]').length}catch(e){}}
 async function loadRecommendedCatalog(){
- const box=document.getElementById('recommendedCatalog'); if(!box) return;
- let rows=[];
- if(sb){
-   for(const tbl of ['catalog','cards','cards_catalog']){
-     try{const {data,error}=await sb.from(tbl).select('*').order('id',{ascending:false}).limit(20); if(!error&&Array.isArray(data)&&data.length){rows=data;break}}catch(e){}
-   }
- }
- if(!rows.length){box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">अभी कोई recommended catalog उपलब्ध नहीं है।</div>';return}
- const currentId=product?.id??id;
- rows=rows.filter(x=>currentId==null || String(x.id??'')!==String(currentId)).slice(0,12);
- if(!rows.length){box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">और कोई catalog उपलब्ध नहीं है।</div>';return}
- window._recommendedRows=rows;
- box.innerHTML=rows.map(c=>{
-   const img=getImages(c)[0]||placeholder;
-   const name=c.name||c.title||c.card_name||c.product_name||'शादी कार्ड';
-   const model=c.model||c.code||c.card_model||c.model_no||'';
-   const o=original(c), pr=sale(c)||o;
-   return `<article class="rec-card" onclick="openRecommended('${esc(c.id??'')}')">
-     <div class="rec-img"><img src="${esc(img)}" alt="${esc(name)}" onerror="this.src='${placeholder}'"></div>
-     <div class="rec-body"><div class="rec-name" title="${esc(name)}">${esc(name)}</div>
-     ${model?`<div class="rec-model">मॉडल: ${esc(model)}</div>`:''}
-     <div class="rec-price">${o>pr?`<span class="rec-old">₹${o.toLocaleString('en-IN')}</span>`:''}₹${Number(pr||0).toLocaleString('en-IN')}</div>
-     <button class="rec-btn" type="button">विवरण देखें</button></div></article>`;
- }).join('');
+  const box=document.getElementById('recommendedCatalog'); if(!box) return;
+  let all=[];
+  if(sb){
+    for(const tbl of ['catalog','cards','cards_catalog']){
+      try{
+        const {data,error}=await sb.from(tbl).select('*').order('id',{ascending:false}).limit(50);
+        if(!error && Array.isArray(data)) all.push(...data.map(x=>({...x,_source_table:tbl})));
+      }catch(e){}
+    }
+  }
+  // Fallback: local catalog data, if Supabase is temporarily unavailable.
+  if(!all.length){
+    try{
+      const local=JSON.parse(localStorage.getItem('dp_catalog')||localStorage.getItem('catalog_data')||'[]');
+      if(Array.isArray(local)) all=local;
+    }catch(e){}
+  }
+  const currentId=product?.id ?? id;
+  const seen=new Set();
+  const rows=all.filter(x=>{
+    const key=String(x.id ?? x.catalog_id ?? x.code ?? x.model ?? '');
+    if(currentId!=null && String(x.id??'')===String(currentId)) return false;
+    if(!key || seen.has(key)) return false;
+    seen.add(key); return true;
+  }).slice(0,20);
+  if(!rows.length){box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">अभी कोई अन्य कैटलॉग उपलब्ध नहीं है।</div>';return;}
+  window._recommendedRows=rows;
+  box.innerHTML=rows.map((c,i)=>{
+    const name=esc(c.name||c.title||c.card_name||c.product_name||'शादी कार्ड');
+    const model=esc(c.model||c.code||c.card_model||c.model_no||'');
+    const imgs=getImages(c); const img=imgs[0]||placeholder;
+    const rate=sale(c); const mrp=original(c);
+    return `<div class="recommended-card" onclick="openRecommended('${esc(c.id??i)}')">
+      <div class="recommended-img"><img src="${esc(img)}" alt="${name}" onerror="this.onerror=null;this.src='${placeholder}'"></div>
+      <div class="recommended-info"><h3>${name}</h3><div class="recommended-model">${model}</div><div class="recommended-price">₹${rate||0}${mrp&&mrp>rate?` <del>₹${mrp}</del>`:''}</div><button type="button" onclick="event.stopPropagation();openRecommended('${esc(c.id??i)}')">विवरण देखें</button></div>
+    </div>`;
+  }).join('');
 }
+
 function openRecommended(rid){ if(!rid)return; try{const c=(window._recommendedRows||[]).find(x=>String(x.id)===String(rid)); if(c)localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));}catch(e){} location.href='catalog-detail.html?id='+encodeURIComponent(rid); }
 function orderNow(){const logged=localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user');if(!logged){alert('ऑर्डर करने के लिए कृपया पहले लॉगिन करें।');location.href='login.html';return}const data={id:product.id||'',name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||''};localStorage.setItem('order_selected_card',JSON.stringify(data));location.href='order.html?id='+encodeURIComponent(data.id)}
 document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
 async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
 async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
 async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
-(async function(){updateCart();product=await findProduct();if(!product){document.getElementById('loading').innerHTML='यह कैटलॉग आइटम उपलब्ध नहीं है।';return}render();if(product.id||id) await loadFeedback();await loadRecommendedCatalog();})();
+(async function(){updateCart();product=await findProduct();await loadRecommendedCatalog();if(!product){document.getElementById('loading').innerHTML='यह कैटलॉग आइटम उपलब्ध नहीं है।';document.getElementById('recommendedSection').style.display='block';return}render();if(product.id||id) await loadFeedback();})();
 </script>
 </body>
 </html>
