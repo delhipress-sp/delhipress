@@ -492,6 +492,50 @@
             .hero-live-tag{top:4px;left:4px;font-size:7px;padding:3px 6px}
         }
 
+
+        @media(max-width:768px){
+            .mobile-bottom-bar{
+                height:64px !important;
+                padding:5px 6px calc(5px + env(safe-area-inset-bottom));
+                background:linear-gradient(135deg,#062b57,#064f83);
+                border-top:1px solid rgba(255,255,255,.22);
+                box-shadow:0 -7px 20px rgba(0,0,0,.22);
+                display:flex;
+                align-items:center;
+                justify-content:space-around;
+                gap:3px;
+            }
+            .mobile-bottom-bar a{
+                flex:1;min-width:0;height:53px;border-radius:12px;
+                justify-content:center;gap:2px;font-size:10px;
+                background:rgba(255,255,255,.07);
+            }
+            .mobile-bottom-bar a i{font-size:18px;color:#fff}
+            .mobile-bottom-bar a:active{background:rgba(255,255,255,.18);transform:scale(.97)}
+            .mobile-bottom-bar .cart-badge-count{
+                top:2px;right:18%;min-width:17px;height:17px;
+                padding:0 4px;border-radius:99px;background:#ff1744;color:#fff;
+                font-size:9px;line-height:17px;text-align:center;
+            }
+            body{padding-bottom:78px !important}
+        }
+
+
+        .simple-card-categories{display:flex;gap:7px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+        .simple-card-categories::-webkit-scrollbar{display:none}
+        .simple-cat{border:1px solid #dbe6f4;background:#fff;color:#12366e;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}
+        .simple-cat i{margin-right:4px}
+        .simple-cat.active{background:#147cf5;color:#fff;border-color:#147cf5}
+        @media(max-width:700px){.simple-card-categories{gap:6px}.simple-cat{padding:7px 10px;font-size:10px}}
+
+</style>
+
+<style>
+.quick-contact{position:fixed;right:12px;bottom:78px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.quick-contact a{width:45px;height:45px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;box-shadow:0 5px 14px rgba(0,0,0,.22);font-size:20px}
+.quick-contact a span{display:none}
+.quick-call{background:#1677ff}.quick-wa{background:#16b866}
+@media(max-width:700px){.quick-contact{right:10px;bottom:74px}.quick-contact a{width:43px;height:43px;font-size:19px}}
 </style>
 </head>
 
@@ -598,6 +642,17 @@
                         <button type="button" onclick="searchCatalog()"><i class="fa-solid fa-filter"></i> खोजें</button>
                     </div>
                     <span class="search-sample">उदाहरण: <b>9</b> लिखें तो ₹9 वाला कार्ड, <b>9-10</b> लिखें तो ₹9 से ₹10 तक के कार्ड।</span>
+                    <div class="simple-card-categories" aria-label="कार्ड कैटेगरी">
+                        <button type="button" class="simple-cat active" onclick="filterCategory('all'); setSimpleCat(this)">
+                            <i class="fa-solid fa-layer-group"></i> सभी कार्ड
+                        </button>
+                        <button type="button" class="simple-cat" onclick="filterCategory('muslim'); setSimpleCat(this)">
+                            <i class="fa-solid fa-mosque"></i> मुस्लिम कार्ड
+                        </button>
+                        <button type="button" class="simple-cat" onclick="filterCategory('hindu'); setSimpleCat(this)">
+                            <i class="fa-solid fa-om"></i> हिंदू कार्ड
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="gallery-grid" id="catalogContainer">
@@ -1032,6 +1087,15 @@
         }
     </script>
 
+
+    <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="मोबाइल नेविगेशन">
+        <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
+        <a href="#catalogSection"><i class="fa-solid fa-layer-group"></i><span>कैटलॉग</span></a>
+        <a href="my_orders.html" id="mobileOrdersLink"><i class="fa-solid fa-box-archive"></i><span>माय ऑर्डर</span></a>
+        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user"></i><span id="mobileAuthText">लॉगिन</span></a>
+        <a href="payment.html"><i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span><b id="mobileCartBadge" class="cart-badge-count">0</b></a>
+    </nav>
+
 <footer class="main-footer">
         <div class="footer-grid">
             <div class="footer-col">
@@ -1063,5 +1127,28 @@
             <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
         </div>
     </footer>
+
+<script>
+function setSimpleCat(btn){
+  document.querySelectorAll('.simple-cat').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+</script>
+
+
+<div id="quickContact" class="quick-contact" aria-label="ग्राहक संपर्क">
+  <a href="tel:+919661527694" class="quick-call" aria-label="कॉल करें"><i class="fa-solid fa-phone"></i><span>कॉल</span></a>
+  <a href="https://wa.me/919661527694?text=नमस्ते%20दिल्ली%20प्रेस%2C%20मुझे%20कार्ड%20के%20बारे%20में%20जानकारी%20चाहिए।" target="_blank" rel="noopener" class="quick-wa" aria-label="WhatsApp पर बात करें"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+</div>
+
+<script id="catalogAutoLoadFix">
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    if(typeof loadCatalog === 'function'){
+      try { loadCatalog(); } catch(e) { console.error(e); }
+    }
+  }, 50);
+});
+</script>
 </body>
 </html>
