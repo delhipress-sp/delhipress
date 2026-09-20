@@ -242,7 +242,12 @@
             box-shadow:0 7px 18px rgba(0,0,0,.10)
         }
         .benefit-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:23px;flex-shrink:0}
-        .benefit:nth-child(1) .benefit-icon{background:#09ae74}.benefit:nth-child(2) .benefit-icon{background:#ff7b00}.benefit:nth-child(3) .benefit-icon{background:#7839df}
+        .benefit:nth-child(1) .benefit-icon{background:#09ae74}
+        .benefit:nth-child(2) .benefit-icon{background:#ff7b00}
+        .benefit:nth-child(3) .benefit-icon{background:#7839df}
+        .benefit:nth-child(4) .benefit-icon{background:#087fe8}
+        .benefit:nth-child(5) .benefit-icon{background:#e91e63}
+        .benefit:nth-child(6) .benefit-icon{background:#10a56f}
         .benefit h4{font-size:16px;color:#09256b}.benefit p{font-size:11px;color:#405575}
 
         .info-card{
@@ -347,7 +352,147 @@
         .terms-marquee-inner i{color:#e51e3b;margin:0 7px}
         @keyframes termsScroll{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
         @media(prefers-reduced-motion:reduce){.terms-marquee-inner{animation:none;transform:none;display:block;text-align:center}}
-    </style>
+    
+        /* User supplied real card samples - responsive slider */
+        .real-card-slider{
+            position:relative;width:100%;padding:8px 42px 10px;
+            overflow:hidden;
+        }
+        .real-card-track{
+            display:flex;gap:14px;align-items:center;
+            transition:transform .55s ease;
+        }
+        .real-card-slide{
+            position:relative;isolation:isolate;flex:0 0 calc((100% - 42px)/4);
+            background:#fff;border-radius:12px;padding:5px;
+            box-shadow:0 8px 22px rgba(0,0,0,.20),0 0 0 1px rgba(255,215,80,.35);
+            border:2px solid rgba(255,255,255,.9);
+            overflow:hidden;transform:translateZ(0);
+            transition:transform .45s ease,box-shadow .45s ease;
+        }
+        /* गोल्डन + येलो + सफेद + नीला चमकता रिंग */
+        .real-card-slide::before{
+            content:"";position:absolute;inset:0;border-radius:12px;padding:2px;
+            background:conic-gradient(from 0deg,#ffd700,#fff7a8,#ffffff,#3da8ff,#ffd700,#ffb300,#ffffff,#ffd700);
+            -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+            -webkit-mask-composite:xor;mask-composite:exclude;
+            opacity:.9;z-index:3;pointer-events:none;
+            animation:goldenRing 2.8s linear infinite;
+        }
+        .real-card-slide::after{
+            content:"";position:absolute;top:-30%;left:-75%;width:42%;height:170%;
+            background:linear-gradient(100deg,transparent,rgba(255,255,255,0),rgba(255,255,255,.95),rgba(255,220,70,.55),transparent);
+            transform:rotate(18deg);z-index:4;pointer-events:none;
+            animation:cardFlash 3.8s ease-in-out infinite;
+        }
+        .real-card-slide img{
+            position:relative;z-index:1;display:block;width:100%;aspect-ratio:0.69/1;
+            object-fit:cover;border-radius:8px;
+        }
+        .real-card-slide:hover{
+            transform:translateY(-4px) scale(1.015);
+            box-shadow:0 12px 28px rgba(0,0,0,.25),0 0 16px rgba(255,190,0,.55),0 0 28px rgba(35,145,255,.25);
+        }
+        @keyframes goldenRing{
+            0%{filter:brightness(1);transform:rotate(0deg)}
+            45%{filter:brightness(1.18)}
+            70%{filter:brightness(1.55)}
+            100%{filter:brightness(1);transform:rotate(360deg)}
+        }
+        @keyframes cardFlash{
+            0%,55%,100%{left:-75%;opacity:0}
+            62%{opacity:1}
+            78%{left:125%;opacity:.18}
+        }
+        @media(prefers-reduced-motion:reduce){
+            .real-card-slide::before,.real-card-slide::after{animation:none}
+            .real-card-slide{transition:none}
+        }
+        .real-card-caption{padding:5px 6px 4px;text-align:center;background:#fff}
+        .real-card-caption .hero-card-name{font-size:12px;font-weight:800;color:#082e8c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .real-card-caption .hero-card-model{font-size:9px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .real-card-caption .hero-card-price{font-size:15px;font-weight:900;color:#e11d2e;margin-top:1px}
+        @media(max-width:700px){
+            .benefit-grid{grid-template-columns:repeat(3,1fr);gap:7px}
+            .benefit{padding:9px 5px;gap:6px;min-width:0}
+            .benefit-icon{width:38px;height:38px;font-size:18px}
+            .benefit h4{font-size:11px;line-height:1.15}
+            .benefit p{font-size:9px;line-height:1.15}
+.real-card-slide{flex:0 0 calc(50% - 5px)}.real-card-caption{padding:3px 4px}.real-card-caption .hero-card-name{font-size:10px}.real-card-caption .hero-card-model{font-size:8px}.real-card-caption .hero-card-price{font-size:13px}}
+        @media(max-width:390px){.real-card-slide{flex-basis:78%}}
+        .real-slider-btn{
+            position:absolute;top:50%;transform:translateY(-50%);
+            width:34px;height:34px;border:0;border-radius:50%;
+            background:#fff;color:#082e8c;box-shadow:0 3px 12px rgba(0,0,0,.25);
+            z-index:5;font-size:17px;font-weight:900;cursor:pointer;
+        }
+        .real-slider-btn.prev{left:5px}.real-slider-btn.next{right:5px}
+        .real-slider-dots{display:flex;justify-content:center;gap:7px;margin-top:6px}
+        .real-slider-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;cursor:pointer}
+        .real-slider-dot.active{background:#0869f1;transform:scale(1.2)}
+        .hero.real-card-hero{min-height:0;padding:12px 14px 10px}
+        .hero.real-card-hero .hero-inner{display:block}
+        .hero.real-card-hero .hero-content{margin-top:3px}
+        .hero.real-card-hero .hero-brand{display:inline-block}
+        .hero.real-card-hero h1{font-size:27px}
+        .hero.real-card-hero p{margin:4px 0 0}
+        @media(max-width:700px){
+            .hero.real-card-hero{padding:8px 7px 9px;border-width:2px;border-radius:14px}
+            .real-card-slider{padding:4px 31px 6px}
+            .real-card-track{display:flex;gap:10px;transform:translateX(0);transition:transform .35s ease}
+            .real-card-slide{flex:0 0 calc(50% - 5px);padding:3px;border-radius:9px}
+            .real-card-slide img{border-radius:6px}
+            .real-slider-btn{width:29px;height:29px;font-size:14px}
+            .real-slider-btn.prev{left:1px}.real-slider-btn.next{right:1px}
+            .hero.real-card-hero .hero-brand{font-size:11px;padding:3px 10px;margin-bottom:3px}
+            .hero.real-card-hero h1{font-size:20px;line-height:1.12}
+            .hero.real-card-hero p{font-size:10px}
+        }
+        @media(max-width:390px){
+            .real-card-slide{flex-basis:78%}
+        }
+
+    
+/* हल्का visual effect — layout/size में कोई बदलाव नहीं */
+.real-card-slide{transform-style:preserve-3d;backface-visibility:hidden}
+.real-card-slide img{backface-visibility:hidden}
+.real-card-slide:hover{animation:cardGentleTilt 900ms ease-in-out 1}
+@keyframes cardGentleTilt{
+  0%,100%{transform:perspective(900px) rotateY(0deg) rotateX(0deg)}
+  50%{transform:perspective(900px) rotateY(4deg) rotateX(1deg)}
+}
+.benefit{position:relative;overflow:hidden}
+.benefit:after{
+  content:"";position:absolute;top:0;left:-80%;width:35%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+  transform:skewX(-18deg);animation:smallShine 7s ease-in-out infinite;
+  pointer-events:none
+}
+@keyframes smallShine{
+  0%,75%,100%{left:-80%;opacity:0}
+  82%{opacity:1}
+  94%{left:125%;opacity:0}
+}
+
+
+        .hero-live-tag{
+            position:absolute;top:7px;left:7px;z-index:6;
+            color:#fff;font-size:9px;font-weight:900;letter-spacing:.5px;
+            padding:4px 8px;border-radius:999px;
+            box-shadow:0 3px 10px rgba(0,0,0,.25);
+            animation:tagBlink 1.8s ease-in-out infinite;
+        }
+        .new-tag{background:linear-gradient(135deg,#ff1744,#d50000)}
+        .trending-tag{background:linear-gradient(135deg,#8b5cf6,#2563eb)}
+        @keyframes tagBlink{
+            0%,100%{transform:scale(1);filter:brightness(1)}
+            50%{transform:scale(1.07);filter:brightness(1.25)}
+        }
+        @media(max-width:700px){
+            .hero-live-tag{top:4px;left:4px;font-size:7px;padding:3px 6px}
+        }
+
+</style>
 </head>
 
 <body>
@@ -380,7 +525,7 @@
             <li><a href="about.html">हमारे बारे में</a></li>
             <li><a href="payment-policy.html">भुगतान एवं रिफंड नीति</a></li>
             <li><a href="#mapSection">शॉप लोकेशन</a></li>
-            <li><a href="admin.html" style="color:#ffd21c"><i class="fa-solid fa-lock"></i> एडमिन</a></li>
+            <li></li>
             <li id="authNavContainer"><a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> <span>लॉगिन</span></a></li>
             <li class="user-logged-box" id="userLoggedBox"><a href="my_orders.html" class="btn-my-orders"><i class="fa-solid fa-box-archive"></i> <span>मेरे ऑर्डर्स</span></a></li>
         </ul>
@@ -394,46 +539,28 @@
     </nav>
 
     <div class="container">
-        <section class="hero">
+        <section class="hero real-card-hero" aria-label="कार्ड सैंपल">
             <div class="hero-inner">
-                <div class="hero-cards" aria-hidden="true">
-                    <div class="fake-card one">
-                        <div class="card-topline">॥ श्री गणेशाय नमः ॥</div>
-                        <div class="card-title">शुभ विवाह</div>
-                        <div class="card-ornament">❈ ✦ ❈</div>
-                        <div class="card-subtitle">विवाह निमंत्रण</div>
-                        <small>सादर आमंत्रण</small>
-                    </div>
-                    <div class="fake-card two">
-                        <div class="card-topline">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِیْمِ</div>
-                        <div class="card-title">निकाह</div>
-                        <div class="card-ornament">☾ ✦ ☽</div>
-                        <div class="card-subtitle">دعوت نامہ</div>
-                        <small>सादर आमंत्रण</small>
-                    </div>
-                    <div class="fake-card three">
-                        <div class="card-topline">بِسْمِ اللّٰهِ</div>
-                        <div class="card-title">अकीका</div>
-                        <div class="card-ornament">✦ ❖ ✦</div>
-                        <div class="card-subtitle">मसनून दावत</div>
-                        <small>सादर आमंत्रण</small>
-                    </div>
-                </div>
                 <div class="hero-content">
                     <div class="hero-brand">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</div>
-                    <h1>शादी कार्ड, फ्लेक्स या<br>विजिटिंग कार्ड छपवाना चाहते हैं?</h1>
-                    <p>यहाँ क्लिक करके सीधे ऑनलाइन फॉर्म भरें और मैटर भेजें।</p>
-                    <a href="javascript:void(0)" onclick="checkLoginBeforeOrder()" class="btn-main-order">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        <span>शादी कार्ड / प्रिंट ऑर्डर फॉर्म खोलें</span>
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </a>
+                    <h1>खास मौकों के लिए<br>खास कार्ड</h1>
+                    <p>शादी • निकाह • अकीका • निमंत्रण<br>और भी बहुत कुछ...</p>
+                    <div style="display:inline-block;background:linear-gradient(135deg,#d71939,#b20f2c);color:#fff;border-radius:24px;padding:7px 18px;font-size:13px;font-weight:800;box-shadow:0 4px 10px rgba(183,15,44,.25);">
+                        बेहतरीन डिजाइन&nbsp; • &nbsp;उत्तम गुणवत्ता&nbsp; • &nbsp;उचित मूल्य
+                    </div>
                 </div>
-                <div class="hero-features">
-                    <div class="hero-feature"><i class="fa-solid fa-palette"></i><span>बेहतरीन डिजाइन</span></div>
-                    <div class="hero-feature"><i class="fa-solid fa-gem"></i><span>प्रीमियम क्वालिटी</span></div>
-                    <div class="hero-feature"><i class="fa-solid fa-truck-fast"></i><span>समय पर डिलीवरी</span></div>
-                    <div class="hero-feature"><i class="fa-solid fa-shield-heart"></i><span>विश्वसनीय सेवा</span></div>
+
+                <div class="real-card-slider" id="realCardSlider">
+                    <button class="real-slider-btn prev" type="button" aria-label="पिछला कार्ड" onclick="moveRealCardSlider(-1)">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="real-card-track" id="realCardTrack">
+                        <!-- Admin से Index Catalog में आने वाले कार्ड यहाँ अपने-आप दिखेंगे -->
+                    </div>
+                    <button class="real-slider-btn next" type="button" aria-label="अगला कार्ड" onclick="moveRealCardSlider(1)">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div class="real-slider-dots" id="realCardDots" aria-label="कार्ड स्लाइड"></div>
                 </div>
             </div>
         </section>
@@ -479,9 +606,12 @@
         </section>
 
         <div class="benefit-grid">
-            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-award"></i></div><div><h4>उत्तम गुणवत्ता</h4><p>हर प्रिंट में क्वालिटी हमारी पहचान</p></div></div>
-            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-truck-fast"></i></div><div><h4>समय पर डिलीवरी</h4><p>आपका काम, हमारी जिम्मेदारी</p></div></div>
-            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-headset"></i></div><div><h4>ग्राहक सहायता</h4><p>कभी भी हमसे संपर्क करें</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-truck-fast"></i></div><div><h4>तेज डिलीवरी</h4><p>3-7 दिनों में</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-shield-halved"></i></div><div><h4>सुरक्षित भुगतान</h4><p>100% सुरक्षित</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-star"></i></div><div><h4>बेहतरीन गुणवत्ता</h4><p>प्रिंट की गारंटी</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-headset"></i></div><div><h4>24×7 सहायता</h4><p>हमेशा आपके साथ</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-file-signature"></i></div><div><h4>टर्म्स & कंडीशन</h4><p>ऑर्डर से पहले जानकारी</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-circle-check"></i></div><div><h4>प्रूफ जाँच जरूरी</h4><p>स्वीकृति के बाद प्रिंटिंग</p></div></div>
         </div>
 
 
@@ -596,30 +726,75 @@
 
         async function loadCatalog() {
             const container = document.getElementById('catalogContainer');
-            if (!supabaseClient) {
-                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#ef4444;">डेटाबेस कनेक्ट नहीं हो पाया।</p>`;
-                return;
-            }
+            if (!container) return;
 
-            const tables = ['catalog', 'cards', 'cards_catalog'];
-            let fetchedData = null;
-
-            for (const tbl of tables) {
-                try {
-                    const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false });
-                    if (!error && data && data.length > 0) {
-                        fetchedData = data;
-                        break;
+            // पहले पिछली बार का कैटलॉग तुरंत दिखाएँ, फिर Supabase से ताज़ा डेटा लें।
+            try {
+                const cached = sessionStorage.getItem('dp_index_catalog_cache_v2');
+                if (cached) {
+                    const cachedCards = JSON.parse(cached);
+                    if (Array.isArray(cachedCards) && cachedCards.length) {
+                        globalCards = cachedCards;
+                        renderRealCardsFromCatalog(cachedCards);
+                        renderCatalogCards(cachedCards);
                     }
-                } catch (e) {}
-            }
+                }
+            } catch (e) {}
 
-            if (!fetchedData || fetchedData.length === 0) {
-                container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94a3b8;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+            if (!supabaseClient) {
+                if (!globalCards.length) {
+                    container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#ef4444;">डेटाबेस कनेक्ट नहीं हो पाया।</p>`;
+                }
                 return;
             }
+
+            // तीनों tables एक साथ पढ़ें, जिससे मोबाइल पर लोडिंग काफी तेज हो।
+            const tables = ['catalog', 'cards', 'cards_catalog'];
+            const results = await Promise.all(tables.map(async tbl => {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from(tbl).select('*').order('id', { ascending: false });
+                    return (!error && Array.isArray(data))
+                        ? data.map(row => ({ ...row, _source_table: tbl })) : [];
+                } catch (e) { return []; }
+            }));
+
+            let fetchedData = results.flat();
+
+            if (!fetchedData.length) {
+                if (!globalCards.length) {
+                    container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#94a3b8;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+                }
+                return;
+            }
+
+            const seen = new Set();
+            fetchedData = fetchedData.filter(card => {
+                const key = [
+                    String(card.name ?? card.title ?? '').trim().toLowerCase(),
+                    String(card.model ?? card.code ?? '').trim().toLowerCase(),
+                    String(card.image ?? card.image_url ?? card.photo ?? '').trim()
+                ].join('|');
+                if (!key.replace(/\|/g, '')) return true;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            fetchedData.forEach((row, i) => row._load_order = i);
+            fetchedData.sort((a, b) => {
+                const ta = Date.parse(a.created_at || a.updated_at || '') || 0;
+                const tb = Date.parse(b.created_at || b.updated_at || '') || 0;
+                if (tb !== ta) return tb - ta;
+                const na = Number(a.id), nb = Number(b.id);
+                if (Number.isFinite(na) && Number.isFinite(nb) && nb !== na) return nb - na;
+                return (b._load_order || 0) - (a._load_order || 0);
+            });
 
             globalCards = fetchedData;
+            try { sessionStorage.setItem('dp_index_catalog_cache_v2', JSON.stringify(fetchedData)); } catch (e) {}
+
+            renderRealCardsFromCatalog(globalCards);
             renderCatalogCards(fetchedData);
         }
 
@@ -681,7 +856,7 @@
                 cardDiv.onclick = () => openCatalogDetail(index);
                 cardDiv.innerHTML = `
                     <div class="img-box">
-                        <img src="${safeCardPlaceholder}" data-fast-src="${String(img).replace(/"/g,'&quot;')}" alt="${String(name).replace(/"/g,'&quot;')}" loading="eager" decoding="async" fetchpriority="high" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                        <img src="${safeCardPlaceholder}" data-fast-src="${String(img).replace(/"/g,'&quot;')}" alt="${String(name).replace(/"/g,'&quot;')}" loading="${index < 4 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${index < 4 ? 'high' : 'auto'}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
                     </div>
                     <div class="card-info">
                         <h4>${name}</h4>
@@ -735,6 +910,86 @@
             }
         }
 
+        // Real card sample slider: 4 cards together on desktop, swipe-like 2/1 cards on mobile.
+        let realCardSlideIndex = 0;
+
+        function getRealCardStep() {
+            const track = document.getElementById('realCardTrack');
+            const first = track?.querySelector('.real-card-slide');
+            if (!track || !first) return 0;
+            const style = getComputedStyle(track);
+            const gap = parseFloat(style.gap || '0');
+            return first.getBoundingClientRect().width + gap;
+        }
+
+        function renderRealCardsFromCatalog(cards) {
+            const track = document.getElementById('realCardTrack');
+            if (!track) return;
+            const list = Array.isArray(cards) ? cards.slice(0, 12) : [];
+            track.innerHTML = list.map((card, i) => {
+                const name = String(card.name || card.title || card.card_name || 'शादी कार्ड');
+                const model = String(card.model || card.code || '');
+                const img = card.image || card.image_url || card.photo || card.main_image || safeCardPlaceholder;
+                const rate = getSaleRate(card);
+                const idx = globalCards.indexOf(card);
+                const tag = i === 0
+                    ? `<span class="hero-live-tag new-tag">NEW</span>`
+                    : (i === 1 ? `<span class="hero-live-tag trending-tag">TRENDING</span>` : '');
+                return `<div class="real-card-slide" title="${esc(name)}" onclick="openCatalogDetail(${idx >= 0 ? idx : i})" style="cursor:pointer">
+                    ${tag}
+                    <img src="${esc(img)}" alt="${esc(name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';">
+                    <div class="real-card-caption">
+                        <div class="hero-card-name">${esc(name)}</div>
+                        <div class="hero-card-model">${esc(model)}</div>
+                        <div class="hero-card-price">₹${Number(rate || 0).toLocaleString('en-IN')}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            realCardSlideIndex = 0;
+            setRealCardSlider(0);
+        }
+
+        function renderRealCardDots() {
+            const dots = document.getElementById('realCardDots');
+            const track = document.getElementById('realCardTrack');
+            if (!dots || !track) return;
+            const count = track.children.length;
+            const mobile = window.innerWidth <= 390 ? 1 : (window.innerWidth <= 700 ? 2 : 4);
+            const pages = Math.max(1, count - mobile + 1);
+            dots.innerHTML = Array.from({length: pages}, (_,i) =>
+                `<span class="real-slider-dot ${i===realCardSlideIndex?'active':''}" onclick="setRealCardSlider(${i})"></span>`
+            ).join('');
+        }
+
+        function setRealCardSlider(index) {
+            const track = document.getElementById('realCardTrack');
+            if (!track) return;
+            const count = track.children.length;
+            const visible = window.innerWidth <= 390 ? 1 : (window.innerWidth <= 700 ? 2 : 4);
+            const maxIndex = Math.max(0, count - visible);
+            realCardSlideIndex = Math.max(0, Math.min(index, maxIndex));
+
+            track.style.transform = `translateX(-${realCardSlideIndex * getRealCardStep()}px)`;
+            renderRealCardDots();
+        }
+
+        function moveRealCardSlider(direction) {
+            setRealCardSlider(realCardSlideIndex + direction);
+        }
+
+        window.addEventListener('resize', () => setRealCardSlider(realCardSlideIndex));
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRealCardDots();
+            setRealCardSlider(0);
+            window.setInterval(() => {
+                const track = document.getElementById('realCardTrack');
+                if (!track || track.children.length <= 1) return;
+                const visible = window.innerWidth <= 390 ? 1 : (window.innerWidth <= 700 ? 2 : 4);
+                const max = Math.max(0, track.children.length - visible);
+                setRealCardSlider(realCardSlideIndex >= max ? 0 : realCardSlideIndex + 1);
+            }, 5000);
+        });
+
         function searchCatalog(){
             if (!Array.isArray(globalCards)) return;
             const input = (document.getElementById('catalogSearchInput')?.value || '').trim().toLowerCase();
@@ -776,5 +1031,37 @@
             renderCatalogCards(filtered);
         }
     </script>
+
+<footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><a href="https://share.google/8lCHKltM8SpeKMCHd" target="_blank" style="color:#cbd5e1;text-decoration:none"><i class="fa-solid fa-location-dot"></i><span>ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</span></a></p>
+                <p><i class="fa-solid fa-phone"></i>9304509464</p>
+                <p><i class="fa-solid fa-envelope"></i>mdsajadans@gmail.com</p>
+            </div>
+            <div class="footer-col">
+                <h4>हमारी सेवाएं</h4>
+                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+            </div>
+            <div class="footer-col">
+                <h4>संपर्क एवं सहायता</h4>
+                <p><i class="fa-solid fa-phone"></i> सीधे हमसे संपर्क करें</p>
+                <p><i class="fa-solid fa-clock"></i> समय पर प्रिंटिंग सेवा</p>
+                <p><i class="fa-solid fa-shield"></i> विश्वसनीय प्रिंटिंग सेवा</p>
+            </div>
+            <div class="footer-col">
+                <h4>महत्वपूर्ण जानकारी</h4>
+                <div class="footer-page-btns">
+                    <a href="payment-policy.html" class="footer-page-btn"><i class="fa-solid fa-shield-halved"></i> भुगतान एवं रिफंड नीति</a>
+                    <a href="proofreading.html" class="footer-page-btn"><i class="fa-solid fa-file-circle-check"></i> कार्ड ऑर्डर से पहले जाँच</a>
+                    <a href="about.html" class="footer-page-btn"><i class="fa-solid fa-circle-info"></i> हमारे बारे में</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+        </div>
+    </footer>
 </body>
 </html>
