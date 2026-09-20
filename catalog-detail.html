@@ -90,15 +90,65 @@ function getImages(c){
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 async function findProduct(){
- if(sb&&activeId){for(const tbl of ['catalog','cards','cards_catalog']){try{const {data,error}=await sb.from(tbl).select('*').eq('id',id).maybeSingle();if(!error&&data)return data}catch(e){}}}
- try{const f=JSON.parse(localStorage.getItem('dp_catalog_detail_fallback')||'null');if(f && (!id || String(f.id)===String(id) || String(f.catalog_id||'')===String(id))) return f;}catch(e){}
- return null;
+ const candidates=[];
+ const wanted=String(activeId??'').trim();
+
+ // सभी संभावित Catalog tables से रिकॉर्ड खोजें। केवल पहले table का रिकॉर्ड
+ // लेने के बजाय सभी matching records देखें, ताकि id collision होने पर
+ // गलत/पुराना कार्ड न खुले।
+ if(sb && wanted){
+   for(const tbl of ['catalog','cards','cards_catalog']){
+     try{
+       const {data,error}=await sb.from(tbl).select('*').eq('id',wanted);
+       if(!error && Array.isArray(data)){
+         data.forEach(row=>candidates.push({...row,_source_table:tbl}));
+       }
+     }catch(e){}
+   }
+ }
+
+ // Catalog page/पुराने संस्करण से भेजा गया पूरा record उपलब्ध हो तो उसे भी लें।
+ try{
+   const f=JSON.parse(localStorage.getItem('dp_catalog_detail_fallback')||'null');
+   if(f && (!wanted || String(f.id??f.catalog_id??'')===wanted)){
+     candidates.push({...f,_source_table:'local'});
+   }
+ }catch(e){}
+
+ if(!candidates.length) return null;
+
+ // जिस रिकॉर्ड में फोटो/description/gallery और मुख्य catalog fields मौजूद हों,
+ // उसे प्राथमिकता दें। समान score होने पर नया created_at रिकॉर्ड पहले।
+ const score=(c)=>{
+   let n=0;
+   if(c.name||c.title) n+=2;
+   if(c.model||c.code) n+=1;
+   if(c.image||c.image_url||c.photo||c.main_image) n+=3;
+   if(c.description||c.details||c.description_hi||c.matter||c.note) n+=4;
+   if(c.images||c.image_urls||c.gallery||c.photos||c.gallery_images||c.product_images||c.catalog_images) n+=4;
+   if(c.catalog_rate!=null||c.original_rate!=null||c.mrp!=null) n+=2;
+   if(c.sale_rate!=null||c.selling_price!=null||c.rate!=null||c.price!=null) n+=2;
+   return n;
+ };
+ candidates.sort((a,b)=>{
+   const ds=score(b)-score(a);
+   if(ds) return ds;
+   const ta=Date.parse(a.created_at||a.updated_at||'')||0;
+   const tb=Date.parse(b.created_at||b.updated_at||'')||0;
+   return tb-ta;
+ });
+ return candidates[0];
 }
 function variantColor(c){
  const direct=String(c?.variant_color??c?.color??c?.card_color??'').trim(); if(direct)return direct;
  const d=String(c?.description??''); const m=d.match(/\[\[COLOR:([^\]]+)\]\]/i); return m?m[1].trim():'';
 }
-function cleanDescription(c){return String(c?.description??c?.details??c?.description_hi??c?.matter??c?.note??'').replace(/\n?\[\[COLOR:[^\]]+\]\]/ig,'').trim()}
+function cleanDescription(c){
+ let v=c?.description??c?.details??c?.description_hi??c?.matter??c?.note??c?.product_description??c?.catalog_description??'';
+ if(typeof v==='object' && v!==null){try{v=JSON.stringify(v)}catch(e){v=''}}
+ if(typeof v!=='string') v=String(v??'');
+ return v.replace(/\\n?\\[\\[COLOR:[^\\]]+\\]\\]/ig,'').replace(/\\[\\[COLOR:[^\\]]+\\]\\]/ig,'').trim();
+}
 async function loadVariants(){
  const box=document.getElementById('variantSection'), list=document.getElementById('variantList'); if(!box||!list||!product)return;
  const model=String(product.model??product.code??'').trim(), category=String(product.category??'').trim();
