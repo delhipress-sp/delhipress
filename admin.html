@@ -522,6 +522,12 @@
 
         let globalOrdersCache = [];
 
+        // Catalog pagination/state variables — keep these global so Refresh, Edit and paging work.
+        const CATALOG_PAGE_SIZE = 50;
+        let catalogPage = 0;
+        let catalogLoadedOnce = false;
+        let catalogActiveTable = 'catalog';
+
         window.addEventListener('DOMContentLoaded', () => {
             let isAuth = false;
             try {
