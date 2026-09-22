@@ -30,6 +30,13 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .preview{display:none;padding:6px 10px;background:#f0f2f5;border-top:1px solid #ddd;align-items:center;gap:8px}.preview audio{width:190px;max-width:60%}.preview button{margin-left:auto;border:0;border-radius:50%;width:28px;height:28px;background:#ef4444;color:#fff}
 .typing{display:none;background:#fff;color:#64748b;font-size:10px;padding:4px 12px;border-top:1px solid #e2e8f0}.typing span{animation:blink 1s infinite}@keyframes blink{50%{opacity:.25}}
 .compose{background:#f0f2f5;padding:7px 8px 9px;flex-shrink:0;border-top:1px solid #d7dadd}.compose-row{display:flex;align-items:flex-end;gap:6px}.tool-btn{width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#075e54;cursor:pointer;font-size:17px;flex-shrink:0}.text-wrap{flex:1;background:#fff;border-radius:22px;border:1px solid #d1d7db;display:flex;align-items:flex-end;padding:0 10px}.text-wrap textarea{width:100%;border:0;outline:0;resize:none;max-height:110px;min-height:42px;padding:11px 3px;font-size:13px;background:transparent}.send-btn{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:17px;flex-shrink:0}.recording{background:#dc2626!important}.file-name{font-size:10px;color:#475569;padding:3px 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hidden{display:none!important}
+.attach-wrap{position:relative;flex-shrink:0}
+.attach-menu{display:none;position:absolute;left:0;bottom:49px;width:185px;background:#fff;border:1px solid #d8dee3;border-radius:14px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.18);z-index:20}
+.attach-menu.show{display:grid;grid-template-columns:1fr;gap:4px}
+.attach-menu button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:#fff;border-radius:10px;padding:10px;text-align:left;font-weight:700;color:#334155;font-size:13px}
+.attach-menu button:active,.attach-menu button:hover{background:#f1f5f9}
+.attach-menu i{width:22px;text-align:center;color:#075e54;font-size:16px}
+@media(max-width:520px){.attach-menu{bottom:46px;width:170px}.attach-menu button{padding:9px;font-size:12px}}
 .loading,.error-state{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;color:#64748b}.error-state .box{background:#fff;border-radius:16px;padding:24px;max-width:420px;box-shadow:0 12px 35px rgba(0,0,0,.12)}.error-state h3{color:#0f172a;margin-bottom:8px}.main-btn{border:0;border-radius:22px;padding:9px 18px;background:#128c7e;color:#fff;font-weight:800;cursor:pointer;margin-top:12px}
 @media(min-width:901px){body{padding:12px}.chat-app{height:calc(100vh - 24px);border-radius:18px;overflow:hidden}}
 @media(max-width:520px){.msg{max-width:88%}.head-info b{font-size:15px}.order-bar{padding:6px 9px}.chat-area{padding:10px 7px}.tool-btn{width:38px;height:38px}.send-btn{width:40px;height:40px}.text-wrap textarea{min-height:38px}}
@@ -58,8 +65,16 @@ body{display:flex;flex-direction:column;min-height:100vh}
   <div class="preview" id="voicePreview"><b>वॉयस तैयार है</b><audio id="voiceAudio" controls></audio><button id="cancelVoice">×</button></div>
   <div class="compose">
     <div class="compose-row">
-      <button class="tool-btn" id="fileBtn" title="फाइल भेजें"><i class="fa-solid fa-paperclip"></i></button>
-      <input class="hidden" type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,audio/*">
+      <div class="attach-wrap">
+        <button class="tool-btn" id="fileBtn" title="अटैचमेंट"><i class="fa-solid fa-paperclip"></i></button>
+        <div class="attach-menu" id="attachMenu">
+          <button type="button" id="galleryBtn"><i class="fa-solid fa-images"></i><span>Gallery</span></button>
+          <button type="button" id="documentBtn"><i class="fa-solid fa-file-lines"></i><span>Documents</span></button>
+          <button type="button" id="menuCameraBtn"><i class="fa-solid fa-camera"></i><span>Camera</span></button>
+        </div>
+      </div>
+      <input class="hidden" type="file" id="fileInput" accept="image/*,video/*,audio/*">
+      <input class="hidden" type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.ppt,.pptx,.zip,.rar">
       <button class="tool-btn" id="cameraBtn" title="कैमरा"><i class="fa-solid fa-camera"></i></button>
       <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
       <div class="text-wrap"><textarea id="messageInput" rows="1" placeholder="मैसेज लिखें…" maxlength="5000"></textarea></div>
@@ -142,6 +157,9 @@ async function loadOrder(){
   $('orderStatus').textContent=o.status||'Pending';
   setLive(false,'ऑफलाइन');
   renderChat();subscribeRealtime();
+  }catch(e){
+    fail(e?.message||'बातचीत लोड नहीं हो सकी। कृपया Refresh दबाएँ।');
+  }
 }
 function fail(msg){$('chatArea').innerHTML=`<div class="error-state"><div class="box"><h3><i class="fa-solid fa-circle-exclamation"></i> DP Chat</h3><p>${esc(msg)}</p><button class="main-btn" onclick="history.back()">वापस जाएँ</button></div></div>`;$('orderStatus').textContent='';setLive(false,'उपलब्ध नहीं')}
 function subscribeRealtime(){
@@ -221,8 +239,16 @@ async function toggleVoice(){
 $('sendBtn').onclick=sendMessage;
 $('messageInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px';typeSignal()});
 $('messageInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
-$('fileBtn').onclick=()=>$('fileInput').click();$('cameraBtn').onclick=()=>$('cameraInput').click();$('micBtn').onclick=toggleVoice;
-$('fileInput').onchange=e=>chooseFile(e.target.files[0]);$('cameraInput').onchange=e=>chooseFile(e.target.files[0]);
+$('fileBtn').onclick=e=>{e.stopPropagation();$('attachMenu').classList.toggle('show')};
+$('galleryBtn').onclick=()=>{$('attachMenu').classList.remove('show');$('fileInput').click()};
+$('documentBtn').onclick=()=>{$('attachMenu').classList.remove('show');$('documentInput').click()};
+$('menuCameraBtn').onclick=()=>{$('attachMenu').classList.remove('show');$('cameraInput').click()};
+$('cameraBtn').onclick=()=>$('cameraInput').click();
+$('micBtn').onclick=toggleVoice;
+$('fileInput').onchange=e=>chooseFile(e.target.files[0]);
+$('documentInput').onchange=e=>chooseFile(e.target.files[0]);
+$('cameraInput').onchange=e=>chooseFile(e.target.files[0]);
+document.addEventListener('click',e=>{if(!e.target.closest('.attach-wrap'))$('attachMenu')?.classList.remove('show')});
 $('cancelVoice').onclick=()=>{voiceBlob=null;if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null}$('voicePreview').style.display='none';$('voiceAudio').removeAttribute('src')};
 $('refreshBtn').onclick=loadOrder;
 $('backBtn').onclick=()=>history.length>1?history.back():(location.href=role==='admin'?'admin.html':'my_orders.html');
