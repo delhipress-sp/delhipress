@@ -65,7 +65,6 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
 .zoom-tools button.active{background:#2874f0;color:#fff}
 .video-full-btn{position:absolute;right:10px;bottom:10px;z-index:6;border:0;background:#0009;color:#fff;border-radius:18px;padding:6px 10px;font-size:11px;cursor:pointer}
 @media(max-width:800px){.photo-click-hint{font-size:9px}.media-play-overlay{width:60px;height:60px}.zoom-stage{height:82vh}}
-<style>
 /* Detail-page polish: fast, clean, mobile-friendly catalog view */
 .detail-price{font-weight:900}
 .loading-soft{animation:detailPulse 1.4s ease-in-out infinite}
@@ -156,19 +155,6 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
       <div class="recommended-head"><h2>More Products</h2></div>
       <div id="recommendedCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">लोड हो रहा है...</div></div>
     </section>
-</div>
-
-<div id="zoomModal" class="zoom-modal" aria-hidden="true">
-  <button class="zoom-close" type="button" onclick="closeZoomViewer()">×</button>
-  <div class="zoom-stage" id="zoomStage">
-    <img id="zoomImage" src="" alt="Card preview">
-  </div>
-  <div class="zoom-tools">
-    <button type="button" onclick="changeZoom(-.2)" title="Zoom Out">−</button>
-    <button type="button" onclick="resetZoom()" title="Reset">1:1</button>
-    <button type="button" onclick="changeZoom(.2)" title="Zoom In">+</button>
-    <button type="button" id="threeDBtn" onclick="toggle3D()" title="3D">3D</button>
-  </div>
 </div>
 
 <div id="zoomModal" class="zoom-modal" aria-hidden="true">
@@ -424,27 +410,6 @@ function playMainVideo(){
 }
 function openVideoFullscreen(){
   const v=document.getElementById('mainVideo'); if(v?.requestFullscreen)v.requestFullscreen().catch(()=>{});
-}
-function openZoomViewer(){
-  const m=mediaItems[imageIndex]; if(!m||m.type!=='image')return;
-  const modal=document.getElementById('zoomModal'), zi=document.getElementById('zoomImage');
-  zi.src=m.url; zoomScale=1; rotY=0; rotX=0; zi.classList.remove('is-3d'); updateZoomTransform();
-  modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
-}
-function closeZoomViewer(){const m=document.getElementById('zoomModal');m.classList.remove('show');m.setAttribute('aria-hidden','true')}
-let zoomScale=1,rotY=0,rotX=0,threeD=false;
-function updateZoomTransform(){
-  const z=document.getElementById('zoomImage'); if(!z)return;
-  z.style.setProperty('--zoom',zoomScale);z.style.setProperty('--ry',rotY+'deg');z.style.setProperty('--rx',rotX+'deg');
-  z.classList.toggle('is-3d',threeD);
-}
-function changeZoom(delta){zoomScale=Math.max(.5,Math.min(3,zoomScale+delta));updateZoomTransform()}
-function resetZoom(){zoomScale=1;rotY=0;rotX=0;threeD=false;document.getElementById('threeDBtn')?.classList.remove('active');updateZoomTransform()}
-function toggle3D(){
-  threeD=!threeD;
-  if(threeD){rotY=14;rotX=-4;document.getElementById('threeDBtn')?.classList.add('active')}
-  else{rotY=0;rotX=0;document.getElementById('threeDBtn')?.classList.remove('active')}
-  updateZoomTransform();
 }
 document.getElementById('zoomModal')?.addEventListener('click',e=>{if(e.target.id==='zoomModal')closeZoomViewer()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoomViewer()});
