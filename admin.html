@@ -366,7 +366,8 @@
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <div class="form-group" style="flex: 1; min-width: 150px;"><label>नाम:</label><input type="text" id="admCardName" required></div>
                             <div class="form-group" style="flex: 1; min-width: 150px;"><label>मॉडल:</label><input type="text" id="admCardModel" required></div>
-                            <div class="form-group" style="width: 110px;"><label>रेट (₹):</label><input type="number" id="admCardRate" required></div>
+                            <div class="form-group" style="width: 110px;"><label>कैटलॉग रेट / MRP (₹):</label><input type="number" id="admCardRate" min="0" step="0.5" required></div>
+                            <div class="form-group" style="width: 110px;"><label>सेल रेट (₹):</label><input type="number" id="admCardSaleRate" min="0" step="0.5" placeholder="Sale Rate"></div>
                             <div class="form-group" style="width: 140px;">
                                 <label>स्टॉक:</label>
                                 <select id="admCardStock"><option value="true">उपलब्ध</option><option value="false">समाप्त</option></select>
@@ -380,7 +381,21 @@
                                     <option value="other">📦 अन्य</option>
                                 </select>
                             </div>
-                            <div class="form-group" style="flex: 1; min-width: 160px;"><label>फोटो:</label><input type="file" id="admCardFile" accept="image/*" required></div>
+                            <div class="form-group" style="flex: 1; min-width: 250px;">
+                                <label>फोटो — Gallery से कई फोटो चुनें:</label>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <button type="button" onclick="openCatalogGallery()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-images"></i> Gallery</button>
+                                    <button type="button" onclick="openCatalogCamera()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-camera"></i> Camera</button>
+                                    <span id="catalogPhotoCount" style="font-size:11px;color:#64748b;align-self:center;">कोई फोटो नहीं</span>
+                                </div>
+                                <input type="file" id="admCardFile" accept="image/*" multiple hidden>
+                                <input type="file" id="admCardCamera" accept="image/*" capture="environment" hidden>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 220px;">
+                                <label>कार्ड वीडियो (15–20 सेकंड):</label>
+                                <input type="file" id="admCardVideo" accept="video/*">
+                                <small style="color:#64748b;font-size:10px;">ग्राहक कार्ड विवरण/ऑर्डर विवरण में यह वीडियो देख सकेगा।</small>
+                            </div>
                         </div>
                         <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
                         <span style="display:inline-block; margin-left:10px; font-size:11px; color:#64748b;">श्रेणी चुनने से Index में वही फ़िल्टर सही कार्ड दिखाएगा।</span>
@@ -398,7 +413,7 @@
                 </div>
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
-                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
+                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>कैटलॉग रेट</th><th>सेल रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>वीडियो</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
                         <tbody id="catalogTableBody"></tbody>
                     </table>
                 </div>
@@ -1057,28 +1072,29 @@
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody) return;
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9">इस श्रेणी में कोई कार्ड उपलब्ध नहीं है।</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11">इस श्रेणी में कोई कार्ड उपलब्ध नहीं है।</td></tr>';
                 return;
             }
             tbody.innerHTML = data.map(c => {
                 const [catText, catClass] = categoryLabel(c.category);
+                const mrp = Number(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
+                const sale = Number(c.sale_rate ?? c.selling_price ?? c.selling_rate ?? c.rate ?? c.price ?? mrp) || 0;
+                const hasVideo = !!(c.video_url || c.video || c.video_urls || c.catalog_video);
+                const imgs = (()=>{ try { const v=c.gallery_images||c.images||c.image_urls; return Array.isArray(v)?v:(typeof v==='string'?JSON.parse(v):[]); } catch(e){return [];} })();
                 return `
                     <tr>
-                        <td><img src="${c.image || c.image_url || 'https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ'}" style="width:45px; height:45px; object-fit:cover; border-radius:6px;" onerror="this.src='https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ';"></td>
-                        <td><b>${c.name || c.card_name || '-'}</b></td>
-                        <td>${c.model || '-'}</td>
+                        <td><div style="display:flex;gap:3px;justify-content:center;align-items:center;flex-wrap:wrap;max-width:120px;">${[c.image||c.image_url,...imgs].filter(Boolean).slice(0,5).map(u=>`<img src="${String(u).replace(/"/g,'&quot;')}" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;" onerror="this.style.display='none'">`).join('')}</div></td>
+                        <td><b>${c.name || c.card_name || c.title || '-'}</b></td>
+                        <td>${c.model || c.code || '-'}</td>
                         <td><span class="category-pill ${catClass}">${catText}</span></td>
-                        <td><b style="color:var(--primary); font-size:14px;">₹${c.rate || c.price || 0}</b></td>
-                        <td><button type="button" class="btn-price-edit" onclick="editCardPrice('${c.id}', ${Number(c.rate || c.price || 0)})"><i class="fa-solid fa-pen-to-square"></i> रेट बदलें</button></td>
-                        <td><span class="stock-badge ${c.in_stock ? 'in-stock' : 'out-stock'}">${c.in_stock ? 'उपलब्ध' : 'समाप्त'}</span></td>
-                        <td>
-                            <button class="btn-stock-toggle" style="background:${c.in_stock ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${!c.in_stock})">
-                                ${c.in_stock ? 'समाप्त करें' : 'उपलब्ध करें'}
-                            </button>
-                        </td>
+                        <td><b style="color:#64748b;text-decoration:${sale<mrp?'line-through':'none'};">₹${mrp.toLocaleString('en-IN')}</b></td>
+                        <td><b style="color:var(--primary);font-size:14px;">₹${sale.toLocaleString('en-IN')}</b><br><button type="button" class="btn-price-edit" onclick="editCardSaleRate('${c.id}', ${sale})"><i class="fa-solid fa-pen-to-square"></i> सेल रेट</button></td>
+                        <td><span class="stock-badge ${c.in_stock !== false ? 'in-stock' : 'out-stock'}">${c.in_stock !== false ? 'उपलब्ध' : 'समाप्त'}</span></td>
+                        <td><button type="button" class="btn-price-edit" onclick="editCardPrice('${c.id}', ${mrp})"><i class="fa-solid fa-pen-to-square"></i> MRP</button></td>
+                        <td>${hasVideo ? '<span style="color:#059669;font-weight:800;"><i class="fa-solid fa-circle-play"></i> उपलब्ध</span>' : '<span style="color:#94a3b8;">नहीं</span>'}</td>
+                        <td><button class="btn-stock-toggle" style="background:${c.in_stock !== false ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${c.in_stock === false})">${c.in_stock !== false ? 'समाप्त करें' : 'उपलब्ध करें'}</button></td>
                         <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                    </tr>
-                `;
+                    </tr>`;
             }).join('');
             const count = document.getElementById('miniCatalogCount');
             if (count) count.innerText = globalCatalogCache.length;
@@ -1087,7 +1103,7 @@
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
             if (!tbody || !supabaseClient) return;
-            tbody.innerHTML = '<tr><td colspan="9">कैटलॉग लोड हो रहा है...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11">कैटलॉग लोड हो रहा है...</td></tr>';
             try {
                 const { data, error } = await supabaseClient
                     .from('catalog')
@@ -1095,73 +1111,92 @@
                     .order('id', { ascending: false });
 
                 if (error) {
-                    tbody.innerHTML = `<tr><td colspan="9" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
                     return;
                 }
                 globalCatalogCache = data || [];
                 renderCatalogAdminTable(globalCatalogCache);
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="9" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
             }
+        }
+
+        let selectedCatalogPhotos = [];
+        function mergeCatalogFiles(list){
+            const incoming=Array.from(list||[]).filter(f=>f && f.type && f.type.startsWith('image/'));
+            const seen=new Set(selectedCatalogPhotos.map(f=>f.name+'_'+f.size));
+            incoming.forEach(f=>{const k=f.name+'_'+f.size;if(!seen.has(k)){selectedCatalogPhotos.push(f);seen.add(k);}});
+            const count=document.getElementById('catalogPhotoCount'); if(count) count.textContent=selectedCatalogPhotos.length ? `${selectedCatalogPhotos.length} फोटो चुनी गईं` : 'कोई फोटो नहीं';
+            const input=document.getElementById('admCardFile');
+            if(input){try{const dt=new DataTransfer();selectedCatalogPhotos.forEach(f=>dt.items.add(f));input.files=dt.files;}catch(e){}}
+        }
+        function openCatalogGallery(){const el=document.getElementById('admCardFile');if(!el)return;el.removeAttribute('capture');el.multiple=true;el.accept='image/*';el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
+        function openCatalogCamera(){const el=document.getElementById('admCardCamera');if(!el)return;el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
+
+        async function uploadCatalogAdminFile(file, folder='catalog'){
+            if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
+            if(file.size > 12*1024*1024) throw new Error('फाइल 12 MB से छोटी रखें।');
+            const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'bin';
+            const path=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+            const buckets=['catalog','cards']; let last=null;
+            for(const bucket of buckets){
+                try{
+                    const {error}=await supabaseClient.storage.from(bucket).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+                    if(!error){const {data}=supabaseClient.storage.from(bucket).getPublicUrl(path);if(data?.publicUrl)return data.publicUrl;}
+                    last=error;
+                }catch(e){last=e;}
+            }
+            // Image fallback only; video should not be silently converted into a huge DB field.
+            if(file.type.startsWith('image/')){
+                return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('फोटो पढ़ी नहीं जा सकी।'));r.readAsDataURL(file);});
+            }
+            throw new Error('वीडियो Storage में अपलोड नहीं हो सका। Supabase में catalog/cards Storage bucket की upload/public policy जाँचें।'+(last?.message?` ${last.message}`:''));
+        }
+        function getVideoDuration(file){return new Promise((resolve,reject)=>{const u=URL.createObjectURL(file),v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{const d=v.duration;URL.revokeObjectURL(u);resolve(d)};v.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('वीडियो की अवधि पढ़ी नहीं जा सकी।'))};v.src=u;});}
+
+        async function insertAdminCatalogPayload(base){
+            const variants=[
+                {...base},
+                (()=>{const x={...base};delete x.gallery_images;delete x.video_urls;delete x.video_url;delete x.catalog_video;delete x.images;delete x.image_urls;return x;})(),
+                (()=>{const x={name:base.name,card_name:base.card_name,model:base.model,rate:base.rate,price:base.price,image:base.image,image_url:base.image_url,in_stock:base.in_stock,category:base.category,description:base.description};return x;})(),
+                (()=>{const x={name:base.name,model:base.model,rate:base.rate,price:base.price,image:base.image,image_url:base.image_url,in_stock:base.in_stock};return x;})()
+            ];
+            let last=null;
+            for(const payload of variants){try{const {error}=await supabaseClient.from('catalog').insert([payload]);if(!error)return;last=error;}catch(e){last=e;}}
+            throw last||new Error('Catalog insert failed');
         }
 
         async function handleAddNewCatalogCard(e) {
             e.preventDefault();
-            const btn = document.getElementById('addCardSubmitBtn');
-            btn.disabled = true;
-            btn.innerText = "सुरक्षित हो रहा है...";
-
-            const cardTitle = document.getElementById('admCardName').value.trim();
-            const model = document.getElementById('admCardModel').value.trim();
-            const rate = parseFloat(document.getElementById('admCardRate').value);
-            const in_stock = document.getElementById('admCardStock').value === "true";
-            const category = document.getElementById('admCardCategory').value;
-            const file = document.getElementById('admCardFile').files[0];
-
-            if (!file) {
-                alert("कृपया फोटो चुनें!");
-                btn.disabled = false;
-                btn.innerText = "+ सुरक्षित करें";
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64Img = reader.result;
-                try {
-                    let insertPayload = {
-                        name: cardTitle,
-                        card_name: cardTitle,
-                        model: model,
-                        rate: rate,
-                        in_stock: in_stock,
-                        category: category,
-                        image: base64Img,
-                        image_url: base64Img
-                    };
-
-                    let { error } = await supabaseClient.from('catalog').insert([insertPayload]);
-
-                    // यदि पुराने database में category column अभी नहीं है, तो बाकी डेटा सुरक्षित रखते हुए
-                    // पुराने schema में भी कार्ड जोड़ने की कोशिश करें।
-                    if (error && /category|column/i.test(error.message || '')) {
-                        delete insertPayload.category;
-                        const retry = await supabaseClient.from('catalog').insert([insertPayload]);
-                        error = retry.error;
-                    }
-
-                    if (error) throw error;
-                    alert("नया कार्ड सफलतापूर्वक जोड़ा गया!");
-                    document.getElementById('newCardForm').reset();
-                    loadCatalogStock();
-                } catch (err) {
-                    alert("कार्ड जोड़ने में त्रुटि: " + err.message);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = "+ सुरक्षित करें";
+            const btn=document.getElementById('addCardSubmitBtn'); btn.disabled=true; btn.innerText='सुरक्षित हो रहा है...';
+            try{
+                const name=document.getElementById('admCardName').value.trim();
+                const model=document.getElementById('admCardModel').value.trim();
+                const mrp=parseFloat(document.getElementById('admCardRate').value);
+                const saleInput=parseFloat(document.getElementById('admCardSaleRate')?.value);
+                const sale=Number.isFinite(saleInput)?saleInput:mrp;
+                const in_stock=document.getElementById('admCardStock').value==='true';
+                const category=document.getElementById('admCardCategory').value;
+                const photos=selectedCatalogPhotos.length?selectedCatalogPhotos:Array.from(document.getElementById('admCardFile')?.files||[]);
+                const video=document.getElementById('admCardVideo')?.files?.[0]||null;
+                if(!photos.length) throw new Error('कृपया Gallery/Camera से कम से कम 1 फोटो चुनें।');
+                if(!name) throw new Error('कार्ड का नाम दर्ज करें।');
+                if(!Number.isFinite(mrp)||mrp<0) throw new Error('मान्य कैटलॉग रेट डालें।');
+                if(!Number.isFinite(sale)||sale<0) throw new Error('मान्य सेल रेट डालें।');
+                if(video){
+                    if(!video.type.startsWith('video/')) throw new Error('केवल वीडियो फाइल चुनें।');
+                    const duration=await getVideoDuration(video);
+                    if(duration<2.5 || duration>4.5) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया लगभग 15–20 सेकंड का वीडियो चुनें।`);
                 }
-            };
+                const imageUrls=[]; for(const f of photos.slice(0,10)) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
+                let videoUrl=''; if(video) videoUrl=await uploadCatalogAdminFile(video,'catalog');
+                const fallbackDescription=`[[GALLERY:${imageUrls.join('|')}]]${videoUrl?` [[VIDEO:${videoUrl}]]`:''}`;
+                const base={name,card_name:name,title:name,model,code:model,category,image:imageUrls[0],image_url:imageUrls[0],images:imageUrls,image_urls:JSON.stringify(imageUrls),gallery_images:JSON.stringify(imageUrls),catalog_rate:mrp,original_rate:mrp,mrp,sale_rate:sale,selling_price:sale,rate:sale,price:sale,in_stock,description:fallbackDescription,video_url:videoUrl,video_urls:videoUrl?JSON.stringify([videoUrl]):JSON.stringify([]),catalog_video:videoUrl};
+                await insertAdminCatalogPayload(base);
+                alert(`नया कार्ड सफलतापूर्वक जोड़ा गया।\n${imageUrls.length} फोटो${videoUrl?' और 1 वीडियो':''} सेव किया गया।`);
+                document.getElementById('newCardForm').reset(); selectedCatalogPhotos=[]; const cnt=document.getElementById('catalogPhotoCount');if(cnt)cnt.textContent='कोई फोटो नहीं'; loadCatalogStock();
+            }catch(err){alert('कार्ड जोड़ने में त्रुटि: '+(err.message||err));}
+            finally{btn.disabled=false;btn.innerText='+ सुरक्षित करें';}
         }
 
         // कैटलॉग कार्ड का रेट/Price एडिट करें
@@ -1199,6 +1234,22 @@
             } catch (e) {
                 alert("रेट अपडेट करते समय नेटवर्क त्रुटि: " + e.message);
             }
+        }
+
+        async function editCardSaleRate(id, currentPrice) {
+            if (!supabaseClient) { alert('डेटाबेस कनेक्ट नहीं है!'); return; }
+            const entered=prompt('नया सेल रेट (₹/पीस) दर्ज करें:', currentPrice);
+            if(entered===null)return; const n=parseFloat(String(entered).trim());
+            if(!Number.isFinite(n)||n<0){alert('कृपया सही सेल रेट दर्ज करें।');return;}
+            try{
+                const payload={sale_rate:n,selling_price:n,rate:n,price:n};
+                let {error}=await supabaseClient.from('catalog').update(payload).eq('id',Number(id));
+                if(error){
+                    // पुराने schema में sale_rate/selling_price न हों तो कम-से-कम rate/price अपडेट करें।
+                    const r=await supabaseClient.from('catalog').update({rate:n,price:n}).eq('id',Number(id)); error=r.error;
+                }
+                if(error)throw error; alert('सेल रेट सफलतापूर्वक बदल दिया गया: ₹'+n+' / पीस'); loadCatalogStock();
+            }catch(e){alert('सेल रेट अपडेट नहीं हो पाया: '+(e.message||e));}
         }
 
         async function toggleCardStock(id, newStatus) {
