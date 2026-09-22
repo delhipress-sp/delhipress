@@ -109,27 +109,72 @@ function getImages(c){
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 async function findProduct(){
-  if(sb && activeId){
-    const matches=[];
-    for(const tbl of ['catalog','cards','cards_catalog']){
+  const requested=String(activeId??'').trim();
+  const fallback=(()=>{
+    try{return JSON.parse(localStorage.getItem('dp_catalog_detail_fallback')||'null')}catch(e){return null}
+  })();
+
+  // First use the card that Index saved when the user clicked the catalog.
+  // Do not reject it only because the URL contains model/code instead of DB id.
+  if(fallback && typeof fallback==='object'){
+    const ids=[
+      fallback.id,fallback.catalog_id,fallback.model,fallback.code,
+      fallback.card_model,fallback.model_no
+    ].map(v=>String(v??'').trim()).filter(Boolean);
+    if(!requested || ids.includes(requested)) return fallback;
+  }
+
+  if(sb){
+    const tables=['catalog','cards','cards_catalog'];
+
+    // Exact DB id lookup.
+    if(requested){
+      for(const tbl of tables){
+        try{
+          const {data,error}=await sb.from(tbl).select('*').eq('id',requested).limit(10);
+          if(!error && Array.isArray(data) && data.length) return {...data[0],_source_table:tbl};
+        }catch(e){}
+      }
+    }
+
+    // Some versions of the catalog use model/code as the public ID.
+    if(requested){
+      for(const tbl of tables){
+        for(const field of ['catalog_id','model','code','card_model','model_no']){
+          try{
+            const {data,error}=await sb.from(tbl).select('*').eq(field,requested).limit(10);
+            if(!error && Array.isArray(data) && data.length) return {...data[0],_source_table:tbl};
+          }catch(e){}
+        }
+      }
+    }
+
+    // Last cloud fallback: fetch a limited catalog list and compare every
+    // common identifier. This handles numeric model 140026 vs UUID/integer DB id.
+    for(const tbl of tables){
       try{
-        const {data,error}=await sb.from(tbl).select('*').eq('id',activeId).limit(10);
-        if(!error && Array.isArray(data)) data.forEach(x=>matches.push({...x,_source_table:tbl}));
+        const {data,error}=await sb.from(tbl).select('*').limit(300);
+        if(error || !Array.isArray(data)) continue;
+        const match=data.find(c=>{
+          const keys=[
+            c?.id,c?.catalog_id,c?.model,c?.code,c?.card_model,c?.model_no
+          ].map(v=>String(v??'').trim()).filter(Boolean);
+          return requested && keys.includes(requested);
+        });
+        if(match) return {...match,_source_table:tbl};
       }catch(e){}
     }
-    if(matches.length){
-      matches.sort((a,b)=>{
-        const sa=(a.image||a.image_url||a.name||a.title||a.model)?1:0;
-        const sbv=(b.image||b.image_url||b.name||b.title||b.model)?1:0;
-        return sbv-sa;
-      });
-      return matches[0];
-    }
   }
-  try{
-    const f=JSON.parse(localStorage.getItem('dp_catalog_detail_fallback')||'null');
-    if(f && (!id || String(f.id)===String(id) || String(f.catalog_id||'')===String(id))) return f;
-  }catch(e){}
+
+  // If there is any fallback card saved by Index, use it as the final
+  // recovery path so a temporary Supabase/RLS issue does not leave the
+  // detail page stuck on "लोड हो रहा है".
+  if(fallback && typeof fallback==='object' && (
+      fallback.id!=null || fallback.catalog_id!=null ||
+      fallback.model!=null || fallback.code!=null ||
+      fallback.name!=null || fallback.title!=null
+  )) return fallback;
+
   return null;
 }
 function variantColor(c){
@@ -266,52 +311,80 @@ function updateCart(){try{document.getElementById('cartCount').textContent=JSON.
 async function loadRecommendedCatalog(){
   const box=document.getElementById('recommendedCatalog'); if(!box) return;
   let all=[];
+
   if(sb){
     for(const tbl of ['catalog','cards','cards_catalog']){
       try{
-        const {data,error}=await sb.from(tbl).select('*').order('id',{ascending:false}).limit(50);
+        const {data,error}=await sb.from(tbl).select('*').limit(100);
         if(!error && Array.isArray(data)) all.push(...data.map(x=>({...x,_source_table:tbl})));
       }catch(e){}
     }
   }
-  // Fallback: local catalog data, if Supabase is temporarily unavailable.
+
+  // Index cache fallbacks.
   if(!all.length){
-    try{
-      const local=JSON.parse(localStorage.getItem('dp_catalog')||localStorage.getItem('catalog_data')||'[]');
-      if(Array.isArray(local)) all=local;
-    }catch(e){}
+    for(const key of ['dp_catalog','catalog_data','dp_catalog_cache','catalog_cache']){
+      try{
+        const local=JSON.parse(localStorage.getItem(key)||'[]');
+        if(Array.isArray(local) && local.length){all=local;break;}
+      }catch(e){}
+    }
   }
-  const currentId=product?.id ?? id;
+
+  const currentKeys=new Set([
+    product?.id,product?.catalog_id,product?.model,product?.code,
+    product?.card_model,product?.model_no,id
+  ].map(v=>String(v??'').trim()).filter(Boolean));
+
   const seen=new Set();
   const rows=all.filter(x=>{
-    const key=String(x.id ?? x.catalog_id ?? x.code ?? x.model ?? '');
-    if(currentId!=null && String(x.id??'')===String(currentId)) return false;
+    const key=String(x.id??x.catalog_id??x.model??x.code??x.card_model??x.model_no??'').trim();
     if(!key || seen.has(key)) return false;
-    seen.add(key); return true;
+
+    const ids=[
+      x.id,x.catalog_id,x.model,x.code,x.card_model,x.model_no
+    ].map(v=>String(v??'').trim()).filter(Boolean);
+
+    if(ids.some(v=>currentKeys.has(v))) return false;
+    seen.add(key);
+    return true;
   }).slice(0,20);
-  if(!rows.length){box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">अभी कोई अन्य कैटलॉग उपलब्ध नहीं है।</div>';return;}
+
+  if(!rows.length){
+    box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">अभी कोई अन्य कैटलॉग उपलब्ध नहीं है।</div>';
+    return;
+  }
+
   window._recommendedRows=rows;
   box.innerHTML=rows.map((c,i)=>{
     const name=esc(c.name||c.title||c.card_name||c.product_name||'शादी कार्ड');
     const model=esc(c.model||c.code||c.card_model||c.model_no||'');
-    const imgs=getImages(c); const img=imgs[0]||placeholder;
-    const rate=sale(c); const mrp=original(c);
-    return `<div class="recommended-card" onclick="openRecommended('${esc(c.id??i)}')">
-      <div class="recommended-img"><img src="${esc(img)}" alt="${name}" onerror="this.onerror=null;this.src='${placeholder}'"></div>
-      <div class="recommended-info"><h3>${name}</h3><div class="recommended-model">${model}</div><div class="recommended-price">₹${rate||0}${mrp&&mrp>rate?` <del>₹${mrp}</del>`:''}</div><button type="button" onclick="event.stopPropagation();openRecommended('${esc(c.id??i)}')">विवरण देखें</button></div>
+    const imgs=getImages(c), img=imgs[0]||placeholder;
+    const rate=sale(c), mrp=original(c);
+    const rid=String(c.id??c.catalog_id??c.model??c.code??i);
+    return `<div class="rec-card" onclick="openRecommended('${esc(rid)}')">
+      <div class="rec-img"><img src="${esc(img)}" alt="${name}" onerror="this.onerror=null;this.src='${placeholder}'"></div>
+      <div class="rec-body"><div class="rec-name">${name}</div><div class="rec-model">${model}</div><div class="rec-price">₹${rate||0}${mrp&&mrp>rate?` <span class="rec-old">₹${mrp}</span>`:''}</div><button type="button" class="rec-btn" onclick="event.stopPropagation();openRecommended('${esc(rid)}')">विवरण देखें</button></div>
     </div>`;
   }).join('');
 }
-
 function openRecommended(rid){
   if(!rid)return;
   try{
     const pools=[window._recommendedRows||[],window._recentRows||[],window._updatedRows||[]];
     let c=null;
-    for(const p of pools){c=p.find(x=>String(x.id)===String(rid));if(c)break;}
+    for(const p of pools){
+      c=p.find(x=>[
+        x?.id,x?.catalog_id,x?.model,x?.code,x?.card_model,x?.model_no
+      ].map(v=>String(v??'')).includes(String(rid)));
+      if(c)break;
+    }
     if(c){
       localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));
       saveRecentlyViewed(c);
+      const target=c.id??c.catalog_id??c.model??c.code??rid;
+      location.href='catalog-detail.html?id='+encodeURIComponent(target);
+      return;
     }
   }catch(e){}
   location.href='catalog-detail.html?id='+encodeURIComponent(rid);
@@ -321,7 +394,23 @@ document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=
 async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
 async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
 async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
-(async function(){updateCart();product=await findProduct();await loadRecommendedCatalog();if(!product){document.getElementById('loading').innerHTML='यह कैटलॉग आइटम उपलब्ध नहीं है।';document.getElementById('recommendedSection').style.display='block';return}render();saveRecentlyViewed(product);await loadVariants();if(product.id||activeId) await loadFeedback();loadRecentlyViewed();await loadMoreUpdatedCards();})();
+(async function(){
+  updateCart();
+  product=await findProduct();
+
+  if(product){
+    render();
+    saveRecentlyViewed(product);
+    await loadVariants();
+    await loadFeedback();
+  }else{
+    document.getElementById('loading').innerHTML='यह कैटलॉग आइटम उपलब्ध नहीं है।';
+  }
+
+  await loadRecommendedCatalog();
+  loadRecentlyViewed();
+  await loadMoreUpdatedCards();
+})();
 </script>
 </body>
 </html>
