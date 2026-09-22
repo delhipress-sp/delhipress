@@ -361,7 +361,48 @@ async function loadFeedback(){
  renderRatings();
 }
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
-function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
+function renderRatings(){
+ const rows=feedbackRows.map(r=>({
+   rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),
+   name:r.name||r.user_name||'ग्राहक',
+   text:r.feedback||r.comment||r.message||'',
+   images:reviewImageList(r)
+ })).filter(r=>r.rating);
+
+ // When the customer opens Detail from Index, Index already has the
+ // verified aggregate for this exact catalog card. Use it as the summary
+ // fallback even if the legacy feedback rows cannot be resolved again.
+ const handoffAvg=Number(product?._ratingAvg??0);
+ const handoffCount=Number(product?._ratingCount??0);
+ const fallbackAvg=Number(
+   product?.rating??product?.avg_rating??product?.average_rating??
+   product?.stars??product?.catalog_rating??0
+ );
+ const avg=rows.length
+   ? rows.reduce((a,r)=>a+r.rating,0)/rows.length
+   : (handoffAvg>0?handoffAvg:fallbackAvg);
+ const displayCount=rows.length || (handoffCount>0?handoffCount:
+   Number(product?.rating_count??product?.review_count??product?.reviews_count??0)||0);
+
+ document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';
+ document.getElementById('topStars').textContent=stars(avg);
+ document.getElementById('reviewCount').textContent=displayCount+' Ratings & Reviews';
+ document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';
+ document.getElementById('bigStars').textContent=stars(avg);
+ document.getElementById('bigReviewCount').textContent=displayCount+' Reviews';
+
+ for(let n=1;n<=5;n++){
+   const c=rows.filter(r=>r.rating===n).length;
+   document.getElementById('c'+n).textContent=c;
+   document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%';
+ }
+
+ document.getElementById('reviewList').innerHTML=rows.length
+   ?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join('')
+   :(displayCount>0
+     ?'<div class="empty">रेटिंग उपलब्ध है। विस्तृत समीक्षा लोड नहीं हो पाई।</div>'
+     :'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>');
+}
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
 function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
 function getVideos(c){
