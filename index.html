@@ -1048,39 +1048,118 @@
             if (catalogRatingSyncPromise) return catalogRatingSyncPromise;
             catalogRatingSyncPromise = (async () => {
                 const rows = [];
+
+                // Local fallback ratings
                 try {
                     const local = JSON.parse(localStorage.getItem('dp_catalog_ratings') || '{}');
-                    if (local && typeof local === 'object') Object.keys(local).forEach(k => rows.push({...local[k], catalog_id:k}));
+                    if (local && typeof local === 'object') {
+                        Object.keys(local).forEach(k => rows.push({...local[k], catalog_id:k, _rating_source:'local'}));
+                    }
                 } catch(e) {}
+
+                // Supabase ratings
                 if (supabaseClient) {
                     try {
                         const {data,error}=await Promise.race([
                             supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
                             new Promise((_,reject)=>setTimeout(()=>reject(new Error('rating timeout')),7000))
                         ]);
-                        if(!error && Array.isArray(data)) rows.push(...data);
+                        if(!error && Array.isArray(data)) rows.push(...data.map(x=>({...x,_rating_source:'supabase'})));
                     } catch(e) {}
                 }
+
+                // Older feedback records used old_catalog_id + order_db_id.
+                // Resolve those records through the order's card title so
+                // catalog 27/29 (which share model 140026) stay separate.
+                const orderMap = {};
+                if (supabaseClient) {
+                    try {
+                        const orderIds=[...new Set(rows.map(r=>String(r?.order_db_id??'').trim()).filter(Boolean))];
+                        if(orderIds.length){
+                            const {data:orders,error}=await supabaseClient
+                                .from('orders')
+                                .select('id,card_model,card_title')
+                                .in('id',orderIds);
+                            if(!error && Array.isArray(orders)){
+                                orders.forEach(o=>{orderMap[String(o.id)]=o;});
+                            }
+                        }
+                    } catch(e) {}
+                }
+
                 const clean=v=>String(v??'').trim().toLowerCase();
+                const modelKey=v=>clean(v).replace(/[^a-z0-9]+/g,'');
+                const uniqueRows=[];
+                const seenRows=new Set();
+
+                rows.forEach(r=>{
+                    const dedupeKey = String(
+                        r?.id ??
+                        `${r?.order_db_id??''}|${r?.catalog_id??''}|${r?.old_catalog_id??''}|${r?.created_at??''}|${r?.rating??r?.stars??''}|${r?.name??r?.user_name??''}`
+                    );
+                    if(seenRows.has(dedupeKey)) return;
+                    seenRows.add(dedupeKey);
+
+                    const resolved = new Set();
+
+                    // New records: catalog_id directly contains the real catalog id.
+                    [r?.catalog_id,r?.card_id,r?.product_id].forEach(v=>{
+                        if(v!==undefined && v!==null && clean(v)) resolved.add(clean(v));
+                    });
+
+                    // Old records: order_db_id points to orders.id.
+                    const order=orderMap[String(r?.order_db_id??'')];
+                    if(order){
+                        const title=clean(order.card_title);
+                        const omodel=modelKey(order.card_model);
+
+                        globalCards.forEach(card=>{
+                            const cname=clean(card?.name??card?.title??card?.card_name??card?.product_name);
+                            const cmodel=modelKey(card?.model??card?.code??card?.card_model??card?.model_no);
+                            const titleMatch = cname && title && (title===cname || title.includes(cname));
+                            const modelMatch = !omodel || !cmodel || omodel===cmodel || omodel.includes(cmodel) || cmodel.includes(omodel);
+                            if(titleMatch && modelMatch){
+                                const cid=card?.id??card?.catalog_id;
+                                if(cid!==undefined && cid!==null && clean(cid)) resolved.add(clean(cid));
+                            }
+                        });
+                    }
+
+                    r._resolved_catalog_ids=[...resolved];
+                    uniqueRows.push(r);
+                });
+
                 globalCards.forEach(card=>{
                     const aliases=new Set([
                         card?.id,card?.catalog_id,card?.card_id,card?.product_id,
                         card?.model,card?.code,card?.card_model,card?.model_no,
                         card?.name,card?.title,card?.card_name,card?.product_name
                     ].filter(v=>v!==undefined&&v!==null&&clean(v)&&clean(v)!=='undefined'&&clean(v)!=='null').map(clean));
+
                     let sum=0,count=0;
-                    rows.forEach(r=>{
-                        const rid=clean(r?.catalog_id??r?.card_id??r?.product_id??r?.model??r?.code);
+                    uniqueRows.forEach(r=>{
+                        const ids=[
+                            r?.catalog_id,r?.card_id,r?.product_id,r?.model,r?.code,
+                            ...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])
+                        ].map(clean).filter(Boolean);
+
                         const val=Number(r?.rating??r?.stars??0);
-                        if(rid&&val>0&&aliases.has(rid)){sum+=Math.max(1,Math.min(5,val));count++;}
+                        if(val>0 && ids.some(id=>aliases.has(id))){
+                            sum+=Math.max(1,Math.min(5,val));
+                            count++;
+                        }
                     });
-                    if(count){card._ratingAvg=sum/count;card._ratingCount=count;}
-                    else{
+
+                    if(count){
+                        card._ratingAvg=sum/count;
+                        card._ratingCount=count;
+                    }else{
                         const existing=Number(card?.rating??card?.avg_rating??card?.average_rating??card?.stars??0);
                         card._ratingAvg=existing>0?existing:0;
                         card._ratingCount=Number(card?.rating_count??card?.review_count??card?.reviews_count??0)||0;
                     }
                 });
+
                 return globalCards;
             })().finally(()=>{catalogRatingSyncPromise=null;});
             return catalogRatingSyncPromise;
