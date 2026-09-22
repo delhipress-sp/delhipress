@@ -1,1141 +1,225 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>मेरे ऑर्डर्स (My Orders) - दिल्ली प्रेस</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <style>
-        :root {
-            --primary: #e63946;
-            --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
-            --secondary: #f77f00;
-            --dark: #0f172a;
-            --green: #10b981;
-            --blue: #2563eb;
-            --glass-bg: rgba(255, 255, 255, 0.94);
-            --glass-border: rgba(255, 255, 255, 0.6);
-            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            background-color: #0d1322;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
-                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: #1e293b;
-            line-height: 1.5;
-            padding-bottom: 80px;
-            min-height: 100vh;
-        }
-
-        .navbar {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky; top: 0; z-index: 1000;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 18px;
-        }
-        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .nav-logo-box {
-            width: 42px; height: 42px; border-radius: 50%;
-            border: 2px solid var(--primary); display: flex;
-            align-items: center; justify-content: center; overflow: hidden;
-            background: #fff; box-shadow: 0 0 12px rgba(230, 57, 70, 0.4);
-        }
-        .nav-brand h2 { color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
-        .nav-actions { display: flex; align-items: center; gap: 10px; }
-
-        .btn-nav {
-            text-decoration: none; color: #f8fafc; font-weight: 700; font-size: 13px;
-            padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.08); display: inline-flex; align-items: center; gap: 6px;
-        }
-        .btn-logout-nav { background: #ef4444; border-color: #f87171; color: white !important; cursor: pointer; }
-
-        .container { max-width: 950px; margin: 20px auto; padding: 0 14px; }
-
-        .user-welcome-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-            box-shadow: var(--card-shadow);
-        }
-        .user-info h3 { font-size: 18px; color: var(--dark); font-weight: 800; }
-        .user-info p { font-size: 13px; color: #64748b; font-weight: 600; }
-
-        .section-bar-title {
-            font-size: 18px; color: #ffffff; margin: 0; font-weight: 800;
-            display: flex; align-items: center; gap: 8px;
-        }
-
-        .btn-refresh {
-            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff; padding: 6px 12px; border-radius: 20px; font-size: 12px;
-            cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
-        }
-
-        .order-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px; margin-bottom: 18px; padding: 18px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .order-card-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px dashed #cbd5e1; padding-bottom: 12px; margin-bottom: 14px;
-            flex-wrap: wrap; gap: 10px;
-        }
-        .order-id-date { display: flex; align-items: center; gap: 12px; }
-        .order-card-img {
-            width: 58px; height: 58px; object-fit: cover; border-radius: 10px; border: 1px solid #cbd5e1;
-            background: #f1f5f9; flex-shrink: 0;
-        }
-        .order-id-date h4 { font-size: 16px; color: var(--primary); margin: 0; font-weight: 800; }
-        .order-id-date span { font-size: 12px; color: #64748b; font-weight: 600; }
-
-        .badge-status {
-            padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
-            display: inline-flex; align-items: center; gap: 6px;
-        }
-
-        .order-details-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px; font-size: 13px; margin-bottom: 14px;
-        }
-        .detail-item { background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .detail-item b { color: #64748b; display: block; font-size: 11px; font-weight: 700; margin-bottom: 2px; }
-
-        .couples-summary {
-            background: #ffffff; border-left: 4px solid var(--secondary);
-            padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 14px;
-        }
-
-        .order-card-footer {
-            display: flex; justify-content: space-between; align-items: center;
-            border-top: 1px solid #f1f5f9; padding-top: 12px; flex-wrap: wrap; gap: 10px;
-        }
-        .balance-info { font-size: 13px; font-weight: 600; color: #475569; }
-        .balance-info b { color: #b91c1c; font-size: 15px; }
-
-        .footer-action-buttons {
-            display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-        }
-
-        .btn-view-receipt {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 8px 14px;
-            font-size: 12px; font-weight: 800; border-radius: 20px; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 6px;
-        }
-
-        .btn-cancel-order {
-            background: #ef4444; color: white; border: none; padding: 8px 14px;
-            font-size: 12px; font-weight: 800; border-radius: 20px; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 6px;
-        }
-        .btn-cancel-order:hover { background: #dc2626; }
-
-        .cancel-reason-tag {
-            font-size: 11px; color: #b91c1c; background: #fee2e2; padding: 4px 8px; border-radius: 6px; margin-top: 6px; display: inline-block;
-        }
-
-        .empty-orders {
-            background: var(--glass-bg); border: 2px dashed #cbd5e1; border-radius: 16px;
-            padding: 45px 20px; text-align: center; color: #64748b;
-        }
-
-        /* RECOMMENDED CATALOG SECTION STYLES */
-        .bottom-showcase-box {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            padding: 20px;
-            border-radius: 18px;
-            margin-top: 35px;
-            box-shadow: var(--card-shadow);
-        }
-        .showcase-header-title {
-            color: #08266f;
-            font-size: 20px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
-            margin-bottom: 16px;
-        }
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-        .card-sample {
-            border: 1px solid #dbe5ef;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #ffffff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.22s;
-        }
-        .card-sample:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 9px 20px rgba(0,0,0,0.10);
-        }
-        .card-sample .img-box {
-            position: relative;
-            overflow: hidden;
-            background: #f3f6fa;
-            height: 145px;
-            cursor: pointer;
-        }
-        .card-sample .img-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: 0.3s;
-        }
-        .card-sample .img-box:hover img { transform: scale(1.05); }
-        .card-info { padding: 10px; text-align: left; }
-        .card-info h4 { font-size: 15px; color: #13265a; margin-bottom: 2px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-info .model-text { font-size: 11px; color: #344c77; margin-bottom: 3px; font-weight: 600; }
-        .card-price-tag { color: #e51e3b; font-weight: 800; font-size: 16px; margin-bottom: 6px; }
-        .btn-select-card {
-            width: 100%;
-            padding: 8px;
-            background: linear-gradient(135deg,#0869f1,#0753ce);
-            color: white !important;
-            border: none;
-            font-size: 12px;
-            font-weight: 800;
-            border-radius: 7px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px); display: none; justify-content: center;
-            align-items: center; z-index: 9999; padding: 15px;
-        }
-        .modal-content {
-            background: white; width: 100%; max-width: 650px; max-height: 90vh;
-            border-radius: 14px; overflow-y: auto; padding: 22px; position: relative;
-        }
-        .receipt-container { border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; background: #fff; }
-        .receipt-header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 14px; }
-        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 4px; }
-        .receipt-section-title { background: #f8fafc; padding: 5px 10px; font-weight: 800; color: var(--primary); margin: 12px 0 8px 0; border-left: 3px solid var(--primary); font-size: 13px; }
-        .card-preview-box { display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 6px; }
-        .card-preview-box img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; background: #e2e8f0; flex-shrink: 0; }
-
-        .mobile-bottom-bar {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(14px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 0; z-index: 1001; justify-content: space-around;
-        }
-        .mobile-bottom-bar a {
-            background: none; border: none; color: #cbd5e1; text-decoration: none;
-            text-align: center; font-size: 11px; font-weight: 600;
-            display: flex; flex-direction: column; align-items: center; gap: 3px;
-        }
-        .mobile-bottom-bar a i { font-size: 18px; color: var(--primary); }
-
-        @media (max-width: 980px) {
-            .gallery-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (max-width: 768px) {
-            .mobile-bottom-bar { display: flex; }
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        }
-    
-        /* CUSTOMER CORRECTION CHAT POPUP */
-        .cust-corr-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.62);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:14px;}
-        .cust-corr-panel{width:min(560px,100%);max-height:min(760px,92vh);overflow:hidden;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);display:flex;flex-direction:column;border:1px solid #e2e8f0;}
-        .cust-corr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;background:linear-gradient(135deg,#f8fbff,#eef4ff);border-bottom:1px solid #e2e8f0;}
-        .cust-corr-head h3{margin:0;font-size:17px;color:#0f2f70;}
-        .cust-corr-close{background:#ef4444;color:#fff;border:0;border-radius:50%;width:34px;height:34px;font-size:22px;line-height:1;cursor:pointer;}
-        .cust-corr-badge{margin:12px 15px 8px;padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;display:inline-block;align-self:flex-start;}
-        .cust-corr-thread{margin:0 15px 10px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;min-height:100px;max-height:330px;overflow-y:auto;}
-        .cust-corr-msg{background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:9px 11px;margin-bottom:8px;font-size:12px;line-height:1.55;box-shadow:0 2px 6px rgba(15,23,42,.04);}
-        .cust-corr-msg:last-child{margin-bottom:0;}
-        .cust-corr-msg.admin{background:#eff6ff;border-color:#bfdbfe;margin-left:28px;}
-        .cust-corr-msg.customer{background:#fff7ed;border-color:#fed7aa;margin-right:28px;}
-        .cust-corr-file{display:inline-block;margin-top:5px;padding:6px 9px;border-radius:7px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700;}
-        .cust-corr-compose{padding:11px 15px 15px;border-top:1px solid #e2e8f0;background:#fff;}
-        #custCorrText{width:100%;min-height:72px;resize:vertical;border:1px solid #cbd5e1;border-radius:10px;padding:9px 10px;font-size:13px;outline:none;}
-        #custCorrText:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.10);}
-        #custCorrFile{width:100%;margin-top:8px;padding:7px;border:1px dashed #94a3b8;border-radius:9px;background:#f8fafc;font-size:12px;}
-        .cust-corr-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;}
-        .cust-corr-actions button{border:0;border-radius:9px;padding:10px 8px;color:#fff;font-weight:800;font-size:12px;cursor:pointer;}
-        .cust-corr-send{background:#2563eb;grid-column:1/-1;}
-        .cust-corr-approve{background:#10b981;}
-        .cust-corr-more{background:#f59e0b;}
-        .btn-open-correction{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:0;padding:8px 14px;font-size:12px;font-weight:800;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-        @media(max-width:520px){.cust-corr-modal{padding:8px}.cust-corr-panel{max-height:94vh;border-radius:15px}.cust-corr-thread{max-height:270px}.cust-corr-actions{grid-template-columns:1fr}.cust-corr-send{grid-column:auto}}
-
-/* WhatsApp-like live chat + voice */
-.cust-corr-panel{max-width:620px!important;height:min(760px,94vh)!important;background:#efeae2!important;}
-.cust-corr-head{background:#075e54!important;color:#fff!important;padding:12px 14px!important;}
-.cust-corr-head h3{color:#fff!important;}
-.cust-corr-head #custCorrOrderInfo{color:#d9fdd3!important;}
-.cust-corr-close{background:#128c7e!important;color:#fff!important;}
-.cust-corr-badge{margin:8px 12px!important;background:#d9fdd3!important;color:#075e54!important;}
-.cust-corr-thread{flex:1!important;max-height:none!important;min-height:0!important;margin:0!important;padding:14px 10px!important;background:#efeae2!important;border:0!important;overflow-y:auto!important;}
-.cust-corr-msg{max-width:82%;width:fit-content;background:#fff!important;border:0!important;border-radius:8px!important;padding:7px 9px!important;margin:0 0 8px 0!important;box-shadow:0 1px 1px rgba(0,0,0,.10)!important;position:relative;}
-.cust-corr-msg.customer{margin-left:auto!important;margin-right:0!important;background:#d9fdd3!important;}
-.cust-corr-msg.admin{margin-left:0!important;margin-right:auto!important;background:#fff!important;}
-.cust-corr-compose{background:#f0f2f5!important;padding:8px!important;border-top:0!important;}
-.cust-corr-compose textarea{min-height:46px!important;border-radius:22px!important;padding:11px 15px!important;border:1px solid #d1d7db!important;}
-.cust-corr-compose .chat-tools{display:flex;align-items:center;gap:7px;margin-top:7px;}
-.cust-corr-compose .chat-tools input[type=file]{flex:1;margin:0!important;background:#fff;border:1px solid #d1d7db;padding:6px;border-radius:20px;}
-.btn-voice-record{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:18px;display:inline-flex;align-items:center;justify-content:center;}
-.btn-voice-record.recording{background:#ef4444;animation:voicePulse 1s infinite;}
-.btn-chat-send{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:17px;display:inline-flex;align-items:center;justify-content:center;}
-.voice-preview{display:none;margin:6px 0 0;padding:6px 9px;background:#fff;border-radius:14px;font-size:11px;color:#475569;align-items:center;gap:8px;}
-.voice-preview audio{max-width:220px;height:34px;}
-.cust-corr-actions{grid-template-columns:1fr 1fr!important;margin-top:7px!important;}
-@keyframes voicePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.voice-msg audio{width:220px;max-width:100%;height:34px;margin-top:4px;}
-@media(max-width:520px){.cust-corr-msg{max-width:90%;}.voice-msg audio{width:190px;}.cust-corr-actions{grid-template-columns:1fr!important;}}
-
-</style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DP Chat - दिल्ली प्रेस</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-.wa-panel{width:min(520px,100%);height:min(760px,96vh)!important;border-radius:18px!important;overflow:hidden;display:flex;flex-direction:column;background:#efeae2!important}
-.wa-head{height:62px;flex:none;background:#075e54;color:#fff;display:flex;align-items:center;padding:8px 12px;gap:10px}.wa-avatar{width:42px;height:42px;border-radius:50%;background:#dfe8e5;color:#075e54;display:grid;place-items:center;font-size:20px}.wa-head-info{display:flex;flex-direction:column;min-width:0;flex:1}.wa-head-info b{font-size:15px}.wa-head-info span{font-size:10px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wa-head-info small{font-size:10px;color:#d7ffd9}.wa-close{border:0;background:transparent;color:#fff;font-size:28px;width:36px;height:36px;cursor:pointer}.wa-status{font-size:10px;padding:4px 10px;background:#f7f8f8;color:#64748b}.wa-typing{display:none;font-size:11px;color:#075e54;background:#e8f5e9;padding:3px 12px;font-style:italic}.wa-thread{flex:1;min-height:0;overflow-y:auto;padding:14px 10px;background-color:#efeae2;background-image:radial-gradient(#d9d0c5 1px,transparent 1px);background-size:18px 18px}.wa-bubble{max-width:82%;padding:7px 9px 6px;margin:4px 0;border-radius:8px;font-size:13px;line-height:1.42;box-shadow:0 1px 1px rgba(0,0,0,.10);position:relative;word-break:break-word}.wa-bubble.admin{margin-right:auto;background:#fff;border-top-left-radius:3px}.wa-bubble.customer{margin-left:auto;background:#d9fdd3;border-top-right-radius:3px}.wa-meta{font-size:9px;color:#667781;text-align:right;margin-top:3px}.wa-bubble audio{width:100%;max-width:240px;height:36px}.wa-file{display:inline-flex;align-items:center;gap:7px;background:#f0f2f5;padding:8px;border-radius:8px;text-decoration:none;color:#075e54;font-weight:700;margin-top:4px}.wa-compose{background:#f0f2f5;padding:7px 8px 8px;flex:none}.wa-input-row{display:flex;align-items:flex-end;gap:5px;background:#fff;border-radius:24px;padding:4px}.wa-icon,.wa-mic,.wa-send{border:0;background:transparent;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font-size:18px;color:#54656f;flex:none}.wa-mic{color:#075e54}.wa-mic.recording{background:#e53935;color:#fff}.wa-send{background:#128c7e;color:#fff}.wa-input-row textarea{flex:1;border:0;outline:0;resize:none;max-height:90px;font:14px Arial;padding:9px 5px;background:transparent}.wa-compose input[type=file]{display:none}.wa-preview{display:none;align-items:center;gap:7px;background:#fff;padding:6px 9px;margin-bottom:5px;border-radius:12px}.wa-preview audio{width:180px;height:34px}.wa-preview button{border:0;background:#eee;border-radius:50%;width:28px;height:28px}.wa-file-name{font-size:10px;color:#54656f;padding:3px 8px;min-height:14px}.wa-actions{display:flex;gap:6px;margin-top:5px}.wa-actions button{flex:1;border:0;border-radius:8px;padding:7px;font-size:10px;font-weight:700;color:#fff}.wa-actions .cust-corr-approve{background:#10b981}.wa-actions .cust-corr-more{background:#f59e0b}
-@media(max-width:520px){.cust-corr-modal{padding:0!important}.wa-panel{width:100%;height:100dvh!important;max-height:none!important;border-radius:0!important}.wa-thread{padding-bottom:8px}.wa-bubble{max-width:88%}}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif;-webkit-tap-highlight-color:transparent}
+:root{--green:#075e54;--green2:#128c7e;--bg:#efeae2;--dark:#0f172a}
+html,body{height:100%;background:#dfe5e7}
+body{display:flex;flex-direction:column;min-height:100vh}
+.chat-app{width:100%;max-width:900px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);box-shadow:0 0 35px rgba(0,0,0,.15)}
+.chat-head{background:linear-gradient(135deg,#075e54,#128c7e);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.16);z-index:2}
+.back-btn{width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.13);color:#fff;font-size:18px;cursor:pointer}
+.avatar{width:42px;height:42px;border-radius:50%;background:#fff;color:#075e54;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.head-info{min-width:0;flex:1}.head-info b{display:block;font-size:17px;line-height:1.15}.head-info span{display:block;font-size:11px;color:#d9fdd3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.live{font-size:10px;color:#d9fdd3;margin-top:1px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#94a3b8;margin-right:4px}.dot.on{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16)}
+.head-actions{display:flex;gap:6px}.head-btn{width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.order-bar{background:#fff;padding:7px 12px;border-bottom:1px solid #d7dadd;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;font-size:11px}
+.order-bar .title{font-weight:800;color:#075e54;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.order-bar .status{color:#64748b;white-space:nowrap}
+.chat-area{flex:1;overflow-y:auto;padding:14px 10px 12px;scroll-behavior:smooth;background-color:#efeae2;background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:18px 18px}
+.date-note{text-align:center;margin:4px auto 12px;background:rgba(255,255,255,.72);color:#64748b;padding:4px 10px;border-radius:10px;width:max-content;max-width:90%;font-size:10px}
+.msg{max-width:min(78%,600px);width:fit-content;margin:0 0 8px;padding:7px 9px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,.12);font-size:13px;line-height:1.45;position:relative;word-break:break-word}
+.msg.customer{margin-left:auto;background:#d9fdd3;border-top-right-radius:3px}.msg.admin{margin-right:auto;background:#fff;border-top-left-radius:3px}
+.msg .who{font-size:10px;font-weight:800;color:#075e54;margin-bottom:2px}.msg .meta{font-size:9px;color:#64748b;text-align:right;margin-top:3px}
+.file-card{display:flex;align-items:center;gap:9px;padding:8px;background:rgba(255,255,255,.72);border:1px solid #d7dadd;border-radius:9px;margin-top:4px}.file-icon{font-size:22px;color:#2563eb}.file-card a{color:#075e54;font-weight:800;text-decoration:none;overflow:hidden;text-overflow:ellipsis}.file-size{font-size:9px;color:#64748b}
+.preview{display:none;padding:6px 10px;background:#f0f2f5;border-top:1px solid #ddd;align-items:center;gap:8px}.preview audio{width:190px;max-width:60%}.preview button{margin-left:auto;border:0;border-radius:50%;width:28px;height:28px;background:#ef4444;color:#fff}
+.typing{display:none;background:#fff;color:#64748b;font-size:10px;padding:4px 12px;border-top:1px solid #e2e8f0}.typing span{animation:blink 1s infinite}@keyframes blink{50%{opacity:.25}}
+.compose{background:#f0f2f5;padding:7px 8px 9px;flex-shrink:0;border-top:1px solid #d7dadd}.compose-row{display:flex;align-items:flex-end;gap:6px}.tool-btn{width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#075e54;cursor:pointer;font-size:17px;flex-shrink:0}.text-wrap{flex:1;background:#fff;border-radius:22px;border:1px solid #d1d7db;display:flex;align-items:flex-end;padding:0 10px}.text-wrap textarea{width:100%;border:0;outline:0;resize:none;max-height:110px;min-height:42px;padding:11px 3px;font-size:13px;background:transparent}.send-btn{width:44px;height:44px;border:0;border-radius:50%;background:#128c7e;color:#fff;cursor:pointer;font-size:17px;flex-shrink:0}.recording{background:#dc2626!important}.file-name{font-size:10px;color:#475569;padding:3px 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hidden{display:none!important}
+.loading,.error-state{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;color:#64748b}.error-state .box{background:#fff;border-radius:16px;padding:24px;max-width:420px;box-shadow:0 12px 35px rgba(0,0,0,.12)}.error-state h3{color:#0f172a;margin-bottom:8px}.main-btn{border:0;border-radius:22px;padding:9px 18px;background:#128c7e;color:#fff;font-weight:800;cursor:pointer;margin-top:12px}
+@media(min-width:901px){body{padding:12px}.chat-app{height:calc(100vh - 24px);border-radius:18px;overflow:hidden}}
+@media(max-width:520px){.msg{max-width:88%}.head-info b{font-size:15px}.order-bar{padding:6px 9px}.chat-area{padding:10px 7px}.tool-btn{width:38px;height:38px}.send-btn{width:40px;height:40px}.text-wrap textarea{min-height:38px}}
 </style>
 </head>
 <body>
-
-    <nav class="navbar">
-        <a class="nav-brand" href="index.html">
-            <div class="nav-logo-box"><i class="fa-solid fa-print" style="color:var(--primary); font-size:20px;"></i></div>
-            <h2>दिल्ली प्रेस</h2>
-        </a>
-        <div class="nav-actions">
-            <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम</a>
-            <button type="button" onclick="logoutCustomer()" class="btn-nav btn-logout-nav"><i class="fa-solid fa-right-from-bracket"></i> लॉगआउट</button>
-        </div>
-    </nav>
-
-    <div class="container">
-        
-        <div class="user-welcome-card" id="userCardBlock">
-            <div class="user-info">
-                <h3 id="userDisplayName">सम्मानित ग्राहक</h3>
-                <p id="userDisplayPhone">विवरण लोड हो रहा है...</p>
-            </div>
-            <button onclick="logoutCustomer()" class="btn-nav btn-logout-nav">
-                <i class="fa-solid fa-right-from-bracket"></i> लॉगआउट
-            </button>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <h3 class="section-bar-title">
-                <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> आपके द्वारा दिए गए ऑर्डर्स
-            </h3>
-            <button onclick="fetchCustomerOrders()" class="btn-refresh">
-                <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश
-            </button>
-        </div>
-
-        <div id="ordersContainer">
-            <div style="text-align: center; padding: 35px; font-weight: bold; color: #94a3b8;">
-                <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>ऑर्डर्स लोड हो रहे हैं...
-            </div>
-        </div>
-
-        <!-- RECOMMENDED CATALOG BLOCK DIRECT FROM INDEX TABLE -->
-        <div class="bottom-showcase-box">
-            <h3 class="showcase-header-title">
-                <i class="fa-solid fa-layer-group" style="color:var(--primary);"></i> अन्य पसंद किए जाने वाले शादी कार्ड्स (कैटलॉग)
-            </h3>
-            <div class="gallery-grid" id="recommendedCatalogContainer">
-                <p style="grid-column:1/-1; text-align:center; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> कार्ड्स लोड हो रहे हैं...</p>
-            </div>
-        </div>
-
+<div class="chat-app">
+  <div class="chat-head">
+    <button class="back-btn" id="backBtn" title="वापस"><i class="fa-solid fa-arrow-left"></i></button>
+    <div class="avatar"><i class="fa-solid fa-comments"></i></div>
+    <div class="head-info">
+      <b id="chatTitle">DP Chat</b>
+      <span id="chatSubtitle">दिल्ली प्रेस</span>
+      <div class="live"><span id="liveDot" class="dot"></span><span id="liveText">कनेक्ट हो रहा है...</span></div>
     </div>
-
-    <!-- Receipt Modal -->
-    <div class="modal-overlay" id="userReceiptModal">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                <h3 style="color:var(--primary); font-size:18px; font-weight:800;">शादी कार्ड ऑर्डर एवं मैटर रसीद</h3>
-                <button type="button" onclick="closeReceiptModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:32px; height:32px; cursor:pointer; font-weight:bold; font-size:16px;">&times;</button>
-            </div>
-            
-            <div id="printableReceiptArea" class="receipt-container"></div>
-
-            <div style="display:flex; gap:10px; margin-top:16px;">
-                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-download"></i> PDF डाउनलोड
-                </button>
-                <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-print"></i> प्रिंट निकालें
-                </button>
-            </div>
-        </div>
+    <div class="head-actions">
+      <button class="head-btn" id="refreshBtn" title="रिफ्रेश"><i class="fa-solid fa-rotate"></i></button>
     </div>
-
-    <!-- WhatsApp-like Customer Correction Chat Popup -->
-    <div id="customerCorrectionModal" class="cust-corr-modal" onclick="if(event.target===this) closeCustomerCorrectionModal()">
-      <div class="cust-corr-panel wa-panel">
-        <div class="wa-head"><div class="wa-avatar"><i class="fa-solid fa-user-tie"></i></div><div class="wa-head-info"><b>दिल्ली प्रेस</b><span id="custCorrOrderInfo">ऑर्डर बातचीत</span><div class="chat-live-row"><span id="custLiveDot" class="live-dot offline"></span><span id="custLiveLabel">ऑफलाइन</span></div><small id="custOnline">ऑनलाइन</small></div><button class="wa-close" onclick="closeCustomerCorrectionModal()">×</button></div>
-        <div class="wa-status" id="custCorrStatus">स्थिति: कोई सुधार अनुरोध नहीं</div>
-        <div id="custTyping" class="wa-typing">एडमिन टाइपिंग <span class="typing-dots">● ● ●</span></div>
-        <div id="custCorrThread" class="wa-thread"></div>
-        <div class="wa-compose">
-          <div id="custVoicePreview" class="wa-preview"><span>वॉयस तैयार है</span><audio id="custVoiceAudio" controls></audio><button onclick="cancelCustomerVoice()">×</button></div>
-          <div class="wa-input-row">
-            <button class="wa-icon" type="button" title="फाइल/फोटो" onclick="document.getElementById('custCorrFile').click()"><i class="fa-solid fa-paperclip"></i></button>
-            <input type="file" id="custCorrFile" accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*" onchange="showCustomerFileName(this)">
-            <button class="wa-icon" type="button" title="फोटो कैमरा" onclick="document.getElementById('custCameraFile').click()"><i class="fa-solid fa-camera"></i></button>
-            <input type="file" id="custCameraFile" accept="image/*" capture="environment" onchange="copyCustomerCameraFile(this)">
-            <textarea id="custCorrText" rows="1" placeholder="मैसेज लिखें…" oninput="customerTyping(this.value)"></textarea>
-            <button type="button" class="wa-mic" id="custVoiceBtn" onclick="toggleCustomerVoice()"><i class="fa-solid fa-microphone"></i></button>
-            <button type="button" class="wa-send" onclick="sendCustomerCorrectionPopup()"><i class="fa-solid fa-paper-plane"></i></button>
-          </div>
-          <div id="custFileName" class="wa-file-name"></div>
-          <div class="wa-actions"><button class="cust-corr-approve" onclick="setCustomerCorrectionStatus('approved')">✓ ठीक है / अप्रूव</button><button class="cust-corr-more" onclick="setCustomerCorrectionStatus('needs_more')">↻ और सुधार चाहिए</button></div>
-        </div>
-      </div>
+  </div>
+  <div class="order-bar">
+    <div class="title" id="orderTitle">ऑर्डर बातचीत</div>
+    <div class="status" id="orderStatus">लोड हो रहा है...</div>
+  </div>
+  <main class="chat-area" id="chatArea"><div class="loading">बातचीत लोड हो रही है...</div></main>
+  <div class="typing" id="typingBar">सामने वाला टाइप कर रहा है <span>● ● ●</span></div>
+  <div class="preview" id="voicePreview"><b>वॉयस तैयार है</b><audio id="voiceAudio" controls></audio><button id="cancelVoice">×</button></div>
+  <div class="compose">
+    <div class="compose-row">
+      <button class="tool-btn" id="fileBtn" title="फाइल भेजें"><i class="fa-solid fa-paperclip"></i></button>
+      <input class="hidden" type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,audio/*">
+      <button class="tool-btn" id="cameraBtn" title="कैमरा"><i class="fa-solid fa-camera"></i></button>
+      <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
+      <div class="text-wrap"><textarea id="messageInput" rows="1" placeholder="मैसेज लिखें…" maxlength="5000"></textarea></div>
+      <button class="tool-btn" id="micBtn" title="वॉयस रिकॉर्ड करें"><i class="fa-solid fa-microphone"></i></button>
+      <button class="send-btn" id="sendBtn" title="भेजें"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
-
-    <div class="mobile-bottom-bar">
-        <a href="index.html"><i class="fa-solid fa-house"></i>होम</a>
-        <a href="my_orders.html" style="color:var(--primary);"><i class="fa-solid fa-box-archive"></i>मेरे ऑर्डर्स</a>
-        <a href="https://wa.me/919304509464"><i class="fa-brands fa-whatsapp" style="color:var(--green);"></i>संपर्क</a>
-    </div>
-
-    <script>
-        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        
-        let supabaseClient = null;
-        try {
-            if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {}
-
-        let fetchedOrdersList = [];
-        let recommendedCards = [];
-        const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='11' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card</text></svg>";
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadInitialLocalOrders();
-            syncWithCloudFast();
-            loadRecommendedCatalog();
-        });
-
-        function loadInitialLocalOrders() {
-            let localList = [];
-            const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
-            for (const k of keys) {
-                try {
-                    const data = JSON.parse(localStorage.getItem(k) || '[]');
-                    if (Array.isArray(data) && data.length > 0) {
-                        localList = data;
-                        break;
-                    }
-                } catch(e) {}
-            }
-
-            if (localList.length === 0) {
-                try {
-                    const latest = JSON.parse(localStorage.getItem('dp_latest_confirmed_order') || 'null');
-                    if (latest) localList = [latest];
-                } catch(e) {}
-            }
-
-            if (localList.length > 0) {
-                fetchedOrdersList = localList;
-                renderOrdersUI();
-            }
-            updateUserGreeting();
-        }
-
-        function updateUserGreeting() {
-            let userObj = null;
-            try {
-                userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}');
-            } catch(e) {}
-
-            const nameEl = document.getElementById('userDisplayName');
-            const phoneEl = document.getElementById('userDisplayPhone');
-
-            if (userObj && (userObj.name || userObj.phone || userObj.mobile)) {
-                if (nameEl) nameEl.innerText = userObj.name || "सम्मानित ग्राहक";
-                if (phoneEl) phoneEl.innerText = userObj.phone || userObj.mobile || "";
-            } else if (fetchedOrdersList.length > 0) {
-                const ord = fetchedOrdersList[0];
-                if (nameEl) nameEl.innerText = ord.customer_name || "सम्मानित ग्राहक";
-                if (phoneEl) phoneEl.innerText = ord.mobile || ord.phone || "";
-            } else {
-                if (nameEl) nameEl.innerText = "सम्मानित ग्राहक";
-                if (phoneEl) phoneEl.innerText = "दिल्ली प्रेस में आपका स्वागत है";
-            }
-        }
-
-        async function syncWithCloudFast() {
-            let userObj = {};
-            try { userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}'); } catch(e) {}
-
-            const clean = v => String(v ?? '').trim();
-            const phone = clean(userObj.phone || userObj.mobile || (fetchedOrdersList[0] && (fetchedOrdersList[0].mobile || fetchedOrdersList[0].phone)));
-
-            if (!supabaseClient) { renderOrdersUI(); return; }
-
-            try {
-                // हमेशा cloud के असली orders लाएँ ताकि Admin द्वारा बदला गया status तुरंत My Orders में दिखे।
-                let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
-                if (phone) query = query.eq('mobile', phone);
-                let { data, error } = await query;
-                if (error && phone) {
-                    // phone column न होने पर केवल mobile से दोबारा query करें।
-                    const retry = await supabaseClient.from('orders').select('*').eq('mobile', phone).order('id', { ascending: false }).limit(100);
-                    data = retry.data; error = retry.error;
-                }
-                if (error) {
-                    // अंतिम fallback: recent cloud orders पढ़ें; इससे My Orders पूरी तरह बंद नहीं होगा।
-                    const retryAll = await supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
-                    if (retryAll.error) throw retryAll.error;
-                    data = retryAll.data || [];
-                }
-
-                const cloud = Array.isArray(data) ? data : [];
-                let local = [];
-                try { local = JSON.parse(localStorage.getItem('my_orders_list') || '[]'); if(!Array.isArray(local)) local=[]; } catch(e) {}
-
-                // Cloud record को प्राथमिकता दें। Local record को केवल तभी रखें जब उसका cloud counterpart न मिला हो।
-                const merged = [];
-                const usedCloud = new Set();
-                const norm = v => clean(v).toLowerCase();
-                const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
-
-                for (const l of local) {
-                    let best = null, bestScore = -1, bestIndex = -1;
-                    for (let i=0;i<cloud.length;i++) {
-                        if (usedCloud.has(i)) continue;
-                        const c=cloud[i]; let score=0;
-                        if (l.id && c.id && String(l.id)===String(c.id)) score += 100;
-                        if (l.order_id && c.order_id && norm(l.order_id)===norm(c.order_id)) score += 90;
-                        if (norm(l.mobile||l.phone) && norm(l.mobile||l.phone)===norm(c.mobile||c.phone)) score += 35;
-                        if (norm(l.customer_name||l.name) && norm(l.customer_name||l.name)===norm(c.customer_name||c.name)) score += 20;
-                        if (norm(l.card_title||l.card_name) && norm(l.card_title||l.card_name)===norm(c.card_title||c.card_name)) score += 15;
-                        const lt=num(l.total_amount), ct=num(c.total_amount);
-                        if (lt!==null && ct!==null && Math.abs(lt-ct)<0.01) score += 15;
-                        if (l.created_at && c.created_at) {
-                            const diff=Math.abs(new Date(l.created_at).getTime()-new Date(c.created_at).getTime());
-                            if (Number.isFinite(diff) && diff <= 24*60*60*1000) score += 10;
-                        }
-                        if (score>bestScore) { bestScore=score; best=c; bestIndex=i; }
-                    }
-                    if (best && bestScore >= (l.id ? 100 : (l.order_id ? 90 : 45))) {
-                        merged.push({...l,...best}); usedCloud.add(bestIndex);
-                    } else {
-                        merged.push(l);
-                    }
-                }
-                for (let i=0;i<cloud.length;i++) if(!usedCloud.has(i)) merged.push(cloud[i]);
-
-                fetchedOrdersList = merged.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-                localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
-                renderOrdersUI();
-            } catch(e) {
-                console.error('My Orders cloud sync error:', e);
-                renderOrdersUI();
-            }
-        }
-
-        function fetchCustomerOrders() {
-            syncWithCloudFast();
-        }
-
-        function getStatusBadge(status) {
-            const s = (status || 'Pending').trim().toLowerCase();
-            if (s === 'received' || s === 'स्वीकार किया गया') {
-                return `<span class="badge-status" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe;"><i class="fa-solid fa-handshake"></i> स्वीकार किया गया</span>`;
-            } else if (s === 'designing' || s === 'matter typing' || s.includes('डिजाइन')) {
-                return `<span class="badge-status" style="background:#f3e8ff; color:#6b21a8; border:1px solid #e9d5ff;"><i class="fa-solid fa-palette"></i> मैटर डिजाइन जारी है</span>`;
-            } else if (s === 'printing' || s === 'processing' || s.includes('छपाई')) {
-                return `<span class="badge-status" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;"><i class="fa-solid fa-print"></i> छपाई जारी है (Printing)</span>`;
-            } else if (s === 'ready' || s === 'तैयार') {
-                return `<span class="badge-status" style="background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;"><i class="fa-solid fa-circle-check"></i> कार्ड तैयार है (Ready)</span>`;
-            } else if (s === 'delivered') {
-                return `<span class="badge-status" style="background:#d1fae5; color:#065f46; border:1px solid #6ee7b7;"><i class="fa-solid fa-box"></i> डिलीवर हो चुका है</span>`;
-            } else if (s === 'cancelled' || s === 'रद्द') {
-                return `<span class="badge-status" style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;"><i class="fa-solid fa-ban"></i> ऑर्डर रद्द (Cancelled)</span>`;
-            } else {
-                return `<span class="badge-status" style="background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;"><i class="fa-solid fa-clock"></i> प्रक्रिया में (Pending)</span>`;
-            }
-        }
-
-        /* 2. CANCEL ORDER WITH CONFIRMATION AND REASON */
-        async function cancelCustomerOrder(orderIdentifier, index) {
-            const reason = prompt("कृपया ऑर्डर रद्द (Cancel) करने का कारण बताइए:\n(उदा: शादी की तारीख बदल गई, गलती से ऑर्डर हो गया, कार्ड बदलना है आदि)");
-            if (reason === null) return; // Cancel pressed in prompt
-            
-            const cleanReason = reason.trim() || "ग्राहक द्वारा कोई कारण नहीं दिया गया";
-            if (!confirm(`क्या आप वाकई इस कारण से ऑर्डर रद्द करना चाहते हैं?\nकारण: "${cleanReason}"`)) return;
-
-            const order = fetchedOrdersList[index];
-            if (order) {
-                order.status = 'Cancelled';
-                order.custom_notes = (order.custom_notes ? order.custom_notes + " | " : "") + `[रद्द करने का कारण: ${cleanReason}]`;
-                renderOrdersUI();
-            }
-
-            // Sync with local storage
-            const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
-            keys.forEach(k => {
-                let list = [];
-                try { list = JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) {}
-                list = list.map(item => {
-                    if (String(item.id) === String(orderIdentifier) || String(item.order_id) === String(orderIdentifier)) {
-                        item.status = 'Cancelled';
-                        item.custom_notes = (item.custom_notes ? item.custom_notes + " | " : "") + `[रद्द करने का कारण: ${cleanReason}]`;
-                    }
-                    return item;
-                });
-                localStorage.setItem(k, JSON.stringify(list));
-            });
-
-            // Update on Supabase
-            if (supabaseClient) {
-                try {
-                    const resolved = await resolveCustomerOrder(index);
-                    const dbId = resolved && resolved.id;
-                    if (dbId) {
-                        const updatePayload = {
-                            status: 'Cancelled',
-                            custom_notes: resolved.custom_notes || (order ? order.custom_notes : `[रद्द करने का कारण: ${cleanReason}]`)
-                        };
-                        const res = await supabaseClient.from('orders').update(updatePayload).eq('id', dbId);
-                        if (res.error) console.error('Customer cancel DB update error:', res.error);
-                    }
-                } catch (e) { console.error('Customer cancel resolve error:', e); }
-            }
-
-            alert("आपका ऑर्डर सफलता से रद्द (Cancelled) कर दिया गया है!");
-        }
-
-        function renderOrdersUI() {
-            const container = document.getElementById('ordersContainer');
-            if (!container) return;
-
-            if (!fetchedOrdersList || fetchedOrdersList.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-orders">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
-                        <p style="font-size:13px; margin: 8px 0;">यदि आपने ऑर्डर कर दिया है, तो 'रिफ्रेश' बटन दबाएँ।</p>
-                        <a href="index.html" class="btn-nav" style="margin-top: 12px; background: var(--primary-gradient); color: white; border: none; padding: 9px 22px; border-radius:25px; display:inline-block;">होम पेज पर जाएं</a>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = fetchedOrdersList.map((ord, index) => {
-                const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN') : 'हाल ही में';
-                const total = parseFloat(ord.total_amount || 0);
-                const advance = parseFloat(ord.advance_paid || 0);
-                const balance = Math.max(0, total - advance);
-                const status = (ord.status || 'Pending').trim();
-                const statusBadge = getStatusBadge(status);
-                const cardImg = ord.card_image || safeCardPlaceholder;
-                const orderKey = ord.id || ord.order_id;
-                const isCancelled = status.toLowerCase() === 'cancelled' || status === 'रद्द';
-
-                // Cancellation note if present
-                let cancelReasonHtml = '';
-                if (isCancelled && ord.custom_notes && ord.custom_notes.includes('[रद्द करने का कारण:')) {
-                    const rMatch = ord.custom_notes.match(/\[रद्द करने का कारण:(.*?)\]/);
-                    if (rMatch && rMatch[1]) {
-                        cancelReasonHtml = `<div class="cancel-reason-tag"><i class="fa-solid fa-circle-info"></i> रद्द कारण: ${rMatch[1].trim()}</div>`;
-                    }
-                }
-
-                return `
-                    <div class="order-card">
-                        <div class="order-card-header">
-                            <div class="order-id-date">
-                                <img src="${cardImg}" class="order-card-img" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
-                                <div>
-                                    <h4>${ord.card_title || 'शादी कार्ड'} ${ord.card_model ? '(' + ord.card_model + ')' : ''}</h4>
-                                    <span>ID: #${ord.order_id || ord.id || '-'} | ${dt}</span>
-                                    ${cancelReasonHtml}
-                                </div>
-                            </div>
-                            <div>${statusBadge}</div>
-                        </div>
-
-                        <div class="order-details-grid">
-                            <div class="detail-item"><b>मात्रा</b>${ord.quantity || 100} पीस</div>
-                            <div class="detail-item"><b>कुल बिल राशि</b>₹${total}</div>
-                            <div class="detail-item"><b>जमा एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
-                            <div class="detail-item"><b>बाकी बकाया</b><span style="color:red; font-weight:bold;">₹${balance}</span></div>
-                        </div>
-
-                        <div class="couples-summary">
-                            <b>मैटर सारांश:</b> वर: <b style="color:var(--primary);">${ord.groom_name || '-'}</b> संग लड़की: <b style="color:var(--secondary);">${ord.bride_name || '-'}</b>
-                        </div>
-
-                        <div style="display:flex;justify-content:flex-end;margin:0 0 14px;">
-                            <button type="button" class="btn-open-correction" onclick="openCustomerCorrectionModal(${index})">
-                                <i class="fa-solid fa-comments"></i> सुधार / बातचीत
-                            </button>
-                        </div>
-
-                        <div class="order-card-footer">
-                            <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
-                            <div class="footer-action-buttons">
-                                <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
-                                    <i class="fa-solid fa-file-invoice"></i> रसीद देखें
-                                </button>
-                                ${!isCancelled ? `
-                                    <button class="btn-cancel-order" onclick="cancelCustomerOrder('${orderKey}', ${index})">
-                                        <i class="fa-solid fa-ban"></i> ऑर्डर कैंसिल करें
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function parseJsonArray(value){ try{ const a=typeof value==='string'?JSON.parse(value||'[]'):value; return Array.isArray(a)?a:[]; }catch(e){ return []; } }
-        function escapeHtml(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
-
-        let customerCorrectionIndex = null;
-        let customerCorrectionOrderId = null;
-
-        function renderCustomerCorrectionThread(ord){
-            const msgs=[...parseJsonArray(ord.customer_messages),...parseJsonArray(ord.admin_messages)].map((m,i)=>({...m,_i:i,_type:'msg'}));
-            const files=[...parseJsonArray(ord.customer_files),...parseJsonArray(ord.admin_files)].map((f,i)=>({...f,_i:i,_type:'file'}));
-            const items=[...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0));
-            const html=items.map(x=>{
-                const isAdmin=x.from==='admin';
-                const who=isAdmin?'एडमिन':'आप';
-                const time=x.at?new Date(x.at).toLocaleString('hi-IN'):'';
-                if(x._type==='file') {
-                    if(x.kind==='voice' || String(x.mime||x.fileType||x.type||'').startsWith('audio/')) return `<div class="wa-bubble ${isAdmin?'admin':'customer'}"><b>${who}</b><br><audio controls preload="metadata" src="${escapeHtml(x.url||'')}"></audio><div class="wa-meta">वॉयस • ${time}</div></div>`;
-                    return `<div class="wa-bubble ${isAdmin?'admin':'customer'}"><b>${who}</b><br><a class="wa-file" href="${escapeHtml(x.url||'#')}" target="_blank" rel="noopener" download><i class="fa-solid fa-file-arrow-down"></i> ${escapeHtml(x.name||'फाइल देखें / डाउनलोड करें')}</a><div class="wa-meta">${time}</div></div>`;
-                }
-                return `<div class="wa-bubble ${isAdmin?'admin':'customer'}">${escapeHtml(x.text||'')}<div class="wa-meta">${time} ✓✓</div></div>`;
-            }).join('');
-            return html || '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:20px 5px;">अभी कोई बातचीत या सुधार फाइल नहीं है।</div>';
-        }
-
-        async function resolveCustomerOrder(index){
-            let ord=fetchedOrdersList[index];
-            if(!ord) return null;
-            if(!supabaseClient) return ord.id ? ord : null;
-            try{
-                const clean=v=>String(v??'').trim();
-                const norm=v=>clean(v).toLowerCase();
-                const localId=clean(ord.id);
-                const localOrderNo=clean(ord.order_id);
-                const localPhone=clean(ord.mobile||ord.phone);
-                const localName=norm(ord.customer_name||ord.name);
-                const localCard=norm(ord.card_title||ord.card_name);
-                const localModel=norm(ord.card_model||ord.model);
-                const localTotal=parseFloat(ord.total_amount||0);
-                const localTime=ord.created_at?new Date(ord.created_at).getTime():0;
-
-                // पहले exact database id से रिकॉर्ड लें।
-                if(localId){
-                    const r=await supabaseClient.from('orders').select('*').eq('id',localId).limit(1);
-                    if(!r.error && r.data && r.data[0]){
-                        fetchedOrdersList[index]={...ord,...r.data[0]};
-                        localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
-                        return fetchedOrdersList[index];
-                    }
-                }
-
-                // फिर सभी उपलब्ध ग्राहक orders में मजबूत matching करें।
-                let q=supabaseClient.from('orders').select('*').order('id',{ascending:false}).limit(100);
-                if(localPhone) q=q.eq('mobile',localPhone);
-                let {data,error}=await q;
-                if(error && localPhone){
-                    // Filter query fail होने पर recent cloud orders से पहचान करें।
-                    const fallback=await supabaseClient.from('orders').select('*').order('id',{ascending:false}).limit(100);
-                    if(!fallback.error){
-                        data=fallback.data||[];
-                        error=null;
-                    }
-                }
-                if(error) throw error;
-                const rows=data||[];
-                let best=null,bestScore=-1;
-                for(const x of rows){
-                    let score=0;
-                    if(localOrderNo && clean(x.order_id)===localOrderNo) score+=100;
-                    if(localPhone && clean(x.mobile||x.phone)===localPhone) score+=45;
-                    if(localName && norm(x.customer_name||x.name)===localName) score+=30;
-                    if(localCard && norm(x.card_title||x.card_name)===localCard) score+=20;
-                    if(localModel && norm(x.card_model||x.model)===localModel) score+=15;
-                    const xt=parseFloat(x.total_amount||0);
-                    if(localTotal && xt && Math.abs(localTotal-xt)<0.01) score+=15;
-                    if(localTime && x.created_at){
-                        const diff=Math.abs(new Date(x.created_at).getTime()-localTime);
-                        if(Number.isFinite(diff) && diff<=24*60*60*1000) score+=10;
-                    }
-                    if(score>bestScore){bestScore=score;best=x;}
-                }
-                if(best && (bestScore>=15 || rows.length===1)){
-                    fetchedOrdersList[index]={...ord,...best};
-                    localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
-                    return fetchedOrdersList[index];
-                }
-            }catch(e){ console.error('Resolve customer order error:',e); }
-            return null;
-        }
-
-        async function openCustomerCorrectionModal(index){
-            const ord=await resolveCustomerOrder(index);
-            if(!ord || !ord.id){
-                alert('इस ऑर्डर का Database रिकॉर्ड अभी उपलब्ध नहीं है। कृपया पहले “रिफ्रेश” दबाएँ और फिर सुधार/बातचीत खोलें।');
-                return;
-            }
-            customerCorrectionIndex=index;
-            customerCorrectionOrderId=ord.id;
-            subscribeCustomerRealtime(ord.id);
-            document.getElementById('custCorrOrderInfo').innerText=`#${ord.order_id||ord.id} • ${ord.customer_name||ord.name||'ग्राहक'} • ${ord.card_title||ord.card_name||'ऑर्डर'}`;
-            document.getElementById('custCorrStatus').innerText='स्थिति: '+(ord.correction_status||'कोई सुधार अनुरोध नहीं');
-            document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(ord);
-            document.getElementById('customerCorrectionModal').style.display='flex';
-            setTimeout(()=>{const el=document.getElementById('custCorrThread');if(el)el.scrollTop=el.scrollHeight;},30);
-        }
-        function closeCustomerCorrectionModal(){ document.getElementById('customerCorrectionModal').style.display='none'; if(customerLiveChannel&&supabaseClient){try{supabaseClient.removeChannel(customerLiveChannel);}catch(e){}} customerLiveChannel=null; customerCorrectionIndex=null; customerCorrectionOrderId=null; }
-
-        async function uploadCorrectionFile(file, orderId, from){
-            if(!file) return null;
-            if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
-            if(file.size>10*1024*1024) throw new Error('फाइल 10 MB से छोटी रखें।');
-            const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase();
-            const path=`${orderId}/${from}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-            const {error}=await supabaseClient.storage.from('order-corrections').upload(path,file,{upsert:false});
-            if(error) throw new Error('फाइल अपलोड नहीं हुई: '+(error.message||error));
-            const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
-            return {name:file.name,url:data.publicUrl,path,from,at:new Date().toISOString()};
-        }
-
-
-        let customerVoiceRecorder=null, customerVoiceChunks=[], customerVoiceBlob=null, customerVoiceUrl=null;
-        async function toggleCustomerVoice(){
-            const btn=document.getElementById('custVoiceBtn');
-            if(customerVoiceRecorder && customerVoiceRecorder.state==='recording'){
-                customerVoiceRecorder.stop();
-                if(btn){btn.classList.remove('recording');btn.innerHTML='<i class="fa-solid fa-microphone"></i>';}
-                return;
-            }
-            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-                alert('इस ब्राउज़र में वॉयस रिकॉर्डिंग उपलब्ध नहीं है। Chrome/Edge में अनुमति दें।'); return;
-            }
-            try{
-                const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-                const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(x=>MediaRecorder.isTypeSupported(x))||'';
-                customerVoiceRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
-                customerVoiceChunks=[];
-                customerVoiceBlob=null;
-                customerVoiceRecorder.ondataavailable=e=>{if(e.data&&e.data.size)customerVoiceChunks.push(e.data);};
-                customerVoiceRecorder.onstop=()=>{
-                    stream.getTracks().forEach(t=>t.stop());
-                    const type=customerVoiceRecorder.mimeType||'audio/webm';
-                    customerVoiceBlob=new Blob(customerVoiceChunks,{type});
-                    if(customerVoiceUrl)URL.revokeObjectURL(customerVoiceUrl);
-                    customerVoiceUrl=URL.createObjectURL(customerVoiceBlob);
-                    const prev=document.getElementById('custVoicePreview'), aud=document.getElementById('custVoiceAudio');
-                    if(prev)prev.style.display='flex'; if(aud)aud.src=customerVoiceUrl;
-                };
-                customerVoiceRecorder.start();
-                if(btn){btn.classList.add('recording');btn.innerHTML='<i class="fa-solid fa-stop"></i>';}
-            }catch(e){alert('माइक्रोफोन की अनुमति नहीं मिली। कृपया Allow/Microphone दबाएँ।');}
-        }
-        async function uploadCustomerVoice(blob, orderId){
-            const ext=(blob.type||'audio/webm').includes('mp4')?'m4a':'webm';
-            const path=`${orderId}/customer_voice_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-            const {error}=await supabaseClient.storage.from('order-corrections').upload(path,blob,{contentType:blob.type||'audio/webm',upsert:false});
-            if(error)throw new Error('वॉयस अपलोड नहीं हुई: '+(error.message||error));
-            const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
-            return {name:'वॉयस संदेश',url:data.publicUrl,path,from:'customer',kind:'voice',type:blob.type||'audio/webm',at:new Date().toISOString()};
-        }
-        let customerLiveChannel=null, customerTypingTimer=null;
-        function setCustomerLiveStatus(online){
-          const d=document.getElementById('custLiveDot'),l=document.getElementById('custLiveLabel');
-          if(d)d.className='live-dot '+(online?'online':'offline');
-          if(l)l.textContent=online?'ऑनलाइन':'ऑफलाइन';
-        }
-        function subscribeCustomerRealtime(orderId){
-          if(!supabaseClient||!orderId)return;
-          if(customerLiveChannel){try{supabaseClient.removeChannel(customerLiveChannel);}catch(e){}}
-          customerLiveChannel=supabaseClient.channel('order-chat-live-'+orderId,{config:{broadcast:{self:false},presence:{key:'customer'}}})
-          .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:'id=eq.'+orderId},payload=>{
-            const o=fetchedOrdersList[customerCorrectionIndex];
-            if(o){Object.assign(o,payload.new);const th=document.getElementById('custCorrThread');if(th){th.innerHTML=renderCustomerCorrectionThread(o);th.scrollTop=th.scrollHeight;}const st=document.getElementById('custCorrStatus');if(st)st.innerText='स्थिति: '+(o.correction_status||'कोई सुधार अनुरोध नहीं');}
-          })
-          .on('broadcast',{event:'typing'},payload=>{
-            const el=document.getElementById('custTyping'); if(!el)return;
-            const on=payload.payload&&payload.payload.from==='admin'&&payload.payload.typing;
-            el.style.display=on?'block':'none';
-            if(on){clearTimeout(window.__custTypeHide);window.__custTypeHide=setTimeout(()=>el.style.display='none',2000);}
-          })
-          .on('presence',{event:'sync'},()=>{
-            const st=customerLiveChannel.presenceState();
-            const online=Object.values(st).flat().some(x=>x&&x.role==='admin');
-            setCustomerLiveStatus(online);
-          })
-          .on('presence',{event:'join'},()=>setCustomerLiveStatus(true))
-          .on('presence',{event:'leave'},()=>{
-            const st=customerLiveChannel.presenceState();
-            setCustomerLiveStatus(Object.values(st).flat().some(x=>x&&x.role==='admin'));
-          })
-          .subscribe(async status=>{
-            if(status==='SUBSCRIBED'){try{await customerLiveChannel.track({role:'customer',online_at:new Date().toISOString()});}catch(e){}}
-          });
-        }
-
-        function customerTyping(value){
-          if(!customerLiveChannel)return; clearTimeout(customerTypingTimer);
-          customerLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'customer',typing:!!value}}).catch(()=>{});
-          customerTypingTimer=setTimeout(()=>customerLiveChannel&&customerLiveChannel.send({type:'broadcast',event:'typing',payload:{from:'customer',typing:false}}).catch(()=>{}),1200);
-        }
-        function showCustomerFileName(el){const n=document.getElementById('custFileName');if(n)n.textContent=el.files&&el.files[0]?'📎 '+el.files[0].name:'';}
-        function copyCustomerCameraFile(el){const f=el.files&&el.files[0];if(!f)return;const dt=new DataTransfer();dt.items.add(f);document.getElementById('custCorrFile').files=dt.files;showCustomerFileName(document.getElementById('custCorrFile'));}
-        function cancelCustomerVoice(){customerVoiceBlob=null;if(customerVoiceUrl){URL.revokeObjectURL(customerVoiceUrl);customerVoiceUrl=null;}const p=document.getElementById('custVoicePreview'),a=document.getElementById('custVoiceAudio');if(p)p.style.display='none';if(a)a.removeAttribute('src');}
-
-        async function sendCustomerCorrectionPopup(){
-            const index=customerCorrectionIndex;
-            let ord=(index!==null)?fetchedOrdersList[index]:null;
-            if(index===null||!ord) return;
-            ord=await resolveCustomerOrder(index);
-            const id=ord&&ord.id;
-            if(!ord||!id){ alert('यह ऑर्डर अभी Database में नहीं मिला। कृपया इंटरनेट कनेक्शन जांचकर एक बार रिफ्रेश करें।'); return; }
-            customerCorrectionOrderId=id;
-            const input=document.getElementById('custCorrText'), fileEl=document.getElementById('custCorrFile');
-            const text=(input.value||'').trim(), file=fileEl.files&&fileEl.files[0];
-            const voice=customerVoiceBlob;
-            if(!text&&!file&&!voice){ alert('मैसेज, फाइल या वॉयस संदेश भेजें।'); return; }
-            try{
-                if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
-                const messages=parseJsonArray(ord.customer_messages), files=parseJsonArray(ord.customer_files);
-                if(text) messages.push({from:'customer',text,at:new Date().toISOString()});
-                if(file){ const f=await uploadCorrectionFile(file,id,'customer'); if(f) files.push(f); }
-                if(voice){ const vf=await uploadCustomerVoice(voice,id); if(vf) files.push(vf); }
-                const {data,error}=await supabaseClient.from('orders').update({customer_messages:messages,customer_files:files,correction_status:'customer_sent'}).eq('id',id).select().single();
-                if(error) throw error;
-                fetchedOrdersList[index]={...ord,...data};
-                localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
-                input.value=''; fileEl.value=''; customerVoiceBlob=null;
-                if(customerVoiceUrl){URL.revokeObjectURL(customerVoiceUrl);customerVoiceUrl=null;}
-                const vp=document.getElementById('custVoicePreview'), va=document.getElementById('custVoiceAudio'), vb=document.getElementById('custVoiceBtn');
-                if(vp)vp.style.display='none'; if(va)va.removeAttribute('src'); if(vb){vb.classList.remove('recording');vb.innerHTML='<i class="fa-solid fa-microphone"></i>';}
-                document.getElementById('custCorrStatus').innerText='स्थिति: customer_sent';
-                document.getElementById('custCorrThread').innerHTML=renderCustomerCorrectionThread(fetchedOrdersList[index]);
-                const th=document.getElementById('custCorrThread'); th.scrollTop=th.scrollHeight;
-                alert('आपका सुधार संदेश/फाइल एडमिन को भेज दिया गया है।');
-            }catch(e){ console.error(e); alert('सुधार भेजा नहीं गया।\n\nकारण: '+(e.message||e)); }
-        }
-
-        async function setCustomerCorrectionStatus(status){
-            const index=customerCorrectionIndex;
-            if(index===null||!supabaseClient){ alert('Database connection उपलब्ध नहीं है।'); return; }
-            try{
-                const ord=await resolveCustomerOrder(index);
-                const id=ord&&ord.id;
-                if(!id){ alert('इस ऑर्डर का Database रिकॉर्ड नहीं मिला। कृपया रिफ्रेश के बाद दोबारा खोलें।'); return; }
-                customerCorrectionOrderId=id;
-                const payload={correction_status:status};
-                if(status==='approved') payload.status='Approved';
-                const {data,error}=await supabaseClient.from('orders').update(payload).eq('id',id).select().single();
-                if(error) throw error;
-                fetchedOrdersList[index]={...fetchedOrdersList[index],...data};
-                localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
-                document.getElementById('custCorrStatus').innerText='स्थिति: '+status;
-                renderOrdersUI();
-                openCustomerCorrectionModal(index);
-                alert(status==='approved'?'आपकी स्वीकृति दर्ज हो गई है।':'और सुधार की जरूरत एडमिन को भेज दी गई है।');
-            }catch(e){ alert('स्थिति अपडेट नहीं हुई।\n\nकारण: '+(e.message||e)); }
-        }
-
-        // पुराने inline handlers के लिए compatibility
-        async function sendCustomerCorrection(index){ await openCustomerCorrectionModal(index); }
-        async function requestMoreCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('needs_more'); }
-        async function approveCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('approved'); }
-
-        /* 1. LOAD RECOMMENDED CATALOG DIRECT FROM SUPABASE CATALOG TABLE */
-        async function loadRecommendedCatalog() {
-            const container = document.getElementById('recommendedCatalogContainer');
-            if (!container) return;
-
-            const tables = ['catalog', 'cards', 'cards_catalog'];
-            let fetched = [];
-
-            if (supabaseClient) {
-                for (const tbl of tables) {
-                    try {
-                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false }).limit(8);
-                        if (!error && data && data.length > 0) {
-                            fetched = data;
-                            break;
-                        }
-                    } catch(e) {}
-                }
-            }
-
-            if (fetched.length === 0) {
-                container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#94a3b8; font-size:13px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
-                return;
-            }
-
-            recommendedCards = fetched;
-            container.innerHTML = fetched.map((c, idx) => {
-                const name = c.name || c.title || 'शादी कार्ड';
-                const model = c.model || c.code || '';
-                const rate = c.rate || c.price || 0;
-                const img = c.image || c.image_url || safeCardPlaceholder;
-
-                return `
-                    <div class="card-sample">
-                        <div class="img-box" onclick="selectRecommendedForOrder(${idx})">
-                            <img src="${img}" alt="${name}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
-                        </div>
-                        <div class="card-info">
-                            <h4>${name}</h4>
-                            <div class="model-text">${model}</div>
-                            <div class="card-price-tag">₹${rate} / पीस</div>
-                            <button type="button" class="btn-select-card" onclick="selectRecommendedForOrder(${idx})">
-                                <i class="fa-solid fa-bolt"></i> ऑर्डर करें
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function selectRecommendedForOrder(idx) {
-            const c = recommendedCards[idx];
-            if (!c) return;
-            const cardData = {
-                id: c.id || '',
-                name: c.name || c.title || 'शादी कार्ड',
-                model: c.model || c.code || '',
-                rate: parseFloat(c.rate || c.price) || 0,
-                image: c.image || c.image_url || ''
-            };
-            localStorage.setItem('order_selected_card', JSON.stringify(cardData));
-            window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
-        }
-
-        function escapeReceiptText(value) {
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function viewCustomerReceipt(index) {
-            const ord = fetchedOrdersList[index];
-            if (!ord) return;
-
-            const total = parseFloat(ord.total_amount || 0);
-            const advance = parseFloat(ord.advance_paid || 0);
-            const balance = Math.max(0, total - advance);
-            const img = ord.card_image || safeCardPlaceholder;
-
-            document.getElementById('printableReceiptArea').innerHTML = `
-                <div class="receipt-header">
-                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़, करमाटांड़, जामताड़ा | मो: 9304509464</p>
-                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:3px 12px; border-radius:3px; font-size:12px;">ग्राहक ऑर्डर रसीद</h4>
-                </div>
-
-                <div class="receipt-section-title">१. कार्ड एवं वर्तमान स्थिति</div>
-                <div class="card-preview-box">
-                    <img src="${img}" alt="Card" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
-                    <div>
-                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || 'शादी कार्ड'}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || '-'}</b></div>
-                        <div style="font-size:12px; color:#64748b; margin-top:4px;">स्थिति: <b>${ord.status || 'Pending'}</b></div>
-                    </div>
-                </div>
-
-                <div class="receipt-section-title">२. ऑर्डर एवं ग्राहक विवरण</div>
-                <div class="receipt-row"><span>आर्डर ID:</span> <b>#${ord.order_id || ord.id || '-'}</b></div>
-                <div class="receipt-row"><span>ग्राहक:</span> <b>${ord.customer_name || '-'}</b></div>
-                <div class="receipt-row"><span>मोबाइल:</span> <b>${ord.mobile || ord.phone || '-'}</b></div>
-                <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${ord.address || '-'}</b></div>
-
-                <div class="receipt-section-title">३. शादी मैटर विवरण (लड़का-लड़की)</div>
-                <div class="receipt-row"><span>लड़का:</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
-                <div class="receipt-row"><span>लड़की:</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
-                <div class="receipt-row"><span>शुभ विवाह / बारात:</span> <b>${ord.barat_date || '-'}</b></div>
-
-                <div class="receipt-section-title">४. बिल एवं भुगतान विवरण</div>
-                <div class="receipt-row"><span>प्रिंटिंग मात्रा:</span> <b>${ord.quantity || 100} पीस</b></div>
-                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
-                <div class="receipt-row"><span>एडवांस जमा:</span> <b style="color:green;">₹${advance}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
-                <div class="receipt-row"><span>UTR / Txn ID:</span> <b>${ord.txn_id || 'उपलब्ध नहीं'}</b></div>
-                <div class="receipt-section-title">५. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
-                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.7;">
-                    ${escapeReceiptText(ord.custom_notes || ord.order_notes || ord.notes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}
-                </div>
-            `;
-
-            document.getElementById('userReceiptModal').style.display = 'flex';
-        }
-
-        function closeReceiptModal() { 
-            document.getElementById('userReceiptModal').style.display = 'none'; 
-        }
-
-        function downloadReceiptPDF() {
-            const element = document.getElementById('printableReceiptArea');
-            html2pdf().set({
-                margin: 6,
-                filename: 'DelhiPress_Receipt.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).from(element).save();
-        }
-
-        function logoutCustomer() {
-            localStorage.removeItem('dp_current_user');
-            localStorage.removeItem('dp_logged_in_user');
-            alert("आप सफलतापूर्वक लॉगआउट हो गए हैं!");
-            window.location.replace("index.html");
-        }
-    </script>
+    <div class="file-name" id="fileName"></div>
+  </div>
+</div>
+<script>
+const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+</script>
+<script>
+let supabaseClient=null, currentOrder=null, role='customer', orderId=null, channel=null;
+let selectedFile=null, voiceRecorder=null, voiceChunks=[], voiceBlob=null, voiceUrl=null, typingTimer=null;
+const qs=new URLSearchParams(location.search);
+orderId=qs.get('order_id')||qs.get('id')||'';
+role=(qs.get('role')||'customer').toLowerCase()==='admin'?'admin':'customer';
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+const arr=v=>{try{const x=typeof v==='string'?JSON.parse(v||'[]'):v;return Array.isArray(x)?x:[]}catch(e){return[]}};
+const norm=v=>String(v??'').replace(/\D/g,'').slice(-10);
+const currentUser=()=>{try{return JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||localStorage.getItem('user')||'{}')}catch(e){return{}}};
+
+function setLive(on,label){$('liveDot').className='dot '+(on?'on':'');$('liveText').textContent=label||(on?'ऑनलाइन':'ऑफलाइन')}
+function scrollBottom(){const a=$('chatArea');if(a)setTimeout(()=>a.scrollTop=a.scrollHeight,30)}
+function formatTime(v){try{return new Date(v).toLocaleString('hi-IN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(e){return''}}
+function fileIcon(name){const n=String(name||'').toLowerCase();if(/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(n))return'fa-image';if(/\.pdf$/i.test(n))return'fa-file-pdf';if(/\.(mp4|webm|mov|avi)$/i.test(n))return'fa-file-video';if(/\.(doc|docx)$/i.test(n))return'fa-file-word';if(/\.(xls|xlsx)$/i.test(n))return'fa-file-excel';return'fa-file'}
+function renderChat(){
+  const msgs=[...arr(currentOrder?.customer_messages),...arr(currentOrder?.admin_messages)].map(x=>({...x,_kind:'msg'}));
+  const files=[...arr(currentOrder?.customer_files),...arr(currentOrder?.admin_files)].map(x=>({...x,_kind:'file'}));
+  const items=[...msgs,...files].sort((a,b)=>new Date(a.at||0)-new Date(b.at||0));
+  let lastDay='';
+  const html=items.map(x=>{
+    const isMe=(role==='admin'&&x.from==='admin')||(role==='customer'&&x.from==='customer');
+    const who=x.from==='admin'?'दिल्ली प्रेस':'आप';
+    const d=x.at?new Date(x.at).toLocaleDateString('hi-IN'):'';
+    let sep='';
+    if(d&&d!==lastDay){lastDay=d;sep=`<div class="date-note">${esc(d)}</div>`}
+    if(x._kind==='file'){
+      if(x.kind==='voice'||String(x.type||x.mime||'').startsWith('audio/')) return sep+`<div class="msg ${isMe?'customer':'admin'}"><div class="who">${who}</div><audio controls preload="metadata" style="max-width:100%;" src="${esc(x.url||'')}"></audio><div class="meta">${formatTime(x.at)}</div></div>`;
+      const nm=esc(x.name||'फाइल देखें');
+      return sep+`<div class="msg ${isMe?'customer':'admin'}"><div class="who">${who}</div><div class="file-card"><i class="fa-solid ${fileIcon(x.name)} file-icon"></i><div style="min-width:0"><a href="${esc(x.url||'#')}" target="_blank" rel="noopener" download>${nm}</a><div class="file-size">${x.size?Math.round(x.size/1024)+' KB':'फाइल'}</div></div></div><div class="meta">${formatTime(x.at)}</div></div>`;
+    }
+    return sep+`<div class="msg ${isMe?'customer':'admin'}"><div class="who">${who}</div>${esc(x.text||'')}<div class="meta">${formatTime(x.at)} ${isMe?'✓✓':''}</div></div>`;
+  }).join('');
+  $('chatArea').innerHTML=html||'<div class="date-note">अभी कोई संदेश नहीं है। नीचे से पहला संदेश भेजें।</div>';scrollBottom();
+}
+async function loadOrder(){
+  if(!supabaseClient)return fail('Supabase कनेक्शन उपलब्ध नहीं है।');
+  if(!orderId)return fail('इस चैट के लिए ऑर्डर ID नहीं मिली।');
+  if(role==='admin'&&!sessionStorage.getItem('dp_admin_chat_access'))return fail('Admin Chat खोलने के लिए पहले Admin Panel में लॉगिन करें।');
+  $('chatArea').innerHTML='<div class="loading">ऑर्डर लोड हो रहा है...</div>';
+  const {data,error}=await supabaseClient.from('orders').select('*').eq('id',orderId).limit(1);
+  if(error||!data?.[0])return fail(error?.message||'ऑर्डर नहीं मिला।');
+  const o=data[0];
+  if(role==='customer'){
+    const u=currentUser(), phone=norm(u.mobile||u.phone);
+    const op=norm(o.mobile||o.phone);
+    if(!phone||!op||phone!==op)return fail('यह ऑर्डर आपके अकाउंट से संबंधित नहीं है।');
+  }
+  currentOrder=o;
+  $('chatTitle').textContent=role==='admin'?'ग्राहक से बातचीत':'दिल्ली प्रेस';
+  $('chatSubtitle').textContent=`${o.customer_name||o.name||'ग्राहक'} • ${o.mobile||o.phone||''}`;
+  $('orderTitle').textContent=`#${o.order_id||o.id} • ${o.card_title||o.card_name||'ऑर्डर'}`;
+  $('orderStatus').textContent=o.status||'Pending';
+  setLive(false,'ऑफलाइन');
+  renderChat();subscribeRealtime();
+}
+function fail(msg){$('chatArea').innerHTML=`<div class="error-state"><div class="box"><h3><i class="fa-solid fa-circle-exclamation"></i> DP Chat</h3><p>${esc(msg)}</p><button class="main-btn" onclick="history.back()">वापस जाएँ</button></div></div>`;$('orderStatus').textContent='';setLive(false,'उपलब्ध नहीं')}
+function subscribeRealtime(){
+  if(!supabaseClient||!currentOrder?.id)return;
+  if(channel)try{supabaseClient.removeChannel(channel)}catch(e){}
+  channel=supabaseClient.channel('dp-chat-'+currentOrder.id,{config:{broadcast:{self:false},presence:{key:role}}})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:`id=eq.${currentOrder.id}`},p=>{
+      if(p.new){currentOrder={...currentOrder,...p.new};$('orderStatus').textContent=currentOrder.status||'Pending';renderChat()}
+    })
+    .on('broadcast',{event:'typing'},p=>{
+      const other=p.payload?.from!==role&&p.payload?.typing;
+      $('typingBar').style.display=other?'block':'none';if(other){clearTimeout(window.__typingHide);window.__typingHide=setTimeout(()=>$('typingBar').style.display='none',1800)}
+    })
+    .on('presence',{event:'sync'},()=>setPresence())
+    .on('presence',{event:'join'},()=>setPresence())
+    .on('presence',{event:'leave'},()=>setPresence())
+    .subscribe(async status=>{if(status==='SUBSCRIBED'){try{await channel.track({role,online_at:new Date().toISOString()})}catch(e){};setLive(true,'ऑनलाइन')}})
+}
+function setPresence(){if(!channel)return;try{const st=channel.presenceState();const other=Object.values(st).flat().some(x=>x&&x.role!==role);setLive(other,other?'सामने वाला ऑनलाइन':'आप ऑनलाइन')}catch(e){}}
+function typeSignal(){
+  if(!channel)return;clearTimeout(typingTimer);
+  channel.send({type:'broadcast',event:'typing',payload:{from:role,typing:true}}).catch(()=>{});
+  typingTimer=setTimeout(()=>channel&&channel.send({type:'broadcast',event:'typing',payload:{from:role,typing:false}}).catch(()=>{}),1200);
+}
+async function uploadFile(file){
+  if(!file)throw new Error('फाइल नहीं मिली।');
+  if(file.size>20*1024*1024)throw new Error('फाइल 20 MB से छोटी रखें।');
+  const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase()||'bin';
+  const path=`${currentOrder.id}/${role}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const {error}=await supabaseClient.storage.from('order-corrections').upload(path,file,{upsert:false,contentType:file.type||undefined});
+  if(error)throw new Error('फाइल अपलोड नहीं हुई: '+error.message);
+  const {data}=supabaseClient.storage.from('order-corrections').getPublicUrl(path);
+  return {name:file.name,url:data.publicUrl,path,from:role,at:new Date().toISOString(),size:file.size,type:file.type||''};
+}
+async function sendMessage(){
+  if(!currentOrder)return;
+  const text=$('messageInput').value.trim();
+  const file=selectedFile;
+  const voice=voiceBlob;
+  if(!text&&!file&&!voice){$('messageInput').focus();return}
+  $('sendBtn').disabled=true;
+  try{
+    const fresh=await supabaseClient.from('orders').select('*').eq('id',currentOrder.id).limit(1);
+    if(fresh.data?.[0])currentOrder=fresh.data[0];
+    const msgKey=role==='admin'?'admin_messages':'customer_messages';
+    const fileKey=role==='admin'?'admin_files':'customer_files';
+    const msgs=arr(currentOrder[msgKey]), files=arr(currentOrder[fileKey]);
+    if(text)msgs.push({from:role,text,at:new Date().toISOString()});
+    if(file)files.push(await uploadFile(file));
+    if(voice){
+      const vf=await uploadFile(new File([voice],'वॉयस संदेश.'+(voice.type.includes('mp4')?'m4a':'webm'),{type:voice.type||'audio/webm'}));
+      vf.kind='voice';files.push(vf);
+    }
+    const payload={};payload[msgKey]=msgs;payload[fileKey]=files;
+    const {data,error}=await supabaseClient.from('orders').update(payload).eq('id',currentOrder.id).select().single();
+    if(error)throw error;
+    currentOrder=data;renderChat();clearComposer();
+  }catch(e){alert(e.message||'मैसेज भेजने में समस्या हुई।')}finally{$('sendBtn').disabled=false}
+}
+function clearComposer(){
+  $('messageInput').value='';selectedFile=null;$('fileInput').value='';$('cameraInput').value='';$('fileName').textContent='';
+  voiceBlob=null;if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null}$('voicePreview').style.display='none';$('voiceAudio').removeAttribute('src');
+}
+function chooseFile(f){selectedFile=f||null;$('fileName').textContent=f?'📎 '+f.name:''}
+async function toggleVoice(){
+  if(voiceRecorder?.state==='recording'){voiceRecorder.stop();$('micBtn').classList.remove('recording');$('micBtn').innerHTML='<i class="fa-solid fa-microphone"></i>';return}
+  if(!navigator.mediaDevices?.getUserMedia)return alert('इस ब्राउज़र में माइक्रोफोन उपलब्ध नहीं है।');
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(x=>MediaRecorder.isTypeSupported(x))||'';
+    voiceRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);voiceChunks=[];voiceBlob=null;
+    voiceRecorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data)};
+    voiceRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());voiceBlob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||'audio/webm'});if(voiceUrl)URL.revokeObjectURL(voiceUrl);voiceUrl=URL.createObjectURL(voiceBlob);$('voiceAudio').src=voiceUrl;$('voicePreview').style.display='flex'};
+    voiceRecorder.start();$('micBtn').classList.add('recording');$('micBtn').innerHTML='<i class="fa-solid fa-stop"></i>';
+  }catch(e){alert('माइक्रोफोन की अनुमति नहीं मिली।')}
+}
+$('sendBtn').onclick=sendMessage;
+$('messageInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px';typeSignal()});
+$('messageInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
+$('fileBtn').onclick=()=>$('fileInput').click();$('cameraBtn').onclick=()=>$('cameraInput').click();$('micBtn').onclick=toggleVoice;
+$('fileInput').onchange=e=>chooseFile(e.target.files[0]);$('cameraInput').onchange=e=>chooseFile(e.target.files[0]);
+$('cancelVoice').onclick=()=>{voiceBlob=null;if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null}$('voicePreview').style.display='none';$('voiceAudio').removeAttribute('src')};
+$('refreshBtn').onclick=loadOrder;
+$('backBtn').onclick=()=>history.length>1?history.back():(location.href=role==='admin'?'admin.html':'my_orders.html');
+window.addEventListener('beforeunload',()=>{if(channel&&supabaseClient)try{supabaseClient.removeChannel(channel)}catch(e){}});
+try{supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){fail('Supabase कनेक्शन नहीं बन पाया।')}
+loadOrder();
+</script>
+</body>
+</html>
+</script>
 </body>
 </html>
