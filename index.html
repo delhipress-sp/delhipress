@@ -1047,54 +1047,42 @@
         async function loadCatalogRatings() {
             if (catalogRatingSyncPromise) return catalogRatingSyncPromise;
             catalogRatingSyncPromise = (async () => {
-                const map = {};
-                // Local fallback: useful immediately on the same phone/browser.
+                const rows = [];
                 try {
                     const local = JSON.parse(localStorage.getItem('dp_catalog_ratings') || '{}');
-                    if (local && typeof local === 'object') {
-                        Object.keys(local).forEach(k => {
-                            const r = local[k];
-                            const v = Number(r?.rating ?? r?.stars ?? 0);
-                            if (v > 0) map[String(k)] = {sum:v, count:1};
-                        });
-                    }
+                    if (local && typeof local === 'object') Object.keys(local).forEach(k => rows.push({...local[k], catalog_id:k}));
                 } catch(e) {}
-
-                // Shared source: Supabase. This makes the rating visible on Index for every device.
                 if (supabaseClient) {
                     try {
-                        const {data, error} = await Promise.race([
-                            supabaseClient.from('catalog_feedback').select('id,catalog_id,rating,stars,created_at').order('created_at',{ascending:true}).limit(1000),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('rating timeout')), 7000))
+                        const {data,error}=await Promise.race([
+                            supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
+                            new Promise((_,reject)=>setTimeout(()=>reject(new Error('rating timeout')),7000))
                         ]);
-                        if (!error && Array.isArray(data)) {
-                            data.forEach(r => {
-                                const key = String(r?.catalog_id ?? '').trim();
-                                const value = Number(r?.rating ?? r?.stars ?? 0);
-                                if (!key || !(value > 0)) return;
-                                if (!map[key]) map[key] = {sum:0,count:0};
-                                map[key].sum += Math.max(1, Math.min(5, value));
-                                map[key].count += 1;
-                            });
-                        }
+                        if(!error && Array.isArray(data)) rows.push(...data);
                     } catch(e) {}
                 }
-
-                globalCards.forEach(card => {
-                    const keys = [card?.id, card?.catalog_id, card?.card_id, card?.product_id].filter(v => v !== undefined && v !== null && String(v).trim() !== '').map(String);
-                    let stat = null;
-                    for (const k of keys) { if (map[k]) { stat = map[k]; break; } }
-                    if (stat && stat.count) {
-                        card._ratingAvg = stat.sum / stat.count;
-                        card._ratingCount = stat.count;
-                    } else {
-                        const existing = Number(card?.rating ?? card?.avg_rating ?? card?.average_rating ?? card?.stars ?? 0);
-                        card._ratingAvg = existing > 0 ? existing : 0;
-                        card._ratingCount = Number(card?.rating_count ?? card?.review_count ?? card?.reviews_count ?? 0) || 0;
+                const clean=v=>String(v??'').trim().toLowerCase();
+                globalCards.forEach(card=>{
+                    const aliases=new Set([
+                        card?.id,card?.catalog_id,card?.card_id,card?.product_id,
+                        card?.model,card?.code,card?.card_model,card?.model_no,
+                        card?.name,card?.title,card?.card_name,card?.product_name
+                    ].filter(v=>v!==undefined&&v!==null&&clean(v)&&clean(v)!=='undefined'&&clean(v)!=='null').map(clean));
+                    let sum=0,count=0;
+                    rows.forEach(r=>{
+                        const rid=clean(r?.catalog_id??r?.card_id??r?.product_id??r?.model??r?.code);
+                        const val=Number(r?.rating??r?.stars??0);
+                        if(rid&&val>0&&aliases.has(rid)){sum+=Math.max(1,Math.min(5,val));count++;}
+                    });
+                    if(count){card._ratingAvg=sum/count;card._ratingCount=count;}
+                    else{
+                        const existing=Number(card?.rating??card?.avg_rating??card?.average_rating??card?.stars??0);
+                        card._ratingAvg=existing>0?existing:0;
+                        card._ratingCount=Number(card?.rating_count??card?.review_count??card?.reviews_count??0)||0;
                     }
                 });
                 return globalCards;
-            })().finally(() => { catalogRatingSyncPromise = null; });
+            })().finally(()=>{catalogRatingSyncPromise=null;});
             return catalogRatingSyncPromise;
         }
 
