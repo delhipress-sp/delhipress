@@ -915,6 +915,7 @@
                         syncIndexCatalogCache(cachedCards);
                         try { renderRealCardsFromCatalog(cachedCards); } catch(e) {}
                         renderCatalogCards(cachedCards);
+                        loadCatalogRatings().then(()=>{ try { renderRealCardsFromCatalog(globalCards); renderCatalogCards(globalCards); } catch(e){} });
                         break;
                     }
                 }
@@ -1009,6 +1010,7 @@
             try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(fetchedData)); } catch(e) {}
             try { renderRealCardsFromCatalog(fetchedData); } catch(e) { console.warn('Hero render:', e); }
             renderCatalogCards(fetchedData);
+            loadCatalogRatings().then(()=>{ try { renderRealCardsFromCatalog(globalCards); renderCatalogCards(globalCards); } catch(e){} });
         }
 
         let catalogLoadPromise = null;
@@ -1037,6 +1039,69 @@
                 return Math.round(((original - sale) / original) * 100);
             }
             return 0;
+        }
+
+        // Shared catalog rating sync: My Orders -> Supabase catalog_feedback -> Index.
+        // The same product ID is used so the rating shown here is the rating customers gave in My Orders.
+        let catalogRatingSyncPromise = null;
+        async function loadCatalogRatings() {
+            if (catalogRatingSyncPromise) return catalogRatingSyncPromise;
+            catalogRatingSyncPromise = (async () => {
+                const map = {};
+                // Local fallback: useful immediately on the same phone/browser.
+                try {
+                    const local = JSON.parse(localStorage.getItem('dp_catalog_ratings') || '{}');
+                    if (local && typeof local === 'object') {
+                        Object.keys(local).forEach(k => {
+                            const r = local[k];
+                            const v = Number(r?.rating ?? r?.stars ?? 0);
+                            if (v > 0) map[String(k)] = {sum:v, count:1};
+                        });
+                    }
+                } catch(e) {}
+
+                // Shared source: Supabase. This makes the rating visible on Index for every device.
+                if (supabaseClient) {
+                    try {
+                        const {data, error} = await Promise.race([
+                            supabaseClient.from('catalog_feedback').select('id,catalog_id,rating,stars,created_at').order('created_at',{ascending:true}).limit(1000),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('rating timeout')), 7000))
+                        ]);
+                        if (!error && Array.isArray(data)) {
+                            data.forEach(r => {
+                                const key = String(r?.catalog_id ?? '').trim();
+                                const value = Number(r?.rating ?? r?.stars ?? 0);
+                                if (!key || !(value > 0)) return;
+                                if (!map[key]) map[key] = {sum:0,count:0};
+                                map[key].sum += Math.max(1, Math.min(5, value));
+                                map[key].count += 1;
+                            });
+                        }
+                    } catch(e) {}
+                }
+
+                globalCards.forEach(card => {
+                    const keys = [card?.id, card?.catalog_id, card?.card_id, card?.product_id].filter(v => v !== undefined && v !== null && String(v).trim() !== '').map(String);
+                    let stat = null;
+                    for (const k of keys) { if (map[k]) { stat = map[k]; break; } }
+                    if (stat && stat.count) {
+                        card._ratingAvg = stat.sum / stat.count;
+                        card._ratingCount = stat.count;
+                    } else {
+                        const existing = Number(card?.rating ?? card?.avg_rating ?? card?.average_rating ?? card?.stars ?? 0);
+                        card._ratingAvg = existing > 0 ? existing : 0;
+                        card._ratingCount = Number(card?.rating_count ?? card?.review_count ?? card?.reviews_count ?? 0) || 0;
+                    }
+                });
+                return globalCards;
+            })().finally(() => { catalogRatingSyncPromise = null; });
+            return catalogRatingSyncPromise;
+        }
+
+        function getCardRating(card) {
+            const avg = Number(card?._ratingAvg ?? card?.rating ?? card?.avg_rating ?? card?.average_rating ?? card?.stars ?? 0);
+            const count = Number(card?._ratingCount ?? card?.rating_count ?? card?.review_count ?? card?.reviews_count ?? 0) || 0;
+            return {avg: avg > 0 ? Math.max(0, Math.min(5, avg)) : 0, count};
         }
 
         function renderCatalogCards(cards) {
@@ -1084,7 +1149,7 @@
                         ${priceHtml}
                         <div class="card-rating-row">
                             <span class="rating-stars">★★★★★</span>
-                            <span class="rating-text">${Number(card.rating ?? card.stars ?? 5).toFixed(1)}</span>
+                            <span class="rating-text">${(()=>{const rr=getCardRating(card); return rr.avg ? rr.avg.toFixed(1)+(rr.count?' ('+rr.count+')':'') : '0.0';})()}</span>
                             <span class="rating-label">रेटिंग</span>
                         </div>
                         <div style="margin-bottom: 6px;">${stockBadge}</div>
