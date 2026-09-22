@@ -76,6 +76,15 @@
             box-shadow:0 5px 14px rgba(7,94,84,.20);
         }
         .btn-open-dp-chat:hover { transform:translateY(-1px); filter:brightness(1.05); }
+        .btn-open-dp-chat.dp-chat-unread {
+            background: #dc2626 !important;
+            box-shadow: 0 0 0 0 rgba(220,38,38,.75);
+            animation: dpChatBlink 1s infinite;
+        }
+        @keyframes dpChatBlink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(220,38,38,.75); }
+            50% { opacity: .45; box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+        }
 
         .btn-view { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-notice { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
@@ -579,6 +588,13 @@
             }
         }
 
+        // नई ग्राहक बातचीत/मैटर आने पर DP Chat बटन को बिना पेज रिफ्रेश किए अपडेट करें।
+        setInterval(() => {
+            if (document.getElementById('adminDashboard')?.style.display !== 'none') {
+                loadAdminOrders();
+            }
+        }, 10000);
+
         function handleAdminLogout() {
             sessionStorage.removeItem('dp_admin_auth');
             sessionStorage.removeItem('dp_admin_chat_access');
@@ -605,6 +621,25 @@
 
             if (tab === 'ratings') loadAdminRatings();
             if (tab === 'analytics') buildCustomerAnalytics(globalOrdersCache);
+        }
+
+        function dpChatLatestCustomerActivity(order) {
+            const messages = Array.isArray(order.customer_messages) ? order.customer_messages : [];
+            const files = Array.isArray(order.customer_files) ? order.customer_files : [];
+            const all = messages.concat(files);
+            if (!all.length) return 0;
+            return Math.max(...all.map(x => {
+                const t = new Date(x && x.at ? x.at : 0).getTime();
+                return Number.isFinite(t) ? t : 0;
+            }));
+        }
+
+        function isAdminDpChatUnread(order) {
+            const latest = dpChatLatestCustomerActivity(order);
+            if (!latest) return false;
+            const seenKey = 'dp_chat_admin_seen_' + String(order.id);
+            const seen = Number(localStorage.getItem(seenKey) || 0);
+            return latest > seen;
         }
 
         async function loadAdminOrders() {
@@ -637,9 +672,10 @@
                 }
 
                 tbody.innerHTML = globalOrdersCache.map(o => {
+                    const unread = isAdminDpChatUnread(o);
                     let correctionBtn = `
-                        <a class="btn-open-dp-chat" href="dpchat.html?order_id=${encodeURIComponent(o.id)}&role=admin">
-                            <i class="fa-solid fa-comments"></i> DP Chat
+                        <a class="btn-open-dp-chat ${unread ? 'dp-chat-unread' : ''}" href="dpchat.html?order_id=${encodeURIComponent(o.id)}&role=admin" title="${unread ? 'नई ग्राहक बातचीत / मैटर आया है' : 'DP Chat'}">
+                            <i class="fa-solid ${unread ? 'fa-comment-dots' : 'fa-comments'}"></i> ${unread ? 'नई बातचीत' : 'DP Chat'}
                         </a>
                     `;
                     
