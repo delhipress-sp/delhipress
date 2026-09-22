@@ -191,27 +191,27 @@ function getImages(c){
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 async function findProduct(){
-  // First use the exact card handed over by Index. This is intentionally before
-  // any network request so the detail page opens instantly even on a slow phone.
-  const handoffKeys=['dp_catalog_detail_selected','dp_catalog_detail_fallback','dp_selected_catalog_card','order_selected_card'];
-  for(const key of handoffKeys){
-    const raws=[];
-    try{const x=sessionStorage.getItem(key);if(x)raws.push(x)}catch(e){}
-    try{const x=localStorage.getItem(key);if(x)raws.push(x)}catch(e){}
-    for(const raw of raws){
-      try{
-        const f=JSON.parse(raw);
-        if(!f) continue;
-        if(f._from_index || key==='dp_catalog_detail_selected') return f;
-        if(!activeId || f.id==null || String(f.id)===String(activeId) || String(f.catalog_id??'')===String(activeId)) return f;
-        // Some older Index versions saved the card without _from_index.
-        // If the URL has no usable id, safely accept a complete saved card.
-        if(!activeId && (f.name||f.title||f.image||f.image_url||f.photo)) return f;
-      }catch(e){}
+  // IMPORTANT: the URL id is the identity of the catalog currently opened.
+  // Do not let an old localStorage object override it.
+  const handoffKeys=['dp_catalog_detail_fallback','dp_catalog_detail_selected','dp_selected_catalog_card','order_selected_card'];
+
+  if(activeId){
+    for(const key of handoffKeys){
+      const raws=[];
+      try{const x=sessionStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+      try{const x=localStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+      for(const raw of raws){
+        try{
+          const f=JSON.parse(raw);
+          if(!f) continue;
+          const fid=String(f.id??f.catalog_id??'').trim();
+          if(fid && String(fid)===String(activeId)) return f;
+        }catch(e){}
+      }
     }
   }
 
-  // Direct URL / refresh fallback: try all supported Supabase tables.
+  // Direct URL / refresh fallback: load the exact catalog from Supabase.
   if(sb&&activeId){
     for(const tbl of ['catalog','cards','cards_catalog']){
       try{
@@ -223,15 +223,31 @@ async function findProduct(){
     }
   }
 
-  // Cached Index catalog fallback.
+  // Cached Index catalog fallback, again matching the current URL id.
   try{
-    const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+    const raw=localStorage.getItem('dp_index_catalog')||
+              localStorage.getItem('dp_index_catalog_cache_v3')||
+              sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
     const rows=JSON.parse(raw);
     if(Array.isArray(rows)&&rows.length){
-      const hit=activeId ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId)) : rows[0];
+      const hit=activeId
+        ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId))
+        : rows[0];
       if(hit)return hit;
     }
   }catch(e){}
+
+  // Only when there is no URL id, use a complete saved card as a last resort.
+  if(!activeId){
+    for(const key of ['dp_catalog_detail_fallback','dp_catalog_detail_selected','dp_selected_catalog_card']){
+      try{
+        const raw=localStorage.getItem(key)||sessionStorage.getItem(key);
+        if(!raw)continue;
+        const f=JSON.parse(raw);
+        if(f&&(f.name||f.title||f.image||f.image_url||f.photo))return f;
+      }catch(e){}
+    }
+  }
   return null;
 }
 function variantColor(c){
@@ -269,128 +285,150 @@ async function selectCatalogVariant(index){
 }
 
 async function loadFeedback(){
- feedbackRows=[];
- const norm=v=>String(v??'').trim().toLowerCase();
- const keyNorm=v=>norm(v).replace(/\s+/g,' ');
- const activeIds=new Set([
-   activeId, product?.id, product?.catalog_id, product?.card_id, product?.product_id
- ].map(norm).filter(Boolean));
+  feedbackRows=[];
+  const norm=v=>String(v??'').trim().toLowerCase();
+  const keyNorm=v=>norm(v).replace(/\s+/g,' ');
+  const activeCatalogId=norm(activeId||product?.id||product?.catalog_id||'');
+  const activeIds=new Set([
+    activeCatalogId, product?.id, product?.catalog_id, product?.card_id, product?.product_id
+  ].map(norm).filter(Boolean));
 
- let rows=[];
- if(sb){
-  try{
-   const {data,error}=await Promise.race([
-    sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),8000))
-   ]);
-   if(!error && Array.isArray(data)) rows=data;
-  }catch(e){}
- }
-
- // Resolve old reviews that point to an order instead of catalog_id.
- const orderMap={};
- if(sb && rows.length){
-  try{
-   const orderIds=[...new Set(
-     rows.flatMap(r=>[r?.order_db_id,r?.order_id])
-       .map(v=>String(v??'').trim()).filter(Boolean)
-   )];
-   for(let i=0;i<orderIds.length;i+=100){
-    const ids=orderIds.slice(i,i+100);
+  let rows=[];
+  if(sb){
     try{
-     const {data,error}=await sb.from('orders')
-       .select('id,card_model,card_title,model,title')
-       .in('id',ids);
-     if(!error && Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
+      const {data,error}=await Promise.race([
+        sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),8000))
+      ]);
+      if(!error && Array.isArray(data)) rows=data;
     }catch(e){}
-   }
+  }
+
+  // Build order -> catalog mapping for old feedback rows.
+  const orderMap={};
+  if(sb&&rows.length){
+    const orderIds=[...new Set(
+      rows.flatMap(r=>[r?.order_db_id,r?.order_id])
+        .map(v=>String(v??'').trim()).filter(Boolean)
+    )];
+
+    for(let i=0;i<orderIds.length;i+=100){
+      const ids=orderIds.slice(i,i+100);
+
+      // Current schema used by the site.
+      try{
+        const {data,error}=await sb.from('orders')
+          .select('id,card_model,card_title')
+          .in('id',ids);
+        if(!error&&Array.isArray(data)){
+          data.forEach(o=>orderMap[String(o.id)]=o);
+        }
+      }catch(e){}
+
+      // Compatibility fallback for older orders schemas.
+      const missing=ids.filter(x=>!orderMap[String(x)]);
+      if(missing.length){
+        try{
+          const {data,error}=await sb.from('orders')
+            .select('id,model,title')
+            .in('id',missing);
+          if(!error&&Array.isArray(data)){
+            data.forEach(o=>orderMap[String(o.id)]={
+              id:o.id,
+              card_model:o.model,
+              card_title:o.title
+            });
+          }
+        }catch(e){}
+      }
+    }
+  }
+
+  const pname=keyNorm(product?.name??product?.title??product?.card_name??product?.product_name);
+  const pmodel=norm(product?.model??product?.code??product?.card_model??product?.model_no);
+
+  function titleMatches(a,b){
+    a=keyNorm(a); b=keyNorm(b);
+    if(!a||!b)return false;
+    if(a===b)return true;
+    const aa=new Set(a.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
+    const bb=new Set(b.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
+    let hit=0; aa.forEach(x=>{if(bb.has(x))hit++;});
+    return hit>=2 || (hit>=1&&(a.includes(b)||b.includes(a)));
+  }
+
+  rows.forEach(r=>{
+    const rating=Number(r?.rating??r?.stars??0);
+    if(!(rating>=1&&rating<=5))return;
+
+    let matched=false;
+
+    // 1. Direct catalog ID is always authoritative.
+    const directIds=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
+    if(directIds.some(x=>activeIds.has(x))) matched=true;
+
+    // 2. Legacy feedback: use order_db_id/order_id to find the exact card.
+    if(!matched){
+      const oid=String(r?.order_db_id??r?.order_id??'').trim();
+      const o=orderMap[oid];
+      if(o){
+        const oname=o?.card_title??o?.title??'';
+        const omodel=norm(o?.card_model??o?.model??'');
+        const titleOk=titleMatches(oname,pname);
+        const modelOk=!pmodel||!omodel||pmodel===omodel||pmodel.includes(omodel)||omodel.includes(pmodel);
+        if(titleOk&&modelOk)matched=true;
+      }
+    }
+
+    // 3. Some very old rows contain only catalog/model/title.
+    if(!matched){
+      const rmodel=norm(r?.model??r?.code??r?.card_model??'');
+      const rname=keyNorm(r?.card_title??r?.title??r?.name??'');
+      if(pname&&rname&&titleMatches(rname,pname)){
+        if(!pmodel||!rmodel||pmodel===rmodel||pmodel.includes(rmodel)||rmodel.includes(pmodel)){
+          matched=true;
+        }
+      }
+    }
+
+    if(matched)feedbackRows.push(r);
+  });
+
+  // Local fallback for reviews saved by older versions.
+  try{
+    const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+    Object.keys(map||{}).forEach(k=>{
+      if(activeIds.has(norm(k))){
+        const r=map[k];
+        if(Number(r?.rating??r?.stars??0)>=1)feedbackRows.push({...r,catalog_id:r.catalog_id||k});
+      }
+    });
   }catch(e){}
- }
 
- const pname=keyNorm(product?.name??product?.title??product?.card_name??product?.product_name);
- const pmodel=norm(product?.model??product?.code??product?.card_model??product?.model_no);
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(!k||!k.startsWith('catalog_feedback_'))continue;
+      if(!activeIds.has(norm(k.slice('catalog_feedback_'.length))))continue;
+      const a=JSON.parse(localStorage.getItem(k)||'[]');
+      if(Array.isArray(a))feedbackRows.push(...a);
+    }
+  }catch(e){}
 
- function titleMatches(a,b){
-   a=keyNorm(a); b=keyNorm(b);
-   if(!a||!b)return false;
-   if(a===b)return true;
-   // Require a substantial overlap, not just one generic word like "card".
-   const aa=new Set(a.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
-   const bb=new Set(b.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
-   let hit=0; aa.forEach(x=>{if(bb.has(x))hit++;});
-   return hit>=2 || (hit>=1 && (a.includes(b)||b.includes(a)));
- }
+  // De-duplicate while preserving separate reviews.
+  const seen=new Set();
+  feedbackRows=feedbackRows.filter(r=>{
+    const k=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+
+            String(r?.order_db_id??r?.order_id??'')+'|'+
+            String(r?.catalog_id??'')+'|'+
+            String(r?.rating??r?.stars??'')+'|'+
+            String(r?.feedback??r?.comment??'');
+    if(seen.has(k))return false;
+    seen.add(k);return true;
+  });
 
- rows.forEach(r=>{
-   const rating=Number(r?.rating??r?.stars??0);
-   if(!(rating>=1 && rating<=5))return;
-
-   let matched=false;
-
-   // Direct catalog ID is authoritative.
-   const directIds=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
-   if(directIds.some(x=>activeIds.has(x))) matched=true;
-
-   // Legacy row: resolve via order.
-   if(!matched){
-     const oid=String(r?.order_db_id??r?.order_id??'').trim();
-     const o=orderMap[oid];
-     if(o){
-       const oname=o?.card_title??o?.title??'';
-       const omodel=norm(o?.card_model??o?.model??'');
-       const titleOk=titleMatches(oname,pname);
-       const modelOk=!pmodel||!omodel||pmodel===omodel||pmodel.includes(omodel)||omodel.includes(pmodel);
-       if(titleOk && modelOk) matched=true;
-     }
-   }
-
-   // Some old rows contain only catalog/model text.
-   if(!matched){
-     const rmodel=norm(r?.model??r?.code??'');
-     const rname=keyNorm(r?.card_title??r?.title??'');
-     if(pname && rname && titleMatches(rname,pname)){
-       if(!pmodel||!rmodel||pmodel===rmodel||pmodel.includes(rmodel)||rmodel.includes(pmodel)) matched=true;
-     }
-   }
-
-   if(matched) feedbackRows.push(r);
- });
-
- // Local fallback for reviews saved by older versions.
- try{
-   const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-   Object.keys(map||{}).forEach(k=>{
-     const r=map[k];
-     if(activeIds.has(norm(k)) && Number(r?.rating??r?.stars??0)>=1)
-       feedbackRows.push({...r,catalog_id:r.catalog_id||k});
-   });
- }catch(e){}
-
- try{
-   for(let i=0;i<localStorage.length;i++){
-     const k=localStorage.key(i);
-     if(!k || !k.startsWith('catalog_feedback_'))continue;
-     if(!activeIds.has(norm(k.slice('catalog_feedback_'.length))))continue;
-     const a=JSON.parse(localStorage.getItem(k)||'[]');
-     if(Array.isArray(a)) feedbackRows.push(...a);
-   }
- }catch(e){}
-
- // De-duplicate without collapsing distinct reviews that have the same rating.
- const seen=new Set();
- feedbackRows=feedbackRows.filter(r=>{
-   const k=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+
-           String(r?.order_db_id??r?.order_id??'')+'|'+
-           String(r?.catalog_id??'')+'|'+
-           String(r?.rating??r?.stars??'')+'|'+
-           String(r?.feedback??r?.comment??'');
-   if(seen.has(k))return false;
-   seen.add(k); return true;
- });
-
- renderRatings();
+  renderRatings();
 }
-
 function reviewImageList(r){
  let v=r?.review_images??r?.images??r?.image_urls??r?.photos??r?.review_image??r?.photo??[];
  if(typeof v==='string'){
@@ -405,7 +443,49 @@ function reviewImageList(r){
  }).filter(Boolean);
 }
 
-function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
+function renderRatings(){
+  const rows=feedbackRows.map(r=>({
+    rating:Math.max(1,Math.min(5,parseInt(r?.rating??r?.stars??0,10)||0)),
+    name:r?.name||r?.user_name||'ग्राहक',
+    text:r?.feedback||r?.comment||r?.message||'',
+    images:reviewImageList(r)
+  })).filter(r=>r.rating);
+
+  const total=rows.reduce((a,r)=>a+r.rating,0);
+  const avg=rows.length?total/rows.length:0;
+
+  document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';
+  document.getElementById('topStars').textContent=stars(avg);
+  document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';
+  document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';
+  document.getElementById('bigStars').textContent=stars(avg);
+  document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';
+
+  for(let n=1;n<=5;n++){
+    const c=rows.filter(r=>r.rating===n).length;
+    document.getElementById('c'+n).textContent=c;
+    document.getElementById('b'+n).style.width=(rows.length?(c/rows.length*100):0)+'%';
+  }
+
+  document.getElementById('reviewList').innerHTML=rows.length
+    ? rows.slice(0,50).map(r=>{
+        const photos=r.images.length
+          ? '<div class="review-images">'+r.images.map(u=>
+              '<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+
+              '<img src="'+esc(u)+'" alt="Review photo" loading="lazy" onerror="this.style.display=\\'none\\'">'+
+              '</a>'
+            ).join('')+'</div>'
+          : '';
+        return '<div class="review">'+
+          '<div class="review-head"><b>'+esc(r.name)+'</b><span class="review-stars">'+
+          '★'.repeat(r.rating)+'☆'.repeat(5-r.rating)+
+          '</span></div>'+
+          '<div class="review-text">'+esc(r.text||'रेटिंग दी गई है।')+'</div>'+
+          photos+
+          '</div>';
+      }).join('')
+    : '<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>';
+}
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
 function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
 function getVideos(c){
@@ -697,6 +777,7 @@ async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToas
   try{ product=await findProduct(); }catch(e){ product=null; }
 
   if(product){
+    if(product.id!=null && activeId==null) activeId=product.id;
     render();
     saveRecentlyViewed(product);
     loadRecentlyViewed();
