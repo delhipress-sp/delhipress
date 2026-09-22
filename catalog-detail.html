@@ -273,29 +273,91 @@ async function loadFeedback(){
  const keys=[...new Set([
   String(activeId??'').trim(),String(product?.id??'').trim(),String(product?.catalog_id??'').trim(),String(product?.card_id??'').trim(),String(product?.product_id??'').trim(),String(product?.model??'').trim(),String(product?.code??'').trim(),String(product?.card_model??'').trim(),String(product?.model_no??'').trim(),String(product?.name??'').trim(),String(product?.title??'').trim(),String(product?.card_name??'').trim(),String(product?.product_name??'').trim()
  ].filter(Boolean))];
- const norm=v=>String(v??'').trim().toLowerCase(); const keySet=new Set(keys.map(norm));
+ const norm=v=>String(v??'').trim().toLowerCase();
+ const modelKey=v=>norm(v).replace(/[^a-z0-9]+/g,'');
+ const keySet=new Set(keys.map(norm));
+ const rawRows=[];
+
  if(sb){
   try{
    const {data,error}=await Promise.race([
     sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
     new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),7000))
    ]);
-   if(!error&&Array.isArray(data)) feedbackRows=data.filter(r=>{const rid=norm(r?.catalog_id??r?.card_id??r?.product_id??r?.model??r?.code);return rid&&keySet.has(rid)&&Number(r?.rating??r?.stars??0)>0;});
+   if(!error&&Array.isArray(data)) rawRows.push(...data.map(r=>({...r,_rating_source:'supabase'})));
   }catch(e){}
  }
+
  try{
   const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-  Object.keys(map||{}).forEach(k=>{const r=map[k];if(keySet.has(norm(k))&&Number(r?.rating??r?.stars??0)>0)feedbackRows.push({...r,catalog_id:r.catalog_id||k});});
+  Object.keys(map||{}).forEach(k=>{
+   const r=map[k];
+   if(Number(r?.rating??r?.stars??0)>0) rawRows.push({...r,catalog_id:r.catalog_id||k,_rating_source:'local'});
+  });
  }catch(e){}
+
  try{
   for(let i=0;i<localStorage.length;i++){
-   const k=localStorage.key(i);if(!k||!k.startsWith('catalog_feedback_'))continue;
-   const rid=norm(k.slice('catalog_feedback_'.length));if(!keySet.has(rid))continue;
-   const a=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(a))feedbackRows.push(...a);
+   const k=localStorage.key(i);
+   if(!k||!k.startsWith('catalog_feedback_'))continue;
+   const a=JSON.parse(localStorage.getItem(k)||'[]');
+   if(Array.isArray(a)) rawRows.push(...a.map(r=>({...r,_rating_source:'local-old'})));
   }
  }catch(e){}
- const seen=new Set();feedbackRows=feedbackRows.filter(r=>{const k=String(r.id??'')+'|'+String(r.created_at??'')+'|'+String(r.catalog_id??'')+'|'+String(r.rating??r.stars??'');if(seen.has(k))return false;seen.add(k);return true;});
- if(!feedbackRows.length){const fallbackRating=Number(product?.rating??product?.avg_rating??product?.average_rating??product?.stars??product?.catalog_rating??0);if(fallbackRating>0)feedbackRows=[{catalog_id:keys[0]||'',rating:Math.max(1,Math.min(5,fallbackRating)),name:'Catalog Rating',feedback:''}];}
+
+ // Resolve older feedback rows that have old_catalog_id + order_db_id.
+ const orderMap={};
+ if(sb){
+  try{
+   const orderIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??'').trim()).filter(Boolean))];
+   if(orderIds.length){
+    const {data:orders,error}=await sb.from('orders').select('id,card_model,card_title').in('id',orderIds);
+    if(!error&&Array.isArray(orders)) orders.forEach(o=>{orderMap[String(o.id)]=o;});
+   }
+  }catch(e){}
+ }
+
+ const resolvedRows=[];
+ const seen=new Set();
+
+ rawRows.forEach(r=>{
+  const dedupeKey=String(
+   r?.id ??
+   `${r?.order_db_id??''}|${r?.catalog_id??''}|${r?.old_catalog_id??''}|${r?.created_at??''}|${r?.rating??r?.stars??''}|${r?.name??r?.user_name??''}`
+  );
+  if(seen.has(dedupeKey))return;
+  seen.add(dedupeKey);
+
+  const ids=new Set();
+
+  [r?.catalog_id,r?.card_id,r?.product_id].forEach(v=>{
+   if(v!==undefined&&v!==null&&norm(v))ids.add(norm(v));
+  });
+
+  const order=orderMap[String(r?.order_db_id??'')];
+  if(order){
+   const title=norm(order.card_title);
+   const omodel=modelKey(order.card_model);
+   const pname=norm(product?.name??product?.title??product?.card_name??product?.product_name);
+   const pmodel=modelKey(product?.model??product?.code??product?.card_model??product?.model_no);
+   const titleMatch=pname&&title&&(title===pname||title.includes(pname));
+   const modelMatch=!omodel||!pmodel||omodel===pmodel||omodel.includes(pmodel)||pmodel.includes(omodel);
+   if(titleMatch&&modelMatch){
+    const cid=product?.id??product?.catalog_id;
+    if(cid!==undefined&&cid!==null&&norm(cid))ids.add(norm(cid));
+   }
+  }
+
+  r._resolved_catalog_ids=[...ids];
+  const matches=r._resolved_catalog_ids.some(x=>keySet.has(x));
+  if(matches && Number(r?.rating??r?.stars??0)>0) resolvedRows.push(r);
+ });
+
+ feedbackRows=resolvedRows;
+ if(!feedbackRows.length){
+  const fallbackRating=Number(product?.rating??product?.avg_rating??product?.average_rating??product?.stars??product?.catalog_rating??0);
+  if(fallbackRating>0)feedbackRows=[{catalog_id:keys[0]||'',rating:Math.max(1,Math.min(5,fallbackRating)),name:'Catalog Rating',feedback:''}];
+ }
  renderRatings();
 }
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
