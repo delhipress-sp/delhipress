@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -75,6 +74,19 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
   .section{border-radius:16px!important}
   .recommended-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
 }
+
+/* Catalog image zoom popup */
+.zoom-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;align-items:center;justify-content:center;overflow:hidden}
+.zoom-modal.show{display:flex}
+.zoom-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.zoom-image{max-width:92vw;max-height:82vh;object-fit:contain;transform:scale(1);transition:transform .15s ease;user-select:none;-webkit-user-drag:none;touch-action:none}
+.zoom-close{position:absolute;right:14px;top:14px;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:#172b4d;font-size:24px;font-weight:800;z-index:3}
+.zoom-controls{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.96);padding:8px 10px;border-radius:30px;z-index:3;box-shadow:0 4px 20px #0006}
+.zoom-controls button{width:44px;height:44px;border:0;border-radius:50%;background:#063b91;color:#fff;font-size:21px;font-weight:800}
+.zoom-level{min-width:58px;text-align:center;font-weight:800;color:#172b4d}
+.zoom-hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;background:#0008;padding:5px 10px;border-radius:16px}
+.main-image img{cursor:zoom-in}
+@media(max-width:520px){.zoom-image{max-width:96vw;max-height:78vh}.zoom-controls{bottom:18px}.zoom-hint{top:12px;font-size:11px}}
 </style>
 </head>
 <body>
@@ -91,7 +103,7 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
       <div class="gallery">
         <div class="main-image" id="mainImageBox">
           <button class="arrow left" onclick="prevImage()"><i class="fa-solid fa-chevron-left"></i></button>
-          <img id="mainImage" src="" alt="Catalog">
+          <img id="mainImage" src="" alt="Catalog" onclick="openZoom()">
           <video id="mainVideo" playsinline preload="metadata" controls style="display:none;width:100%;height:100%;object-fit:contain;background:#000"></video>
           <button id="mediaPlayOverlay" type="button" onclick="playMainVideo()" aria-label="वीडियो चलाएँ" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:58px;height:58px;border:0;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:25px;align-items:center;justify-content:center;cursor:pointer"><i class="fa-solid fa-play"></i></button>
           <button id="videoFullBtn" type="button" onclick="openVideoFullscreen()" aria-label="वीडियो फुल स्क्रीन" style="display:none;position:absolute;right:48px;bottom:10px;z-index:8;border:0;border-radius:8px;background:rgba(0,0,0,.7);color:#fff;padding:7px 9px;cursor:pointer"><i class="fa-solid fa-expand"></i></button>
@@ -156,6 +168,20 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
     <button type="button" onclick="resetZoom()" title="Reset">1:1</button>
     <button type="button" onclick="changeZoom(.2)" title="Zoom In">+</button>
     <button type="button" id="threeDBtn" onclick="toggle3D()" title="3D">3D</button>
+  </div>
+</div>
+
+<div id="zoomModal" class="zoom-modal" aria-hidden="true">
+  <div class="zoom-stage" id="zoomStage">
+    <div class="zoom-hint">चित्र पर डबल टैप / पिंच करें या + / − दबाएँ</div>
+    <button class="zoom-close" type="button" onclick="closeZoom()" aria-label="बंद करें">×</button>
+    <img id="zoomImage" class="zoom-image" src="" alt="Catalog Preview">
+    <div class="zoom-controls">
+      <button type="button" onclick="zoomOut()" aria-label="Zoom out">−</button>
+      <span class="zoom-level" id="zoomLevel">100%</span>
+      <button type="button" onclick="zoomIn()" aria-label="Zoom in">+</button>
+      <button type="button" onclick="zoomReset()" aria-label="Reset">↺</button>
+    </div>
   </div>
 </div>
 <div id="toast" class="toast"></div>
@@ -609,6 +635,17 @@ setTimeout(()=>{
   }catch(e){}
   loading.innerHTML='कैटलॉग विवरण अभी उपलब्ध नहीं है। कृपया वापस जाकर कार्ड दोबारा खोलें।';
 },5500);
+
+/* Zoom popup */
+let zoomScale=1, zoomX=0, zoomY=0, zoomStartX=0, zoomStartY=0, zoomDragging=false;
+function updateZoom(){const im=document.getElementById('zoomImage');if(!im)return;im.style.transform=`translate(${zoomX}px,${zoomY}px) scale(${zoomScale})`;document.getElementById('zoomLevel').textContent=Math.round(zoomScale*100)+'%';}
+function openZoom(){const src=document.getElementById('mainImage')?.src;if(!src)return;const m=document.getElementById('zoomModal'),im=document.getElementById('zoomImage');im.src=src;zoomScale=1;zoomX=0;zoomY=0;updateZoom();m.classList.add('show');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+function closeZoom(){const m=document.getElementById('zoomModal');if(!m)return;m.classList.remove('show');m.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+function zoomIn(){zoomScale=Math.min(4,zoomScale+.25);updateZoom();}
+function zoomOut(){zoomScale=Math.max(1,zoomScale-.25);if(zoomScale===1){zoomX=0;zoomY=0}updateZoom();}
+function zoomReset(){zoomScale=1;zoomX=0;zoomY=0;updateZoom();}
+document.addEventListener('keydown',e=>{if(!document.getElementById('zoomModal')?.classList.contains('show'))return;if(e.key==='Escape')closeZoom();if(e.key==='+'||e.key==='=')zoomIn();if(e.key==='-')zoomOut();});
+(function(){const stage=document.getElementById('zoomStage'),im=document.getElementById('zoomImage');if(!stage||!im)return;let sx=0,sy=0,moved=false;stage.addEventListener('pointerdown',e=>{if(e.target!==im)return;zoomDragging=true;moved=false;sx=e.clientX-zoomX;sy=e.clientY-zoomY;im.setPointerCapture?.(e.pointerId)});stage.addEventListener('pointermove',e=>{if(!zoomDragging||zoomScale<=1)return;const nx=e.clientX-sx,ny=e.clientY-sy;if(Math.abs(nx-zoomX)>2||Math.abs(ny-zoomY)>2)moved=true;zoomX=nx;zoomY=ny;updateZoom()});stage.addEventListener('pointerup',e=>{zoomDragging=false;try{im.releasePointerCapture?.(e.pointerId)}catch(_){} });let lastTap=0;im.addEventListener('click',()=>{const now=Date.now();if(now-lastTap<320){zoomScale=zoomScale>1?1:2;zoomX=0;zoomY=0;updateZoom()}lastTap=now});stage.addEventListener('wheel',e=>{if(!document.getElementById('zoomModal')?.classList.contains('show'))return;e.preventDefault();e.deltaY<0?zoomIn():zoomOut()},{passive:false});stage.addEventListener('click',e=>{if(e.target===stage)closeZoom()});})();
 </script>
 </body>
 </html>
