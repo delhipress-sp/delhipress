@@ -33,6 +33,36 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .loading,.error-state{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;color:#64748b}.error-state .box{background:#fff;border-radius:16px;padding:24px;max-width:420px;box-shadow:0 12px 35px rgba(0,0,0,.12)}.error-state h3{color:#0f172a;margin-bottom:8px}.main-btn{border:0;border-radius:22px;padding:9px 18px;background:#128c7e;color:#fff;font-weight:800;cursor:pointer;margin-top:12px}
 @media(min-width:901px){body{padding:12px}.chat-app{height:calc(100vh - 24px);border-radius:18px;overflow:hidden}}
 @media(max-width:520px){.msg{max-width:88%}.head-info b{font-size:15px}.order-bar{padding:6px 9px}.chat-area{padding:10px 7px}.tool-btn{width:38px;height:38px}.send-btn{width:40px;height:40px}.text-wrap textarea{min-height:38px}}
+
+/* Mobile responsive + attachment menu */
+.attach-menu{position:absolute;left:10px;bottom:76px;display:none;background:#fff;border-radius:18px;padding:8px;box-shadow:0 8px 30px rgba(0,0,0,.22);z-index:20;min-width:190px;border:1px solid #e5e7eb}
+.attach-menu.show{display:block;animation:attachIn .16s ease}
+@keyframes attachIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.attach-item{width:100%;border:0;background:#fff;padding:11px 12px;display:flex;align-items:center;gap:12px;border-radius:12px;font-size:15px;font-weight:700;color:#1f2937;text-align:left}
+.attach-item:active{background:#f1f5f9}.attach-item i{width:24px;text-align:center;font-size:19px;color:#128c7e}
+.compose{position:relative}
+@media(max-width:600px){
+ html,body{width:100%;height:100%;overflow:hidden;background:#efeae2}
+ .chat-app{width:100%;max-width:none;height:100dvh;height:100vh;box-shadow:none}
+ .chat-head{min-height:58px;padding:8px 9px;gap:8px}
+ .back-btn{width:38px;height:38px;flex:0 0 38px}
+ .avatar{width:38px!important;height:38px!important;flex:0 0 38px}
+ .head-title{font-size:15px!important;line-height:18px}.head-sub{font-size:11px!important}
+ .order-info{padding:6px 8px!important;font-size:11px!important;gap:5px!important}
+ .chat-main{padding:8px 6px 10px!important;gap:5px!important;overflow-x:hidden}
+ .msg{max-width:88%!important;font-size:14px!important;padding:8px 10px!important;border-radius:14px!important}
+ .file-card{max-width:100%!important}
+ .compose{padding:6px 6px calc(6px + env(safe-area-inset-bottom))!important}
+ .compose-row{gap:5px!important;align-items:flex-end!important}
+ .tool-btn{width:40px!important;height:40px!important;min-width:40px!important;font-size:18px!important}
+ .send-btn{width:42px!important;height:42px!important;min-width:42px!important}
+ .text-wrap{min-width:0!important;flex:1!important}.text-wrap textarea{min-height:40px!important;max-height:110px!important;padding:10px 11px!important;font-size:15px!important}
+ .file-name{max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 6px 0!important}
+ .attach-menu{left:6px;bottom:72px;right:6px;min-width:0;width:calc(100% - 12px);padding:7px}
+ .attach-item{padding:12px 13px;font-size:15px}
+ .typing{font-size:11px!important;padding:2px 8px!important}
+}
+@media(min-width:601px){.attach-menu{left:10px}}
 </style>
 </head>
 <body>
@@ -57,10 +87,16 @@ body{display:flex;flex-direction:column;min-height:100vh}
   <div class="typing" id="typingBar">सामने वाला टाइप कर रहा है <span>● ● ●</span></div>
   <div class="preview" id="voicePreview"><b>वॉयस तैयार है</b><audio id="voiceAudio" controls></audio><button id="cancelVoice">×</button></div>
   <div class="compose">
+    <div class="attach-menu" id="attachMenu">
+      <button class="attach-item" type="button" id="galleryAttach"><i class="fa-solid fa-images"></i><span>गैलरी से फोटो / वीडियो</span></button>
+      <button class="attach-item" type="button" id="documentAttach"><i class="fa-solid fa-file-lines"></i><span>Documents / PDF / File</span></button>
+      <button class="attach-item" type="button" id="cameraAttach"><i class="fa-solid fa-camera"></i><span>कैमरा से फोटो</span></button>
+    </div>
     <div class="compose-row">
-      <button class="tool-btn" id="fileBtn" title="फाइल भेजें"><i class="fa-solid fa-paperclip"></i></button>
-      <input class="hidden" type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,audio/*">
-      <button class="tool-btn" id="cameraBtn" title="कैमरा"><i class="fa-solid fa-camera"></i></button>
+      <button class="tool-btn" id="fileBtn" title="फोटो, वीडियो या दस्तावेज भेजें"><i class="fa-solid fa-paperclip"></i></button>
+      <input class="hidden" type="file" id="galleryInput" accept="image/*,video/*" multiple>
+      <input class="hidden" type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.ppt,.pptx,.zip,.rar,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain" multiple>
+      <input class="hidden" type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.ppt,.pptx,.zip,.rar,audio/*" multiple>
       <input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
       <div class="text-wrap"><textarea id="messageInput" rows="1" placeholder="मैसेज लिखें…" maxlength="5000"></textarea></div>
       <button class="tool-btn" id="micBtn" title="वॉयस रिकॉर्ड करें"><i class="fa-solid fa-microphone"></i></button>
@@ -190,7 +226,7 @@ async function sendMessage(){
   }catch(e){alert(e.message||'मैसेज भेजने में समस्या हुई।')}finally{$('sendBtn').disabled=false}
 }
 function clearComposer(){
-  $('messageInput').value='';selectedFile=null;$('fileInput').value='';$('cameraInput').value='';$('fileName').textContent='';
+  $('messageInput').value='';selectedFile=null;$('fileInput').value='';$('galleryInput').value='';$('documentInput').value='';$('cameraInput').value='';$('fileName').textContent='';closeAttachMenu();
   voiceBlob=null;if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null}$('voicePreview').style.display='none';$('voiceAudio').removeAttribute('src');
 }
 function chooseFile(f){selectedFile=f||null;$('fileName').textContent=f?'📎 '+f.name:''}
@@ -209,7 +245,18 @@ async function toggleVoice(){
 $('sendBtn').onclick=sendMessage;
 $('messageInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px';typeSignal()});
 $('messageInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
-$('fileBtn').onclick=()=>$('fileInput').click();$('cameraBtn').onclick=()=>$('cameraInput').click();$('micBtn').onclick=toggleVoice;
+const attachMenu=$('attachMenu');
+function closeAttachMenu(){if(attachMenu)attachMenu.classList.remove('show');}
+$('fileBtn').onclick=(e)=>{e.stopPropagation(); attachMenu.classList.toggle('show');};
+$('galleryAttach').onclick=()=>{closeAttachMenu();$('galleryInput').click();};
+$('documentAttach').onclick=()=>{closeAttachMenu();$('documentInput').click();};
+$('cameraAttach').onclick=()=>{closeAttachMenu();$('cameraInput').click();};
+document.addEventListener('click',e=>{if(attachMenu&&!attachMenu.contains(e.target)&&e.target!==$('fileBtn'))closeAttachMenu();});
+function selectAttachment(file){selectedFile=file||null;$('fileName').textContent=file?('📎 '+file.name):'';}
+$('galleryInput').onchange=e=>selectAttachment(e.target.files&&e.target.files[0]);
+$('documentInput').onchange=e=>selectAttachment(e.target.files&&e.target.files[0]);
+$('cameraInput').onchange=e=>selectAttachment(e.target.files&&e.target.files[0]);
+$('cameraBtn').onclick=()=>$('cameraInput').click();$('micBtn').onclick=toggleVoice;
 $('fileInput').onchange=e=>chooseFile(e.target.files[0]);$('cameraInput').onchange=e=>chooseFile(e.target.files[0]);
 $('cancelVoice').onclick=()=>{voiceBlob=null;if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null}$('voicePreview').style.display='none';$('voiceAudio').removeAttribute('src')};
 $('refreshBtn').onclick=loadOrder;
