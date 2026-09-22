@@ -162,7 +162,8 @@
             btn.innerText = "जांच हो रही है..."; btn.disabled = true;
 
             const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const emailInput = document.getElementById('regEmail').value.trim().toLowerCase();
+            const email = emailInput ? emailInput : null;
             const mobile = document.getElementById('regMobile').value.trim();
             const village = document.getElementById('regVillage').value.trim();
             const address = document.getElementById('regAddress').value.trim();
@@ -183,7 +184,7 @@
 
                 const { error } = await supabaseClient
                     .from('users')
-                    .insert([{ email, mobile, name, village, address, pass }]);
+                    .insert([{ email: email, mobile, name, village, address, pass }]);
 
                 if (error) throw error;
 
