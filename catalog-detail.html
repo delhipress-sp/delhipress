@@ -65,6 +65,15 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
 .zoom-tools button.active{background:#2874f0;color:#fff}
 .video-full-btn{position:absolute;right:10px;bottom:10px;z-index:6;border:0;background:#0009;color:#fff;border-radius:18px;padding:6px 10px;font-size:11px;cursor:pointer}
 @media(max-width:800px){.photo-click-hint{font-size:9px}.media-play-overlay{width:60px;height:60px}.zoom-stage{height:82vh}}
+<style>
+/* Detail-page polish: fast, clean, mobile-friendly catalog view */
+.detail-price{font-weight:900}
+.loading-soft{animation:detailPulse 1.4s ease-in-out infinite}
+@keyframes detailPulse{0%,100%{opacity:.45}50%{opacity:1}}
+@media(max-width:768px){
+  .section{border-radius:16px!important}
+  .recommended-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+}
 </style>
 </head>
 <body>
@@ -82,6 +91,9 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
         <div class="main-image" id="mainImageBox">
           <button class="arrow left" onclick="prevImage()"><i class="fa-solid fa-chevron-left"></i></button>
           <img id="mainImage" src="" alt="Catalog">
+          <video id="mainVideo" playsinline preload="metadata" controls style="display:none;width:100%;height:100%;object-fit:contain;background:#000"></video>
+          <button id="mediaPlayOverlay" type="button" onclick="playMainVideo()" aria-label="वीडियो चलाएँ" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:58px;height:58px;border:0;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:25px;align-items:center;justify-content:center;cursor:pointer"><i class="fa-solid fa-play"></i></button>
+          <button id="videoFullBtn" type="button" onclick="openVideoFullscreen()" aria-label="वीडियो फुल स्क्रीन" style="display:none;position:absolute;right:48px;bottom:10px;z-index:8;border:0;border-radius:8px;background:rgba(0,0,0,.7);color:#fff;padding:7px 9px;cursor:pointer"><i class="fa-solid fa-expand"></i></button>
           <button class="arrow right" onclick="nextImage()"><i class="fa-solid fa-chevron-right"></i></button>
           <div class="count" id="imageCount">1 / 1</div>
         </div>
@@ -166,90 +178,49 @@ function getImages(c){
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 async function findProduct(){
-  const requested=String(activeId??'').trim();
-
-  // 1) Index hand-off is the fastest and most reliable source.
-  // When a user clicks a card, Index stores the complete card here.
-  try{
-    for(const key of ['dp_catalog_detail_fallback','dp_selected_catalog_card']){
-      const raw=localStorage.getItem(key);
-      if(!raw) continue;
-      const f=JSON.parse(raw);
-      if(f && typeof f==='object' &&
-         (f.name||f.title||f.image||f.image_url||f.photo||f.model||f.code)){
-        // A click from Index should always open the card that was just selected.
-        // Do not reject it because the URL ID uses a different DB identifier.
-        return f;
-      }
-    }
-  }catch(e){}
-
-  // Helper: never allow a Supabase request to keep the whole page on "loading".
-  async function timed(promise, ms=4500){
-    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),ms));
-    return await Promise.race([promise,timeout]);
-  }
-
-  if(sb){
-    const tables=['catalog','cards','cards_catalog'];
-
-    // 2) Exact DB id.
-    if(requested){
-      for(const tbl of tables){
-        try{
-          const res=await timed(sb.from(tbl).select('*').eq('id',requested).limit(1));
-          if(!res.error && res.data?.[0]) return {...res.data[0],_source_table:tbl};
-        }catch(e){}
-      }
-    }
-
-    // 3) Public model/code/catalog id. This is important for cards like 140026.
-    if(requested){
-      for(const tbl of tables){
-        for(const field of ['catalog_id','model','code','card_model','model_no']){
-          try{
-            const res=await timed(sb.from(tbl).select('*').eq(field,requested).limit(1));
-            if(!res.error && res.data?.[0]) return {...res.data[0],_source_table:tbl};
-          }catch(e){}
-        }
-      }
-    }
-
-    // 4) Final cloud fallback: read a limited catalog list and compare all
-    // common identifiers. This handles UUID DB IDs + numeric model numbers.
-    for(const tbl of tables){
+  // First use the exact card handed over by Index. This is intentionally before
+  // any network request so the detail page opens instantly even on a slow phone.
+  const handoffKeys=['dp_catalog_detail_selected','dp_catalog_detail_fallback','dp_selected_catalog_card','order_selected_card'];
+  for(const key of handoffKeys){
+    const raws=[];
+    try{const x=sessionStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+    try{const x=localStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+    for(const raw of raws){
       try{
-        const res=await timed(sb.from(tbl).select('*').limit(200),5000);
-        if(res.error || !Array.isArray(res.data)) continue;
-        const hit=res.data.find(c=>{
-          const keys=[c?.id,c?.catalog_id,c?.model,c?.code,c?.card_model,c?.model_no]
-            .map(v=>String(v??'').trim()).filter(Boolean);
-          return requested && keys.includes(requested);
-        });
-        if(hit) return {...hit,_source_table:tbl};
+        const f=JSON.parse(raw);
+        if(!f) continue;
+        if(f._from_index || key==='dp_catalog_detail_selected') return f;
+        if(!activeId || f.id==null || String(f.id)===String(activeId) || String(f.catalog_id??'')===String(activeId)) return f;
+        // Some older Index versions saved the card without _from_index.
+        // If the URL has no usable id, safely accept a complete saved card.
+        if(!activeId && (f.name||f.title||f.image||f.image_url||f.photo)) return f;
       }catch(e){}
     }
   }
 
-  // 5) Index catalog cache fallback.
+  // Direct URL / refresh fallback: try all supported Supabase tables.
+  if(sb&&activeId){
+    for(const tbl of ['catalog','cards','cards_catalog']){
+      try{
+        const query=sb.from(tbl).select('*').eq('id',activeId).limit(1);
+        const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));
+        const {data,error}=await Promise.race([query,timeout]);
+        if(!error&&Array.isArray(data)&&data[0]) return {...data[0],_source_table:tbl};
+      }catch(e){}
+    }
+  }
+
+  // Cached Index catalog fallback.
   try{
-    for(const key of ['dp_index_catalog','dp_index_catalog_cache_v3','dp_catalog','catalog_data']){
-      const raw=localStorage.getItem(key);
-      if(!raw) continue;
-      const rows=JSON.parse(raw);
-      if(!Array.isArray(rows)) continue;
-      const hit=rows.find(c=>{
-        const keys=[c?.id,c?.catalog_id,c?.model,c?.code,c?.card_model,c?.model_no]
-          .map(v=>String(v??'').trim()).filter(Boolean);
-        return requested && keys.includes(requested);
-      });
-      if(hit) return hit;
+    const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+    const rows=JSON.parse(raw);
+    if(Array.isArray(rows)&&rows.length){
+      const hit=activeId ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId)) : rows[0];
+      if(hit)return hit;
     }
   }catch(e){}
-
   return null;
 }
-
 function variantColor(c){
  const direct=String(c?.variant_color??c?.color??c?.card_color??'').trim(); if(direct)return direct;
  const d=String(c?.description??''); const m=d.match(/\[\[COLOR:([^\]]+)\]\]/i); return m?m[1].trim():'';
@@ -284,7 +255,7 @@ async function selectCatalogVariant(index){
  render(); await loadVariants(); await loadFeedback(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function loadFeedback(){feedbackRows=[];if(sb&&activeId){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {data,error}=await sb.from(tbl).select('*').eq('catalog_id',activeId).order('created_at',{ascending:false}).limit(100);if(!error&&Array.isArray(data)){feedbackRows=data;break}}catch(e){}}}const local=JSON.parse(localStorage.getItem('catalog_feedback_'+activeId)||'[]');feedbackRows=[...feedbackRows,...local];renderRatings();}
+async function loadFeedback(){feedbackRows=[];if(sb&&activeId){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {data,error}=await sb.from(tbl).select('*').eq('catalog_id',activeId).order('created_at',{ascending:false}).limit(100);if(!error&&Array.isArray(data)){feedbackRows=data;break}}catch(e){}}}let local=[];try{local=JSON.parse(localStorage.getItem('catalog_feedback_'+activeId)||'[]');if(!Array.isArray(local))local=[];}catch(e){local=[]}feedbackRows=[...feedbackRows,...local];renderRatings();}
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
 function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
@@ -310,6 +281,7 @@ function getVideos(c){
 let mediaItems=[];
 function renderGallery(){
   const t=document.getElementById('thumbs');
+  if(!t)return;
   mediaItems=[
     ...images.map((url,i)=>({type:'image',url,index:i})),
     ...getVideos(product).map(url=>({type:'video',url}))
@@ -328,16 +300,23 @@ function setMedia(i){
   const idx=(i+mediaItems.length)%mediaItems.length;
   const m=mediaItems[idx];
   imageIndex=idx;
-  const img=document.getElementById('mainImage'), vid=document.getElementById('mainVideo');
-  const play=document.getElementById('mediaPlayOverlay'), full=document.getElementById('videoFullBtn');
+  const img=document.getElementById('mainImage');
+  const vid=document.getElementById('mainVideo');
+  const play=document.getElementById('mediaPlayOverlay');
+  const full=document.getElementById('videoFullBtn');
   if(m.type==='video'){
-    img.style.display='none'; vid.style.display='block'; vid.src=m.url; vid.currentTime=0;
-    play.style.display='flex'; full.style.display='block';
+    if(img)img.style.display='none';
+    if(vid){vid.style.display='block';vid.src=m.url;try{vid.currentTime=0}catch(e){}}
+    if(play)play.style.display='flex';
+    if(full)full.style.display='block';
   }else{
-    vid.pause(); vid.removeAttribute('src'); vid.load(); vid.style.display='none';
-    img.style.display='block'; img.src=m.url; play.style.display='none'; full.style.display='none';
+    if(vid){try{vid.pause()}catch(e){};vid.removeAttribute('src');try{vid.load()}catch(e){};vid.style.display='none';}
+    if(img){img.style.display='block';img.src=m.url;}
+    if(play)play.style.display='none';
+    if(full)full.style.display='none';
   }
-  document.getElementById('imageCount').textContent=(idx+1)+' / '+mediaItems.length;
+  const counter=document.getElementById('imageCount');
+  if(counter)counter.textContent=(idx+1)+' / '+mediaItems.length;
   document.querySelectorAll('.thumb').forEach((x,n)=>x.classList.toggle('active',n===idx));
 }
 function setImage(i){
@@ -436,7 +415,29 @@ function renderSmallCards(rows,boxId,emptyText){
   }).join('');
 }
 
-function loadRecentlyViewed(){let rows=[];try{rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];}catch(e){}const cur=String(product?.id??id??'');rows=rows.filter(x=>String(x.id??'')!==cur).slice(0,12);window._recentRows=rows;renderSmallCards(rows,'recentCatalog','अभी कोई Recently Viewed कार्ड नहीं है।');}
+function loadRecentlyViewed(){
+  let rows=[];
+  try{rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];}catch(e){rows=[];}
+  const cur=String(product?.id??id??'');
+  const seen=new Set();
+  rows=rows.filter(x=>{
+    const k=recentKey(x); if(String(x?.id??x?.catalog_id??'')===cur)return false;
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  // First visit/new browser पर भी section खाली न रहे: Index के दूसरे cards दिखाएँ।
+  if(!rows.length){
+    try{
+      const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+      const cached=JSON.parse(raw);
+      if(Array.isArray(cached)){
+        rows=cached.filter(x=>String(x?.id??x?.catalog_id??'')!==cur).slice(0,8);
+      }
+    }catch(e){}
+  }
+  rows=rows.slice(0,12);
+  window._recentRows=rows;
+  renderSmallCards(rows,'recentCatalog','अभी कोई Recently Viewed कार्ड नहीं है।');
+}
 function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window._recentRows||[]):(window._updatedRows||[]);const c=rows[index];if(!c)return;try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));saveRecentlyViewed(c);}catch(e){}location.href='catalog-detail.html?id='+encodeURIComponent(c.id??'');}
 async function fetchTableRows(tbl,limit=100){if(!sb)return [];try{const query=sb.from(tbl).select('*').order('id',{ascending:false}).limit(limit);const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));const res=await Promise.race([query,timeout]);if(res?.error||!Array.isArray(res?.data))return [];return res.data.map(x=>({...x,_source_table:tbl}));}catch(e){return [];}}
 async function loadMoreUpdatedCards(){
@@ -444,7 +445,7 @@ async function loadMoreUpdatedCards(){
   let rows=[];
   // Exact Index catalog first. This is the source for More Products.
   try{
-    const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||'[]');
+    const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]');
     if(Array.isArray(local)&&local.length) rows=local;
   }catch(e){}
 
@@ -490,12 +491,11 @@ async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToas
 (async function(){
   updateCart();
 
-  // Render the selected card first. Network/catalog extras are secondary.
-  try{
-    product=await findProduct();
-  }catch(e){
-    product=null;
-  }
+  // More Products is independent of the selected product. Render it immediately
+  // from the same cache used by Index, then refresh from Supabase if necessary.
+  loadMoreUpdatedCards().catch(()=>{});
+
+  try{ product=await findProduct(); }catch(e){ product=null; }
 
   if(product){
     render();
@@ -503,34 +503,47 @@ async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToas
     loadRecentlyViewed();
     loadMoreUpdatedCards().catch(()=>{});
     loadVariants().catch(()=>{});
-    loadFeedback().catch(()=>{});
-  }else{
-    document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';
-    // Still try the More Products section independently.
-    loadMoreUpdatedCards().catch(()=>{});
+    if(product.id||activeId) loadFeedback().catch(()=>{});
+    return;
   }
-})();;
 
-// Safety guard: never leave the customer on an endless catalog loader.
-setTimeout(()=>{
-  const l=document.getElementById('loading');
-  const p=document.getElementById('productArea');
-  if(l && l.style.display!=='none' && (!p || p.style.display==='none')){
-    try{
-      const f=JSON.parse(localStorage.getItem('dp_catalog_detail_fallback')||'null');
-      if(f && (f.name||f.title||f.image||f.image_url||f.model)){
-        product=f;
-        render();
+  // Final local fallback: older pages may have saved only the selected card.
+  try{
+    const candidates=['dp_catalog_detail_fallback','dp_catalog_detail_selected','dp_selected_catalog_card'];
+    for(const key of candidates){
+      const raw=localStorage.getItem(key)||sessionStorage.getItem(key);
+      if(!raw) continue;
+      const f=JSON.parse(raw);
+      if(f && (f.name||f.title||f.image||f.image_url||f.photo)){
+        product=f; render(); saveRecentlyViewed(product); loadRecentlyViewed();
         loadFeedback().catch(()=>{});
-      }else{
-        l.innerHTML='कैटलॉग अभी उपलब्ध नहीं है। कृपया वापस जाकर कार्ड दोबारा खोलें।';
+        return;
       }
-    }catch(e){
-      l.innerHTML='कैटलॉग अभी उपलब्ध नहीं है। कृपया वापस जाकर कार्ड दोबारा खोलें।';
     }
-  }
-},7000);
+  }catch(e){}
 
+  document.getElementById('loading').innerHTML='कैटलॉग विवरण अभी उपलब्ध नहीं है। कृपया कार्ड को कैटलॉग से दोबारा खोलें।';
+})();
+
+// Never leave a customer on an endless loading state. If the main query was
+// slow, use the saved Index handoff/cache and render the page immediately.
+setTimeout(()=>{
+  const loading=document.getElementById('loading');
+  const area=document.getElementById('productArea');
+  if(!loading || loading.style.display==='none' || (area && area.style.display!=='none')) return;
+  try{
+    const raw=localStorage.getItem('dp_catalog_detail_fallback')||localStorage.getItem('dp_catalog_detail_selected')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3');
+    if(raw){
+      const value=JSON.parse(raw);
+      const f=Array.isArray(value) ? (value.find(x=>!activeId || String(x?.id??x?.catalog_id??'')===String(activeId))||value[0]) : value;
+      if(f && (f.name||f.title||f.image||f.image_url||f.photo)){
+        product=f; render(); saveRecentlyViewed(product); loadRecentlyViewed(); loadFeedback().catch(()=>{});
+        return;
+      }
+    }
+  }catch(e){}
+  loading.innerHTML='कैटलॉग विवरण अभी उपलब्ध नहीं है। कृपया वापस जाकर कार्ड दोबारा खोलें।';
+},5500);
 </script>
 </body>
 </html>
