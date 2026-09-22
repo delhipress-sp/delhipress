@@ -271,66 +271,31 @@ async function selectCatalogVariant(index){
 async function loadFeedback(){
  feedbackRows=[];
  const keys=[...new Set([
-   String(activeId??'').trim(),
-   String(product?.id??'').trim(),
-   String(product?.catalog_id??'').trim(),
-   String(product?.card_id??'').trim(),
-   String(product?.product_id??'').trim(),
-   String(product?.model??'').trim(),
-   String(product?.code??'').trim(),
-   String(product?.card_model??'').trim(),
-   String(product?.model_no??'').trim()
+  String(activeId??'').trim(),String(product?.id??'').trim(),String(product?.catalog_id??'').trim(),String(product?.card_id??'').trim(),String(product?.product_id??'').trim(),String(product?.model??'').trim(),String(product?.code??'').trim(),String(product?.card_model??'').trim(),String(product?.model_no??'').trim(),String(product?.name??'').trim(),String(product?.title??'').trim(),String(product?.card_name??'').trim(),String(product?.product_name??'').trim()
  ].filter(Boolean))];
- if(sb&&keys.length){
-   const found=[];
-   for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){
-     for(const key of keys){
-       try{
-         const {data,error}=await sb.from(tbl).select('*').eq('catalog_id',key).order('created_at',{ascending:false}).limit(100);
-         if(!error&&Array.isArray(data)) found.push(...data);
-       }catch(e){}
-     }
-     if(found.length) break;
-   }
-   const seen=new Set();
-   feedbackRows=found.filter(r=>{
-     const k=String(r.id??'')+'|'+String(r.created_at??'')+'|'+String(r.catalog_id??'')+'|'+String(r.rating??r.stars??'');
-     if(seen.has(k)) return false; seen.add(k); return true;
-   });
+ const norm=v=>String(v??'').trim().toLowerCase(); const keySet=new Set(keys.map(norm));
+ if(sb){
+  try{
+   const {data,error}=await Promise.race([
+    sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),7000))
+   ]);
+   if(!error&&Array.isArray(data)) feedbackRows=data.filter(r=>{const rid=norm(r?.catalog_id??r?.card_id??r?.product_id??r?.model??r?.code);return rid&&keySet.has(rid)&&Number(r?.rating??r?.stars??0)>0;});
+  }catch(e){}
  }
- // My Orders also keeps the latest catalog rating in this shared browser map.
- // Read it even when Supabase feedback is unavailable or RLS blocks the read.
  try{
-   const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-   const mapped=[];
-   for(const key of keys){
-     const r=map[String(key)];
-     if(r && Number(r.rating||r.stars)>0) mapped.push({...r,catalog_id:r.catalog_id||key});
-   }
-   const seenMap=new Set();
-   for(const r of mapped){
-     const k=String(r.catalog_id)+'|'+String(r.rating||r.stars)+'|'+String(r.created_at||'');
-     if(!seenMap.has(k)){seenMap.add(k);feedbackRows.push(r);}
-   }
+  const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+  Object.keys(map||{}).forEach(k=>{const r=map[k];if(keySet.has(norm(k))&&Number(r?.rating??r?.stars??0)>0)feedbackRows.push({...r,catalog_id:r.catalog_id||k});});
  }catch(e){}
- let local=[];
- for(const key of keys){
-   try{
-     const a=JSON.parse(localStorage.getItem('catalog_feedback_'+key)||'[]');
-     if(Array.isArray(a)) local.push(...a);
-   }catch(e){}
- }
- const localSeen=new Set();
- local=local.filter(r=>{
-   const k=String(r.id??'')+'|'+String(r.created_at??'')+'|'+String(r.catalog_id??'')+'|'+String(r.rating??r.stars??'');
-   if(localSeen.has(k)) return false; localSeen.add(k); return true;
- });
- feedbackRows=[...feedbackRows,...local];
- // Catalog row's own rating remains a fallback.
- if(!feedbackRows.length){
-   const fallbackRating=Number(product?.rating??product?.avg_rating??product?.average_rating??product?.stars??product?.catalog_rating??0);
-   if(fallbackRating>0){feedbackRows=[{catalog_id:keys[0]||'',rating:Math.max(1,Math.min(5,fallbackRating)),name:'Catalog Rating',feedback:''}];}
- }
+ try{
+  for(let i=0;i<localStorage.length;i++){
+   const k=localStorage.key(i);if(!k||!k.startsWith('catalog_feedback_'))continue;
+   const rid=norm(k.slice('catalog_feedback_'.length));if(!keySet.has(rid))continue;
+   const a=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(a))feedbackRows.push(...a);
+  }
+ }catch(e){}
+ const seen=new Set();feedbackRows=feedbackRows.filter(r=>{const k=String(r.id??'')+'|'+String(r.created_at??'')+'|'+String(r.catalog_id??'')+'|'+String(r.rating??r.stars??'');if(seen.has(k))return false;seen.add(k);return true;});
+ if(!feedbackRows.length){const fallbackRating=Number(product?.rating??product?.avg_rating??product?.average_rating??product?.stars??product?.catalog_rating??0);if(fallbackRating>0)feedbackRows=[{catalog_id:keys[0]||'',rating:Math.max(1,Math.min(5,fallbackRating)),name:'Catalog Rating',feedback:''}];}
  renderRatings();
 }
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
