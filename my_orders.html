@@ -882,10 +882,25 @@ function renderOrdersUI() {
             // Catalog ID को Order में मौजूद field से लें; अगर Order में ID नहीं है,
             // तो उसी card title/model से Supabase Catalog में खोजकर असली ID निकालें।
             let catalogId=ord.catalog_id||ord.card_id||ord.product_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'';
+
+            // पुराने orders में अलग catalog_id column नहीं है। ऐसे orders में
+            // card_model ही Catalog का unique model/ID होता है (जैसे 140026)।
+            if(!catalogId){
+                const rawModel=String(ord.card_model||ord.model||ord.card_code||ord.model_no||'').trim();
+                if(rawModel) catalogId=rawModel;
+            }
+
+            // अगर card_model भी नहीं मिला तो header/title के आखिरी "(MODEL)" से निकालें।
+            if(!catalogId){
+                const titleRaw=String(ord.card_title||ord.card_name||'').trim();
+                const m=titleRaw.match(/\\(([^()]+)\\)\\s*$/);
+                if(m && m[1]) catalogId=m[1].trim();
+            }
+
             if(!catalogId && supabaseClient){
                 const cleanText=v=>String(v??'').trim().toLowerCase();
                 const orderTitle=cleanText(ord.card_title||ord.card_name);
-                const orderModel=cleanText(ord.card_model||ord.model);
+                const orderModel=cleanText(ord.card_model||ord.model||ord.card_code||ord.model_no);
                 const catalogTables=['catalog','cards','cards_catalog'];
                 for(const tbl of catalogTables){
                     try{
