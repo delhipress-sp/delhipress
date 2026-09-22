@@ -271,276 +271,116 @@ async function selectCatalogVariant(index){
 async function loadFeedback(){
  feedbackRows=[];
 
- const norm=v=>String(v??'').trim().toLowerCase().replace(/\s+/g,' ');
- const modelKey=v=>norm(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'');
- const tokens=v=>norm(v).replace(/[^a-z0-9\u0900-\u097f]+/g,' ').split(/\s+/).filter(x=>x.length>1);
+ const norm=v=>String(v??'').trim().toLowerCase();
+ const activeKeys=new Set([
+  activeId, product?.id, product?.catalog_id, product?.card_id, product?.product_id
+ ].map(norm).filter(Boolean));
 
- const currentIds=new Set([
-   activeId,product?.id,product?.catalog_id,product?.card_id,product?.product_id
- ].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(norm));
-
- const currentModel=modelKey(
-   product?.model??product?.code??product?.card_model??product?.model_no??''
- );
- const currentTitle=norm(
-   product?.name??product?.title??product?.card_name??product?.product_name??product?.card_title??''
- );
-
- const titleScore=(a,b)=>{
-   const aa=tokens(a), bb=new Set(tokens(b));
-   if(!aa.length||!bb.size)return 0;
-   let hit=0; aa.forEach(t=>{if(bb.has(t))hit++});
-   return hit/Math.max(aa.length,bb.size);
- };
-
- const allFeedback=[];
-
+ // Supabase rows
+ let rows=[];
  if(sb){
-   try{
-     const {data,error}=await Promise.race([
-       sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-       new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),7000))
-     ]);
-     if(!error&&Array.isArray(data)){
-       allFeedback.push(...data.map(r=>({...r,_source_table:'catalog_feedback'})));
-     }
-   }catch(e){}
+  try{
+   const {data,error}=await Promise.race([
+    sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),7000))
+   ]);
+   if(!error&&Array.isArray(data)) rows=data;
+  }catch(e){}
  }
 
- // Legacy/alternate review tables are retained, but only rows that resolve
- // to THIS exact catalog are displayed.
- if(sb){
-   for(const tbl of ['catalog_reviews','reviews','feedback']){
-     try{
-       const {data,error}=await Promise.race([
-         sb.from(tbl).select('*').order('created_at',{ascending:false}).limit(500),
-         new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),5000))
-       ]);
-       if(!error&&Array.isArray(data)){
-         allFeedback.push(...data.map(r=>({...r,_source_table:tbl})));
-       }
-     }catch(e){}
+ // पुराने feedback के order_db_id/order_id को order title से सही catalog id में resolve करें।
+ const orderMap={};
+ if(sb&&rows.length){
+  try{
+   const ids=[...new Set(
+    rows.flatMap(r=>[r?.order_db_id,r?.order_id])
+        .map(v=>String(v??'').trim()).filter(Boolean)
+   )];
+   if(ids.length){
+    const {data,error}=await sb.from('orders')
+      .select('id,card_model,card_title,model,title')
+      .in('id',ids);
+    if(!error&&Array.isArray(data)) data.forEach(o=>{orderMap[String(o.id)]=o;});
    }
+  }catch(e){}
  }
 
- const orderIds=[...new Set(
-   allFeedback
-     .map(r=>String(r?.order_db_id??r?.order_id??'').trim())
-     .filter(Boolean)
- )];
+ const productName=norm(product?.name??product?.title??product?.card_name??product?.product_name);
+ const productModel=norm(product?.model??product?.code??product?.card_model??product?.model_no);
 
- const orderMap=new Map();
+ rows.forEach(r=>{
+  const directIds=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
+  let matched=false;
 
- if(sb && orderIds.length){
-   for(let i=0;i<orderIds.length;i+=100){
-     const chunk=orderIds.slice(i,i+100);
-     try{
-       const numeric=chunk.map(Number).filter(Number.isFinite);
-       if(!numeric.length)continue;
+  // नया record: direct catalog id exactly current product id.
+  if(directIds.some(x=>activeKeys.has(x))) matched=true;
 
-       const {data,error}=await sb.from('orders')
-         .select('*')
-         .in('id',numeric);
-
-       if(!error&&Array.isArray(data)){
-         data.forEach(o=>orderMap.set(String(o.id),o));
-       }
-     }catch(e){}
+  // पुराना record: order_db_id/order_id -> order title/model -> current product.
+  if(!matched){
+   const oid=String(r?.order_db_id??r?.order_id??'').trim();
+   const o=orderMap[oid];
+   if(o){
+    const oname=norm(o.card_title??o.title??'');
+    const omodel=norm(o.card_model??o.model??'');
+    const titleMatch=!!productName&&!!oname&&(oname===productName||oname.includes(productName)||productName.includes(oname));
+    const modelMatch=!productModel||!omodel||omodel===productModel||omodel.includes(productModel)||productModel.includes(omodel);
+    if(titleMatch&&modelMatch) matched=true;
    }
- }
+  }
 
- const resolved=[];
- const seen=new Set();
-
- for(const r of allFeedback){
-   let match=false;
-
-   // 1) Direct catalog ID is authoritative.
-   const directIds=[
-     r?.catalog_id,r?.card_id,r?.product_id
-   ].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(norm);
-
-   if(directIds.some(x=>currentIds.has(x))) match=true;
-
-   // 2) Old review -> order -> exact catalog title/model.
-   if(!match){
-     const oid=String(r?.order_db_id??r?.order_id??'').trim();
-     const order=oid?orderMap.get(oid):null;
-
-     if(order){
-       const orderCatalog=norm(
-         order?.catalog_id??order?.card_id??order?.product_id??''
-       );
-       if(orderCatalog && currentIds.has(orderCatalog)){
-         match=true;
-       }else{
-         const orderTitle=norm(
-           order?.card_title??order?.card_name??order?.product_name??''
-         );
-         const orderModel=modelKey(
-           order?.card_model??order?.model??order?.code??''
-         );
-
-         const exactTitle=!!(
-           currentTitle && orderTitle &&
-           (orderTitle===currentTitle ||
-            orderTitle.includes(currentTitle) ||
-            currentTitle.includes(orderTitle))
-         );
-
-         const similarity=titleScore(orderTitle,currentTitle);
-
-         const modelOK=
-           !currentModel || !orderModel ||
-           orderModel===currentModel ||
-           orderModel.includes(currentModel) ||
-           currentModel.includes(orderModel);
-
-         if(modelOK && (exactTitle || similarity>=0.60)){
-           match=true;
-         }
-       }
-     }
-   }
-
-   // 3) Some very old rows contain their own title/model.
-   if(!match){
-     const oldTitle=norm(
-       r?.card_title??r?.card_name??r?.product_name??r?.title??''
-     );
-     const oldModel=modelKey(
-       r?.card_model??r?.model??r?.code??r?.old_catalog_id??''
-     );
-
-     const exactTitle=!!(
-       currentTitle && oldTitle &&
-       (oldTitle===currentTitle ||
-        oldTitle.includes(currentTitle) ||
-        currentTitle.includes(oldTitle))
-     );
-
-     const similarity=titleScore(oldTitle,currentTitle);
-
-     const modelOK=
-       !currentModel || !oldModel ||
-       oldModel===currentModel ||
-       oldModel.includes(currentModel) ||
-       currentModel.includes(oldModel);
-
-     if(oldTitle && modelOK && (exactTitle || similarity>=0.60)){
-       match=true;
-     }
-   }
-
-   if(!match)continue;
-
-   const rating=Number(r?.rating??r?.stars??0);
-   if(!Number.isFinite(rating)||rating<=0)continue;
-
-   const key=String(
-     r?.id ??
-     `${r?.order_db_id??r?.order_id??''}|${r?.catalog_id??''}|${r?.created_at??''}|${rating}|${r?.name??r?.user_name??''}`
-   );
-
-   if(seen.has(key))continue;
-   seen.add(key);
-   resolved.push(r);
- }
-
- feedbackRows=resolved;
-
- // Device-local full review list is valid. Do NOT use dp_catalog_ratings here:
- // that map intentionally stores only the latest rating and can turn 3 reviews
- // into a false 1-review display.
- try{
-   const localKeys=[
-     String(activeId??''),
-     String(product?.id??''),
-     String(product?.catalog_id??'')
-   ].filter(Boolean);
-
-   for(const k of localKeys){
-     const a=JSON.parse(localStorage.getItem('catalog_feedback_'+k)||'[]');
-     if(Array.isArray(a))feedbackRows.push(...a);
-   }
- }catch(e){}
-
- const unique=new Set();
- feedbackRows=feedbackRows.filter(r=>{
-   const k=String(
-     r?.id??'')+'|'+String(r?.created_at??'')+'|'+
-     String(r?.order_db_id??r?.order_id??'')+'|'+
-     String(r?.catalog_id??'')+'|'+String(r?.rating??r?.stars??'')+
-     '|'+String(r?.name??r?.user_name??'');
-   if(unique.has(k))return false;
-   unique.add(k);
-   return true;
+  if(matched && Number(r?.rating??r?.stars??0)>0) feedbackRows.push(r);
  });
 
- // Never create a fake "Catalog Rating" review. Summary, count, bars and
- // review list must all come from the same individual rows.
+ // Local fallback
+ try{
+  const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+  Object.keys(map||{}).forEach(k=>{
+   const r=map[k];
+   if(activeKeys.has(norm(k))&&Number(r?.rating??r?.stars??0)>0){
+    feedbackRows.push({...r,catalog_id:r.catalog_id||k});
+   }
+  });
+ }catch(e){}
+
+ try{
+  for(let i=0;i<localStorage.length;i++){
+   const k=localStorage.key(i);
+   if(!k||!k.startsWith('catalog_feedback_'))continue;
+   const rid=norm(k.slice('catalog_feedback_'.length));
+   if(!activeKeys.has(rid))continue;
+   const a=JSON.parse(localStorage.getItem(k)||'[]');
+   if(Array.isArray(a)) feedbackRows.push(...a);
+  }
+ }catch(e){}
+
+ // duplicate हटाएँ
+ const seen=new Set();
+ feedbackRows=feedbackRows.filter(r=>{
+  const k=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+String(r?.order_db_id??r?.order_id??'')+'|'+String(r?.rating??r?.stars??'');
+  if(seen.has(k))return false;
+  seen.add(k);return true;
+ });
+
  renderRatings();
 }
-
 function reviewImageList(r){
- let v=r.review_images??r.images??r.image_urls??r.photos??[];
+ let v=r?.review_images??r?.images??r?.image_urls??r?.photos??r?.review_image??r?.photo??[];
  if(typeof v==='string'){
-   try{v=JSON.parse(v)}
-   catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}
+  const raw=v.trim();
+  if(!raw)return[];
+  try{v=JSON.parse(raw)}catch(e){
+   v=raw.split(/\s*,\s*|\s*\n\s*/).filter(Boolean);
+  }
  }
- return Array.isArray(v)
-   ?v.filter(x=>typeof x==='string'&&x.trim())
-   :[];
+ if(!Array.isArray(v))v=[v];
+ return v.map(x=>{
+  if(typeof x==='string')return x.trim();
+  if(x&&typeof x==='object')return String(x.url??x.image_url??x.src??'').trim();
+  return'';
+ }).filter(x=>/^https?:\/\//i.test(x));
 }
-
-function renderRatings(){
- const rows=feedbackRows.map(r=>({
-   rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),
-   name:r.name||r.user_name||'ग्राहक',
-   text:r.feedback||r.comment||r.message||'',
-   images:reviewImageList(r)
- })).filter(r=>r.rating);
-
- const total=rows.reduce((a,r)=>a+r.rating,0);
- const avg=rows.length?total/rows.length:0;
- const count=rows.length;
-
- document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';
- document.getElementById('topStars').textContent=stars(avg);
- document.getElementById('reviewCount').textContent=count+' Ratings & Reviews';
- document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';
- document.getElementById('bigStars').textContent=stars(avg);
- document.getElementById('bigReviewCount').textContent=count+' Reviews';
-
- for(let n=1;n<=5;n++){
-   const c=rows.filter(r=>r.rating===n).length;
-   document.getElementById('c'+n).textContent=c;
-   document.getElementById('b'+n).style.width=(count?c/count*100:0)+'%';
- }
-
- document.getElementById('reviewList').innerHTML=rows.length
-   ?rows.slice(0,50).map(r=>`<div class="review">
-       <div class="review-head">
-         <b>${esc(r.name)}</b>
-         <span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
-       </div>
-       <div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>
-       ${r.images.length
-         ?`<div class="review-images">${r.images.map(u=>`
-             <a href="${esc(u)}" target="_blank" rel="noopener">
-               <img src="${esc(u)}" alt="Review photo" loading="lazy"
-                    onerror="this.style.display='none'">
-             </a>`).join('')}</div>`
-         :''}
-     </div>`).join('')
-   :'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>';
-}
-
-function stars(n){
- let x=Math.max(0,Math.min(5,Math.round(Number(n)||0)));
- return '★'.repeat(x)+'☆'.repeat(5-x);
-}
-
+function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
+function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
 function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
 function getVideos(c){
   const out=[];
