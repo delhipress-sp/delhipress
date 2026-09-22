@@ -21,22 +21,26 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
 .variant-section{margin-top:12px;background:#fff;border-radius:4px;box-shadow:0 1px 3px #0001;padding:14px}.variant-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;margin-bottom:10px}.variant-list{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 6px}.variant-card{min-width:92px;max-width:110px;background:#fff;border:1px solid #dbe2ea;border-radius:8px;padding:5px;cursor:pointer;text-align:center;transition:.15s}.variant-card.active{border:2px solid #2874f0;box-shadow:0 2px 8px #2874f033}.variant-card img{width:78px;height:78px;object-fit:contain;border-radius:5px;background:#f8fafc}.variant-color{font-size:12px;font-weight:800;color:#172b4d;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.variant-price{font-size:11px;color:#07864f;font-weight:800}.variant-model{font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .delivery-terms{margin-top:12px}.delivery-box{display:flex;gap:12px;align-items:flex-start;background:#f1f8ff;border:1px solid #d8e9ff;border-radius:6px;padding:12px;margin-bottom:12px;color:#334155}.delivery-box i{font-size:22px;color:#2874f0;margin-top:2px}.terms-box{background:#fffdf5;border:1px solid #f0dfaa;border-radius:6px;padding:12px;color:#475467;font-size:13px}.terms-box ol{margin:7px 0 0 20px}.terms-box li{margin:5px 0}.recommended-section{margin-top:12px}.recommended-head{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding-bottom:9px;margin-bottom:14px}.recommended-head h2{margin:0;border:0;padding:0}.recommended-head span{font-size:12px;color:#64748b}.recommended-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.rec-card,.recommended-card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;cursor:pointer;transition:.15s;min-width:0}.rec-card:hover,.recommended-card:hover{box-shadow:0 4px 14px #0002;transform:translateY(-1px)}.rec-img,.recommended-img{height:190px;background:#f8fafc;display:flex;align-items:center;justify-content:center;overflow:hidden}.rec-img img,.recommended-img img{width:100%;height:100%;object-fit:contain}.rec-body,.recommended-info{padding:10px}.rec-name,.recommended-info h3{font-size:15px;font-weight:700;color:#172b4d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rec-model,.recommended-model{font-size:11px;color:#7b8799;margin:2px 0 6px}.rec-price,.recommended-price{font-size:17px;font-weight:800;color:#172b4d}.rec-old{font-size:11px;color:#98a2b3;text-decoration:line-through;margin-right:5px}.rec-btn{display:block;width:100%;margin-top:8px;border:0;border-radius:4px;background:#2874f0;color:#fff;padding:8px;font-weight:700;font-size:12px}.rec-more{grid-column:1/-1;text-align:center;margin-top:3px}.rec-more a{display:inline-block;color:#2874f0;text-decoration:none;font-weight:700;font-size:13px}@media(max-width:800px){.recommended-grid{grid-template-columns:repeat(3,1fr);gap:8px}.rec-img,.recommended-img{height:145px}.rec-body,.recommended-info{padding:8px}.rec-name,.recommended-info h3{font-size:13px}.rec-price,.recommended-price{font-size:15px}}@media(max-width:520px){.recommended-grid{grid-template-columns:repeat(2,1fr)}.rec-img,.recommended-img{height:165px}.recommended-head h2{font-size:18px}}
 
-.media-tools{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:8px}
-.media-tool{border:1px solid #d7dee8;background:#fff;color:#172b4d;border-radius:20px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer}
-.media-tool.active,.media-tool:hover{border-color:#2874f0;color:#2874f0}
-.main-image img.media-3d{transition:transform .35s ease;transform-style:preserve-3d}
-.video-slide{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#0b1220;position:relative}
-.video-slide video{width:100%;height:100%;object-fit:contain}
-.video-play-cover{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:#2874f0;color:#fff;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:25px;box-shadow:0 4px 20px #0007;pointer-events:none}
-.thumb.video-thumb{display:flex;align-items:center;justify-content:center;background:#172b4d;color:#fff;font-size:22px;position:relative}
-.zoom-modal{position:fixed;inset:0;background:#000e;z-index:9000;display:none;align-items:center;justify-content:center;padding:15px}
-.zoom-modal.show{display:flex}
-.zoom-stage{width:min(96vw,1100px);height:min(88vh,800px);display:flex;align-items:center;justify-content:center;overflow:hidden;perspective:1200px}
-.zoom-stage img{max-width:100%;max-height:100%;object-fit:contain;transition:transform .25s ease;cursor:grab;user-select:none}
-.zoom-controls{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:9001}
-.zoom-controls button{border:0;border-radius:22px;background:#fff;color:#172b4d;padding:10px 15px;font-weight:800;box-shadow:0 3px 15px #0005}
-.zoom-close{position:fixed;right:18px;top:18px;border:0;background:#fff;color:#172b4d;border-radius:50%;width:42px;height:42px;font-size:20px;z-index:9001}
-@media(max-width:480px){.media-tool{padding:6px 10px;font-size:11px}}
+/* --- Flipkart-style media upgrades: photos -> video, zoom and 3D --- */
+.media-tools{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:5;display:flex;gap:6px;background:#fff;border:1px solid #e2e8f0;border-radius:24px;padding:5px;box-shadow:0 3px 12px #0002}
+.media-tools button{border:0;background:#172b4d;color:#fff;border-radius:18px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer}
+.media-tools button.video{background:#e11d48}
+.main-image.is-3d{perspective:900px}
+.main-image.is-3d img{transition:transform .55s ease;transform:rotateY(18deg) rotateX(4deg) scale(1.02);filter:drop-shadow(0 12px 14px #0002)}
+.video-slide{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#0f172a;position:relative}
+.video-slide video{width:100%;height:100%;object-fit:contain;background:#000}
+.video-play-cover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.video-play-cover i{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e11d48;color:#fff;font-size:26px;box-shadow:0 5px 20px #0006}
+.thumb.video-thumb{position:relative;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center}
+.thumb.video-thumb i{font-size:22px}
+.zoom-overlay{position:fixed;inset:0;background:#000d;z-index:10000;display:none;align-items:center;justify-content:center;padding:20px}
+.zoom-overlay.open{display:flex}
+.zoom-overlay img{max-width:92vw;max-height:82vh;object-fit:contain;transition:transform .25s ease;touch-action:none}
+.zoom-controls{position:absolute;bottom:22px;display:flex;gap:8px}
+.zoom-controls button{border:0;border-radius:22px;background:#fff;color:#172b4d;font-weight:800;padding:10px 15px}
+.zoom-close{position:absolute;right:18px;top:18px;border:0;border-radius:50%;width:42px;height:42px;background:#fff;color:#172b4d;font-size:20px}
+@media(max-width:480px){.media-tools{bottom:8px}.media-tools button{padding:6px 9px;font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -56,8 +60,12 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
           <img id="mainImage" src="" alt="Catalog">
           <button class="arrow right" onclick="nextImage()"><i class="fa-solid fa-chevron-right"></i></button>
           <div class="count" id="imageCount">1 / 1</div>
+           <div class="media-tools">
+             <button type="button" onclick="toggle3D()"><i class="fa-solid fa-cube"></i> 3D</button>
+             <button type="button" onclick="openCurrentZoom()"><i class="fa-solid fa-magnifying-glass-plus"></i> Zoom</button>
+           </div>
         </div>
-        <div class="thumbs" id="thumbs"></div><div class="media-tools" id="mediaTools"></div>
+        <div class="thumbs" id="thumbs"></div>
       </div>
       <div class="details">
         <h1 class="title" id="title">शादी कार्ड</h1>
@@ -104,14 +112,13 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
       <div id="recommendedCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">लोड हो रहा है...</div></div>
     </section>
 </div>
-<div id="zoomModal" class="zoom-modal" aria-hidden="true">
-  <button class="zoom-close" onclick="closeZoom()" aria-label="बंद करें"><i class="fa-solid fa-xmark"></i></button>
-  <div class="zoom-stage" id="zoomStage"><img id="zoomImage" src="" alt="Card preview"></div>
+<div class="zoom-overlay" id="zoomOverlay" onclick="if(event.target===this)closeZoom()">
+  <button class="zoom-close" type="button" onclick="closeZoom()"><i class="fa-solid fa-xmark"></i></button>
+  <img id="zoomImage" src="" alt="Card preview">
   <div class="zoom-controls">
-    <button onclick="zoomOut()"><i class="fa-solid fa-minus"></i></button>
-    <button onclick="resetZoom()"><i class="fa-solid fa-arrows-to-circle"></i></button>
-    <button onclick="zoomIn()"><i class="fa-solid fa-plus"></i></button>
-    <button onclick="rotate3D()"><i class="fa-solid fa-cube"></i> 3D</button>
+    <button type="button" onclick="zoomBy(-0.25)">−</button>
+    <button type="button" onclick="zoomReset()">Reset</button>
+    <button type="button" onclick="zoomBy(0.25)">+</button>
   </div>
 </div>
 <div id="toast" class="toast"></div>
@@ -132,53 +139,67 @@ function getImages(c){
  for(const f of ['image','image_url','photo','main_image']){const v=c?.[f]; if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else a.push(v)}catch(e){a.push(v)}}}
  return [...new Set(a.filter(v=>typeof v==='string'&&v.trim()))];
 }
+
+function getVideos(c){
+  const out=[];
+  const fields=['video_url','video','catalog_video','videoUrl','video_urls','videos','card_video'];
+  for(const f of fields){
+    const v=c?.[f];
+    if(Array.isArray(v)) out.push(...v);
+    else if(typeof v==='string' && v.trim()){
+      try{const j=JSON.parse(v); Array.isArray(j)?out.push(...j):out.push(v)}catch(e){
+        out.push(...v.split(/\s*,\s*\n?/).filter(Boolean));
+      }
+    }
+  }
+  const d=String(c?.description??'');
+  const re=/\[\[VIDEO:(.*?)\]\]/gi; let m;
+  while((m=re.exec(d))) if(m[1]) out.push(m[1].trim());
+  return [...new Set(out.filter(v=>/^https?:\/\//i.test(String(v||'')) || String(v||'').startsWith('/')))];
+}
+let videoUrls=[], mediaItems=[], mediaIndex=0, zoomScale=1, is3D=false;
+function openCurrentZoom(){
+  const u=mediaItems[mediaIndex];
+  if(!u || u.type!=='image') return;
+  const z=document.getElementById('zoomOverlay'), img=document.getElementById('zoomImage');
+  if(!z||!img)return;
+  img.src=u.src; zoomScale=1; img.style.transform='scale(1)'; z.classList.add('open');
+}
+function closeZoom(){document.getElementById('zoomOverlay')?.classList.remove('open')}
+function zoomBy(d){zoomScale=Math.min(4,Math.max(1,zoomScale+d));const i=document.getElementById('zoomImage');if(i)i.style.transform=`scale(${zoomScale})`}
+function zoomReset(){zoomScale=1;const i=document.getElementById('zoomImage');if(i)i.style.transform='scale(1)'}
+function toggle3D(){
+  is3D=!is3D;
+  const box=document.getElementById('mainImageBox'), img=document.getElementById('mainImage');
+  if(box)box.classList.toggle('is-3d',is3D);
+  if(img && is3D) img.style.transform='rotateY(18deg) rotateX(4deg) scale(1.02)';
+  else if(img) img.style.transform='none';
+}
+
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 async function findProduct(){
-  // पहले Index से भेजा गया पूरा catalog object देखें — इससे id mismatch होने पर भी detail खुल सके।
-  const fallbackKeys=['dp_catalog_detail_fallback','order_selected_card'];
-  let localFallback=null;
-  for(const k of fallbackKeys){
-    try{
-      const f=JSON.parse(localStorage.getItem(k)||'null');
-      if(f && typeof f==='object'){
-        const fid=f.id??f.catalog_id??f.card_id??'';
-        if(!activeId || !fid || String(fid)===String(activeId)){ localFallback=f; break; }
-      }
-    }catch(e){}
-  }
-
-  if(sb){
-    // Exact id lookup
-    if(activeId){
-      for(const tbl of ['catalog','cards_catalog','cards']){
-        try{
-          const {data,error}=await sb.from(tbl).select('*').eq('id',activeId).limit(1);
-          if(!error && Array.isArray(data) && data[0]) return {...data[0],_source_table:tbl};
-        }catch(e){}
-      }
-    }
-
-    // अगर direct id query fail हो तो recent catalog rows में id/code/model से मिलान करें।
-    for(const tbl of ['catalog','cards_catalog','cards']){
+  // First use the exact card saved by Index. This prevents a blank Detail page
+  // when Supabase lookup is delayed or when identical IDs exist in multiple tables.
+  try{
+    const f=JSON.parse(localStorage.getItem('dp_catalog_detail_fallback')||'null');
+    if(f && (!id || String(f.id??f.catalog_id??'')===String(id))) return f;
+  }catch(e){}
+  if(sb && activeId){
+    for(const tbl of ['catalog','cards','cards_catalog']){
       try{
-        const {data,error}=await sb.from(tbl).select('*').order('id',{ascending:false}).limit(300);
-        if(!error && Array.isArray(data)){
-          const hit=data.find(x=>{
-            const vals=[x.id,x.catalog_id,x.card_id,x.code,x.model,x.model_no].map(v=>String(v??'').trim());
-            return activeId && vals.includes(String(activeId).trim());
-          });
-          if(hit) return {...hit,_source_table:tbl};
-        }
+        const {data,error}=await sb.from(tbl).select('*').eq('id',activeId).limit(1);
+        if(!error && Array.isArray(data) && data[0]) return {...data[0],_source_table:tbl};
       }catch(e){}
     }
   }
-
-  // Index का local fallback आखिरी नहीं, बल्कि महत्वपूर्ण fallback है।
-  if(localFallback){
-    return {...localFallback,_source_table:localFallback._source_table||localFallback.source_table||''};
-  }
-
+  try{
+    const rows=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||'[]');
+    if(Array.isArray(rows)){
+      const f=rows.find(x=>String(x.id??x.catalog_id??'')===String(id));
+      if(f) return f;
+    }
+  }catch(e){}
   return null;
 }
 
@@ -220,65 +241,38 @@ async function loadFeedback(){feedbackRows=[];if(sb&&activeId){for(const tbl of 
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
 function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
-function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
+function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);imageIndex=0;mediaIndex=0;if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
 function renderGallery(){
   const t=document.getElementById('thumbs');
-  const vids=getVideos(product);
-  const total=images.length+(vids.length?1:0);
-  t.innerHTML=images.map((u,i)=>`<button class="thumb ${i===imageIndex?'active':''}" onclick="setImage(${i})"><img src="${esc(u)}" onerror="this.src='${placeholder}'"></button>`).join('')+
-    (vids.length?`<button class="thumb video-thumb" onclick="showVideoSlide()"><i class="fa-solid fa-circle-play"></i></button>`:'');
-  const tools=document.getElementById('mediaTools');
-  if(tools) tools.innerHTML=vids.length?`<button class="media-tool" onclick="showVideoSlide()"><i class="fa-solid fa-circle-play"></i> कार्ड वीडियो</button>`:'';
-  setImage(imageIndex);
+  videoUrls=getVideos(product);
+  mediaItems=images.map(u=>({type:'image',src:u})).concat(videoUrls.map(u=>({type:'video',src:u})));
+  if(!mediaItems.length) mediaItems=[{type:'image',src:placeholder}];
+  if(mediaIndex>=mediaItems.length) mediaIndex=0;
+  t.innerHTML=mediaItems.map((u,i)=>u.type==='video'
+    ? `<button class="thumb video-thumb ${i===mediaIndex?'active':''}" onclick="setMedia(${i})" aria-label="Video"><i class="fa-solid fa-circle-play"></i></button>`
+    : `<button class="thumb ${i===mediaIndex?'active':''}" onclick="setMedia(${i})"><img src="${esc(u.src)}" onerror="this.src='${placeholder}'"></button>`
+  ).join('');
+  setMedia(mediaIndex);
 }
-function setImage(i){
-  imageIndex=(i+images.length)%images.length;
-  const img=document.getElementById('mainImage');
-  img.style.display='block';
-  img.src=images[imageIndex];
-  document.getElementById('imageCount').textContent=(imageIndex+1)+' / '+images.length;
-  document.querySelectorAll('.thumb').forEach((x,n)=>x.classList.toggle('active',n===imageIndex));
+function setMedia(i){
+  mediaIndex=(i+mediaItems.length)%mediaItems.length;
+  const item=mediaItems[mediaIndex];
   const box=document.getElementById('mainImageBox');
-  const old=box.querySelector('.video-slide'); if(old) old.remove();
-  document.querySelectorAll('.arrow').forEach(x=>x.style.display='block');
-}
-function showVideoSlide(){
-  const vids=getVideos(product); if(!vids.length)return;
-  const box=document.getElementById('mainImageBox'), img=document.getElementById('mainImage');
-  img.style.display='none';
-  document.querySelectorAll('.arrow').forEach(x=>x.style.display='none');
-  let vbox=box.querySelector('.video-slide');
-  if(vbox)vbox.remove();
-  vbox=document.createElement('div'); vbox.className='video-slide';
-  vbox.innerHTML=`<video controls playsinline preload="metadata" src="${esc(vids[0])}"></video>`;
-  box.insertBefore(vbox,box.querySelector('.count'));
-  document.getElementById('imageCount').textContent='वीडियो';
-  document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('active'));
-  const vt=document.querySelector('.video-thumb'); if(vt)vt.classList.add('active');
-}
-function prevImage(){setImage(imageIndex-1)}function nextImage(){setImage(imageIndex+1)}
-let touchStartX=0;document.getElementById('mainImageBox')?.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].screenX},{passive:true});document.getElementById('mainImageBox')?.addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-touchStartX;if(Math.abs(dx)>45)(dx<0?nextImage:prevImage)()},{passive:true});
-let zoomScale=1, zoomRotate=0;
-function openZoom(){
-  if(!product || !images.length)return;
-  const m=document.getElementById('zoomModal'), z=document.getElementById('zoomImage');
-  z.src=images[imageIndex]; zoomScale=1; zoomRotate=0; applyZoom();
-  m.classList.add('show'); m.setAttribute('aria-hidden','false');
-}
-function closeZoom(){const m=document.getElementById('zoomModal');m.classList.remove('show');m.setAttribute('aria-hidden','true');}
-function applyZoom(){const z=document.getElementById('zoomImage');if(z)z.style.transform=`scale(${zoomScale}) rotateY(${zoomRotate}deg) rotateZ(0deg)`;}
-function zoomIn(){zoomScale=Math.min(4,zoomScale+.25);applyZoom()}
-function zoomOut(){zoomScale=Math.max(.5,zoomScale-.25);applyZoom()}
-function resetZoom(){zoomScale=1;zoomRotate=0;applyZoom()}
-function rotate3D(){zoomRotate=(zoomRotate+180)%360;applyZoom()}
-document.getElementById('mainImage')?.addEventListener('click',openZoom);
-document.getElementById('zoomModal')?.addEventListener('click',e=>{if(e.target.id==='zoomModal')closeZoom();});
-function addToCart(){if(!product)return;let cart=JSON.parse(localStorage.getItem('dp_cart_items')||'[]');let item=cart.find(x=>String(x.id)===String(product.id));if(item)item.quantity=(item.quantity||100)+100;else cart.push({id:product.id,name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||'',quantity:100});localStorage.setItem('dp_cart_items',JSON.stringify(cart));updateCart();showToast('कार्ड कार्ट में जोड़ दिया गया है!')}
-function updateCart(){try{document.getElementById('cartCount').textContent=JSON.parse(localStorage.getItem('dp_cart_items')||'[]').length}catch(e){}}
-function recentKey(c){return String(c?._source_table||'')+':'+String(c?.id??c?.catalog_id??'');}
-function saveRecentlyViewed(c){
-  if(!c)return;
-  try{let rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];const key=recentKey(c);rows=rows.filter(x=>recentKey(x)!==key);rows.unshift({...c,_source_table:c._source_table||''});localStorage.setItem('dp_recently_viewed_catalog',JSON.stringify(rows.slice(0,12)));}catch(e){}
+  const oldVideo=box.querySelector('.video-slide'); if(oldVideo)oldVideo.remove();
+  const img=document.getElementById('mainImage');
+  const arrows=box.querySelectorAll('.arrow');
+  if(item.type==='video'){
+    img.style.display='none';
+    arrows.forEach(x=>x.style.display='none');
+    const v=document.createElement('div'); v.className='video-slide';
+    v.innerHTML=`<video controls playsinline preload="metadata" src="${esc(item.src)}"></video><div class="video-play-cover"><i class="fa-solid fa-play"></i></div>`;
+    box.insertBefore(v,document.getElementById('imageCount'));
+  }else{
+    img.style.display='block'; img.src=item.src;
+    arrows.forEach(x=>x.style.display='block');
+  }
+  document.getElementById('imageCount').textContent=(mediaIndex+1)+' / '+mediaItems.length;
+  document.querySelectorAll('.thumb').forEach((x,n)=>x.classList.toggle('active',n===mediaIndex));
 }
 function renderSmallCards(rows,boxId,emptyText){
   const box=document.getElementById(boxId);if(!box)return;
@@ -286,24 +280,32 @@ function renderSmallCards(rows,boxId,emptyText){
   box.innerHTML=rows.map((c,i)=>{const name=esc(c.name||c.title||c.card_name||c.product_name||'शादी कार्ड');const model=esc(c.model||c.code||c.card_model||c.model_no||'');const img=getImages(c)[0]||placeholder,rate=sale(c)||original(c);return `<div class="rec-card" onclick="openCatalogCard(${i},'${boxId}')"><div class="rec-img"><img src="${esc(img)}" alt="${name}" onerror="this.onerror=null;this.src='${placeholder}'"></div><div class="rec-body"><div class="rec-name">${name}</div><div class="rec-model">${model}</div><div class="rec-price">₹${Number(rate||0).toLocaleString('en-IN')}</div><button type="button" class="rec-btn" onclick="event.stopPropagation();openCatalogCard(${i},'${boxId}')">विवरण देखें</button></div></div>`;}).join('');
 }
 function loadRecentlyViewed(){let rows=[];try{rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];}catch(e){}const cur=String(product?.id??id??'');rows=rows.filter(x=>String(x.id??'')!==cur).slice(0,12);window._recentRows=rows;renderSmallCards(rows,'recentCatalog','अभी कोई Recently Viewed कार्ड नहीं है।');}
-function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window._recentRows||[]):(window._updatedRows||[]);const c=rows[index];if(!c)return;try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));saveRecentlyViewed(c);}catch(e){}location.href='catalog-detail.html?id='+encodeURIComponent(c.id??'');}
+function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window._recentRows||[]):(window._updatedRows||[]);const c=rows[index];if(!c)return;try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify({...c,_from_recommended:true}));saveRecentlyViewed(c);}catch(e){}location.href='catalog-detail.html?id='+encodeURIComponent(c.id??'');}
 async function fetchTableRows(tbl,limit=100){if(!sb)return [];try{const query=sb.from(tbl).select('*').order('id',{ascending:false}).limit(limit);const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));const res=await Promise.race([query,timeout]);if(res?.error||!Array.isArray(res?.data))return [];return res.data.map(x=>({...x,_source_table:tbl}));}catch(e){return [];}}
-async function loadMoreUpdatedCards(){const box=document.getElementById('recommendedCatalog');if(!box)return;let rows=[];for(const tbl of ['catalog','cards_catalog','cards']){rows=await fetchTableRows(tbl,100);if(rows.length)break;}if(!rows.length){try{const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_catalog')||'[]');if(Array.isArray(local))rows=local;}catch(e){}}const cur=String(product?.id??id??'');const seen=new Set();rows=rows.filter(x=>{const k=String(x.id??x.code??x.model??'');if(!k||seen.has(k)||String(x.id??'')===cur)return false;seen.add(k);return true;}).slice(0,20);window._updatedRows=rows;renderSmallCards(rows,'recommendedCatalog','');}
-
-async function loadRecommendedCatalog(){await loadMoreUpdatedCards();}
-
-function openRecommended(rid){
-  if(!rid)return;
+async function loadMoreUpdatedCards(){
+  const box=document.getElementById('recommendedCatalog'); if(!box)return;
+  let rows=[];
   try{
-    const pools=[window._recommendedRows||[],window._recentRows||[],window._updatedRows||[]];
-    let c=null;
-    for(const p of pools){c=p.find(x=>String(x.id)===String(rid));if(c)break;}
-    if(c){
-      localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));
-      saveRecentlyViewed(c);
-    }
+    const cached=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||'[]');
+    if(Array.isArray(cached)) rows=cached;
   }catch(e){}
-  location.href='catalog-detail.html?id='+encodeURIComponent(rid);
+  if(!rows.length && sb){
+    for(const tbl of ['catalog','cards','cards_catalog']){
+      try{
+        const {data,error}=await sb.from(tbl).select('*').order('id',{ascending:false}).limit(100);
+        if(!error && Array.isArray(data) && data.length){rows=data.map(x=>({...x,_source_table:tbl}));break;}
+      }catch(e){}
+    }
+  }
+  const cur=String(product?.id??id??'');
+  const seen=new Set();
+  rows=rows.filter(x=>{
+    const k=String(x.id??x.catalog_id??x.code??x.model??'');
+    if(!k || seen.has(k) || String(x.id??'')===cur)return false;
+    seen.add(k);return true;
+  }).slice(0,20);
+  window._updatedRows=rows;
+  renderSmallCards(rows,'recommendedCatalog','अभी कोई अन्य कैटलॉग उपलब्ध नहीं है।');
 }
 function orderNow(){const logged=localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user');if(!logged){alert('ऑर्डर करने के लिए कृपया पहले लॉगिन करें।');location.href='login.html';return}const data={id:product.id||'',name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||''};localStorage.setItem('order_selected_card',JSON.stringify(data));location.href='order.html?id='+encodeURIComponent(data.id)}
 document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
@@ -313,18 +315,18 @@ async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToas
 (async function(){
   updateCart();
   product=await findProduct();
-  if(!product){document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';return;}
+  if(!product){
+    document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';
+    await loadMoreUpdatedCards();
+    return;
+  }
   render();
   saveRecentlyViewed(product);
   loadRecentlyViewed();
-  loadMoreUpdatedCards();
-  loadVariants();
-  if(product.id||activeId) loadFeedback();
+  await loadMoreUpdatedCards();
+  await loadVariants();
+  if(product.id||activeId) await loadFeedback();
 })();
 </script>
 </body>
 </html>
-
-<script>
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoom();});
-</script>
