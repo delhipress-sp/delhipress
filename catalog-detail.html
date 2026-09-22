@@ -271,8 +271,9 @@ async function selectCatalogVariant(index){
 async function loadFeedback(){
  feedbackRows=[];
  const norm=v=>String(v??'').trim().toLowerCase();
- const activeKeys=new Set([
-   activeId,product?.id,product?.catalog_id,product?.card_id,product?.product_id
+ const keyNorm=v=>norm(v).replace(/\s+/g,' ');
+ const activeIds=new Set([
+   activeId, product?.id, product?.catalog_id, product?.card_id, product?.product_id
  ].map(norm).filter(Boolean));
 
  let rows=[];
@@ -280,54 +281,87 @@ async function loadFeedback(){
   try{
    const {data,error}=await Promise.race([
     sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),7000))
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),8000))
    ]);
-   if(!error&&Array.isArray(data))rows=data;
+   if(!error && Array.isArray(data)) rows=data;
   }catch(e){}
  }
 
+ // Resolve old reviews that point to an order instead of catalog_id.
  const orderMap={};
- if(sb&&rows.length){
+ if(sb && rows.length){
   try{
-   const ids=[...new Set(rows.flatMap(r=>[r?.order_db_id,r?.order_id])
-     .map(v=>String(v??'').trim()).filter(Boolean))];
-   if(ids.length){
-    const {data,error}=await sb.from('orders')
-      .select('id,card_model,card_title,model,title').in('id',ids);
-    if(!error&&Array.isArray(data))data.forEach(o=>orderMap[String(o.id)]=o);
+   const orderIds=[...new Set(
+     rows.flatMap(r=>[r?.order_db_id,r?.order_id])
+       .map(v=>String(v??'').trim()).filter(Boolean)
+   )];
+   for(let i=0;i<orderIds.length;i+=100){
+    const ids=orderIds.slice(i,i+100);
+    try{
+     const {data,error}=await sb.from('orders')
+       .select('id,card_model,card_title,model,title')
+       .in('id',ids);
+     if(!error && Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
+    }catch(e){}
    }
   }catch(e){}
  }
 
- const pname=norm(product?.name??product?.title??product?.card_name??product?.product_name);
+ const pname=keyNorm(product?.name??product?.title??product?.card_name??product?.product_name);
  const pmodel=norm(product?.model??product?.code??product?.card_model??product?.model_no);
+
+ function titleMatches(a,b){
+   a=keyNorm(a); b=keyNorm(b);
+   if(!a||!b)return false;
+   if(a===b)return true;
+   // Require a substantial overlap, not just one generic word like "card".
+   const aa=new Set(a.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
+   const bb=new Set(b.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
+   let hit=0; aa.forEach(x=>{if(bb.has(x))hit++;});
+   return hit>=2 || (hit>=1 && (a.includes(b)||b.includes(a)));
+ }
 
  rows.forEach(r=>{
    const rating=Number(r?.rating??r?.stars??0);
-   if(rating<1)return;
+   if(!(rating>=1 && rating<=5))return;
 
-   let match=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).some(x=>x&&activeKeys.has(x));
+   let matched=false;
 
-   if(!match){
+   // Direct catalog ID is authoritative.
+   const directIds=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
+   if(directIds.some(x=>activeIds.has(x))) matched=true;
+
+   // Legacy row: resolve via order.
+   if(!matched){
      const oid=String(r?.order_db_id??r?.order_id??'').trim();
      const o=orderMap[oid];
      if(o){
-       const oname=norm(o?.card_title??o?.title);
-       const omodel=norm(o?.card_model??o?.model);
-       const titleMatch=pname&&oname&&(pname===oname||pname.includes(oname)||oname.includes(pname));
-       const modelMatch=!pmodel||!omodel||pmodel===omodel||pmodel.includes(omodel)||omodel.includes(pmodel);
-       if(titleMatch&&modelMatch)match=true;
+       const oname=o?.card_title??o?.title??'';
+       const omodel=norm(o?.card_model??o?.model??'');
+       const titleOk=titleMatches(oname,pname);
+       const modelOk=!pmodel||!omodel||pmodel===omodel||pmodel.includes(omodel)||omodel.includes(pmodel);
+       if(titleOk && modelOk) matched=true;
      }
    }
-   if(match)feedbackRows.push(r);
+
+   // Some old rows contain only catalog/model text.
+   if(!matched){
+     const rmodel=norm(r?.model??r?.code??'');
+     const rname=keyNorm(r?.card_title??r?.title??'');
+     if(pname && rname && titleMatches(rname,pname)){
+       if(!pmodel||!rmodel||pmodel===rmodel||pmodel.includes(rmodel)||rmodel.includes(pmodel)) matched=true;
+     }
+   }
+
+   if(matched) feedbackRows.push(r);
  });
 
- // Device/local fallback
+ // Local fallback for reviews saved by older versions.
  try{
    const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
    Object.keys(map||{}).forEach(k=>{
      const r=map[k];
-     if(activeKeys.has(norm(k))&&Number(r?.rating??r?.stars??0)>0)
+     if(activeIds.has(norm(k)) && Number(r?.rating??r?.stars??0)>=1)
        feedbackRows.push({...r,catalog_id:r.catalog_id||k});
    });
  }catch(e){}
@@ -335,19 +369,23 @@ async function loadFeedback(){
  try{
    for(let i=0;i<localStorage.length;i++){
      const k=localStorage.key(i);
-     if(!k||!k.startsWith('catalog_feedback_'))continue;
-     if(!activeKeys.has(norm(k.slice('catalog_feedback_'.length))))continue;
+     if(!k || !k.startsWith('catalog_feedback_'))continue;
+     if(!activeIds.has(norm(k.slice('catalog_feedback_'.length))))continue;
      const a=JSON.parse(localStorage.getItem(k)||'[]');
-     if(Array.isArray(a))feedbackRows.push(...a);
+     if(Array.isArray(a)) feedbackRows.push(...a);
    }
  }catch(e){}
 
+ // De-duplicate without collapsing distinct reviews that have the same rating.
  const seen=new Set();
  feedbackRows=feedbackRows.filter(r=>{
-   const key=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+
-     String(r?.order_db_id??r?.order_id??'')+'|'+String(r?.rating??r?.stars??'');
-   if(seen.has(key))return false;
-   seen.add(key);return true;
+   const k=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+
+           String(r?.order_db_id??r?.order_id??'')+'|'+
+           String(r?.catalog_id??'')+'|'+
+           String(r?.rating??r?.stars??'')+'|'+
+           String(r?.feedback??r?.comment??'');
+   if(seen.has(k))return false;
+   seen.add(k); return true;
  });
 
  renderRatings();
