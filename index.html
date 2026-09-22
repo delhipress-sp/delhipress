@@ -903,31 +903,50 @@
             const container = document.getElementById('catalogContainer');
             if (!container) return;
 
+            // पहले local cache, फिर session cache — खाली/टूटा cache कभी render को नहीं रोकेगा।
             let hadCache = false;
-            try {
-                for (const key of ['dp_index_catalog_cache_v3','dp_index_catalog_cache_v2']) {
-                    const cached = sessionStorage.getItem(key);
-                    if (!cached) continue;
-                    const cachedCards = JSON.parse(cached);
-                    if (Array.isArray(cachedCards) && cachedCards.length) {
-                        hadCache = true;
-                        globalCards = cachedCards;
-                        syncIndexCatalogCache(cachedCards);
-                        try { renderRealCardsFromCatalog(cachedCards); } catch(e) {}
-                        renderCatalogCards(cachedCards);
-                        loadCatalogRatings().then(()=>{ try { renderRealCardsFromCatalog(globalCards); renderCatalogCards(globalCards); } catch(e){} });
-                        break;
-                    }
-                }
-            } catch(e) {}
+            const cacheKeys = [
+                'dp_index_catalog',
+                'dp_index_catalog_cache_v3',
+                'dp_index_catalog_cache_v2'
+            ];
 
+            for (const storageName of ['localStorage','sessionStorage']) {
+                try {
+                    const storage = window[storageName];
+                    for (const key of cacheKeys) {
+                        const raw = storage.getItem(key);
+                        if (!raw) continue;
+                        const cachedCards = JSON.parse(raw);
+                        if (Array.isArray(cachedCards) && cachedCards.length) {
+                            hadCache = true;
+                            globalCards = cachedCards;
+                            syncIndexCatalogCache(cachedCards);
+                            try { renderRealCardsFromCatalog(cachedCards); } catch(e) {}
+                            try { renderCatalogCards(cachedCards); } catch(e) {}
+                            // Rating बाद में आए तो cards फिर से render होंगे; catalog blank नहीं होगा।
+                            loadCatalogRatings()
+                                .then(()=>{ try {
+                                    renderRealCardsFromCatalog(globalCards);
+                                    renderCatalogCards(globalCards);
+                                } catch(e){} })
+                                .catch(()=>{});
+                            break;
+                        }
+                    }
+                } catch(e) {}
+                if (hadCache) break;
+            }
+
+            // Supabase उपलब्ध नहीं है तो cached catalog दिखाकर रुकें।
             if (!supabaseClient) {
-                if (!hadCache) container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#ef4444">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
+                if (!hadCache) {
+                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#ef4444">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
+                }
                 return;
             }
 
-            // IMPORTANT: read the same Supabase tables used by the Admin panel.
-            // Do not add fake query parameters to PostgREST: Supabase treats them as filters.
+            // Admin में जिस catalog source का data है, उसी को पढ़ें।
             const tables = ['catalog', 'cards', 'cards_catalog'];
             const allRows = [];
 
@@ -939,50 +958,53 @@
                     ]);
                     if (!result.error && Array.isArray(result.data)) {
                         result.data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
-                    } else if (result.error) {
-                        console.warn('Catalog table read failed:', tbl, result.error.message || result.error);
                     }
-                } catch(e) {
-                    console.warn('Catalog table error:', tbl, e);
-                }
+                } catch(e) {}
             }
 
-            // REST fallback for browsers where the Supabase SDK request fails.
+            // अगर live query खाली/failed हो, पुराना local catalog बनाए रखें।
             if (!allRows.length) {
+                if (hadCache && Array.isArray(globalCards) && globalCards.length) {
+                    try { renderCatalogCards(globalCards); } catch(e) {}
+                    return;
+                }
+
+                // आखिरी REST fallback
                 for (const tbl of tables) {
-                    const controller = new AbortController();
-                    const timer = setTimeout(() => controller.abort(), 8000);
                     try {
+                        const controller = new AbortController();
+                        const timer = setTimeout(() => controller.abort(), 7000);
                         const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
                         const res = await fetch(url, {
                             method:'GET',
                             headers:{
-                                'apikey': SUPABASE_ANON_KEY,
-                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                'apikey':SUPABASE_ANON_KEY,
+                                'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,
                                 'Accept':'application/json'
                             },
                             signal:controller.signal,
                             cache:'no-store',
                             credentials:'omit'
                         });
+                        clearTimeout(timer);
                         if (res.ok) {
                             const data = await res.json();
-                            if (Array.isArray(data)) data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
-                        } else {
-                            console.warn('Catalog REST read failed:', tbl, res.status);
+                            if (Array.isArray(data)) {
+                                data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
+                            }
                         }
-                    } catch(e) {
-                        console.warn('Catalog REST error:', tbl, e);
-                    } finally { clearTimeout(timer); }
+                    } catch(e) {}
                 }
             }
 
             if (!allRows.length) {
-                if (!hadCache) container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
+                if (!hadCache) {
+                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
+                }
                 return;
             }
 
-            // Keep every card. Only remove the exact same record repeated by the same source table.
+            // केवल उसी source में बिल्कुल वही record दोबारा आए तो duplicate हटाएँ।
             const seen = new Set();
             const fetchedData = allRows.filter(card => {
                 const source = String(card._source_table || '');
@@ -1004,13 +1026,18 @@
             });
 
             globalCards = fetchedData;
-            // Detail page / More Products के लिए वही live catalog localStorage में भी रखें।
-            // sessionStorage को भी रखा गया है ताकि मौजूदा fast-loading behaviour न बदले।
             syncIndexCatalogCache(fetchedData);
             try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(fetchedData)); } catch(e) {}
-            try { renderRealCardsFromCatalog(fetchedData); } catch(e) { console.warn('Hero render:', e); }
-            renderCatalogCards(fetchedData);
-            loadCatalogRatings().then(()=>{ try { renderRealCardsFromCatalog(globalCards); renderCatalogCards(globalCards); } catch(e){} });
+
+            try { renderRealCardsFromCatalog(fetchedData); } catch(e) {}
+            try { renderCatalogCards(fetchedData); } catch(e) {}
+
+            loadCatalogRatings()
+                .then(()=>{ try {
+                    renderRealCardsFromCatalog(globalCards);
+                    renderCatalogCards(globalCards);
+                } catch(e){} })
+                .catch(()=>{});
         }
 
         let catalogLoadPromise = null;
@@ -1044,248 +1071,167 @@
         // Shared catalog rating sync: My Orders -> Supabase catalog_feedback -> Index.
         // The same product ID is used so the rating shown here is the rating customers gave in My Orders.
         let catalogRatingSyncPromise = null;
-        // ===== EXACT CATALOG RATING SYNC =====
-        // केवल वास्तविक catalog_feedback rows से rating/count बनेंगे।
-        // catalog के पुराने model/code को अकेले rating की पहचान नहीं माना जाएगा,
-        // क्योंकि एक ही model अलग catalog IDs में हो सकता है।
-        let catalogRatingSyncPromise = null;
-
         async function loadCatalogRatings() {
             if (catalogRatingSyncPromise) return catalogRatingSyncPromise;
 
             catalogRatingSyncPromise = (async () => {
                 const rows = [];
 
+                // Local ratings
+                try {
+                    const local = JSON.parse(localStorage.getItem('dp_catalog_ratings') || '{}');
+                    if (local && typeof local === 'object') {
+                        Object.keys(local).forEach(k => {
+                            rows.push({...local[k], catalog_id:k, _source:'local'});
+                        });
+                    }
+                } catch(e) {}
+
+                // Supabase ratings
                 if (supabaseClient) {
                     try {
-                        const { data, error } = await Promise.race([
+                        const {data,error} = await Promise.race([
                             supabaseClient
                                 .from('catalog_feedback')
                                 .select('*')
-                                .order('created_at', { ascending: true })
+                                .order('created_at',{ascending:true})
                                 .limit(2000),
-                            new Promise((_, reject) =>
-                                setTimeout(() => reject(new Error('rating timeout')), 7000)
-                            )
+                            new Promise((_,reject)=>setTimeout(()=>reject(new Error('rating timeout')),7000))
                         ]);
-                        if (!error && Array.isArray(data)) rows.push(...data);
-                    } catch (e) {}
-                }
-
-                const clean = v => String(v ?? '')
-                    .trim()
-                    .toLowerCase()
-                    .replace(/\s+/g, ' ');
-
-                const modelKey = v => clean(v).replace(/[^a-z0-9\u0900-\u097f]+/g, '');
-
-                const tokenize = v => clean(v)
-                    .replace(/[^a-z0-9\u0900-\u097f]+/g, ' ')
-                    .split(/\s+/)
-                    .filter(x => x.length > 1);
-
-                // Legacy rows can point to orders.id through order_db_id/order_id.
-                const orderIds = [...new Set(
-                    rows.map(r => String(r?.order_db_id ?? r?.order_id ?? '').trim())
-                        .filter(Boolean)
-                )];
-
-                const orderMap = {};
-                if (supabaseClient && orderIds.length) {
-                    for (let i = 0; i < orderIds.length; i += 100) {
-                        const chunk = orderIds.slice(i, i + 100);
-                        try {
-                            const numericIds = chunk.map(Number).filter(Number.isFinite);
-                            if (!numericIds.length) continue;
-
-                            const { data: orders, error } = await supabaseClient
-                                .from('orders')
-                                .select('id,card_model,card_title,card_name,catalog_id,card_id,product_id')
-                                .in('id', numericIds);
-
-                            if (!error && Array.isArray(orders)) {
-                                orders.forEach(o => { orderMap[String(o.id)] = o; });
-                            }
-                        } catch (e) {}
-                    }
-                }
-
-                const scoreTitle = (a, b) => {
-                    const aa = tokenize(a);
-                    const bb = new Set(tokenize(b));
-                    if (!aa.length || !bb.size) return 0;
-                    let hit = 0;
-                    aa.forEach(t => { if (bb.has(t)) hit++; });
-                    return hit / Math.max(aa.length, bb.size);
-                };
-
-                const resolveCardIds = (row) => {
-                    const resolved = new Set();
-
-                    [row?.catalog_id, row?.card_id, row?.product_id].forEach(v => {
-                        if (v !== undefined && v !== null && clean(v)) {
-                            resolved.add(clean(v));
+                        if (!error && Array.isArray(data)) {
+                            rows.push(...data.map(x=>({...x,_source:'supabase'})));
                         }
-                    });
+                    } catch(e) {}
+                }
 
-                    const oid = String(row?.order_db_id ?? row?.order_id ?? '').trim();
-                    const order = orderMap[oid];
+                const norm = v => String(v ?? '').trim().toLowerCase();
+                const modelNorm = v => norm(v).replace(/[^a-z0-9]+/g,'');
 
-                    if (order) {
-                        const orderCatalog = clean(
-                            order?.catalog_id ?? order?.card_id ?? order?.product_id ?? ''
-                        );
-                        if (orderCatalog) resolved.add(orderCatalog);
+                // order_db_id/order_id से order का title निकालेंगे।
+                // पुराने catalog_id=140026 को अकेले देखकर 27 और 29 दोनों में rating नहीं लगाएंगे।
+                const orderMap = {};
+                if (supabaseClient) {
+                    try {
+                        const ids = [...new Set(
+                            rows.flatMap(r => [r?.order_db_id, r?.order_id])
+                                .map(v=>String(v??'').trim())
+                                .filter(Boolean)
+                        )];
 
-                        const orderTitle = clean(
-                            order?.card_title ?? order?.card_name ?? order?.product_name ?? ''
-                        );
-                        const orderModel = modelKey(
-                            order?.card_model ?? order?.model ?? order?.code ?? ''
-                        );
+                        if (ids.length) {
+                            const {data,error} = await supabaseClient
+                                .from('orders')
+                                .select('id,card_model,card_title,model,title')
+                                .in('id',ids);
 
-                        globalCards.forEach(card => {
-                            const cardId = card?.id ?? card?.catalog_id;
-                            if (cardId === undefined || cardId === null) return;
-
-                            const cardTitle = clean(
-                                card?.name ?? card?.title ?? card?.card_name ?? card?.product_name ?? ''
-                            );
-                            const cardModel = modelKey(
-                                card?.model ?? card?.code ?? card?.card_model ?? card?.model_no ?? ''
-                            );
-
-                            const titleScore = scoreTitle(orderTitle, cardTitle);
-                            const exactTitle =
-                                orderTitle && cardTitle &&
-                                (orderTitle === cardTitle ||
-                                 orderTitle.includes(cardTitle) ||
-                                 cardTitle.includes(orderTitle));
-
-                            const modelOK =
-                                !orderModel || !cardModel ||
-                                orderModel === cardModel ||
-                                orderModel.includes(cardModel) ||
-                                cardModel.includes(orderModel);
-
-                            // Title is required when the model is shared by multiple cards.
-                            if (modelOK && (exactTitle || titleScore >= 0.60)) {
-                                resolved.add(clean(cardId));
+                            if (!error && Array.isArray(data)) {
+                                data.forEach(o => { orderMap[String(o.id)] = o; });
                             }
-                        });
-                    }
+                        }
+                    } catch(e) {}
+                }
 
-                    // Some old rows also carry their own title/card model.
-                    const rowTitle = clean(
-                        row?.card_title ?? row?.card_name ?? row?.product_name ?? row?.title ?? ''
-                    );
-                    const rowModel = modelKey(
-                        row?.card_model ?? row?.model ?? row?.code ?? ''
-                    );
-
-                    if (rowTitle) {
-                        globalCards.forEach(card => {
-                            const cardId = card?.id ?? card?.catalog_id;
-                            if (cardId === undefined || cardId === null) return;
-
-                            const cardTitle = clean(
-                                card?.name ?? card?.title ?? card?.card_name ?? card?.product_name ?? ''
-                            );
-                            const cardModel = modelKey(
-                                card?.model ?? card?.code ?? card?.card_model ?? card?.model_no ?? ''
-                            );
-
-                            const titleScore = scoreTitle(rowTitle, cardTitle);
-                            const exactTitle =
-                                rowTitle === cardTitle ||
-                                rowTitle.includes(cardTitle) ||
-                                cardTitle.includes(rowTitle);
-
-                            const modelOK =
-                                !rowModel || !cardModel ||
-                                rowModel === cardModel ||
-                                rowModel.includes(cardModel) ||
-                                cardModel.includes(rowModel);
-
-                            if (modelOK && (exactTitle || titleScore >= 0.60)) {
-                                resolved.add(clean(cardId));
-                            }
-                        });
-                    }
-
-                    return resolved;
-                };
-
-                // De-duplicate the same database review.
+                // duplicate rows हटाएँ
                 const uniqueRows = [];
                 const seen = new Set();
 
-                rows.forEach(row => {
-                    const key = String(
-                        row?.id ??
-                        `${row?.order_db_id ?? row?.order_id ?? ''}|${row?.catalog_id ?? ''}|${row?.created_at ?? ''}|${row?.rating ?? row?.stars ?? ''}|${row?.name ?? row?.user_name ?? ''}`
+                rows.forEach(r => {
+                    const k = String(
+                        r?.id ??
+                        [
+                            r?.order_db_id ?? r?.order_id ?? '',
+                            r?.catalog_id ?? '',
+                            r?.created_at ?? '',
+                            r?.rating ?? r?.stars ?? '',
+                            r?.name ?? r?.user_name ?? ''
+                        ].join('|')
                     );
-                    if (seen.has(key)) return;
-                    seen.add(key);
+                    if (seen.has(k)) return;
+                    seen.add(k);
 
-                    row._resolved_catalog_ids = [...resolveCardIds(row)];
-                    uniqueRows.push(row);
+                    r._resolved_catalog_ids = [];
+
+                    // केवल नया direct catalog_id तभी मानें जब वह किसी वास्तविक card id/catalog_id से मिले।
+                    const direct = [r?.catalog_id,r?.card_id,r?.product_id]
+                        .map(norm).filter(Boolean);
+
+                    globalCards.forEach(card => {
+                        const cid = norm(card?.id ?? card?.catalog_id);
+                        if (cid && direct.includes(cid)) {
+                            r._resolved_catalog_ids.push(cid);
+                        }
+                    });
+
+                    // पुराने records: order -> card title/model -> exact catalog card
+                    const orderId = String(r?.order_db_id ?? r?.order_id ?? '').trim();
+                    const order = orderMap[orderId];
+
+                    if (order) {
+                        const ot = norm(order.card_title ?? order.title ?? '');
+                        const om = modelNorm(order.card_model ?? order.model ?? '');
+
+                        globalCards.forEach(card => {
+                            const ct = norm(card?.name ?? card?.title ?? card?.card_name ?? card?.product_name ?? '');
+                            const cm = modelNorm(card?.model ?? card?.code ?? card?.card_model ?? card?.model_no ?? '');
+
+                            if (!ct || !ot) return;
+
+                            // Title exact/contains match जरूरी है; model केवल अतिरिक्त check है।
+                            const titleMatch = (ot === ct) || ot.includes(ct) || ct.includes(ot);
+                            const modelMatch = !om || !cm || om === cm || om.includes(cm) || cm.includes(om);
+
+                            if (titleMatch && modelMatch) {
+                                const cid = norm(card?.id ?? card?.catalog_id);
+                                if (cid && !r._resolved_catalog_ids.includes(cid)) {
+                                    r._resolved_catalog_ids.push(cid);
+                                }
+                            }
+                        });
+                    }
+
+                    uniqueRows.push(r);
                 });
 
                 globalCards.forEach(card => {
-                    const aliases = new Set(
-                        [
-                            card?.id, card?.catalog_id, card?.card_id, card?.product_id
-                        ]
-                        .filter(v => v !== undefined && v !== null && clean(v))
-                        .map(clean)
-                    );
+                    const cid = norm(card?.id ?? card?.catalog_id);
+                    let sum = 0, count = 0;
 
-                    let sum = 0;
-                    let count = 0;
-
-                    uniqueRows.forEach(row => {
-                        const ids = Array.isArray(row?._resolved_catalog_ids)
-                            ? row._resolved_catalog_ids
-                            : [];
-
-                        if (!ids.some(id => aliases.has(id))) return;
-
-                        const value = Number(row?.rating ?? row?.stars ?? 0);
-                        if (!Number.isFinite(value) || value <= 0) return;
-
-                        sum += Math.max(1, Math.min(5, value));
-                        count++;
+                    uniqueRows.forEach(r => {
+                        const ids = Array.isArray(r._resolved_catalog_ids) ? r._resolved_catalog_ids : [];
+                        const val = Number(r?.rating ?? r?.stars ?? 0);
+                        if (cid && ids.includes(cid) && val > 0) {
+                            sum += Math.max(1, Math.min(5, val));
+                            count++;
+                        }
                     });
 
-                    // IMPORTANT: अगर कोई वास्तविक review नहीं है तो catalog के
-                    // पुराने default rating/stars को customer rating मत मानिए।
-                    card._ratingAvg = count ? sum / count : 0;
-                    card._ratingCount = count;
+                    // Direct ID से कोई row मिली तो वही authoritative count है।
+                    if (count) {
+                        card._ratingAvg = sum / count;
+                        card._ratingCount = count;
+                    } else {
+                        card._ratingAvg = 0;
+                        card._ratingCount = 0;
+                    }
                 });
 
                 return globalCards;
-            })().finally(() => { catalogRatingSyncPromise = null; });
+            })().finally(()=>{ catalogRatingSyncPromise=null; });
 
             return catalogRatingSyncPromise;
         }
 
         function getCardRating(card) {
-            const count = Number(card?._ratingCount ?? 0) || 0;
-            const avg = Number(card?._ratingAvg ?? 0) || 0;
-
-            // No real reviews = no fake 5.0 rating.
-            return {
-                avg: count > 0 ? Math.max(0, Math.min(5, avg)) : 0,
-                count
-            };
+            const avg = Number(card?._ratingAvg ?? card?.rating ?? card?.avg_rating ?? card?.average_rating ?? card?.stars ?? 0);
+            const count = Number(card?._ratingCount ?? card?.rating_count ?? card?.review_count ?? card?.reviews_count ?? 0) || 0;
+            return {avg: avg > 0 ? Math.max(0, Math.min(5, avg)) : 0, count};
         }
 
         function renderCatalogCards(cards) {
             const container = document.getElementById('catalogContainer');
             container.innerHTML = '';
 
-            cards.forEach((card, index) => {
+            (Array.isArray(cards) ? cards : []).forEach((card, index) => {
                 const name = card.name || card.title || 'शादी कार्ड';
                 const model = card.model || card.code || '';
                 const originalRate = getOriginalRate(card);
