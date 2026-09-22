@@ -378,6 +378,170 @@
  .checkout-total strong{font-size:21px}.checkout-continue{min-width:175px;padding:15px 30px}
  body{padding-bottom:78px!important}
 }
+
+/* ===== Flipkart-style mobile checkout polish ===== */
+.checkout-progress-header{
+    background:#fff!important;
+    box-shadow:0 1px 0 rgba(0,0,0,.08);
+}
+.checkout-title{font-weight:800!important;color:#172337!important}
+.checkout-steps{
+    background:#fff!important;
+    box-shadow:0 3px 12px rgba(0,0,0,.08)!important;
+}
+.checkout-step.active{color:#2874f0!important}
+.checkout-step.active .step-circle{
+    box-shadow:0 4px 12px rgba(40,116,240,.28);
+}
+.form-wrapper{
+    border:1px solid #e3e7ee!important;
+    box-shadow:0 2px 10px rgba(0,0,0,.10)!important;
+}
+.section-header{
+    font-size:25px!important;
+    background:none!important;
+    color:#172337!important;
+    text-align:left!important;
+    padding:4px 4px 14px!important;
+    border-bottom:1px solid #eef1f5;
+}
+.selected-card-banner{
+    border:1px solid #e1e6ed!important;
+    box-shadow:0 2px 8px rgba(0,0,0,.06)!important;
+}
+.form-block{
+    box-shadow:0 2px 7px rgba(0,0,0,.05)!important;
+}
+.couple-header-bar{
+    background:linear-gradient(90deg,#f8fbff,#fff);
+    margin:-2px -2px 12px;
+    padding:10px 10px 12px;
+    border-radius:10px;
+}
+.btn-switch-couple{
+    min-height:36px!important;
+    padding:7px 13px!important;
+    background:#fff!important;
+    border:1.5px solid #2874f0!important;
+    color:#2874f0!important;
+    box-shadow:0 2px 7px rgba(40,116,240,.12);
+}
+.btn-switch-couple:active{transform:scale(.98)}
+.flip-couple-card{
+    background:#fff;
+    border:1px solid #e0e6ef;
+    border-radius:14px;
+    padding:12px;
+    box-shadow:0 2px 9px rgba(0,0,0,.06);
+    margin-top:14px;
+}
+.flip-couple-card .pair-title{
+    color:#172337;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+.flip-couple-card .pair-header-actions{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex-wrap:wrap;
+}
+.btn-switch-additional{
+    font-size:11px!important;
+    min-height:32px!important;
+    padding:5px 10px!important;
+}
+.flip-couple-card .btn-remove-event{
+    border-radius:18px!important;
+    padding:6px 11px!important;
+}
+.couple-side-wrap{
+    display:flex;
+    flex-direction:column;
+}
+.couple-side{
+    animation:coupleSideIn .22s ease;
+}
+@keyframes coupleSideIn{
+    from{opacity:.7;transform:translateY(3px)}
+    to{opacity:1;transform:translateY(0)}
+}
+.weds-divider{margin:9px 0!important}
+@media(max-width:600px){
+    .checkout-progress-header{height:58px!important}
+    .checkout-steps{height:88px!important;padding-left:10px!important;padding-right:10px!important}
+    .checkout-step{font-size:11px!important}
+    .step-circle{width:34px!important;height:34px!important}
+    .container{padding:0 10px!important}
+    .form-wrapper{padding:12px!important;border-radius:14px!important}
+    .section-header{font-size:22px!important}
+    .couple-header-bar{align-items:flex-start!important;gap:8px}
+    .btn-switch-couple{font-size:11px!important}
+    .flip-couple-card{padding:10px!important}
+    .flip-couple-card .pair-header-actions{width:100%;justify-content:flex-end}
+    .flip-couple-card .couple-unit-header{align-items:flex-start!important;gap:8px}
+    .flip-couple-card .pair-title{font-size:13px}
+}
+
+
+/* ===== Select-only wedding event picker ===== */
+.event-card-premium{
+    background:linear-gradient(180deg,#fff,#f8fbff)!important;
+    border:1px solid #e0e7ef!important;
+    border-radius:14px!important;
+    padding:14px!important;
+    box-shadow:0 3px 12px rgba(23,35,55,.07)!important;
+}
+.event-card-premium select,
+.event-card-premium input[type="date"]{
+    min-height:44px;
+    border:1px solid #d6dce5;
+    border-radius:10px;
+    background:#fff;
+    font-weight:700;
+    color:#172337;
+    padding:9px 12px;
+}
+.event-card-premium select:focus,
+.event-card-premium input[type="date"]:focus{
+    border-color:#2874f0;
+    box-shadow:0 0 0 3px rgba(40,116,240,.12);
+}
+.time-picker-wrap{
+    background:#f5f9ff;
+    border:1px solid #dce8f7;
+    border-radius:12px;
+    padding:11px;
+}
+.time-picker-wrap>label{
+    color:#172337;
+    font-weight:800;
+    margin-bottom:8px;
+}
+.time-select-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+.time-select-grid label{
+    font-size:11px;
+    color:#64748b;
+    margin-bottom:3px;
+}
+.time-select-grid select{
+    width:100%;
+    min-height:42px;
+    font-size:14px;
+    text-align:center;
+}
+@media(max-width:600px){
+    .time-select-grid{grid-template-columns:repeat(2,1fr)}
+    .event-card-premium .row-2{gap:8px}
+    .event-card-premium select,.event-card-premium input[type="date"]{min-height:46px}
+}
+
 </style>
 
 </head>
@@ -388,11 +552,11 @@
         <div class="checkout-title">ऑर्डर फॉर्म</div>
     </div>
     <div class="checkout-steps">
-        <div class="checkout-step"><span class="step-circle">1</span><span>Address</span></div>
+        <div class="checkout-step active"><span class="step-circle">1</span><span>Order</span></div>
         <div class="step-line"></div>
-        <div class="checkout-step"><span class="step-circle">2</span><span>Confirm address</span></div>
+        <div class="checkout-step"><span class="step-circle">2</span><span>Address</span></div>
         <div class="step-line"></div>
-        <div class="checkout-step active"><span class="step-circle">3</span><span>Order</span></div>
+        <div class="checkout-step"><span class="step-circle">3</span><span>Confirm Order</span></div>
     </div>
 <div class="container">
         
@@ -540,11 +704,19 @@
                     <div class="form-block">
                         <h4><span data-i18n="sec3_title">३. प्रोग्राम/कार्यक्रम</span></h4>
                         <div id="eventsContainer">
-                            <div class="event-box-item">
-                                <div class="row-3">
-                                    <div class="form-group"><label data-i18n="lbl_event_title">कार्यक्रम नाम:</label><input type="text" class="event-title transliterate-input" value=""></div>
-                                    <div class="form-group"><label data-i18n="lbl_event_date">दिनांक (Date):</label><input type="date" class="event-date" onchange="setEventDayFromDate(this)"></div>
-                                    <div class="form-group"><label data-i18n="lbl_event_time">समय:</label><input type="text" class="event-time transliterate-input" placeholder="उदा: 08:00 बजे"></div>
+                            <div class="event-box-item event-card-premium">
+                                <div class="row-2">
+                                    <div class="form-group">
+                                        <label data-i18n="lbl_event_title">कार्यक्रम / रस्म चुनें:</label>
+                                        <select class="event-title">
+                                            <option value="">-- कार्यक्रम चुनें --</option>
+                                            <option value="रस्म-ए-हल्दी">रस्म-ए-हल्दी</option><option value="मिलाद उन नबी">मिलाद उन नबी</option><option value="रवानगी बारात">रवानगी बारात</option><option value="वापसी बारात">वापसी बारात</option><option value="आमद-ए-बारात">आमद-ए-बारात</option><option value="दावत-ए-वलीमा">दावत-ए-वलीमा</option><option value="दावत-ए-खाना">दावत-ए-खाना</option><option value="निकाह मसनून">निकाह मसनून</option><option value="रुखसती बारात">रुखसती बारात</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label data-i18n="lbl_event_date">दिनांक चुनें:</label>
+                                        <input type="date" class="event-date" onchange="setEventDayFromDate(this)">
+                                    </div>
                                 </div>
                                 <div class="row-2">
                                     <div class="form-group">
@@ -571,6 +743,17 @@
                                         </select>
                                     </div>
                                 </div>
+                                <div class="form-group time-picker-wrap">
+                                    <label>समय चुनें (1–12 घंटे / मिनट):</label>
+                                    
+<div class="time-select-grid">
+  <div><label>घंटा</label><select class="event-hour"><option value="">--</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
+  <div><label>मिनट</label><select class="event-minute"><option value="">--</option><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select></div>
+  
+  <div><label>दिन / रात</label><select class="event-ampm"><option value="">-- चुनें --</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
+</div>
+                                </div>
+                                <input type="hidden" class="event-time" value="">
                             </div>
                         </div>
                         <button type="button" class="btn-add-event" onclick="addEventRow()"><i class="fa-solid fa-plus"></i> <span data-i18n="btn_add_event">अन्य कार्यक्रम जोड़ें</span></button>
@@ -1182,34 +1365,68 @@
             coupleCount++;
             const container = document.getElementById('additionalCouplesContainer');
             const div = document.createElement('div');
-            div.className = 'couple-pair-unit';
+            div.className = 'couple-pair-unit flip-couple-card';
+            div.dataset.coupleOrder = 'groom-first';
             div.innerHTML = `
                 <div class="couple-unit-header">
-                    <span style="color:var(--primary); font-weight:800;"><i class="fa-solid fa-heart"></i> अतिरिक्त दूल्हा-दुल्हन (जोड़ा #${coupleCount})</span>
-                    <button type="button" class="btn-remove-event" onclick="this.closest('.couple-pair-unit').remove()" style="position:static;">हटाएं</button>
-                </div>
-                
-                <div class="dynamic-item" style="border-left: 3px solid var(--primary); margin-bottom:10px;">
-                    <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> वर (दूल्हा #${coupleCount})</h5>
-                    <div class="row-2">
-                        <div class="form-group"><label>वर का नाम:</label><input type="text" class="add-groom-name transliterate-input" placeholder="लड़का का नाम"></div>
-                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-groom-father transliterate-input" placeholder="पिता का नाम"></div>
+                    <span class="pair-title"><i class="fa-solid fa-heart"></i> अतिरिक्त दूल्हा-दुल्हन (जोड़ा #${coupleCount})</span>
+                    <div class="pair-header-actions">
+                        <button type="button" class="btn-switch-couple btn-switch-additional" onclick="swapAdditionalCoupleSides(this)">
+                            <i class="fa-solid fa-right-left"></i> <span>दूल्हा-दुल्हन बदलें</span>
+                        </button>
+                        <button type="button" class="btn-remove-event" onclick="this.closest('.couple-pair-unit').remove()" style="position:static;">
+                            हटाएं
+                        </button>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;"><label>वर का पता:</label><input type="text" class="add-groom-addr transliterate-input" placeholder="ग्राम - ..."></div>
                 </div>
 
-                <div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग (Weds)</span></div>
-
-                <div class="dynamic-item" style="border-left: 3px solid var(--secondary); margin-bottom:0;">
-                    <h5 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-person-dress"></i> वधू (दुल्हन #${coupleCount})</h5>
-                    <div class="row-2">
-                        <div class="form-group"><label>वधू का नाम:</label><input type="text" class="add-bride-name transliterate-input" placeholder="लड़की का नाम"></div>
-                        <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-bride-father transliterate-input" placeholder="पिता का नाम"></div>
+                <div class="couple-side-wrap">
+                    <div class="dynamic-item couple-side groom-side" style="border-left: 3px solid var(--primary); margin-bottom:10px;">
+                        <h5 style="color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> वर (दूल्हा #${coupleCount})</h5>
+                        <div class="row-2">
+                            <div class="form-group"><label>वर का नाम:</label><input type="text" class="add-groom-name transliterate-input" placeholder="लड़का का नाम"></div>
+                            <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-groom-father transliterate-input" placeholder="पिता का नाम"></div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;"><label>वर का पता:</label><input type="text" class="add-groom-addr transliterate-input" placeholder="ग्राम - ..."></div>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;"><label>वधू का पता:</label><input type="text" class="add-bride-addr transliterate-input" placeholder="ग्राम - ..."></div>
+
+                    <div class="weds-divider"><span class="weds-badge"><i class="fa-solid fa-heart"></i> संग (Weds)</span></div>
+
+                    <div class="dynamic-item couple-side bride-side" style="border-left: 3px solid var(--secondary); margin-bottom:0;">
+                        <h5 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-person-dress"></i> वधू (दुल्हन #${coupleCount})</h5>
+                        <div class="row-2">
+                            <div class="form-group"><label>वधू का नाम:</label><input type="text" class="add-bride-name transliterate-input" placeholder="लड़की का नाम"></div>
+                            <div class="form-group"><label>पिता का नाम:</label><input type="text" class="add-bride-father transliterate-input" placeholder="पिता का नाम"></div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;"><label>वधू का पता:</label><input type="text" class="add-bride-addr transliterate-input" placeholder="ग्राम - ..."></div>
+                    </div>
                 </div>
             `;
             container.appendChild(div);
+        }
+
+        function swapAdditionalCoupleSides(btn) {
+            const unit = btn?.closest('.couple-pair-unit');
+            if (!unit) return;
+
+            const wrap = unit.querySelector('.couple-side-wrap');
+            const groom = unit.querySelector('.groom-side');
+            const bride = unit.querySelector('.bride-side');
+            const divider = unit.querySelector('.weds-divider');
+            if (!wrap || !groom || !bride || !divider) return;
+
+            const groomFirst = unit.dataset.coupleOrder !== 'bride-first';
+            if (groomFirst) {
+                wrap.insertBefore(bride, wrap.firstChild);
+                wrap.insertBefore(divider, groom);
+                btn.innerHTML = '<i class="fa-solid fa-right-left"></i> <span>दूल्हा ऊपर करें</span>';
+                unit.dataset.coupleOrder = 'bride-first';
+            } else {
+                wrap.insertBefore(groom, wrap.firstChild);
+                wrap.insertBefore(divider, bride);
+                btn.innerHTML = '<i class="fa-solid fa-right-left"></i> <span>दुल्हन ऊपर करें</span>';
+                unit.dataset.coupleOrder = 'groom-first';
+            }
         }
 
         function setEventDayFromDate(dateInput) {
@@ -1228,13 +1445,21 @@
 
         function addEventRow() {
             const div = document.createElement('div');
-            div.className = 'event-box-item';
+            div.className = 'event-box-item event-card-premium';
             div.innerHTML = `
                 <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
-                <div class="row-3">
-                    <div class="form-group"><label>${translations[currentLang].lbl_event_title}</label><input type="text" class="event-title transliterate-input" placeholder="उदा: संगीत"></div>
-                    <div class="form-group"><label>${translations[currentLang].lbl_event_date}</label><input type="date" class="event-date" onchange="setEventDayFromDate(this)"></div>
-                    <div class="form-group"><label>${translations[currentLang].lbl_event_time}</label><input type="text" class="event-time transliterate-input" placeholder="उदा: 05:00 बजे"></div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>${translations[currentLang].lbl_event_title}</label>
+                        <select class="event-title">
+                            <option value="">-- कार्यक्रम चुनें --</option>
+                            <option value="रस्म-ए-हल्दी">रस्म-ए-हल्दी</option><option value="मिलाद उन नबी">मिलाद उन नबी</option><option value="रवानगी बारात">रवानगी बारात</option><option value="वापसी बारात">वापसी बारात</option><option value="आमद-ए-बारात">आमद-ए-बारात</option><option value="दावत-ए-वलीमा">दावत-ए-वलीमा</option><option value="दावत-ए-खाना">दावत-ए-खाना</option><option value="निकाह मसनून">निकाह मसनून</option><option value="रुखसती बारात">रुखसती बारात</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>${translations[currentLang].lbl_event_date}</label>
+                        <input type="date" class="event-date" onchange="setEventDayFromDate(this)">
+                    </div>
                 </div>
                 <div class="row-2">
                     <div class="form-group">
@@ -1261,8 +1486,30 @@
                         </select>
                     </div>
                 </div>
+                <div class="form-group time-picker-wrap">
+                    <label>समय चुनें (1–12 घंटे / मिनट):</label>
+                    
+<div class="time-select-grid">
+  <div><label>घंटा</label><select class="event-hour"><option value="">--</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
+  <div><label>मिनट</label><select class="event-minute"><option value="">--</option><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select></div>
+  
+  <div><label>दिन / रात</label><select class="event-ampm"><option value="">-- चुनें --</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
+</div>
+                </div>
+                <input type="hidden" class="event-time" value="">
             `;
             document.getElementById('eventsContainer').appendChild(div);
+        }
+
+        function syncEventTime(box) {
+            if (!box) return;
+            const h = box.querySelector('.event-hour')?.value || '';
+            const m = box.querySelector('.event-minute')?.value || '';
+            const ap = box.querySelector('.event-ampm')?.value || '';
+            const hidden = box.querySelector('.event-time');
+            if (hidden) {
+                hidden.value = (h && m && ap) ? `${h}:${m} ${ap}` : '';
+            }
         }
 
         function addCustomTextBox() {
@@ -1276,6 +1523,13 @@
             document.getElementById('customNotesContainer').appendChild(div);
         }
 
+
+        /* Event time is select-only: keep the stored event-time value synchronized. */
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('.event-hour, .event-minute, .event-ampm')) {
+                syncEventTime(e.target.closest('.event-box-item'));
+            }
+        });
 
         /* ===== English/Hinglish → Hindi for all text boxes ===== */
         const transliterationState = new WeakMap();
