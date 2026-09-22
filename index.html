@@ -1,549 +1,1438 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>कैटलॉग विवरण - दिल्ली प्रेस (सज्जाद प्रिंटर्स)</title>
-<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overflow-x:hidden}
-.top{height:58px;background:#063b91;color:#fff;display:flex;align-items:center;gap:14px;padding:0 5%;position:sticky;top:0;z-index:1000;box-shadow:0 2px 10px #0002}
-.back{color:#fff;text-decoration:none;font-size:20px;padding:8px}.brand{font-size:20px;font-weight:800}.top-cart{margin-left:auto;color:#fff;text-decoration:none;position:relative;font-size:20px}.badge{position:absolute;top:-8px;right:-10px;background:#e51e3b;color:#fff;border-radius:50%;font-size:10px;min-width:19px;height:19px;text-align:center;padding-top:2px}
-.wrap{max-width:1180px;margin:12px auto;padding:0 10px}.crumb{font-size:12px;color:#64748b;margin:6px 2px 10px}.product{display:grid;grid-template-columns:52% 48%;background:#fff;border-radius:4px;box-shadow:0 1px 3px #0001;overflow:hidden}.gallery{padding:15px;border-right:1px solid #e5e7eb}.main-image{height:480px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;position:relative;border-radius:3px}.main-image img{width:100%;height:100%;object-fit:contain}.arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:70px;border:0;background:#0007;color:#fff;font-size:24px;cursor:pointer;z-index:3}.arrow.left{left:0}.arrow.right{right:0}.count{position:absolute;bottom:10px;right:10px;background:#0009;color:#fff;border-radius:15px;padding:3px 10px;font-size:12px}.thumbs{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px}.thumb{width:68px;height:68px;flex:0 0 68px;border:1px solid #d7dee8;background:#fff;border-radius:3px;overflow:hidden;cursor:pointer}.thumb.active{border:2px solid #2874f0}.thumb img{width:100%;height:100%;object-fit:cover}.details{padding:20px 24px}.title{font-size:27px;font-weight:700;color:#172b4d;margin-bottom:4px}.model{font-size:13px;color:#667085;margin-bottom:12px}.rating-line{display:flex;align-items:center;gap:10px;margin-bottom:13px}.rating-pill{background:#078c57;color:#fff;border-radius:4px;padding:3px 8px;font-size:13px;font-weight:800}.stars{color:#f59e0b;letter-spacing:1px}.reviews-count{color:#6b7280;font-size:13px}.price-box{border-top:1px solid #eee;border-bottom:1px solid #eee;padding:13px 0;margin-bottom:14px}.old{color:#7b8799;text-decoration:line-through;font-size:15px;margin-right:8px}.price{font-size:30px;color:#172b4d;font-weight:800}.off{background:#e7f7ef;color:#07864f;border-radius:3px;padding:3px 7px;font-size:12px;font-weight:800;margin-left:7px}.stock{display:inline-flex;padding:4px 12px;border-radius:20px;background:#e6f8ef;color:#07864f;font-size:12px;font-weight:800;margin-bottom:12px}.desc-card{background:#fafbfc;border:1px solid #e6eaf0;border-radius:5px;padding:12px;margin:8px 0 15px}.desc-card h3{font-size:17px;margin-bottom:5px}.desc{font-size:14px;color:#475467;white-space:pre-line}.actions{display:none}.sticky-actions{position:fixed;left:0;right:0;bottom:0;z-index:4000;background:#fff;border-top:1px solid #dfe3e8;box-shadow:0 -4px 16px #0002;padding:8px max(10px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-right));display:grid;grid-template-columns:1fr 1fr;gap:8px}.sticky-actions .btn{min-height:48px;font-size:16px;border-radius:4px}.sticky-actions .cart{background:#ff9f00}.sticky-actions .order{background:#ff4d2e}.sticky-actions .btn:active{transform:scale(.99)}.btn{border:0;border-radius:3px;padding:13px 8px;font-weight:800;font-size:15px;cursor:pointer}.cart{background:#ff9f00;color:#fff}.order{background:#ff4d2e;color:#fff}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}.feature{border:1px solid #e3e7ed;padding:9px 6px;text-align:center;border-radius:4px;font-size:11px;color:#475467}.feature i{display:block;color:#2874f0;font-size:19px;margin-bottom:3px}
-.section{background:#fff;margin-top:12px;border-radius:4px;box-shadow:0 1px 3px #0001;padding:18px}.section h2{font-size:21px;margin-bottom:12px;border-bottom:1px solid #eee;padding-bottom:9px}.rating-grid{display:grid;grid-template-columns:180px 1fr;gap:25px;align-items:center}.big-rating{text-align:center}.big-rating strong{font-size:42px}.big-rating .stars{font-size:21px}.bars{display:flex;flex-direction:column;gap:7px}.barrow{display:grid;grid-template-columns:30px 1fr 45px;gap:8px;align-items:center;font-size:12px}.bar{height:7px;background:#e9edf2;border-radius:10px;overflow:hidden}.bar i{display:block;height:100%;background:#f59e0b}.feedback{display:grid;grid-template-columns:1fr 1fr;gap:15px}.feedback form{border:1px solid #e4e8ef;border-radius:5px;padding:14px}.stars-select{display:flex;gap:4px;margin:8px 0 12px}.star-btn{border:0;background:transparent;color:#cbd5e1;font-size:27px;cursor:pointer}.star-btn.selected{color:#f59e0b}.feedback input,.feedback textarea{width:100%;border:1px solid #d5dce5;border-radius:4px;padding:10px;margin-bottom:9px;outline:none}.feedback textarea{height:100px;resize:vertical}.review-upload{display:flex;align-items:center;justify-content:center;gap:7px;border:1px dashed #b8c2d1;border-radius:6px;padding:10px;margin:2px 0 9px;color:#2874f0;font-weight:700;cursor:pointer;background:#f8fbff}.feedback-image-preview{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.feedback-image-preview .preview-item{width:68px;height:68px;border:1px solid #e5e7eb;border-radius:5px;overflow:hidden;background:#f8fafc}.feedback-image-preview img{width:100%;height:100%;object-fit:cover}.review-images{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.review-images img{width:72px;height:72px;object-fit:cover;border-radius:5px;border:1px solid #e5e7eb}.submit{background:#2874f0;color:#fff;border:0;border-radius:4px;padding:10px 18px;font-weight:800;cursor:pointer}.review-list{display:flex;flex-direction:column;gap:9px}.review{border-bottom:1px solid #eee;padding:9px 0}.review:last-child{border-bottom:0}.review-head{display:flex;justify-content:space-between;font-size:12px}.review-stars{color:#f59e0b}.review-text{font-size:13px;color:#475467;margin-top:2px}.empty{color:#98a2b3;font-size:13px}
-.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:#172b4d;color:#fff;padding:10px 18px;border-radius:25px;display:none;z-index:5000;font-size:13px}.toast.show{display:block}
-@media(max-width:800px){.product{grid-template-columns:1fr;border-radius:0}.gallery{border-right:0;border-bottom:1px solid #e5e7eb;padding:0}.main-image{height:56vh;min-height:360px;max-height:620px;border-radius:0}.thumbs{padding:10px 8px 4px}.details{padding:15px 12px 20px}.title{font-size:22px}.rating-grid,.feedback{grid-template-columns:1fr}.rating-grid{gap:12px}.features{grid-template-columns:repeat(3,1fr)}.wrap{padding:0 5px}.section{padding:13px}}
-@media(max-width:480px){.main-image{height:330px}.price{font-size:26px}.actions{grid-template-columns:1fr 1fr}.feature{font-size:9px}.top{padding:0 10px}.brand{font-size:16px}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>दिल्ली प्रेस (सज्जाद प्रिंटर्स) - जामताड़ा</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-.variant-section{margin-top:12px;background:#fff;border-radius:4px;box-shadow:0 1px 3px #0001;padding:14px}.variant-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;margin-bottom:10px}.variant-list{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 6px}.variant-card{min-width:92px;max-width:110px;background:#fff;border:1px solid #dbe2ea;border-radius:8px;padding:5px;cursor:pointer;text-align:center;transition:.15s}.variant-card.active{border:2px solid #2874f0;box-shadow:0 2px 8px #2874f033}.variant-card img{width:78px;height:78px;object-fit:contain;border-radius:5px;background:#f8fafc}.variant-color{font-size:12px;font-weight:800;color:#172b4d;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.variant-price{font-size:11px;color:#07864f;font-weight:800}.variant-model{font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.delivery-terms{margin-top:12px}.delivery-box{display:flex;gap:12px;align-items:flex-start;background:#f1f8ff;border:1px solid #d8e9ff;border-radius:6px;padding:12px;margin-bottom:12px;color:#334155}.delivery-box i{font-size:22px;color:#2874f0;margin-top:2px}.terms-box{background:#fffdf5;border:1px solid #f0dfaa;border-radius:6px;padding:12px;color:#475467;font-size:13px}.terms-box ol{margin:7px 0 0 20px}.terms-box li{margin:5px 0}
-/* More Products = Index catalog card design (same data, price, rating and stock) */
-.recommended-section .recommended-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.recommended-section .card-sample{border:1px solid #dbe5ef;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;transition:.22s;cursor:pointer;min-width:0}
-.recommended-section .card-sample:hover{transform:translateY(-3px);box-shadow:0 9px 20px rgba(0,0,0,.10)}
-.recommended-section .card-sample .img-box{position:relative;overflow:hidden;cursor:pointer;background:#f3f6fa;height:155px}
-.recommended-section .card-sample .img-box img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
-.recommended-section .card-sample:hover .img-box img{transform:scale(1.05)}
-.recommended-section .card-info{padding:9px 10px 10px;text-align:left}
-.recommended-section .card-info h4{font-size:16px;color:#13265a;margin-bottom:1px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.recommended-section .model-text{font-size:12px;color:#344c77;margin-bottom:2px}
-.recommended-section .card-price-tag{color:#e51e3b;font-size:18px;font-weight:800}
-.recommended-section .card-price-box{margin:2px 0 3px;line-height:1.2}
-.recommended-section .card-original-price{display:inline-block;color:#7b8799;font-size:12px;font-weight:700;text-decoration:line-through;margin-right:6px}
-.recommended-section .card-sale-price{display:inline-block;color:#e51e3b;font-size:18px;font-weight:800}
-.recommended-section .card-discount-badge{display:inline-block;background:#08a86a;color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:12px;margin-left:5px;vertical-align:2px}
-.recommended-section .card-price-note{display:block;color:#52647f;font-size:10px;font-weight:700;margin-top:2px}
-.recommended-section .card-rating-row{display:flex;align-items:center;gap:5px;margin:4px 0 7px;font-size:11px;line-height:1}
-.recommended-section .rating-stars{color:#f5a623;letter-spacing:1px;font-size:12px}
-.recommended-section .rating-text{font-weight:800;color:#1e3a68}
-.recommended-section .rating-label{color:#718096;font-weight:700}
-.recommended-section .stock-badge{display:inline-block;font-size:11px;padding:4px 13px;border-radius:20px;font-weight:800}
-.recommended-section .in-stock{background:#d7f6e8;color:#12945e}.recommended-section .out-stock{background:#ffdfe4;color:#d61c43}
-@media(max-width:800px){.recommended-section .recommended-grid{grid-template-columns:repeat(3,1fr);gap:8px}.recommended-section .card-sample .img-box{height:145px}.recommended-section .card-info{padding:8px}.recommended-section .card-info h4{font-size:13px}.recommended-section .model-text{font-size:10px}.recommended-section .card-sale-price,.recommended-section .card-price-tag{font-size:15px}.recommended-section .card-original-price{font-size:10px}.recommended-section .card-discount-badge{font-size:9px;padding:2px 5px}.recommended-section .card-price-note{font-size:9px}.recommended-section .stock-badge{font-size:9px;padding:3px 8px}}
-@media(max-width:520px){.recommended-section .recommended-grid{grid-template-columns:repeat(2,1fr);gap:8px}.recommended-section .card-sample .img-box{height:145px}.recommended-section .card-info{padding:7px}.recommended-section .card-info h4{font-size:13px}}
+    <style>
+        :root{
+            --red:#e51e3b;
+            --red2:#c8102e;
+            --blue:#063b91;
+            --blue2:#075fe5;
+            --navy:#031735;
+            --green:#08a86a;
+            --gold:#ffb400;
+            --orange:#ff7a00;
+            --white:#fff;
+            --ink:#10245c;
+            --muted:#5b6b86;
+            --panel:rgba(255,255,255,.97);
+            --shadow:0 10px 28px rgba(0,20,55,.16);
+        }
 
-.recommended-section{margin-top:12px}.recommended-head{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding-bottom:9px;margin-bottom:14px}.recommended-head h2{margin:0;border:0;padding:0}.recommended-head span{font-size:12px;color:#64748b}.recommended-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.rec-card,.recommended-card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;cursor:pointer;transition:.15s;min-width:0}.rec-card:hover,.recommended-card:hover{box-shadow:0 4px 14px #0002;transform:translateY(-1px)}.rec-img,.recommended-img{height:190px;background:#f8fafc;display:flex;align-items:center;justify-content:center;overflow:hidden}.rec-img img,.recommended-img img{width:100%;height:100%;object-fit:contain}.rec-body,.recommended-info{padding:10px}.rec-name,.recommended-info h3{font-size:15px;font-weight:700;color:#172b4d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rec-model,.recommended-model{font-size:11px;color:#7b8799;margin:2px 0 6px}.rec-price,.recommended-price{font-size:17px;font-weight:800;color:#172b4d}.rec-old{font-size:11px;color:#98a2b3;text-decoration:line-through;margin-right:5px}.rec-btn{display:block;width:100%;margin-top:8px;border:0;border-radius:4px;background:#2874f0;color:#fff;padding:8px;font-weight:700;font-size:12px}.rec-more{grid-column:1/-1;text-align:center;margin-top:3px}.rec-more a{display:inline-block;color:#2874f0;text-decoration:none;font-weight:700;font-size:13px}@media(max-width:800px){.recommended-grid{grid-template-columns:repeat(3,1fr);gap:8px}.rec-img,.recommended-img{height:145px}.rec-body,.recommended-info{padding:8px}.rec-name,.recommended-info h3{font-size:13px}.rec-price,.recommended-price{font-size:15px}}@media(max-width:520px){.recommended-grid{grid-template-columns:repeat(2,1fr)}.rec-img,.recommended-img{height:165px}.recommended-head h2{font-size:18px}}
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif;-webkit-tap-highlight-color:transparent}
+        html{scroll-behavior:smooth}
+        body{
+            min-height:100vh;color:#10245c;line-height:1.45;padding-bottom:90px;
+            background:
+                radial-gradient(circle at 0% 5%,rgba(229,30,59,.30),transparent 23%),
+                radial-gradient(circle at 100% 15%,rgba(0,115,255,.28),transparent 28%),
+                radial-gradient(circle at 50% 45%,rgba(255,190,0,.10),transparent 30%),
+                radial-gradient(circle at 100% 100%,rgba(0,190,150,.24),transparent 28%),
+                linear-gradient(135deg,#07214d 0%,#0a5c91 50%,#062b58 100%);
+            background-attachment:fixed;
+        }
 
-/* Flipkart-style media gallery: photos + video + zoom/3D */
-.media-video-thumb{position:relative}
-.media-video-thumb::after{content:'▶';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:#2874f0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px #0004}
-.media-video-label{position:absolute;left:4px;bottom:3px;background:#172b4d;color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:800}
-.main-media-video{width:100%;height:100%;object-fit:contain;background:#000;display:none}
-.media-play-overlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;border:0;border-radius:50%;background:#2874f0;color:#fff;box-shadow:0 5px 22px #0005;z-index:5;display:none;cursor:pointer;font-size:25px}
-.photo-click-hint{position:absolute;left:10px;bottom:10px;background:#0008;color:#fff;padding:4px 9px;border-radius:15px;font-size:10px;z-index:4;pointer-events:none}
-.zoom-modal{position:fixed;inset:0;background:#07111eeF;z-index:9000;display:none;align-items:center;justify-content:center;padding:12px}
-.zoom-modal.show{display:flex}
-.zoom-stage{width:min(96vw,1100px);height:min(90vh,760px);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;perspective:1200px}
-.zoom-stage img{max-width:92%;max-height:88%;object-fit:contain;transform-origin:center;transition:transform .22s ease;user-select:none;touch-action:none;cursor:grab;filter:drop-shadow(0 10px 28px #0007)}
-.zoom-stage img.is-3d{transform:scale(var(--zoom,1)) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));}
-.zoom-close{position:absolute;right:8px;top:5px;border:0;background:#fff;color:#172b4d;width:42px;height:42px;border-radius:50%;font-size:22px;z-index:3;cursor:pointer}
-.zoom-tools{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:7px;background:#fff;padding:7px;border-radius:25px;box-shadow:0 5px 18px #0005;z-index:3}
-.zoom-tools button{border:0;background:#f1f5f9;color:#172b4d;width:42px;height:36px;border-radius:18px;font-size:15px;font-weight:800;cursor:pointer}
-.zoom-tools button.active{background:#2874f0;color:#fff}
-.video-full-btn{position:absolute;right:10px;bottom:10px;z-index:6;border:0;background:#0009;color:#fff;border-radius:18px;padding:6px 10px;font-size:11px;cursor:pointer}
-@media(max-width:800px){.photo-click-hint{font-size:9px}.media-play-overlay{width:60px;height:60px}.zoom-stage{height:82vh}}
-<style>
-/* Detail-page polish: fast, clean, mobile-friendly catalog view */
-.detail-price{font-weight:900}
-.loading-soft{animation:detailPulse 1.4s ease-in-out infinite}
-@keyframes detailPulse{0%,100%{opacity:.45}50%{opacity:1}}
-@media(max-width:768px){
-  .section{border-radius:16px!important}
-  .recommended-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+        .top-bar{
+            height:40px;padding:0 30px;display:flex;align-items:center;justify-content:space-between;
+            color:#fff;background:rgba(2,20,51,.96);border-bottom:1px solid rgba(255,255,255,.22);
+            font-size:13px;
+        }
+        .top-left{display:flex;gap:9px;align-items:center}
+        .top-bar i{color:#ffd21c;margin-right:4px}
+        .top-bar a{color:#ffd21c;text-decoration:none;font-weight:800}
+
+        .navbar{
+            min-height:72px;padding:8px 30px;display:flex;align-items:center;gap:18px;
+            position:sticky;top:0;z-index:1000;
+            background:rgba(3,23,55,.94);backdrop-filter:blur(15px);
+            border-bottom:1px solid rgba(255,255,255,.16);
+        }
+        .nav-brand{display:flex;align-items:center;gap:11px;text-decoration:none;min-width:300px}
+        .nav-logo-box{
+            width:52px;height:52px;border-radius:50%;background:#fff;border:3px solid #fff;
+            box-shadow:0 0 0 3px rgba(229,30,59,.28),0 5px 18px rgba(0,0,0,.25);
+            overflow:hidden;flex-shrink:0;
+        }
+        .nav-logo-img{width:100%;height:100%;object-fit:cover}
+        .nav-brand-text h2{color:#ff1744;font-size:24px;line-height:1;font-weight:800}
+        .nav-brand-text p{color:#fff;font-size:12px;margin-top:4px}
+        .nav-menu{display:flex;align-items:center;gap:3px;list-style:none;flex:1;justify-content:center}
+        .nav-menu a{
+            color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 10px;
+            border-radius:8px;transition:.2s;white-space:nowrap
+        }
+        .nav-menu a:hover{background:rgba(255,255,255,.10);color:#ffd21c}
+        .nav-menu .home-link{border-bottom:3px solid #ffd21c;border-radius:0}
+        .btn-login{background:linear-gradient(135deg,#e51e3b,#c8102e)!important;color:#fff!important;border-radius:20px!important;padding:7px 14px!important}
+        .user-logged-box{display:none;align-items:center}
+        .btn-my-orders{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff!important;border-radius:20px!important;padding:7px 14px!important;text-decoration:none}
+        .nav-right-cluster{display:none}
+        .btn-cart-nav{
+            position:relative;display:inline-flex;align-items:center;gap:7px;text-decoration:none;
+            color:#fff;font-size:13px;font-weight:800;padding:9px 15px;border-radius:26px;
+            border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.09)
+        }
+        .cart-badge-count{
+            background:#f21c43;color:#fff;font-size:10px;font-weight:800;min-width:21px;height:21px;
+            display:inline-flex;align-items:center;justify-content:center;border-radius:50%;
+        }
+
+        .container{max-width:1100px;margin:10px auto 22px;padding:0 12px}
+
+        .hero{
+            position:relative;overflow:hidden;min-height:250px;border-radius:22px;padding:16px 22px;
+            margin-bottom:10px;background:linear-gradient(100deg,#fff7df,#fffef7 48%,#fff9e9);
+            border:4px solid rgba(255,255,255,.92);box-shadow:0 10px 25px rgba(0,0,0,.22);
+        }
+        .hero:before,.hero:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+        .hero:before{width:250px;height:250px;left:-130px;top:-120px;background:rgba(229,30,59,.10)}
+        .hero:after{width:250px;height:250px;right:-130px;bottom:-140px;background:rgba(5,95,229,.10)}
+        .hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr 1.65fr .9fr;align-items:center;gap:18px}
+        .hero-cards{height:215px;position:relative;display:flex;align-items:center;justify-content:center;gap:8px}
+        .fake-card{
+            position:absolute;width:126px;height:182px;border-radius:8px;overflow:hidden;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            text-align:center;font-family:'Mukta','Poppins',sans-serif;line-height:1.25;padding:13px 9px;
+            box-shadow:0 10px 24px rgba(0,0,0,.22);
+            border:5px double rgba(255,255,255,.9);
+            background:#fff;
+        }
+        .fake-card:before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.42;border-radius:5px;pointer-events:none}
+        .fake-card:after{content:"✦  ❖  ✦";position:absolute;top:13px;left:0;right:0;font-size:11px;letter-spacing:4px;opacity:.75}
+        .fake-card small{display:block;font-size:10px;margin-top:10px;font-weight:700;letter-spacing:.3px;opacity:.8}
+        .fake-card .card-topline{
+            font-size:8px;line-height:1.2;font-weight:800;opacity:.78;
+            margin-bottom:2px;white-space:nowrap
+        }
+        .fake-card .card-title{
+            font-family:Georgia,'Noto Serif Devanagari',serif;
+            font-size:20px;font-weight:800;letter-spacing:.2px;margin-top:8px
+        }
+        .fake-card .card-subtitle{font-size:12px;font-weight:800;margin-top:5px}
+        .fake-card .card-ornament{font-size:12px;margin-top:8px;letter-spacing:3px;opacity:.8}
+        .fake-card{
+            width:128px;height:184px;border-radius:9px;
+            box-shadow:0 12px 24px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.85);
+            border:2px solid rgba(255,255,255,.9);
+            overflow:hidden;
+        }
+        .fake-card:before{
+            content:"";position:absolute;inset:6px;border:1px solid currentColor;
+            opacity:.28;border-radius:6px;pointer-events:none
+        }
+        .fake-card:after{
+            content:"✦  ❈  ✦";position:absolute;bottom:11px;left:0;right:0;
+            font-size:9px;letter-spacing:4px;opacity:.55
+        }
+        .fake-card.one{
+            transform:rotate(-6deg);left:2px;top:19px;color:#8a4b20;
+            background:linear-gradient(145deg,#fffdf7 0%,#f9ecd8 55%,#fff8ea 100%);
+            border-color:#d8b27a
+        }
+        .fake-card.two{
+            transform:rotate(0deg);z-index:3;color:#11654e;
+            background:linear-gradient(145deg,#fbfffc 0%,#e4f2e9 55%,#f9fff9 100%);
+            border-color:#a9cbb7
+        }
+        .fake-card.three{
+            transform:rotate(6deg);right:2px;top:19px;color:#75521a;
+            background:linear-gradient(145deg,#fffdf4 0%,#f3e5bd 55%,#fffaf0 100%);
+            border-color:#cdb06b
+        }
+
+        .fake-card .card-ornament{font-size:12px;margin-top:9px;letter-spacing:3px;opacity:.75}
+        .fake-card.one{transform:rotate(-7deg);left:5px;top:20px;color:#8b2032;background:linear-gradient(145deg,#fffdf8,#f8eadc)}
+        .fake-card.two{transform:rotate(0deg);z-index:2;color:#8a5a19;background:linear-gradient(145deg,#fffdf4,#f4dfb0);border-color:#b9914d}
+        .fake-card.three{transform:rotate(7deg);right:5px;top:20px;color:#075b48;background:linear-gradient(145deg,#f8fff9,#dcefe7)}
+        .fake-card .card-title{font-family:Georgia,serif;font-size:18px;font-weight:800;margin-top:16px}
+        .fake-card .card-subtitle{font-size:13px;font-weight:800;margin-top:3px}
+
+        .hero-content{text-align:center}
+        .hero-brand{
+            display:inline-block;background:linear-gradient(135deg,#ed163b,#cf1735);color:#fff;
+            border-radius:24px;padding:5px 19px;font-size:15px;font-weight:800;margin-bottom:7px;
+            box-shadow:0 5px 12px rgba(229,30,59,.22)
+        }
+        .hero h1{font-size:34px;line-height:1.04;color:#082e8c;font-weight:800}
+        .hero p{font-size:15px;color:#263c63;margin:8px 0 12px}
+        .btn-main-order{
+            display:inline-flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;color:#fff;
+            background:linear-gradient(135deg,#09b878,#06945f);padding:12px 27px;border-radius:32px;
+            font-size:16px;font-weight:800;box-shadow:0 8px 20px rgba(0,166,105,.32)
+        }
+        .hero-features{display:flex;flex-direction:column;gap:14px;padding-left:6px}
+        .hero-feature{display:flex;align-items:center;gap:10px;color:#16264c;font-size:14px;font-weight:800}
+        .hero-feature i{width:30px;text-align:center;font-size:23px}
+        .hero-feature:nth-child(1) i{color:#171717}.hero-feature:nth-child(2) i{color:#1675e8}
+        .hero-feature:nth-child(3) i{color:#d71939}.hero-feature:nth-child(4) i{color:#09a86a}
+
+        .notice-banner{
+            margin-bottom:10px;padding:12px 17px;border-radius:15px;border:1px solid #f3bd3c;
+            background:linear-gradient(90deg,#fff0c4,#fff9e5);color:#6d390d;display:flex;align-items:center;
+            gap:10px;font-size:14px;font-weight:800;box-shadow:0 7px 18px rgba(0,0,0,.10)
+        }
+        .notice-banner i{color:#ef5b18;font-size:23px}
+
+        .top-card-tools{background:#fff;border-radius:14px;padding:9px 12px;margin:0 0 10px;box-shadow:0 3px 12px rgba(0,0,0,.08);border:1px solid #e6edf5;position:relative;z-index:5}
+        .top-search-row{display:flex;justify-content:center}
+        .top-search-box{width:min(760px,100%);display:flex;align-items:center;gap:7px;background:#f5f8fc;border:1px solid #d7e1ee;border-radius:11px;padding:5px 6px}
+        .top-search-box>i{color:#ed1b40;font-size:18px;padding-left:7px}
+        .top-search-box input{flex:1;min-width:0;border:0;outline:0;background:#fff;border-radius:8px;padding:9px 11px;color:#152a5b;font-size:13px;font-weight:700}
+        .top-search-box input::placeholder{color:#8190a8;font-weight:600}
+        .top-search-box button{border:0;border-radius:8px;background:linear-gradient(135deg,#0869f1,#0753ce);color:#fff;padding:9px 18px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+        .top-card-categories{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+        .top-card-categories .simple-cat{border:1px solid #d7e1ee;background:#fff;color:#17325f;border-radius:18px;padding:6px 13px;font-size:12px;font-weight:800;cursor:pointer}
+        .top-card-categories .simple-cat.active{background:#0869f1;color:#fff;border-color:#0869f1}
+        .showcase-box{
+            background:rgba(255,255,255,.98);border-radius:19px;padding:18px 20px;margin-bottom:10px;
+            box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.9)
+        }
+        .catalog-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:11px}
+        .catalog-heading{display:flex;align-items:center;gap:10px}
+        .catalog-heading i{color:#e91b40;font-size:30px}
+        .showcase-header-title{color:#08266f;font-size:24px;font-weight:800}
+        .catalog-sub{font-size:13px;color:#17325f}
+        .filter-box{
+            display:flex;align-items:center;gap:9px;background:#f0f5fb;border-radius:11px;padding:7px 11px;
+            border:1px solid #d9e4ef;min-width:285px
+        }
+        .catalog-search{display:flex;align-items:center;gap:7px;background:#f0f5fb;border:1px solid #d9e4ef;border-radius:12px;padding:6px 7px;min-width:360px}
+        .catalog-search i{color:#ed1b40;font-size:18px;padding-left:5px}
+        .catalog-search input{flex:1;min-width:0;border:0;outline:0;background:#fff;border-radius:8px;padding:9px 10px;color:#152a5b;font-size:13px;font-weight:700}
+        .catalog-search input::placeholder{color:#8190a8;font-weight:600}
+        .catalog-search button{border:0;border-radius:8px;background:linear-gradient(135deg,#0869f1,#0753ce);color:#fff;padding:9px 15px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+        .search-sample{display:block;margin-top:5px;color:#6b7b95;font-size:10px;font-weight:600}
+        .filter-box>i{color:#ed1b40;font-size:20px}
+        .filter-box label{font-size:13px;font-weight:800;white-space:nowrap}
+        .category-select{
+            border:0;background:transparent;outline:none;font-size:13px;font-weight:800;color:#152a5b;
+            width:150px
+        }
+        .gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+        .card-sample{
+            border:1px solid #dbe5ef;border-radius:12px;overflow:hidden;background:#fff;
+            box-shadow:0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;
+            transition:.22s
+        }
+        .card-sample:hover{transform:translateY(-3px);box-shadow:0 9px 20px rgba(0,0,0,.10)}
+        .card-sample .img-box{position:relative;overflow:hidden;cursor:pointer;background:#f3f6fa;height:155px}
+        .card-sample .img-box img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
+        .card-sample .img-box:hover img{transform:scale(1.05)}
+        .card-info{padding:9px 10px 10px;text-align:left}
+        .card-info h4{font-size:16px;color:#13265a;margin-bottom:1px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .model-text{font-size:12px;color:#344c77;margin-bottom:2px}
+        .card-price-tag{color:#e51e3b;font-size:18px;font-weight:800}
+        .card-price-box{margin:2px 0 3px;line-height:1.2}
+        .card-original-price{display:inline-block;color:#7b8799;font-size:12px;font-weight:700;text-decoration:line-through;margin-right:6px}
+        .card-sale-price{display:inline-block;color:#e51e3b;font-size:18px;font-weight:800}
+        .card-discount-badge{display:inline-block;background:#08a86a;color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:12px;margin-left:5px;vertical-align:2px}
+        .card-price-note{display:block;color:#52647f;font-size:10px;font-weight:700;margin-top:2px}
+
+        
+        .card-rating-row{
+            display:flex;align-items:center;gap:5px;margin:4px 0 7px;
+            font-size:11px;line-height:1
+        }
+        .rating-stars{color:#f5a623;letter-spacing:1px;font-size:12px}
+        .rating-text{font-weight:800;color:#1e3a68}
+        .rating-label{color:#718096;font-weight:700}
+
+        .stock-badge{display:inline-block;font-size:11px;padding:4px 13px;border-radius:20px;font-weight:800}
+        .in-stock{background:#d7f6e8;color:#12945e}.out-stock{background:#ffdfe4;color:#d61c43}
+
+        .benefit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+        .benefit{
+            background:rgba(255,255,255,.98);border-radius:17px;padding:10px 15px;display:flex;align-items:center;gap:12px;
+            box-shadow:0 7px 18px rgba(0,0,0,.10)
+        }
+        .benefit-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:23px;flex-shrink:0}
+        .benefit:nth-child(1) .benefit-icon{background:#09ae74}
+        .benefit:nth-child(2) .benefit-icon{background:#ff7b00}
+        .benefit:nth-child(3) .benefit-icon{background:#7839df}
+        .benefit:nth-child(4) .benefit-icon{background:#087fe8}
+        .benefit:nth-child(5) .benefit-icon{background:#e91e63}
+        .benefit:nth-child(6) .benefit-icon{background:#10a56f}
+        .benefit h4{font-size:16px;color:#09256b}.benefit p{font-size:11px;color:#405575}
+
+        .info-card{
+            background:rgba(255,255,255,.98);border-radius:17px;padding:16px 20px;margin-bottom:10px;
+            box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.9)
+        }
+        .info-card-header{
+            display:flex;align-items:center;gap:9px;color:#08266f;font-size:21px;font-weight:800;
+            margin-bottom:8px
+        }
+        .info-card-header i{color:#e91b40}
+        .about-flex{display:flex;align-items:center;gap:20px}
+        .about-copy{flex:1}
+        .about-copy p{font-size:14px;color:#243b68;line-height:1.65}
+        .quality-list{display:flex;flex-direction:column;gap:8px;min-width:150px;flex-shrink:0}
+        .quality-list span{font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px}
+        .quality-list span:nth-child(1){color:#e91b40}.quality-list span:nth-child(2){color:#f77f00}.quality-list span:nth-child(3){color:#0787e8}
+        .quality-list span i{font-size:14px}
+
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .two-col .info-card{margin-bottom:0}
+        .terms-list{list-style:none}
+        .terms-list li{position:relative;padding-left:25px;margin-bottom:9px;font-size:13px;color:#334a72;line-height:1.55}
+        .terms-list li i{position:absolute;left:0;top:3px;color:#ffad00}
+        .location-details{font-size:13px;color:#334a72;line-height:1.65}
+        .btn-open-map-direct{
+            display:inline-flex;align-items:center;gap:7px;background:#0870e8;color:#fff;text-decoration:none;
+            padding:8px 14px;border-radius:8px;font-size:12px;font-weight:800;margin-top:7px
+        }
+        .map-wrapper{position:relative;height:115px;overflow:hidden;border-radius:11px;border:1px solid #cbd8e7;margin-top:9px}
+        .map-wrapper iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
+        .main-footer{
+            position:relative;overflow:hidden;margin-top:18px;padding:31px 18px 20px;color:#cbd5e1;
+            background:linear-gradient(135deg,#02112e,#06275a 52%,#041934);border-top:1px solid rgba(255,255,255,.15)
+        }
+        .main-footer:before{
+            content:"";position:absolute;left:-5%;right:-5%;top:-26px;height:55px;border-radius:50%;
+            background:#fff;opacity:.98
+        }
+        .footer-grid{position:relative;z-index:1;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.25fr 1fr 1fr 1.35fr;gap:25px}
+        .footer-col h4{color:#fff;font-size:17px;margin-bottom:8px}.footer-col p{font-size:13px;color:#b6c5d9;margin-bottom:5px;line-height:1.5}
+        .footer-col p i{color:#ffd21c;width:18px}
+        .footer-page-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+        .footer-page-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid rgba(255,255,255,.28);border-radius:18px;color:#fff;text-decoration:none;font-size:12px;font-weight:800;background:rgba(255,255,255,.08)}
+        .footer-page-btn:hover{background:rgba(255,255,255,.16);color:#ffd21c}
+        .footer-bottom{position:relative;z-index:1;max-width:1100px;margin:19px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;color:#7e92ae}
+        .footer-bottom a{color:#ffd21c;text-decoration:none}
+
+        .mobile-bottom-bar{
+            display:none;position:fixed;left:0;bottom:0;width:100%;height:72px;z-index:1001;
+            background:rgba(3,22,52,.96);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.16);
+            border-radius:30px 30px 0 0;justify-content:space-around;align-items:center
+        }
+        .mobile-bottom-bar a{color:#fff;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;position:relative}
+        .mobile-bottom-bar a i{font-size:19px;color:#fff}
+        .mobile-bottom-bar .cart-badge-count{position:absolute;top:-7px;right:-10px}
+
+        
+        .main-footer{padding-bottom:34px}
+        @media(max-width:768px){
+            .main-footer{padding-bottom:102px}
+            .footer-grid{padding-bottom:6px}
+        }
+
+        @media(max-width:980px){
+            .navbar{padding:8px 15px}.nav-brand{min-width:240px}.nav-menu{gap:0}
+            .nav-menu a{padding:8px 7px;font-size:12px}.hero-inner{grid-template-columns:1fr 1.5fr}
+            .hero-features{display:none}.gallery-grid{grid-template-columns:repeat(4,1fr)}
+        }
+        @media(max-width:768px){
+            .top-bar{height:auto;padding:6px 10px;font-size:10px}.top-right{display:none}
+            .navbar{padding:7px 10px;min-height:60px}.nav-brand{min-width:0}.nav-logo-box{width:43px;height:43px}
+            .nav-brand-text h2{font-size:19px}.nav-brand-text p{font-size:9px}
+            .nav-menu{display:none}.nav-right-cluster{display:none}
+            .btn-cart-nav{padding:7px 10px;font-size:11px}
+            .container{width:100%;padding:0 7px;margin-top:7px}
+            .hero{padding:10px;border-radius:16px}.hero-inner{grid-template-columns:1fr;gap:5px}
+            .hero-cards{height:140px}.fake-card{width:90px;height:130px;font-size:12px}.fake-card small{font-size:8px}
+            .fake-card.one{left:12%;top:8px}.fake-card.two{top:4px}.fake-card.three{right:12%;top:8px}
+            .hero-content{padding:0 3px}.hero-brand{font-size:11px;padding:4px 12px}
+            .top-card-tools{padding:7px 8px}.top-search-box{width:100%}.top-search-box button{padding:9px 13px}.top-card-categories{gap:5px}.top-card-categories .simple-cat{padding:6px 10px;font-size:11px}
+            .hero h1{font-size:24px}.hero p{font-size:11px;margin:5px 0 8px}.btn-main-order{font-size:12px;padding:10px 15px}
+            .notice-banner{font-size:11px;padding:9px 10px;margin-bottom:7px}.notice-banner i{font-size:18px}
+            .showcase-box{padding:12px;border-radius:14px}.catalog-head{align-items:flex-start;flex-direction:column}
+            .showcase-header-title{font-size:19px}.catalog-heading i{font-size:24px}.catalog-sub{font-size:11px}
+            .filter-box{width:100%;min-width:0}.category-select{flex:1;width:auto}.catalog-search{width:100%;min-width:0}.catalog-search input{font-size:12px}.catalog-search button{padding:9px 13px}
+            .gallery-grid{grid-template-columns:repeat(2,1fr);gap:8px}.card-sample .img-box{height:122px}
+            .card-info{padding:7px}.card-info h4{font-size:13px}.model-text{font-size:10px}.card-price-tag{font-size:15px}.card-sale-price{font-size:15px}.card-original-price{font-size:10px}.card-discount-badge{font-size:9px;padding:2px 5px}.card-price-note{font-size:9px}
+            .stock-badge{font-size:9px;padding:3px 8px}
+            .benefit-grid{grid-template-columns:repeat(3,1fr);gap:6px}.benefit{padding:8px 5px;gap:6px;flex-direction:column;text-align:center}
+            .benefit-icon{width:38px;height:38px;font-size:17px}.benefit h4{font-size:11px}.benefit p{font-size:8px;line-height:1.2}
+            .info-card{padding:12px;border-radius:14px}.info-card-header{font-size:18px}.about-flex{gap:5px}.about-copy p{font-size:12px}
+            .quality-list{min-width:105px;gap:5px}.quality-list span{font-size:12px}.about-flex{align-items:flex-start}.two-col{grid-template-columns:1fr}
+            .two-col .info-card{margin-bottom:10px}.location-details{font-size:11px}.map-wrapper{height:150px}
+            .main-footer{padding:28px 14px 20px}.footer-grid{grid-template-columns:1fr 1fr;gap:15px}.footer-col:first-child{grid-column:1/-1}
+            .footer-col h4{font-size:14px}.footer-col p{font-size:11px}.footer-bottom{font-size:10px;justify-content:center;text-align:center;flex-direction:column}
+            .mobile-bottom-bar{display:flex}
+        }
+
+        /* Flipkart-style mobile storefront — keeps the existing catalog/data logic unchanged */
+        .mobile-shop-shortcuts{display:none}
+        @media(max-width:768px){
+            body{background:linear-gradient(180deg,#d900ff 0,#c900e8 245px,#f6f6f6 410px);color:#202124;padding-bottom:78px}
+            .top-bar{display:none}
+            .navbar{position:sticky;top:0;z-index:1000;background:linear-gradient(135deg,#d400ff,#8d00d9);border:0;border-radius:0;box-shadow:0 4px 16px rgba(55,0,80,.25);padding:9px 12px;min-height:64px}
+            .nav-brand{width:100%;min-width:0;gap:9px}
+            .nav-logo-box{width:45px;height:45px;border:2px solid #fff;box-shadow:0 0 0 2px rgba(255,255,255,.18),0 4px 12px rgba(0,0,0,.18)}
+            .nav-brand-text h2{font-size:20px;line-height:1.05;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.2)}
+            .nav-brand-text p{font-size:9px;color:#ffe9ff;margin-top:3px}
+            .nav-welcome-greeting{display:none;font-size:10px;margin-left:auto;margin-right:0;padding:5px 7px;border-radius:14px;max-width:105px;overflow:hidden;text-overflow:ellipsis}
+            .mobile-shop-shortcuts{display:flex;gap:8px;padding:10px 10px 8px;overflow-x:auto;background:linear-gradient(135deg,#d400ff,#c000e6);scrollbar-width:none}
+            .brand-location-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;margin-left:auto;flex:0 0 auto;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;border-radius:18px;padding:7px 9px;font-size:10px;font-weight:800;box-shadow:0 3px 8px rgba(50,0,80,.16);cursor:pointer}
+            .brand-location-btn i{font-size:16px}
+            .brand-location-btn span{font-size:9px}
+            .mobile-shop-shortcuts::-webkit-scrollbar{display:none}
+            .shop-shortcut{border:1px solid rgba(255,255,255,.75);background:#fff;border-radius:15px;min-width:108px;height:78px;padding:7px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;box-shadow:0 4px 12px rgba(70,0,90,.16);color:#242424}
+            .shop-shortcut.active{background:#ffe600;border-color:#fff}
+            .shortcut-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:21px;line-height:1;margin-bottom:5px;background:linear-gradient(135deg,#fff4a8,#ffe100);color:#5b2a00;box-shadow:0 3px 8px rgba(80,0,90,.16)}
+            .shop-shortcut b{font-size:13px;font-weight:900}.shop-shortcut small{font-size:10px;color:#555;margin-top:2px;font-weight:700}
+            .container{width:100%;padding:0 9px;margin-top:0}
+            .top-card-tools{padding:8px 0 5px;background:transparent}
+            .top-search-row{width:100%}.top-search-box{width:100%;height:50px;background:#fff;border:1px solid #ddd;border-radius:16px;padding:5px 7px;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+            .top-search-box>i{color:#222;font-size:22px}.top-search-box input{font-size:14px;padding:8px 7px}.top-search-box input::placeholder{color:#777}
+            .top-search-box button{display:none}
+            .top-card-categories{display:flex;gap:12px;overflow-x:auto;padding:8px 2px 4px;scrollbar-width:none}
+            .top-card-categories::-webkit-scrollbar{display:none}
+            .top-card-categories .simple-cat{flex:0 0 auto;border:0!important;background:transparent!important;color:#fff!important;padding:6px 9px!important;font-size:12px!important;border-radius:10px!important;box-shadow:none!important;font-weight:800}
+            .top-card-categories .simple-cat.active{background:rgba(255,255,255,.16)!important;border-bottom:3px solid #fff!important;border-radius:10px 10px 4px 4px!important}
+            .top-card-categories .simple-cat i{font-size:22px;display:block;margin-bottom:3px}
+            .hero.real-card-hero{margin:5px 0 10px;padding:0;border:0;border-radius:18px;background:linear-gradient(135deg,#ffb9f4,#fbd5ff);box-shadow:0 5px 15px rgba(72,0,90,.15);overflow:hidden}
+            .hero.real-card-hero .hero-inner{min-height:0;display:block;padding:0}
+            .hero.real-card-hero .hero-content{display:none}
+            .real-card-slider{height:210px!important;min-height:210px!important;width:100%;padding:0!important}
+            .real-card-track{height:100%!important}
+            .real-card-slide{height:100%!important;border-radius:0!important}
+            .real-card-slide img{height:100%!important;width:100%!important;object-fit:cover!important}
+            .real-card-slide .real-card-caption{bottom:8px!important;left:8px!important;right:8px!important}
+            .real-card-slide .real-card-caption h3{font-size:14px!important}.real-card-slide .real-card-caption p{font-size:10px!important}
+            .real-slider-btn{width:30px!important;height:30px!important;border-radius:50%!important}
+            .showcase-box{margin-top:8px;background:#ffdafa;border:0;border-radius:20px;padding:14px 10px;box-shadow:none}
+            .catalog-head{margin-bottom:9px}.catalog-heading{width:100%}.catalog-heading i{font-size:21px}.showcase-header-title{font-size:20px!important;color:#252525}.catalog-sub{display:none}
+            .catalog-head>.filter-box{display:none}.gallery-grid{grid-template-columns:repeat(2,1fr)!important;gap:9px!important}
+            .card-sample{border:1px solid #eee!important;border-radius:15px!important;box-shadow:0 2px 7px rgba(0,0,0,.08)!important;background:#fff!important;overflow:hidden}
+            .card-sample .img-box{height:145px!important;background:#f5f5f5!important}.card-info{padding:8px!important}.card-info h4{font-size:13px!important;color:#444!important}.card-price-tag,.card-sale-price{font-size:15px!important;color:#222!important}
+            .notice-banner,.benefit-grid,.info-card,.about-flex,.two-col,.terms-marquee{border-radius:15px}
+            .mobile-bottom-bar{height:70px!important;background:#fff!important;border:0!important;border-top:1px solid #ddd!important;border-radius:0!important;box-shadow:0 -3px 12px rgba(0,0,0,.08)!important}
+            .mobile-bottom-bar a{color:#333!important;font-size:10px!important;font-weight:700;flex:1}.mobile-bottom-bar a i{font-size:23px!important;color:#555!important}.mobile-bottom-bar a:first-child,.mobile-bottom-bar a:nth-child(2){color:#1267d8!important}.mobile-bottom-bar a:first-child i,.mobile-bottom-bar a:nth-child(2) i{color:#1267d8!important}
+            .main-footer{padding-bottom:92px}
+        }
+
+        .terms-marquee{margin:8px 0 10px;background:#fff7cf;border:2px solid #ffb400;border-radius:12px;overflow:hidden;box-shadow:0 5px 15px rgba(255,180,0,.18);white-space:nowrap}
+        .terms-marquee-inner{display:inline-block;padding:9px 0;font-weight:800;color:#8a2f00;animation:termsScroll 32s linear infinite}
+        .terms-marquee-inner span{display:inline-block;margin-right:70px}
+        .terms-marquee-inner i{color:#e51e3b;margin:0 7px}
+        @keyframes termsScroll{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+        @media(prefers-reduced-motion:reduce){.terms-marquee-inner{animation:none;transform:none;display:block;text-align:center}}
+    
+        /* User supplied real card samples - responsive slider */
+        .real-card-slider{
+            position:relative;width:100%;padding:8px 42px 10px;
+            overflow:hidden;
+        }
+        .real-card-track{
+            display:flex;gap:14px;align-items:center;
+            transition:transform .55s ease;
+        }
+        .real-card-slide{
+            position:relative;isolation:isolate;flex:0 0 calc((100% - 42px)/4);
+            background:#fff;border-radius:12px;padding:5px;
+            box-shadow:0 8px 22px rgba(0,0,0,.20),0 0 0 1px rgba(255,215,80,.35);
+            border:2px solid rgba(255,255,255,.9);
+            overflow:hidden;transform:translateZ(0);
+            transition:transform .45s ease,box-shadow .45s ease;
+        }
+        /* गोल्डन + येलो + सफेद + नीला चमकता रिंग */
+        .real-card-slide::before{
+            content:"";position:absolute;inset:0;border-radius:12px;padding:2px;
+            background:conic-gradient(from 0deg,#ffd700,#fff7a8,#ffffff,#3da8ff,#ffd700,#ffb300,#ffffff,#ffd700);
+            -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+            -webkit-mask-composite:xor;mask-composite:exclude;
+            opacity:.9;z-index:3;pointer-events:none;
+            animation:goldenRing 2.8s linear infinite;
+        }
+        .real-card-slide::after{
+            content:"";position:absolute;top:-30%;left:-75%;width:42%;height:170%;
+            background:linear-gradient(100deg,transparent,rgba(255,255,255,0),rgba(255,255,255,.95),rgba(255,220,70,.55),transparent);
+            transform:rotate(18deg);z-index:4;pointer-events:none;
+            animation:cardFlash 3.8s ease-in-out infinite;
+        }
+        .real-card-slide img{
+            position:relative;z-index:1;display:block;width:100%;aspect-ratio:0.69/1;
+            object-fit:cover;border-radius:8px;
+        }
+        .real-card-slide:hover{
+            transform:translateY(-4px) scale(1.015);
+            box-shadow:0 12px 28px rgba(0,0,0,.25),0 0 16px rgba(255,190,0,.55),0 0 28px rgba(35,145,255,.25);
+        }
+        @keyframes goldenRing{
+            0%{filter:brightness(1);transform:rotate(0deg)}
+            45%{filter:brightness(1.18)}
+            70%{filter:brightness(1.55)}
+            100%{filter:brightness(1);transform:rotate(360deg)}
+        }
+        @keyframes cardFlash{
+            0%,55%,100%{left:-75%;opacity:0}
+            62%{opacity:1}
+            78%{left:125%;opacity:.18}
+        }
+        @media(prefers-reduced-motion:reduce){
+            .real-card-slide::before,.real-card-slide::after{animation:none}
+            .real-card-slide{transition:none}
+        }
+        .real-card-caption{padding:5px 6px 4px;text-align:center;background:#fff}
+        .real-card-caption .hero-card-name{font-size:12px;font-weight:800;color:#082e8c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .real-card-caption .hero-card-model{font-size:9px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .real-card-caption .hero-card-price{font-size:15px;font-weight:900;color:#e11d2e;margin-top:1px}
+        @media(max-width:700px){
+            .benefit-grid{grid-template-columns:repeat(3,1fr);gap:7px}
+            .benefit{padding:9px 5px;gap:6px;min-width:0}
+            .benefit-icon{width:38px;height:38px;font-size:18px}
+            .benefit h4{font-size:11px;line-height:1.15}
+            .benefit p{font-size:9px;line-height:1.15}
+.real-card-slide{flex:0 0 calc(50% - 5px)}.real-card-caption{padding:3px 4px}.real-card-caption .hero-card-name{font-size:10px}.real-card-caption .hero-card-model{font-size:8px}.real-card-caption .hero-card-price{font-size:13px}}
+        @media(max-width:390px){.real-card-slide{flex-basis:78%}}
+        .real-slider-btn{
+            position:absolute;top:50%;transform:translateY(-50%);
+            width:34px;height:34px;border:0;border-radius:50%;
+            background:#fff;color:#082e8c;box-shadow:0 3px 12px rgba(0,0,0,.25);
+            z-index:5;font-size:17px;font-weight:900;cursor:pointer;
+        }
+        .real-slider-btn.prev{left:5px}.real-slider-btn.next{right:5px}
+        .real-slider-dots{display:flex;justify-content:center;gap:7px;margin-top:6px}
+        .real-slider-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;cursor:pointer}
+        .real-slider-dot.active{background:#0869f1;transform:scale(1.2)}
+        .hero.real-card-hero{min-height:0;padding:12px 14px 10px}
+        .hero.real-card-hero .hero-inner{display:block}
+        .hero.real-card-hero .hero-content{margin-top:3px}
+        .hero.real-card-hero .hero-brand{display:inline-block}
+        .hero.real-card-hero h1{font-size:27px}
+        .hero.real-card-hero p{margin:4px 0 0}
+        @media(max-width:700px){
+            .hero.real-card-hero{padding:8px 7px 9px;border-width:2px;border-radius:14px}
+            .real-card-slider{padding:4px 31px 6px}
+            .real-card-track{display:flex;gap:10px;transform:translateX(0);transition:transform .35s ease}
+            .real-card-slide{flex:0 0 calc(50% - 5px);padding:3px;border-radius:9px}
+            .real-card-slide img{border-radius:6px}
+            .real-slider-btn{width:29px;height:29px;font-size:14px}
+            .real-slider-btn.prev{left:1px}.real-slider-btn.next{right:1px}
+            .hero.real-card-hero .hero-brand{font-size:11px;padding:3px 10px;margin-bottom:3px}
+            .hero.real-card-hero h1{font-size:20px;line-height:1.12}
+            .hero.real-card-hero p{font-size:10px}
+        }
+        @media(max-width:390px){
+            .real-card-slide{flex-basis:78%}
+        }
+
+    
+/* हल्का visual effect — layout/size में कोई बदलाव नहीं */
+.real-card-slide{transform-style:preserve-3d;backface-visibility:hidden}
+.real-card-slide img{backface-visibility:hidden}
+.real-card-slide:hover{animation:cardGentleTilt 900ms ease-in-out 1}
+@keyframes cardGentleTilt{
+  0%,100%{transform:perspective(900px) rotateY(0deg) rotateX(0deg)}
+  50%{transform:perspective(900px) rotateY(4deg) rotateX(1deg)}
 }
+.benefit{position:relative;overflow:hidden}
+.benefit:after{
+  content:"";position:absolute;top:0;left:-80%;width:35%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+  transform:skewX(-18deg);animation:smallShine 7s ease-in-out infinite;
+  pointer-events:none
+}
+@keyframes smallShine{
+  0%,75%,100%{left:-80%;opacity:0}
+  82%{opacity:1}
+  94%{left:125%;opacity:0}
+}
+
+
+        .hero-live-tag{
+            position:absolute;top:7px;left:7px;z-index:6;
+            color:#fff;font-size:9px;font-weight:900;letter-spacing:.5px;
+            padding:4px 8px;border-radius:999px;
+            box-shadow:0 3px 10px rgba(0,0,0,.25);
+            animation:tagBlink 1.8s ease-in-out infinite;
+        }
+        .new-tag{background:linear-gradient(135deg,#ff1744,#d50000)}
+        .trending-tag{background:linear-gradient(135deg,#8b5cf6,#2563eb)}
+        @keyframes tagBlink{
+            0%,100%{transform:scale(1);filter:brightness(1)}
+            50%{transform:scale(1.07);filter:brightness(1.25)}
+        }
+        @media(max-width:700px){
+            .hero-live-tag{top:4px;left:4px;font-size:7px;padding:3px 6px}
+        }
+
+
+        @media(max-width:768px){
+            .mobile-bottom-bar{
+                height:64px !important;
+                padding:5px 6px calc(5px + env(safe-area-inset-bottom));
+                background:linear-gradient(135deg,#062b57,#064f83);
+                border-top:1px solid rgba(255,255,255,.22);
+                box-shadow:0 -7px 20px rgba(0,0,0,.22);
+                display:flex;
+                align-items:center;
+                justify-content:space-around;
+                gap:3px;
+            }
+            .mobile-bottom-bar a{
+                flex:1;min-width:0;height:53px;border-radius:12px;
+                justify-content:center;gap:2px;font-size:10px;
+                background:rgba(255,255,255,.07);
+            }
+            .mobile-bottom-bar a i{font-size:18px;color:#fff}
+            .mobile-bottom-bar a:active{background:rgba(255,255,255,.18);transform:scale(.97)}
+            .mobile-bottom-bar .cart-badge-count{
+                top:2px;right:18%;min-width:17px;height:17px;
+                padding:0 4px;border-radius:99px;background:#ff1744;color:#fff;
+                font-size:9px;line-height:17px;text-align:center;
+            }
+            body{padding-bottom:78px !important}
+        }
+
+
+        .simple-card-categories{display:flex;gap:7px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+        .simple-card-categories::-webkit-scrollbar{display:none}
+        .simple-cat{border:1px solid #dbe6f4;background:#fff;color:#12366e;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}
+        .simple-cat i{margin-right:4px}
+        .simple-cat.active{background:#147cf5;color:#fff;border-color:#147cf5}
+        @media(max-width:700px){.simple-card-categories{gap:6px}.simple-cat{padding:7px 10px;font-size:10px}}
+
+
+        .location-strip{display:flex;align-items:center;gap:9px;width:min(760px,100%);margin:0 auto 7px;padding:6px 9px;border:1px solid #e0e7f0;border-radius:9px;background:#fff;box-shadow:0 2px 8px rgba(15,45,90,.07);cursor:pointer;min-height:34px}
+        .location-strip>i:first-child{color:#e91d3f;font-size:15px;flex:0 0 auto}
+        .location-strip-text{min-width:0;flex:1;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+        .location-strip-label{font-size:10px;font-weight:800;color:#66758c;flex:0 0 auto}
+        #locationAddressText{font-size:11px;font-weight:800;color:#172b59;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .location-strip-arrow{color:#8290a5;font-size:11px;flex:0 0 auto}
+        .nav-welcome-greeting{display:none;align-items:center;white-space:nowrap;color:#fff;font-size:13px;font-weight:800;margin-left:auto;margin-right:8px;padding:6px 10px;border-radius:18px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18)}
+        .nav-welcome-greeting b{color:#ffd21c;font-weight:900;margin-left:4px}
+        .user-greeting{display:inline-flex;align-items:center;white-space:nowrap;color:#fff;font-size:12px;font-weight:700;margin-right:8px}
+        .user-greeting b{font-weight:900;margin-left:3px}
+        .location-popup-overlay{position:fixed;inset:0;background:rgba(10,22,45,.48);display:none;align-items:center;justify-content:center;padding:18px;z-index:99999}
+        .location-popup-overlay.active{display:flex}
+        .location-popup{position:relative;width:min(390px,100%);background:#fff;border-radius:18px;padding:24px 20px 18px;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.25);animation:locationPopIn .2s ease-out}
+        .location-popup-close{position:absolute;right:11px;top:8px;border:0;background:transparent;font-size:26px;line-height:1;color:#7c8798;cursor:pointer}
+        .location-popup-icon{width:58px;height:58px;margin:0 auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff1f3;color:#e51c3e;font-size:25px}
+        .location-popup h3{margin:4px 0 8px;color:#172b59;font-size:19px}
+        .location-popup p{margin:0 auto 16px;color:#63718a;font-size:12px;line-height:1.65;max-width:310px}
+        .location-use-btn{width:100%;border:0;border-radius:10px;padding:11px 14px;background:linear-gradient(135deg,#0869f1,#0753ce);color:#fff;font-size:13px;font-weight:800;cursor:pointer}
+        .location-later-btn{border:0;background:transparent;color:#65738a;font-size:12px;font-weight:700;padding:11px;cursor:pointer}
+        @keyframes locationPopIn{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+        @media(max-width:768px){.location-strip{width:100%;margin:0 0 6px;border-radius:8px;min-height:31px;padding:5px 8px;box-shadow:none}.location-strip-label{font-size:9px}.location-strip #locationAddressText{font-size:10px}.user-greeting{font-size:10px}}
+</style>
+
+<style>
+.quick-contact{position:fixed;right:12px;bottom:78px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.quick-contact a{width:45px;height:45px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;box-shadow:0 5px 14px rgba(0,0,0,.22);font-size:20px}
+.quick-contact a span{display:none}
+.quick-call{background:#1677ff}.quick-wa{background:#16b866}
+@media(max-width:700px){.quick-contact{right:10px;bottom:74px}.quick-contact a{width:43px;height:43px;font-size:19px}}
 </style>
 </head>
+
 <body>
-<header class="top">
-  <a class="back" href="index.html" aria-label="वापस"><i class="fa-solid fa-arrow-left"></i></a>
-  <div class="brand">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</div>
-  <a class="top-cart" href="cart.html"><i class="fa-solid fa-cart-shopping"></i><span class="badge" id="cartCount">0</span></a>
-</header>
-<div class="wrap">
-  <div class="crumb"><a href="index.html" style="color:#2874f0;text-decoration:none">होम</a> / कैटलॉग / विवरण</div>
-  <div id="loading" class="section" style="text-align:center">कैटलॉग लोड हो रहा है...</div>
-  <main id="productArea" style="display:none">
-    <section class="product">
-      <div class="gallery">
-        <div class="main-image" id="mainImageBox">
-          <button class="arrow left" onclick="prevImage()"><i class="fa-solid fa-chevron-left"></i></button>
-          <img id="mainImage" src="" alt="Catalog">
-          <video id="mainVideo" playsinline preload="metadata" controls style="display:none;width:100%;height:100%;object-fit:contain;background:#000"></video>
-          <button id="mediaPlayOverlay" type="button" onclick="playMainVideo()" aria-label="वीडियो चलाएँ" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:58px;height:58px;border:0;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:25px;align-items:center;justify-content:center;cursor:pointer"><i class="fa-solid fa-play"></i></button>
-          <button id="videoFullBtn" type="button" onclick="openVideoFullscreen()" aria-label="वीडियो फुल स्क्रीन" style="display:none;position:absolute;right:48px;bottom:10px;z-index:8;border:0;border-radius:8px;background:rgba(0,0,0,.7);color:#fff;padding:7px 9px;cursor:pointer"><i class="fa-solid fa-expand"></i></button>
-          <button class="arrow right" onclick="nextImage()"><i class="fa-solid fa-chevron-right"></i></button>
-          <div class="count" id="imageCount">1 / 1</div>
+    <div class="top-bar">
+        <div class="top-left">
+            <span><i class="fa-solid fa-phone"></i>9304509464</span>
+            <span>|</span>
+            <span><i class="fa-solid fa-envelope"></i>mdsajadans@gmail.com</span>
         </div>
-        <div class="thumbs" id="thumbs"></div>
-      </div>
-      <div class="details">
-        <h1 class="title" id="title">शादी कार्ड</h1>
-        <div class="model" id="model"></div>
-        <div id="variantSection" class="variant-section" style="display:none;padding:10px;margin:0 0 12px;box-shadow:none;border:1px solid #e6eaf0;">
-          <div class="variant-head"><i class="fa-solid fa-palette" style="color:#2874f0"></i> रंग / Color</div>
-          <div id="variantList" class="variant-list"></div>
+        <div class="top-right">
+            <a href="tel:9304509464"><i class="fa-solid fa-phone"></i><span>कॉल करें</span></a>
         </div>
-        <div class="rating-line"><span class="rating-pill" id="ratingPill">0 ★</span><span class="stars" id="topStars">★★★★★</span><span class="reviews-count" id="reviewCount">0 Ratings & Reviews</span></div>
-        <div class="price-box" id="priceBox"></div>
-        <div class="stock" id="stock">उपलब्ध (In Stock)</div>
-        <div class="desc-card"><h3>विवरण</h3><div class="desc" id="description">इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।</div></div>
-        <div class="actions"><button class="btn cart" onclick="addToCart()"><i class="fa-solid fa-cart-plus"></i> कार्ट में जोड़ें</button><button class="btn order" onclick="orderNow()"><i class="fa-solid fa-bolt"></i> अभी ऑर्डर करें</button></div>
-        <div class="features"><div class="feature"><i class="fa-solid fa-shield-halved"></i>सुरक्षित ऑर्डर</div><div class="feature"><i class="fa-solid fa-truck-fast"></i>समय पर सेवा</div><div class="feature"><i class="fa-solid fa-headset"></i>ग्राहक सहायता</div></div>
-      </div>
-    </section>
-    <section class="section delivery-terms">
-      <h2>डिलीवरी और टर्म्स & कंडीशन</h2>
-      <div class="delivery-box"><i class="fa-solid fa-truck-fast"></i><div><b>डिलीवरी समय</b><br>अधिकतम 1 सप्ताह (7 दिन) के भीतर डिलीवरी का प्रयास किया जाएगा।</div></div>
-      <div class="terms-box">
-        <b>टर्म्स & कंडीशन</b>
-        <ol>
-          <li>कार्ड की छपाई शुरू होने से पहले कृपया पूरा Matter, नाम, पता, तारीख, समय और अन्य विवरण एक बार अवश्य ध्यानपूर्वक जाँच लें।</li>
-          <li>प्रिंटिंग के लिए अंतिम स्वीकृति देने के बाद किसी भी नाम, तारीख, शब्द, वर्तनी या अन्य Matter की त्रुटि के लिए ग्राहक स्वयं जिम्मेदार होंगे।</li>
-          <li>कार्ड छपाई से पहले एक बार अवश्य देख लें। छपाई शुरू होने के बाद की गई गलती/परिवर्तन की जिम्मेदारी ग्राहक की होगी।</li>
-          <li>स्क्रीन पर दिखने वाले रंग और वास्तविक प्रिंट के रंग में थोड़ा अंतर संभव है।</li>
-          <li>डिलीवरी का समय ऑर्डर की मात्रा, डिजाइन की स्वीकृति और अन्य कार्यभार के अनुसार प्रभावित हो सकता है।</li>
-        </ol>
-      </div>
-    </section>
-    <section class="section"><h2>रेटिंग और रिव्यू</h2><div class="rating-grid"><div class="big-rating"><strong id="bigRating">0.0</strong><div class="stars" id="bigStars">★★★★★</div><div class="reviews-count" id="bigReviewCount">0 Reviews</div></div><div class="bars"><div class="barrow"><span>5★</span><div class="bar"><i id="b5" style="width:0%"></i></div><span id="c5">0</span></div><div class="barrow"><span>4★</span><div class="bar"><i id="b4" style="width:0%"></i></div><span id="c4">0</span></div><div class="barrow"><span>3★</span><div class="bar"><i id="b3" style="width:0%"></i></div><span id="c3">0</span></div><div class="barrow"><span>2★</span><div class="bar"><i id="b2" style="width:0%"></i></div><span id="c2">0</span></div><div class="barrow"><span>1★</span><div class="bar"><i id="b1" style="width:0%"></i></div><span id="c1">0</span></div></div></div></section>
-    <section class="section feedback"><div style="grid-column:1/-1"><h2>ग्राहक रेटिंग और रिव्यू</h2><div id="reviewList" class="review-list"><div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div></div></div></section>
-  </main>
-  <div class="sticky-actions" id="stickyActions" aria-label="ऑर्डर विकल्प">
-    <button type="button" class="btn cart" onclick="addToCart()"><i class="fa-solid fa-cart-plus"></i> कार्ट में जोड़ें</button>
-    <button type="button" class="btn order" onclick="orderNow()"><i class="fa-solid fa-bolt"></i> अभी ऑर्डर करें</button>
-  </div>
-    <section class="section recommended-section" id="recentSection">
-      <div class="recommended-head"><h2>Recently Viewed</h2><span>आपने हाल में देखे हुए कार्ड</span></div>
-      <div id="recentCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">अभी कोई Recently Viewed कार्ड नहीं है।</div></div>
-    </section>
-    <section class="section recommended-section" id="recommendedSection">
-      <div class="recommended-head"><h2>More Products</h2></div>
-      <div id="recommendedCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">लोड हो रहा है...</div></div>
-    </section>
-</div>
+    </div>
 
-<div id="zoomModal" class="zoom-modal" aria-hidden="true">
-  <button class="zoom-close" type="button" onclick="closeZoomViewer()">×</button>
-  <div class="zoom-stage" id="zoomStage">
-    <img id="zoomImage" src="" alt="Card preview">
-  </div>
-  <div class="zoom-tools">
-    <button type="button" onclick="changeZoom(-.2)" title="Zoom Out">−</button>
-    <button type="button" onclick="resetZoom()" title="Reset">1:1</button>
-    <button type="button" onclick="changeZoom(.2)" title="Zoom In">+</button>
-    <button type="button" id="threeDBtn" onclick="toggle3D()" title="3D">3D</button>
-  </div>
-</div>
-<div id="toast" class="toast"></div>
+    <nav class="navbar">
+        <a class="nav-brand" href="index.html">
+            <div class="nav-logo-box">
+                <img src="data:image/webp;base64,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" alt="Logo" class="nav-logo-img" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\' viewBox=\'0 0 44 44\'><rect width=\'44\' height=\'44\' fill=\'%23e63946\'/><text x=\'50%\' y=\'55%\' font-size=\'13\' fill=\'%23fff\' text-anchor=\'middle\' dominant-baseline=\'middle\'>DP</text></svg>';">
+            </div>
+            <div class="nav-brand-text">
+                <h2>दिल्ली प्रेस</h2>
+                <p>Design • Print • Quality</p>
+            </div>
+</a>
+        <div class="nav-welcome-greeting" id="navWelcomeGreeting" aria-live="polite">हेलो, <b id="navWelcomeName">ग्राहक</b></div>
+
+        <ul class="nav-menu">
+            <li><a href="index.html" class="home-link"><i class="fa-solid fa-house"></i> होम</a></li>
+            <li><a href="about.html">हमारे बारे में</a></li>
+            <li><a href="payment-policy.html">भुगतान एवं रिफंड नीति</a></li>
+            <li><a href="#mapSection">शॉप लोकेशन</a></li>
+            <li></li>
+            <li id="authNavContainer"><a href="login.html" class="btn-login"><i class="fa-solid fa-user"></i> <span>लॉगिन</span></a></li>
+            <li class="user-logged-box" id="userLoggedBox"><span class="user-greeting" id="userGreetingText">हेलो, <b id="userGreetingName">ग्राहक</b></span><a href="my_orders.html" class="btn-my-orders"><i class="fa-solid fa-box-archive"></i> <span>मेरे ऑर्डर्स</span></a></li>
+        </ul>
+
+
+    </nav>
+
+    <div class="mobile-shop-shortcuts" aria-label="कार्ड श्रेणियां">
+        <button type="button" class="shop-shortcut active" onclick="filterCategory('all');setSimpleCat(document.querySelector('.simple-cat'))">
+            <span class="shortcut-icon"><i class="fa-solid fa-layer-group"></i></span><b>सभी कार्ड</b><small>All Cards</small>
+        </button>
+        <button type="button" class="shop-shortcut" onclick="filterCategory('muslim');setSimpleCat(document.querySelectorAll('.simple-cat')[1])">
+            <span class="shortcut-icon"><i class="fa-solid fa-mosque"></i></span><b>मुस्लिम कार्ड</b><small>Muslim</small>
+        </button>
+        <button type="button" class="shop-shortcut" onclick="filterCategory('hindu');setSimpleCat(document.querySelectorAll('.simple-cat')[2])">
+            <span class="shortcut-icon"><i class="fa-solid fa-om"></i></span><b>हिंदू कार्ड</b><small>Hindu</small>
+        </button>
+    </div>
+
+
+
+    <div class="container">
+        <section class="top-card-tools" aria-label="कार्ड खोज और श्रेणी">
+            <div class="location-strip" id="locationStrip" role="button" tabindex="0" onclick="openLocationPopup()" onkeydown="if(event.key==='Enter'||event.key===' ')openLocationPopup()">
+                <i class="fa-solid fa-location-dot"></i>
+                <div class="location-strip-text">
+                    <span class="location-strip-label">आपका लोकेशन</span>
+                    <span id="locationAddressText">लोकेशन प्राप्त हो रही है...</span>
+                </div>
+                <i class="fa-solid fa-chevron-right location-strip-arrow"></i>
+            </div>
+            <div class="top-search-row">
+                <div class="top-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="catalogSearchInputTop" type="search" list="priceSearchSamplesTop" placeholder="कार्ड / मॉडल / रेट खोजें..." onkeydown="if(event.key==='Enter') searchCatalogTop()">
+                    <datalist id="priceSearchSamplesTop">
+                        <option value="9">₹9</option>
+                        <option value="10">₹10</option>
+                        <option value="9-10">₹9 - ₹10</option>
+                    </datalist>
+                    <button type="button" onclick="searchCatalogTop()">खोजें</button>
+                </div>
+            </div>
+            <div class="top-card-categories">
+                <button type="button" class="simple-cat active" onclick="filterCategory('all'); setSimpleCat(this)"><i class="fa-solid fa-grip"></i> सभी कार्ड</button>
+                <button type="button" class="simple-cat" onclick="filterCategory('muslim'); setSimpleCat(this)"><i class="fa-solid fa-mosque"></i> मुस्लिम कार्ड</button>
+                <button type="button" class="simple-cat" onclick="filterCategory('hindu'); setSimpleCat(this)"><i class="fa-solid fa-om"></i> हिंदू कार्ड</button>
+            </div>
+        </section>
+
+        <section class="hero real-card-hero" aria-label="कार्ड सैंपल">
+            <div class="hero-inner">
+                <div class="hero-content">
+                    <h1>खास मौकों के लिए<br>खास कार्ड</h1>
+                    <p>शादी • निकाह • अकीका • निमंत्रण<br>और भी बहुत कुछ...</p>
+                    <div style="display:inline-block;background:linear-gradient(135deg,#d71939,#b20f2c);color:#fff;border-radius:24px;padding:7px 18px;font-size:13px;font-weight:800;box-shadow:0 4px 10px rgba(183,15,44,.25);">
+                        बेहतरीन डिजाइन&nbsp; • &nbsp;उत्तम गुणवत्ता&nbsp; • &nbsp;उचित मूल्य
+                    </div>
+                </div>
+
+                <div class="real-card-slider" id="realCardSlider">
+                    <button class="real-slider-btn prev" type="button" aria-label="पिछला कार्ड" onclick="moveRealCardSlider(-1)">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="real-card-track" id="realCardTrack">
+                        <!-- Admin से Index Catalog में आने वाले कार्ड यहाँ अपने-आप दिखेंगे -->
+                    </div>
+                    <button class="real-slider-btn next" type="button" aria-label="अगला कार्ड" onclick="moveRealCardSlider(1)">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div class="real-slider-dots" id="realCardDots" aria-label="कार्ड स्लाइड"></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="notice-banner">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span><b>महत्वपूर्ण सूचना:</b> कार्ड का Matter, नाम, तारीख, समय और अन्य विवरण छपाई से पहले ध्यान से जाँच लें। अंतिम स्वीकृति के बाद किसी गलती/वर्तनी/नाम/तारीख की जिम्मेदारी ग्राहक की होगी। कार्ड की छपाई शुरू होने के बाद बदलाव की जिम्मेदारी भी ग्राहक की होगी।</span>
+        </div>
+
+                <div class="terms-marquee" role="note" aria-label="कार्ड के बारे में महत्वपूर्ण सूचना">
+            <div class="terms-marquee-inner">
+                <span><i class="fa-solid fa-triangle-exclamation"></i> महत्वपूर्ण सूचना: कार्ड की छपाई से पहले नाम, तारीख, समय और पूरा Matter ध्यान से जाँच लें।</span>
+                <span><i class="fa-solid fa-circle-check"></i> अंतिम स्वीकृति के बाद नाम/तारीख/वर्तनी/Matter की गलती की जिम्मेदारी ग्राहक की होगी।</span>
+                <span><i class="fa-solid fa-truck"></i> डिलीवरी अधिकतम 1 सप्ताह (7 दिन) के भीतर करने का प्रयास किया जाएगा।</span>
+            </div>
+        </div>
+<section class="showcase-box" id="showcaseSection">
+            <div class="catalog-head">
+                <div>
+                    <div class="catalog-heading">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <h3 class="showcase-header-title">शादी कार्ड, फ्लेक्स व विजिटिंग कार्ड कैटलॉग</h3>
+                    </div>
+                    <p class="catalog-sub">कार्ड पर टच करें और पूरा विवरण देखने के लिए <b>Catalog Details</b> खोलें।</p>
+                </div>
+
+            </div>
+            <div class="gallery-grid" id="catalogContainer"></div>
+        </section>
+
+        <div class="benefit-grid">
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-truck-fast"></i></div><div><h4>तेज डिलीवरी</h4><p>3-7 दिनों में</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-shield-halved"></i></div><div><h4>सुरक्षित भुगतान</h4><p>100% सुरक्षित</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-star"></i></div><div><h4>बेहतरीन गुणवत्ता</h4><p>प्रिंट की गारंटी</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-headset"></i></div><div><h4>24×7 सहायता</h4><p>हमेशा आपके साथ</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-file-signature"></i></div><div><h4>टर्म्स & कंडीशन</h4><p>ऑर्डर से पहले जानकारी</p></div></div>
+            <div class="benefit"><div class="benefit-icon"><i class="fa-solid fa-circle-check"></i></div><div><h4>प्रूफ जाँच जरूरी</h4><p>स्वीकृति के बाद प्रिंटिंग</p></div></div>
+        </div>
+
+
+
+        <section class="info-card" id="mapSection">
+                <div class="info-card-header"><i class="fa-solid fa-location-dot"></i><span>शॉप लोकेशन एवं संपर्क (Visit Our Press)</span></div>
+                <div class="location-details">
+                    <p><i class="fa-solid fa-map-pin" style="color:var(--red)"></i> <strong>पता:</strong> <span>ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352 | मो: 9304509464</span></p>
+                    <a href="https://share.google/8lCHKltM8SpeKMCHd" target="_blank" class="btn-open-map-direct"><i class="fa-solid fa-diamond-turn-right"></i> गूगल मैप्स पर दिशा-निर्देश देखें</a>
+                </div>
+                <div class="map-wrapper">
+                    <iframe src="https://maps.google.com/maps?q=Delhi+Press+Sajad+Printers,+Eidgah+More,+Karmatar,+Jamtara&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+        </section>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        
+        let supabaseClient = null;
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {}
+
+        let globalCards = [];
+
+        const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='185' height='155' viewBox='0 0 185 155'><rect width='185' height='155' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='12' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card Image</text></svg>";
+
+        // HTML text सुरक्षित रखने के लिए; initial catalog render में यही missing था,
+        // जिसकी वजह से esc(...) error आते ही बाकी catalog render रुक जाता था।
+        function esc(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);
+            });
+        }
+
+        function isUserLoggedIn() {
+            return !!(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user'));
+        }
+
+        function checkLoginBeforeOrder() {
+            if (!isUserLoggedIn()) {
+                alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
+                window.location.href = "login.html";
+                return;
+            }
+            window.location.href = "order.html";
+        }
+
+        function updateCartBadges() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
+                const count = cart.length;
+                const navBadge = document.getElementById('navCartBadge');
+                const mobBadge = document.getElementById('mobileCartBadge');
+                if (navBadge) navBadge.innerText = count;
+                if (mobBadge) mobBadge.innerText = count;
+            } catch (e) {}
+        }
+
+        function startCatalogLoading() {
+            try { checkUserAuthUI(); } catch(e) {}
+            try { initLocationUI(); } catch(e) {}
+            try { updateCartBadges(); } catch(e) {}
+            // DOMContentLoaded/Load दोनों जगह से बुलाने पर भी loadCatalog() single-flight guard के कारण एक ही बार चलेगा।
+            loadCatalog();
+        }
+        window.addEventListener('DOMContentLoaded', startCatalogLoading);
+        window.addEventListener('load', startCatalogLoading);
+
+        function checkUserAuthUI() {
+            const user = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
+            try { updateUserGreeting(); } catch(e) {}
+            const authNav = document.getElementById('authNavContainer');
+            const loggedBox = document.getElementById('userLoggedBox');
+            const mobLink = document.getElementById('mobileAuthLink');
+            const mobText = document.getElementById('mobileAuthText');
+            const mobIcon = mobLink ? mobLink.querySelector('i') : null;
+
+            if (user) {
+                if (authNav) authNav.style.display = 'none';
+                if (loggedBox) loggedBox.style.display = 'flex';
+                if (mobLink) {
+                    mobLink.href = 'my_orders.html';
+                    if (mobText) mobText.textContent = 'माय ऑर्डर';
+                    if (mobIcon) mobIcon.className = 'fa-solid fa-box-archive';
+                    mobLink.setAttribute('aria-label','माय ऑर्डर');
+                }
+            } else {
+                if (authNav) authNav.style.display = 'block';
+                if (loggedBox) loggedBox.style.display = 'none';
+                if (mobLink) {
+                    mobLink.href = 'login.html';
+                    if (mobText) mobText.textContent = 'लॉगिन';
+                    if (mobIcon) mobIcon.className = 'fa-solid fa-user';
+                    mobLink.setAttribute('aria-label','लॉगिन');
+                }
+            }
+        }
+
+        // Index का catalog cache Detail page के More Products के लिए भी उपलब्ध रखें।
+        function syncIndexCatalogCache(cards) {
+            if (!Array.isArray(cards) || !cards.length) return;
+            try { localStorage.setItem('dp_index_catalog', JSON.stringify(cards)); } catch(e) {}
+            try { localStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(cards)); } catch(e) {}
+        }
+
+        /* 100% Admin Match Catalog Loader - FAST IMAGE ONLY */
+        function fastCatalogImages() {
+            const imgs = document.querySelectorAll('#catalogContainer img[data-fast-src]');
+            if (!imgs.length) return;
+
+            const loadOne = (img) => {
+                const url = img.getAttribute('data-fast-src');
+                if (!url) return;
+                img.src = url;
+                img.removeAttribute('data-fast-src');
+            };
+
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            loadOne(entry.target);
+                            obs.unobserve(entry.target);
+                        }
+                    });
+                }, { rootMargin: '500px 0px' });
+                imgs.forEach(loadOne); // Keep original catalog visible immediately; browser handles parallel image fetches.
+            } else {
+                imgs.forEach(loadOne);
+            }
+        }
+
+        async function loadCatalogOnce() {
+            const container = document.getElementById('catalogContainer');
+            if (!container) return;
+
+            let hadCache = false;
+            try {
+                for (const key of ['dp_index_catalog_cache_v3','dp_index_catalog_cache_v2']) {
+                    const cached = sessionStorage.getItem(key);
+                    if (!cached) continue;
+                    const cachedCards = JSON.parse(cached);
+                    if (Array.isArray(cachedCards) && cachedCards.length) {
+                        hadCache = true;
+                        globalCards = cachedCards;
+                        syncIndexCatalogCache(cachedCards);
+                        try { renderRealCardsFromCatalog(cachedCards); } catch(e) {}
+                        renderCatalogCards(cachedCards);
+                        break;
+                    }
+                }
+            } catch(e) {}
+
+            if (!supabaseClient) {
+                if (!hadCache) container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#ef4444">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
+                return;
+            }
+
+            // IMPORTANT: read the same Supabase tables used by the Admin panel.
+            // Do not add fake query parameters to PostgREST: Supabase treats them as filters.
+            const tables = ['catalog', 'cards', 'cards_catalog'];
+            const allRows = [];
+
+            for (const tbl of tables) {
+                try {
+                    const result = await Promise.race([
+                        supabaseClient.from(tbl).select('*'),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                    ]);
+                    if (!result.error && Array.isArray(result.data)) {
+                        result.data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
+                    } else if (result.error) {
+                        console.warn('Catalog table read failed:', tbl, result.error.message || result.error);
+                    }
+                } catch(e) {
+                    console.warn('Catalog table error:', tbl, e);
+                }
+            }
+
+            // REST fallback for browsers where the Supabase SDK request fails.
+            if (!allRows.length) {
+                for (const tbl of tables) {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 8000);
+                    try {
+                        const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
+                        const res = await fetch(url, {
+                            method:'GET',
+                            headers:{
+                                'apikey': SUPABASE_ANON_KEY,
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                'Accept':'application/json'
+                            },
+                            signal:controller.signal,
+                            cache:'no-store',
+                            credentials:'omit'
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (Array.isArray(data)) data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
+                        } else {
+                            console.warn('Catalog REST read failed:', tbl, res.status);
+                        }
+                    } catch(e) {
+                        console.warn('Catalog REST error:', tbl, e);
+                    } finally { clearTimeout(timer); }
+                }
+            }
+
+            if (!allRows.length) {
+                if (!hadCache) container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
+                return;
+            }
+
+            // Keep every card. Only remove the exact same record repeated by the same source table.
+            const seen = new Set();
+            const fetchedData = allRows.filter(card => {
+                const source = String(card._source_table || '');
+                const id = String(card.id ?? '');
+                const signature = [
+                    source, id,
+                    String(card.name ?? card.title ?? '').trim().toLowerCase(),
+                    String(card.model ?? card.code ?? '').trim().toLowerCase(),
+                    String(card.image ?? card.image_url ?? card.photo ?? '').trim()
+                ].join('|');
+                if (seen.has(signature)) return false;
+                seen.add(signature);
+                return true;
+            }).sort((a,b) => {
+                const da = new Date(a.created_at || a.updated_at || 0).getTime() || 0;
+                const db = new Date(b.created_at || b.updated_at || 0).getTime() || 0;
+                if (db !== da) return db - da;
+                return (Number(b.id)||0) - (Number(a.id)||0);
+            });
+
+            globalCards = fetchedData;
+            // Detail page / More Products के लिए वही live catalog localStorage में भी रखें।
+            // sessionStorage को भी रखा गया है ताकि मौजूदा fast-loading behaviour न बदले।
+            syncIndexCatalogCache(fetchedData);
+            try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(fetchedData)); } catch(e) {}
+            try { renderRealCardsFromCatalog(fetchedData); } catch(e) { console.warn('Hero render:', e); }
+            renderCatalogCards(fetchedData);
+        }
+
+        let catalogLoadPromise = null;
+        async function loadCatalog() {
+            if (catalogLoadPromise) return catalogLoadPromise;
+            catalogLoadPromise = loadCatalogOnce().finally(() => { catalogLoadPromise = null; });
+            return catalogLoadPromise;
+        }
+
+        function getOriginalRate(card) {
+            const value = card.catalog_rate ?? card.original_rate ?? card.actual_rate ?? card.mrp ?? card.list_price;
+            const num = parseFloat(value);
+            return Number.isFinite(num) && num > 0 ? num : 0;
+        }
+
+        function getSaleRate(card) {
+            const value = card.sale_rate ?? card.selling_price ?? card.selling_rate ?? card.current_rate ?? card.rate ?? card.price;
+            const num = parseFloat(value);
+            return Number.isFinite(num) && num > 0 ? num : 0;
+        }
+
+        function getDiscountPercent(card) {
+            const original = getOriginalRate(card);
+            const sale = getSaleRate(card);
+            if (original > sale && sale >= 0) {
+                return Math.round(((original - sale) / original) * 100);
+            }
+            return 0;
+        }
+
+        function renderCatalogCards(cards) {
+            const container = document.getElementById('catalogContainer');
+            container.innerHTML = '';
+
+            cards.forEach((card, index) => {
+                const name = card.name || card.title || 'शादी कार्ड';
+                const model = card.model || card.code || '';
+                const originalRate = getOriginalRate(card);
+                const saleRate = getSaleRate(card);
+                const discount = getDiscountPercent(card);
+                const img = card.image || card.image_url || card.photo || safeCardPlaceholder;
+                const inStock = card.in_stock !== false;
+                const stockBadge = inStock 
+                    ? `<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>` 
+                    : `<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>`;
+
+                let priceHtml = '';
+                if (originalRate > saleRate && saleRate > 0) {
+                    priceHtml = `
+                        <div class="card-price-box">
+                            <span class="card-original-price">₹${originalRate.toLocaleString('en-IN')}</span>
+                            <span class="card-sale-price">₹${saleRate.toLocaleString('en-IN')}</span>
+                            <span class="card-discount-badge">${discount}% OFF</span>
+                        </div>
+                        <span class="card-price-note">असली रेट: ₹${originalRate.toLocaleString('en-IN')} • अभी: ₹${saleRate.toLocaleString('en-IN')} / पीस</span>
+                    `;
+                } else {
+                    priceHtml = `<div class="card-price-tag">₹${saleRate.toLocaleString('en-IN')} / पीस</div>`;
+                }
+
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-sample';
+                cardDiv.style.cursor = 'pointer';
+                cardDiv.title = 'कैटलॉग विवरण खोलें';
+                cardDiv.onclick = () => openCatalogDetail(index);
+                cardDiv.innerHTML = `
+                    <div class="img-box">
+                        <img src="${safeCardPlaceholder}" data-fast-src="${String(img).replace(/"/g,'&quot;')}" alt="${String(name).replace(/"/g,'&quot;')}" loading="${index < 4 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${index < 4 ? 'high' : 'auto'}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
+                    </div>
+                    <div class="card-info">
+                        <h4>${name}</h4>
+                        <div class="model-text">${model}</div>
+                        ${priceHtml}
+                        <div class="card-rating-row">
+                            <span class="rating-stars">★★★★★</span>
+                            <span class="rating-text">${Number(card.rating ?? card.stars ?? 5).toFixed(1)}</span>
+                            <span class="rating-label">रेटिंग</span>
+                        </div>
+                        <div style="margin-bottom: 6px;">${stockBadge}</div>
+                    </div>
+                `;
+                container.appendChild(cardDiv);
+            });
+            fastCatalogImages();
+        }
+
+        function selectCardForOrder(cardIndex) {
+            if (!isUserLoggedIn()) {
+                alert("ऑर्डर करने के लिए कृपया पहले लॉगिन करें।");
+                window.location.href = "login.html";
+                return;
+            }
+
+            const card = globalCards[cardIndex];
+            if (!card) return;
+
+            localStorage.removeItem('order_selected_card');
+            const cardData = {
+                id: card.id || '',
+                name: card.name || card.title || 'शादी कार्ड',
+                model: card.model || card.code || '',
+                rate: getSaleRate(card),
+                image: card.image || card.image_url || card.photo || ''
+            };
+
+            localStorage.setItem('order_selected_card', JSON.stringify(cardData));
+            window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
+        }
+
+        function openCatalogDetail(index) {
+            const card = globalCards[index];
+            if (!card) return;
+
+            // जिस कार्ड पर user ने क्लिक किया है, उसका पूरा object Detail page को दें।
+            // इससे Detail page केवल Supabase ID पर निर्भर नहीं रहेगा।
+            try {
+                const handoff = {
+                    ...card,
+                    _from_index: true,
+                    _saved_at: Date.now()
+                };
+                localStorage.setItem('dp_catalog_detail_fallback', JSON.stringify(handoff));
+            } catch(e) {}
+
+            const id = card.id ?? card.catalog_id ?? '';
+            if (id !== '') {
+                window.location.href = `catalog-detail.html?id=${encodeURIComponent(id)}`;
+            } else {
+                window.location.href = 'catalog-detail.html';
+            }
+        }
+
+        // Real card sample slider: 4 cards together on desktop, swipe-like 2/1 cards on mobile.
+        let realCardSlideIndex = 0;
+
+        function getRealCardStep() {
+            const track = document.getElementById('realCardTrack');
+            const first = track?.querySelector('.real-card-slide');
+            if (!track || !first) return 0;
+            const style = getComputedStyle(track);
+            const gap = parseFloat(style.gap || '0');
+            return first.getBoundingClientRect().width + gap;
+        }
+
+        function renderRealCardsFromCatalog(cards) {
+            const track = document.getElementById('realCardTrack');
+            if (!track) return;
+            const list = Array.isArray(cards) ? cards.slice(0, 12) : [];
+            track.innerHTML = list.map((card, i) => {
+                const name = String(card.name || card.title || card.card_name || 'शादी कार्ड');
+                const model = String(card.model || card.code || '');
+                const img = card.image || card.image_url || card.photo || card.main_image || safeCardPlaceholder;
+                const rate = getSaleRate(card);
+                const idx = globalCards.indexOf(card);
+                const tag = i === 0
+                    ? `<span class="hero-live-tag new-tag">NEW</span>`
+                    : (i === 1 ? `<span class="hero-live-tag trending-tag">TRENDING</span>` : '');
+                return `<div class="real-card-slide" title="${esc(name)}" onclick="openCatalogDetail(${idx >= 0 ? idx : i})" style="cursor:pointer">
+                    ${tag}
+                    <img src="${esc(img)}" alt="${esc(name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';">
+                    <div class="real-card-caption">
+                        <div class="hero-card-name">${esc(name)}</div>
+                        <div class="hero-card-model">${esc(model)}</div>
+                        <div class="hero-card-price">₹${Number(rate || 0).toLocaleString('en-IN')}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            realCardSlideIndex = 0;
+            setRealCardSlider(0);
+        }
+
+        function renderRealCardDots() {
+            const dots = document.getElementById('realCardDots');
+            const track = document.getElementById('realCardTrack');
+            if (!dots || !track) return;
+            const count = track.children.length;
+            const mobile = window.innerWidth <= 390 ? 1 : (window.innerWidth <= 700 ? 2 : 4);
+            const pages = Math.max(1, count - mobile + 1);
+            dots.innerHTML = Array.from({length: pages}, (_,i) =>
+                `<span class="real-slider-dot ${i===realCardSlideIndex?'active':''}" onclick="setRealCardSlider(${i})"></span>`
+            ).join('');
+        }
+
+        function setRealCardSlider(index) {
+            const track = document.getElementById('realCardTrack');
+            if (!track) return;
+            const count = track.children.length;
+            const visible = window.innerWidth <= 390 ? 1 : (window.innerWidth <= 700 ? 2 : 4);
+            const maxIndex = Math.max(0, count - visible);
+            realCardSlideIndex = Math.max(0, Math.min(index, maxIndex));
+
+            track.style.transform = `translateX(-${realCardSlideIndex * getRealCardStep()}px)`;
+            renderRealCardDots();
+        }
+
+        function moveRealCardSlider(direction) {
+            setRealCardSlider(realCardSlideIndex + direction);
+        }
+
+        window.addEventListener('resize', () => setRealCardSlider(realCardSlideIndex));
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRealCardDots();
+            setRealCardSlider(0);
+            window.setInterval(() => {
+                const track = document.getElementById('realCardTrack');
+                if (!track || track.children.length <= 1) return;
+                const visible = window.innerWidth <= 390 ? 1 : (window.innerWidth <= 700 ? 2 : 4);
+                const max = Math.max(0, track.children.length - visible);
+                setRealCardSlider(realCardSlideIndex >= max ? 0 : realCardSlideIndex + 1);
+            }, 5000);
+        });
+
+        function searchCatalogTop(){
+            const topInput = document.getElementById('catalogSearchInputTop');
+            const oldInput = document.getElementById('catalogSearchInput');
+            if (oldInput && topInput) oldInput.value = topInput.value;
+            searchCatalog();
+            const section = document.getElementById('showcaseSection');
+            if (section) section.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+        function getStoredUserObject(){
+            try { return JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}') || {}; }
+            catch(e){ return {}; }
+        }
+
+        function getFirstName(name){
+            const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+            if (!parts.length) return 'ग्राहक';
+            const first = parts[0].replace(/[.,]/g,'').toLowerCase();
+            const titles = ['md','md.','mohd','mohd.','mohammad','mohammed'];
+            if (titles.includes(first) && parts[1]) return parts[1];
+            return parts[0];
+        }
+
+        function updateUserGreeting(){
+            const user = getStoredUserObject();
+            const name = user.name || user.full_name || user.customer_name || user.username || '';
+            const firstName = getFirstName(name);
+            const el = document.getElementById('userGreetingName');
+            const navEl = document.getElementById('navWelcomeName');
+            const navBox = document.getElementById('navWelcomeGreeting');
+            if (el) el.textContent = firstName;
+            if (navEl) navEl.textContent = firstName;
+            if (navBox) navBox.style.display = name ? 'inline-flex' : 'none';
+        }
+
+        function setLocationAddress(text){
+            const el = document.getElementById('locationAddressText');
+            if (el) el.textContent = text || 'लोकेशन सेट करें';
+        }
+
+        function openLocationPopup(){
+            const overlay = document.getElementById('locationPopupOverlay');
+            if (!overlay) return;
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden','false');
+        }
+
+        function closeLocationPopup(){
+            const overlay = document.getElementById('locationPopupOverlay');
+            if (!overlay) return;
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden','true');
+        }
+
+        async function reverseGeocodeLocation(lat,lng){
+            try{
+                const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng)+'&zoom=18&addressdetails=1&accept-language=hi';
+                const res = await fetch(url, {headers:{'Accept':'application/json'}});
+                if (!res.ok) throw new Error('reverse geocode failed');
+                const data = await res.json();
+                const a = data.address || {};
+                const pieces = [a.house_number, a.road, a.neighbourhood || a.suburb || a.village || a.town || a.city, a.district, a.state, a.postcode].filter(Boolean);
+                return pieces.join(', ') || data.display_name || '';
+            }catch(e){ return ''; }
+        }
+
+        function requestLocationAccess(closeAfter){
+            if (!navigator.geolocation) {
+                setLocationAddress('इस डिवाइस में लोकेशन उपलब्ध नहीं है');
+                if(closeAfter) closeLocationPopup();
+                return;
+            }
+            setLocationAddress('आपकी लोकेशन प्राप्त हो रही है...');
+            navigator.geolocation.getCurrentPosition(
+                async function(pos){
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    let address = await reverseGeocodeLocation(lat,lng);
+                    if (!address) address = lat.toFixed(5) + ', ' + lng.toFixed(5);
+                    setLocationAddress(address);
+                    try { localStorage.setItem('dp_user_location', JSON.stringify({lat,lng,address,at:Date.now()})); } catch(e) {}
+                    closeLocationPopup();
+                },
+                function(){
+                    setLocationAddress('लोकेशन अनुमति नहीं मिली • यहाँ टैप करके सेट करें');
+                    if(closeAfter) closeLocationPopup();
+                },
+                {enableHighAccuracy:true, timeout:12000, maximumAge:300000}
+            );
+        }
+
+        function initLocationUI(){
+            updateUserGreeting();
+            try{
+                const saved = JSON.parse(localStorage.getItem('dp_user_location') || 'null');
+                if(saved && saved.address) setLocationAddress(saved.address);
+                else setLocationAddress('लोकेशन सेट करें');
+            }catch(e){ setLocationAddress('लोकेशन सेट करें'); }
+            const asked = localStorage.getItem('dp_location_popup_seen');
+            if (!asked && !localStorage.getItem('dp_user_location')) {
+                setTimeout(()=>{ openLocationPopup(); localStorage.setItem('dp_location_popup_seen','1'); }, 650);
+            }
+        }
+
+        function searchCatalog(){
+            if (!Array.isArray(globalCards)) return;
+            const input = (document.getElementById('catalogSearchInput')?.value || '').trim().toLowerCase();
+            if (!input) { renderCatalogCards(globalCards); return; }
+
+            // Price search: 9, ₹9, 9-10, ₹9-₹10 आदि
+            const nums = input.replace(/₹/g,'').match(/\d+(?:\.\d+)?/g) || [];
+            let priceMin = null, priceMax = null;
+            if (nums.length >= 2 && /[-–—]/.test(input)) {
+                priceMin = parseFloat(nums[0]); priceMax = parseFloat(nums[1]);
+                if (priceMin > priceMax) [priceMin, priceMax] = [priceMax, priceMin];
+            } else if (nums.length === 1 && (/^₹?\s*\d+(?:\.\d+)?\s*$/.test(input) || /^(?:rs|inr)\s*\d+(?:\.\d+)?$/.test(input))) {
+                priceMin = priceMax = parseFloat(nums[0]);
+            }
+
+            const filtered = globalCards.filter(card => {
+                const text = `${card.name || ''} ${card.title || ''} ${card.model || ''} ${card.code || ''} ${card.category || ''}`.toLowerCase();
+                const sale = getSaleRate(card);
+                if (priceMin !== null) return sale >= priceMin && sale <= priceMax;
+                return text.includes(input);
+            });
+
+            renderCatalogCards(filtered);
+            if (!filtered.length) {
+                document.getElementById('catalogContainer').innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:24px;color:#64748b"><i class="fa-solid fa-magnifying-glass"></i><br>इस खोज के अनुसार कोई कार्ड नहीं मिला।</p>`;
+            }
+        }
+
+        function filterCategory(categoryVal){
+            if (!Array.isArray(globalCards)) return;
+            if(categoryVal === 'all'){ renderCatalogCards(globalCards); return; }
+            const filtered = globalCards.filter(card => {
+                const text = `${card.name || ''} ${card.title || ''} ${card.model || ''} ${card.code || ''} ${card.category || ''}`.toLowerCase();
+                if(categoryVal === 'muslim') return /muslim|मुस्लिम|nikah|निकाह|islam|इस्लाम/.test(text);
+                if(categoryVal === 'hindu') return /hindu|हिंदू|विवाह|ganesh|गणेश|shree|श्री/.test(text);
+                if(categoryVal === 'banner') return /banner|flex|बैनर|फ्लेक्स/.test(text);
+                return true;
+            });
+            renderCatalogCards(filtered);
+        }
+    </script>
+
+
+    <div class="location-popup-overlay" id="locationPopupOverlay" aria-hidden="true">
+        <div class="location-popup" role="dialog" aria-modal="true" aria-labelledby="locationPopupTitle">
+            <button type="button" class="location-popup-close" onclick="closeLocationPopup()" aria-label="बंद करें">&times;</button>
+            <div class="location-popup-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <h3 id="locationPopupTitle">अपना लोकेशन सेट करें</h3>
+            <p>आपके आसपास के अनुसार पता दिखाने के लिए अपनी वर्तमान लोकेशन की अनुमति दें।</p>
+            <button type="button" class="location-use-btn" onclick="requestLocationAccess(true)"><i class="fa-solid fa-location-crosshairs"></i> वर्तमान लोकेशन इस्तेमाल करें</button>
+            <button type="button" class="location-later-btn" onclick="closeLocationPopup()">अभी नहीं</button>
+        </div>
+    </div>
+
+    <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="मोबाइल नेविगेशन">
+        <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
+        <a href="#showcaseSection"><i class="fa-solid fa-grip"></i><span>कैटेगरी</span></a>
+        <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user"></i><span id="mobileAuthText">लॉगिन</span></a>
+        <a href="cart.html" id="mobileCartLink" class="mobile-cart-link" aria-label="कार्ट">
+            <i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span><span class="cart-badge-count" id="navCartBadge">0</span>
+        </a>
+    </nav>
+
+<footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h4>
+                <p><a href="https://share.google/8lCHKltM8SpeKMCHd" target="_blank" style="color:#cbd5e1;text-decoration:none"><i class="fa-solid fa-location-dot"></i><span>ईदगाह मोड़ (छैतर मोड़), करमाटांड़, जामताड़ा, झारखंड - 815352</span></a></p>
+                <p><i class="fa-solid fa-phone"></i>9304509464</p>
+                <p><i class="fa-solid fa-envelope"></i>mdsajadans@gmail.com</p>
+            </div>
+            <div class="footer-col">
+                <h4>हमारी सेवाएं</h4>
+                <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
+            </div>
+            <div class="footer-col">
+                <h4>संपर्क एवं सहायता</h4>
+                <p><i class="fa-solid fa-phone"></i> सीधे हमसे संपर्क करें</p>
+                <p><i class="fa-solid fa-clock"></i> समय पर प्रिंटिंग सेवा</p>
+                <p><i class="fa-solid fa-shield"></i> विश्वसनीय प्रिंटिंग सेवा</p>
+            </div>
+            <div class="footer-col">
+                <h4>महत्वपूर्ण जानकारी</h4>
+                <div class="footer-page-btns">
+                    <a href="payment-policy.html" class="footer-page-btn"><i class="fa-solid fa-shield-halved"></i> भुगतान एवं रिफंड नीति</a>
+                    <a href="proofreading.html" class="footer-page-btn"><i class="fa-solid fa-file-circle-check"></i> कार्ड ऑर्डर से पहले जाँच</a>
+                    <a href="about.html" class="footer-page-btn"><i class="fa-solid fa-circle-info"></i> हमारे बारे में</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 दिल्ली प्रेस (सज्जाद प्रिंटर्स). सर्वाधिकार सुरक्षित।</span>
+        </div>
+    </footer>
+
 <script>
-const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoicXN2aHRma3JsemNsbnF3eXBmZHkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4ODI0Nzc2MywiZXhwIjoyMTAzODIzNzYzfQ.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-let sb=null, product=null, images=[], imageIndex=0, selectedRating=0, feedbackRows=[];
-try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
-const id=new URLSearchParams(location.search).get('id');
-let activeId=id;
-const placeholder="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><rect width='100%' height='100%' fill='%23f3f6fa'/><text x='50%' y='50%' font-size='28' fill='%2394a3b8' text-anchor='middle'>Card Image</text></svg>";
-function sale(c){let n=parseFloat(c.sale_rate??c.selling_price??c.selling_rate??c.current_rate??c.rate??c.price);return Number.isFinite(n)&&n>0?n:0}
-function original(c){let n=parseFloat(c.catalog_rate??c.original_rate??c.actual_rate??c.mrp??c.list_price);return Number.isFinite(n)&&n>0?n:0}
-function getImages(c){
- let a=[];
- const fields=['images','image_urls','gallery','photos','gallery_images','product_images','catalog_images'];
- for(const f of fields){let v=c?.[f]; if(Array.isArray(v)) a.push(...v); else if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else a.push(v)}catch(e){a.push(...v.split(/\s*,\s*\n?/).filter(Boolean))}}}
- for(const f of ['image','image_url','photo','main_image']){const v=c?.[f]; if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else a.push(v)}catch(e){a.push(v)}}}
- return [...new Set(a.filter(v=>typeof v==='string'&&v.trim()))];
+function setSimpleCat(btn){
+  document.querySelectorAll('.simple-cat').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
 }
-function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-async function findProduct(){
-  // First use the exact card handed over by Index. This is intentionally before
-  // any network request so the detail page opens instantly even on a slow phone.
-  const handoffKeys=['dp_catalog_detail_selected','dp_catalog_detail_fallback','dp_selected_catalog_card','order_selected_card'];
-  for(const key of handoffKeys){
-    const raws=[];
-    try{const x=sessionStorage.getItem(key);if(x)raws.push(x)}catch(e){}
-    try{const x=localStorage.getItem(key);if(x)raws.push(x)}catch(e){}
-    for(const raw of raws){
-      try{
-        const f=JSON.parse(raw);
-        if(!f) continue;
-        if(f._from_index || key==='dp_catalog_detail_selected') return f;
-        if(!activeId || f.id==null || String(f.id)===String(activeId) || String(f.catalog_id??'')===String(activeId)) return f;
-        // Some older Index versions saved the card without _from_index.
-        // If the URL has no usable id, safely accept a complete saved card.
-        if(!activeId && (f.name||f.title||f.image||f.image_url||f.photo)) return f;
-      }catch(e){}
-    }
-  }
-
-  // Direct URL / refresh fallback: try all supported Supabase tables.
-  if(sb&&activeId){
-    for(const tbl of ['catalog','cards','cards_catalog']){
-      try{
-        const query=sb.from(tbl).select('*').eq('id',activeId).limit(1);
-        const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));
-        const {data,error}=await Promise.race([query,timeout]);
-        if(!error&&Array.isArray(data)&&data[0]) return {...data[0],_source_table:tbl};
-      }catch(e){}
-    }
-  }
-
-  // Cached Index catalog fallback.
-  try{
-    const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
-    const rows=JSON.parse(raw);
-    if(Array.isArray(rows)&&rows.length){
-      const hit=activeId ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId)) : rows[0];
-      if(hit)return hit;
-    }
-  }catch(e){}
-  return null;
-}
-function variantColor(c){
- const direct=String(c?.variant_color??c?.color??c?.card_color??'').trim(); if(direct)return direct;
- const d=String(c?.description??''); const m=d.match(/\[\[COLOR:([^\]]+)\]\]/i); return m?m[1].trim():'';
-}
-function cleanDescription(c){return String(c?.description??c?.details??c?.description_hi??c?.matter??c?.note??'').replace(/\n?\[\[COLOR:[^\]]+\]\]/ig,'').trim()}
-async function loadVariants(){
- const box=document.getElementById('variantSection'), list=document.getElementById('variantList'); if(!box||!list||!product)return;
- const model=String(product.model??product.code??'').trim(), category=String(product.category??'').trim();
- if(!sb||!model){box.style.display='none';return;}
- let all=[];
- for(const tbl of ['catalog','cards','cards_catalog']){
-   try{const {data,error}=await sb.from(tbl).select('*').limit(300);if(!error&&Array.isArray(data))all.push(...data.map(x=>({...x,_source_table:tbl})))}catch(e){}
- }
- const rows=all.filter(x=>{
-   const xm=String(x.model??x.code??'').trim(), xc=String(x.category??'').trim();
-   return xm && xm.toLowerCase()===model.toLowerCase() && (!category || !xc || xc.toLowerCase()===category.toLowerCase());
- });
- const seen=new Set(), unique=rows.filter(x=>{const k=String(x._source_table)+':'+String(x.id);if(seen.has(k))return false;seen.add(k);return true});
- if(unique.length<=1){box.style.display='none';return;}
- window.__variantRows=unique; box.style.display='block';
- list.innerHTML=unique.map((v,i)=>{
-   const color=variantColor(v) || ('रंग '+(i+1));
-   const img=getImages(v)[0]||placeholder, rate=sale(v)||original(v);
-   const active=String(v.id)===String(product.id);
-   return `<button type="button" class="variant-card ${active?'active':''}" onclick="selectCatalogVariant(${i})" title="${esc(color)}">\n     <img src="${esc(img)}" alt="${esc(color)}" onerror="this.src='${placeholder}'">\n     <div class="variant-color">${esc(color)}</div>\n     <div class="variant-model">${esc(v.model||v.code||'')}</div>\n     <div class="variant-price">₹${rate||0}</div>\n   </button>`;
- }).join('');
-}
-async function selectCatalogVariant(index){
- const v=(window.__variantRows||[])[index]; if(!v)return;
- product=v; activeId=v.id; imageIndex=0;
- try{history.replaceState(null,'','catalog-detail.html?id='+encodeURIComponent(v.id))}catch(e){}
- render(); await loadVariants(); await loadFeedback(); window.scrollTo({top:0,behavior:'smooth'});
-}
-
-async function loadFeedback(){feedbackRows=[];if(sb&&activeId){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {data,error}=await sb.from(tbl).select('*').eq('catalog_id',activeId).order('created_at',{ascending:false}).limit(100);if(!error&&Array.isArray(data)){feedbackRows=data;break}}catch(e){}}}let local=[];try{local=JSON.parse(localStorage.getItem('catalog_feedback_'+activeId)||'[]');if(!Array.isArray(local))local=[];}catch(e){local=[]}feedbackRows=[...feedbackRows,...local];renderRatings();}
-function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
-function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
-function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
-function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
-function getVideos(c){
-  const out=[];
-  const fields=['video_url','video','catalog_video','video_urls','videos','video_url_list'];
-  for(const f of fields){
-    const v=c?.[f];
-    if(Array.isArray(v)) out.push(...v);
-    else if(typeof v==='string'&&v.trim()){
-      try{const j=JSON.parse(v); if(Array.isArray(j)) out.push(...j); else if(typeof j==='string') out.push(j); else out.push(v)}
-      catch(e){out.push(...v.split(/\s*,\s*\n?/).filter(Boolean))}
-    }
-  }
-  for(const f of ['description','details','note','custom_notes']){
-    const text=String(c?.[f]||'');
-    const re=/\[\[VIDEO:([^\]]+)\]\]/ig; let m;
-    while((m=re.exec(text))) out.push(m[1].trim());
-  }
-  return [...new Set(out.map(v=>typeof v==='string'?v.trim():v?.url||v?.video_url||'').filter(v=>/^https?:\/\//i.test(v)))];
-}
-let mediaItems=[];
-function renderGallery(){
-  const t=document.getElementById('thumbs');
-  if(!t)return;
-  mediaItems=[
-    ...images.map((url,i)=>({type:'image',url,index:i})),
-    ...getVideos(product).map(url=>({type:'video',url}))
-  ];
-  if(!mediaItems.length) mediaItems=[{type:'image',url:placeholder,index:0}];
-  t.innerHTML=mediaItems.map((m,i)=>{
-    if(m.type==='video') return `<button class="thumb media-video-thumb" title="कार्ड वीडियो चलाएँ" onclick="setMedia(${i})">
-      <video src="${esc(m.url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video><span class="media-video-label">VIDEO</span>
-    </button>`;
-    return `<button class="thumb" onclick="setMedia(${i})"><img src="${esc(m.url)}" alt="Card ${i+1}" onerror="this.src='${placeholder}'"></button>`;
-  }).join('');
-  setMedia(Math.min(imageIndex,mediaItems.length-1));
-}
-function setMedia(i){
-  if(!mediaItems.length)return;
-  const idx=(i+mediaItems.length)%mediaItems.length;
-  const m=mediaItems[idx];
-  imageIndex=idx;
-  const img=document.getElementById('mainImage');
-  const vid=document.getElementById('mainVideo');
-  const play=document.getElementById('mediaPlayOverlay');
-  const full=document.getElementById('videoFullBtn');
-  if(m.type==='video'){
-    if(img)img.style.display='none';
-    if(vid){vid.style.display='block';vid.src=m.url;try{vid.currentTime=0}catch(e){}}
-    if(play)play.style.display='flex';
-    if(full)full.style.display='block';
-  }else{
-    if(vid){try{vid.pause()}catch(e){};vid.removeAttribute('src');try{vid.load()}catch(e){};vid.style.display='none';}
-    if(img){img.style.display='block';img.src=m.url;}
-    if(play)play.style.display='none';
-    if(full)full.style.display='none';
-  }
-  const counter=document.getElementById('imageCount');
-  if(counter)counter.textContent=(idx+1)+' / '+mediaItems.length;
-  document.querySelectorAll('.thumb').forEach((x,n)=>x.classList.toggle('active',n===idx));
-}
-function setImage(i){
-  if(!mediaItems.length){renderGallery();return;}
-  const imagePositions=mediaItems.map((m,n)=>m.type==='image'?n:-1).filter(n=>n>=0);
-  const pos=imagePositions.length?imagePositions[((i%imagePositions.length)+imagePositions.length)%imagePositions.length]:0;
-  setMedia(pos);
-}
-function prevImage(){setMedia(imageIndex-1)}
-function nextImage(){setMedia(imageIndex+1)}
-function playMainVideo(){
-  const v=document.getElementById('mainVideo'); if(!v)return;
-  v.play().catch(()=>{}); document.getElementById('mediaPlayOverlay').style.display='none';
-}
-function openVideoFullscreen(){
-  const v=document.getElementById('mainVideo'); if(v?.requestFullscreen)v.requestFullscreen().catch(()=>{});
-}
-function openZoomViewer(){
-  const m=mediaItems[imageIndex]; if(!m||m.type!=='image')return;
-  const modal=document.getElementById('zoomModal'), zi=document.getElementById('zoomImage');
-  zi.src=m.url; zoomScale=1; rotY=0; rotX=0; zi.classList.remove('is-3d'); updateZoomTransform();
-  modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
-}
-function closeZoomViewer(){const m=document.getElementById('zoomModal');m.classList.remove('show');m.setAttribute('aria-hidden','true')}
-let zoomScale=1,rotY=0,rotX=0,threeD=false;
-function updateZoomTransform(){
-  const z=document.getElementById('zoomImage'); if(!z)return;
-  z.style.setProperty('--zoom',zoomScale);z.style.setProperty('--ry',rotY+'deg');z.style.setProperty('--rx',rotX+'deg');
-  z.classList.toggle('is-3d',threeD);
-}
-function changeZoom(delta){zoomScale=Math.max(.5,Math.min(3,zoomScale+delta));updateZoomTransform()}
-function resetZoom(){zoomScale=1;rotY=0;rotX=0;threeD=false;document.getElementById('threeDBtn')?.classList.remove('active');updateZoomTransform()}
-function toggle3D(){
-  threeD=!threeD;
-  if(threeD){rotY=14;rotX=-4;document.getElementById('threeDBtn')?.classList.add('active')}
-  else{rotY=0;rotX=0;document.getElementById('threeDBtn')?.classList.remove('active')}
-  updateZoomTransform();
-}
-document.getElementById('zoomModal')?.addEventListener('click',e=>{if(e.target.id==='zoomModal')closeZoomViewer()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoomViewer()});
-document.getElementById('mainImageBox')?.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].screenX},{passive:true});
-document.getElementById('mainImageBox')?.addEventListener('touchend',e=>{
-  const dx=e.changedTouches[0].screenX-touchStartX;
-  if(Math.abs(dx)>45)(dx<0?nextImage:prevImage)();
-},{passive:true});
-function addToCart(){if(!product)return;let cart=JSON.parse(localStorage.getItem('dp_cart_items')||'[]');let item=cart.find(x=>String(x.id)===String(product.id));if(item)item.quantity=(item.quantity||100)+100;else cart.push({id:product.id,name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||'',quantity:100});localStorage.setItem('dp_cart_items',JSON.stringify(cart));updateCart();showToast('कार्ड कार्ट में जोड़ दिया गया है!')}
-function updateCart(){try{document.getElementById('cartCount').textContent=JSON.parse(localStorage.getItem('dp_cart_items')||'[]').length}catch(e){}}
-function recentKey(c){return String(c?._source_table||'')+':'+String(c?.id??c?.catalog_id??'');}
-function saveRecentlyViewed(c){
-  if(!c)return;
-  try{let rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];const key=recentKey(c);rows=rows.filter(x=>recentKey(x)!==key);rows.unshift({...c,_source_table:c._source_table||''});localStorage.setItem('dp_recently_viewed_catalog',JSON.stringify(rows.slice(0,12)));}catch(e){}
-}
-function detailOriginalRate(c){
-  const n=parseFloat(c?.catalog_rate??c?.original_rate??c?.actual_rate??c?.mrp??c?.list_price);
-  return Number.isFinite(n)&&n>0?n:0;
-}
-function detailSaleRate(c){
-  const n=parseFloat(c?.sale_rate??c?.selling_price??c?.selling_rate??c?.current_rate??c?.rate??c?.price);
-  return Number.isFinite(n)&&n>0?n:0;
-}
-function detailDiscount(c){
-  const o=detailOriginalRate(c), s=detailSaleRate(c);
-  if(o>s&&s>0)return Math.round(((o-s)/o)*100);
-  const d=parseFloat(c?.discount??c?.discount_percent??c?.discountPercentage);
-  return Number.isFinite(d)&&d>0?Math.round(d):0;
-}
-function detailCardImage(c){
-  return c?.image||c?.image_url||c?.photo||getImages(c)[0]||placeholder;
-}
-function renderSmallCards(rows,boxId,emptyText){
-  const box=document.getElementById(boxId);if(!box)return;
-  if(!Array.isArray(rows)||!rows.length){
-    box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">'+esc(emptyText)+'</div>';
-    return;
-  }
-  box.innerHTML=rows.map((c,i)=>{
-    const name=esc(c.name||c.title||c.card_name||c.product_name||'शादी कार्ड');
-    const model=esc(c.model||c.code||c.card_model||c.model_no||'');
-    const o=detailOriginalRate(c), rate=detailSaleRate(c), discount=detailDiscount(c);
-    const img=detailCardImage(c);
-    const inStock=c.in_stock!==false;
-    const stockBadge=inStock
-      ? '<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>'
-      : '<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>';
-    let priceHtml='';
-    if(o>rate&&rate>0){
-      priceHtml='<div class="card-price-box"><span class="card-original-price">₹'+o.toLocaleString('en-IN')+'</span><span class="card-sale-price">₹'+rate.toLocaleString('en-IN')+'</span><span class="card-discount-badge">'+discount+'% OFF</span></div><span class="card-price-note">असली रेट: ₹'+o.toLocaleString('en-IN')+' • अभी: ₹'+rate.toLocaleString('en-IN')+' / पीस</span>';
-    }else{
-      priceHtml='<div class="card-price-tag">₹'+(rate||o||0).toLocaleString('en-IN')+' / पीस</div>';
-    }
-    return '<div class="card-sample" onclick="openCatalogCard('+i+',\''+boxId+'\')" title="कैटलॉग विवरण खोलें">'
-      +'<div class="img-box"><img src="'+esc(img)+'" alt="'+name+'" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\';"></div>'
-      +'<div class="card-info"><h4>'+name+'</h4><div class="model-text">'+model+'</div>'+priceHtml
-      +'<div class="card-rating-row"><span class="rating-stars">★★★★★</span><span class="rating-text">'+Number(c.rating??c.stars??5).toFixed(1)+'</span><span class="rating-label">रेटिंग</span></div>'
-      +'<div style="margin-bottom:6px;">'+stockBadge+'</div></div></div>';
-  }).join('');
-}
-
-function loadRecentlyViewed(){
-  let rows=[];
-  try{rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];}catch(e){rows=[];}
-  const cur=String(product?.id??id??'');
-  const seen=new Set();
-  rows=rows.filter(x=>{
-    const k=recentKey(x); if(String(x?.id??x?.catalog_id??'')===cur)return false;
-    if(seen.has(k))return false; seen.add(k); return true;
-  });
-  // First visit/new browser पर भी section खाली न रहे: Index के दूसरे cards दिखाएँ।
-  if(!rows.length){
-    try{
-      const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
-      const cached=JSON.parse(raw);
-      if(Array.isArray(cached)){
-        rows=cached.filter(x=>String(x?.id??x?.catalog_id??'')!==cur).slice(0,8);
-      }
-    }catch(e){}
-  }
-  rows=rows.slice(0,12);
-  window._recentRows=rows;
-  renderSmallCards(rows,'recentCatalog','अभी कोई Recently Viewed कार्ड नहीं है।');
-}
-function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window._recentRows||[]):(window._updatedRows||[]);const c=rows[index];if(!c)return;try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));saveRecentlyViewed(c);}catch(e){}location.href='catalog-detail.html?id='+encodeURIComponent(c.id??'');}
-async function fetchTableRows(tbl,limit=100){if(!sb)return [];try{const query=sb.from(tbl).select('*').order('id',{ascending:false}).limit(limit);const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));const res=await Promise.race([query,timeout]);if(res?.error||!Array.isArray(res?.data))return [];return res.data.map(x=>({...x,_source_table:tbl}));}catch(e){return [];}}
-async function loadMoreUpdatedCards(){
-  const box=document.getElementById('recommendedCatalog');if(!box)return;
-  let rows=[];
-  // Exact Index catalog first. This is the source for More Products.
-  try{
-    const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]');
-    if(Array.isArray(local)&&local.length) rows=local;
-  }catch(e){}
-
-  // If the cache is missing (for example first visit/direct URL), read Supabase.
-  if(!rows.length){
-    for(const tbl of ['catalog','cards','cards_catalog']){
-      rows=await fetchTableRows(tbl,100);
-      if(rows.length)break;
-    }
-  }
-
-  const cur=String(product?.id??id??'');
-  const seen=new Set();
-  rows=rows.filter(x=>{
-    const k=String(x.id??x.code??x.model??'');
-    if(!k||seen.has(k)||String(x.id??'')===cur)return false;
-    seen.add(k);return true;
-  }).slice(0,20);
-  window._updatedRows=rows;
-  renderSmallCards(rows,'recommendedCatalog','अभी कोई अन्य कैटलॉग कार्ड उपलब्ध नहीं है।');
-}
-
-async function loadRecommendedCatalog(){await loadMoreUpdatedCards();}
-
-function openRecommended(rid){
-  if(!rid)return;
-  try{
-    const pools=[window._recommendedRows||[],window._recentRows||[],window._updatedRows||[]];
-    let c=null;
-    for(const p of pools){c=p.find(x=>String(x.id)===String(rid));if(c)break;}
-    if(c){
-      localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));
-      saveRecentlyViewed(c);
-    }
-  }catch(e){}
-  location.href='catalog-detail.html?id='+encodeURIComponent(rid);
-}
-function orderNow(){const logged=localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user');if(!logged){alert('ऑर्डर करने के लिए कृपया पहले लॉगिन करें।');location.href='login.html';return}const data={id:product.id||'',name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||''};localStorage.setItem('order_selected_card',JSON.stringify(data));location.href='order.html?id='+encodeURIComponent(data.id)}
-document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
-async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
-async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
-async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
-(async function(){
-  updateCart();
-
-  // More Products is independent of the selected product. Render it immediately
-  // from the same cache used by Index, then refresh from Supabase if necessary.
-  loadMoreUpdatedCards().catch(()=>{});
-
-  try{ product=await findProduct(); }catch(e){ product=null; }
-
-  if(product){
-    render();
-    saveRecentlyViewed(product);
-    loadRecentlyViewed();
-    loadMoreUpdatedCards().catch(()=>{});
-    loadVariants().catch(()=>{});
-    if(product.id||activeId) loadFeedback().catch(()=>{});
-    return;
-  }
-
-  // Final local fallback: older pages may have saved only the selected card.
-  try{
-    const candidates=['dp_catalog_detail_fallback','dp_catalog_detail_selected','dp_selected_catalog_card'];
-    for(const key of candidates){
-      const raw=localStorage.getItem(key)||sessionStorage.getItem(key);
-      if(!raw) continue;
-      const f=JSON.parse(raw);
-      if(f && (f.name||f.title||f.image||f.image_url||f.photo)){
-        product=f; render(); saveRecentlyViewed(product); loadRecentlyViewed();
-        loadFeedback().catch(()=>{});
-        return;
-      }
-    }
-  }catch(e){}
-
-  document.getElementById('loading').innerHTML='कैटलॉग विवरण अभी उपलब्ध नहीं है। कृपया कार्ड को कैटलॉग से दोबारा खोलें।';
-})();
-
-// Never leave a customer on an endless loading state. If the main query was
-// slow, use the saved Index handoff/cache and render the page immediately.
-setTimeout(()=>{
-  const loading=document.getElementById('loading');
-  const area=document.getElementById('productArea');
-  if(!loading || loading.style.display==='none' || (area && area.style.display!=='none')) return;
-  try{
-    const raw=localStorage.getItem('dp_catalog_detail_fallback')||localStorage.getItem('dp_catalog_detail_selected')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3');
-    if(raw){
-      const value=JSON.parse(raw);
-      const f=Array.isArray(value) ? (value.find(x=>!activeId || String(x?.id??x?.catalog_id??'')===String(activeId))||value[0]) : value;
-      if(f && (f.name||f.title||f.image||f.image_url||f.photo)){
-        product=f; render(); saveRecentlyViewed(product); loadRecentlyViewed(); loadFeedback().catch(()=>{});
-        return;
-      }
-    }
-  }catch(e){}
-  loading.innerHTML='कैटलॉग विवरण अभी उपलब्ध नहीं है। कृपया वापस जाकर कार्ड दोबारा खोलें।';
-},5500);
 </script>
+
+
+<div id="quickContact" class="quick-contact" aria-label="ग्राहक संपर्क">
+  <a href="tel:+919304509464" class="quick-call" aria-label="कॉल करें"><i class="fa-solid fa-phone"></i><span>कॉल</span></a>
+  <a href="https://wa.me/919304509464?text=नमस्ते%20दिल्ली%20प्रेस%2C%20मुझे%20कार्ड%20के%20बारे%20में%20जानकारी%20चाहिए।" target="_blank" rel="noopener" class="quick-wa" aria-label="WhatsApp पर बात करें"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+</div>
+
+
 </body>
 </html>
