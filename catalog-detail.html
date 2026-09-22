@@ -270,96 +270,168 @@ async function selectCatalogVariant(index){
 
 async function loadFeedback(){
  feedbackRows=[];
- const keys=[...new Set([
-  String(activeId??'').trim(),String(product?.id??'').trim(),String(product?.catalog_id??'').trim(),String(product?.card_id??'').trim(),String(product?.product_id??'').trim(),String(product?.model??'').trim(),String(product?.code??'').trim(),String(product?.card_model??'').trim(),String(product?.model_no??'').trim(),String(product?.name??'').trim(),String(product?.title??'').trim(),String(product?.card_name??'').trim(),String(product?.product_name??'').trim()
- ].filter(Boolean))];
- const norm=v=>String(v??'').trim().toLowerCase();
- const modelKey=v=>norm(v).replace(/[^a-z0-9]+/g,'');
- const keySet=new Set(keys.map(norm));
- const rawRows=[];
 
+ const norm=v=>String(v??'').trim().toLowerCase().replace(/\s+/g,' ');
+ const currentIds=new Set([
+   activeId,product?.id,product?.catalog_id,product?.card_id,product?.product_id
+ ].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(norm));
+
+ const currentModel=norm(
+   product?.model??product?.code??product?.card_model??product?.model_no??''
+ );
+ const currentTitle=norm(
+   product?.name??product?.title??product?.card_name??product?.product_name??product?.card_title??''
+ );
+
+ const allFeedback=[];
+
+ // Read the complete feedback set first. This also supports old rows where
+ // catalog_id is missing and the row is tied to an order_db_id/order_id.
  if(sb){
-  try{
-   const {data,error}=await Promise.race([
-    sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),7000))
-   ]);
-   if(!error&&Array.isArray(data)) rawRows.push(...data.map(r=>({...r,_rating_source:'supabase'})));
-  }catch(e){}
+   try{
+     const {data,error}=await Promise.race([
+       sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
+       new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),7000))
+     ]);
+     if(!error&&Array.isArray(data)) allFeedback.push(...data.map(r=>({...r,_source_table:'catalog_feedback'})));
+   }catch(e){}
  }
 
- try{
-  const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-  Object.keys(map||{}).forEach(k=>{
-   const r=map[k];
-   if(Number(r?.rating??r?.stars??0)>0) rawRows.push({...r,catalog_id:r.catalog_id||k,_rating_source:'local'});
-  });
- }catch(e){}
-
- try{
-  for(let i=0;i<localStorage.length;i++){
-   const k=localStorage.key(i);
-   if(!k||!k.startsWith('catalog_feedback_'))continue;
-   const a=JSON.parse(localStorage.getItem(k)||'[]');
-   if(Array.isArray(a)) rawRows.push(...a.map(r=>({...r,_rating_source:'local-old'})));
-  }
- }catch(e){}
-
- // Resolve older feedback rows that have old_catalog_id + order_db_id.
- const orderMap={};
+ // Also read alternate review tables, but dedupe later.
  if(sb){
-  try{
-   const orderIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??'').trim()).filter(Boolean))];
-   if(orderIds.length){
-    const {data:orders,error}=await sb.from('orders').select('id,card_model,card_title').in('id',orderIds);
-    if(!error&&Array.isArray(orders)) orders.forEach(o=>{orderMap[String(o.id)]=o;});
+   for(const tbl of ['catalog_reviews','reviews','feedback']){
+     try{
+       const {data,error}=await Promise.race([
+         sb.from(tbl).select('*').order('created_at',{ascending:false}).limit(500),
+         new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),5000))
+       ]);
+       if(!error&&Array.isArray(data)) allFeedback.push(...data.map(r=>({...r,_source_table:tbl})));
+     }catch(e){}
    }
-  }catch(e){}
  }
 
- const resolvedRows=[];
+ // Build an order lookup for legacy feedback rows. Old ratings can point to
+ // order_db_id/order_id while the catalog id was later changed.
+ const orderIds=[...new Set(allFeedback.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
+ const orderMap=new Map();
+
+ if(sb && orderIds.length){
+   // Supabase .in() works for numeric IDs; chunk to keep the request small.
+   for(let i=0;i<orderIds.length;i+=100){
+     const chunk=orderIds.slice(i,i+100);
+     try{
+       const numeric=chunk.map(Number).filter(Number.isFinite);
+       const {data,error}=await sb.from('orders')
+         .select('*')
+         .in('id',numeric);
+       if(!error&&Array.isArray(data)){
+         data.forEach(o=>orderMap.set(String(o.id),o));
+       }
+     }catch(e){}
+   }
+ }
+
+ const resolved=[];
  const seen=new Set();
 
- rawRows.forEach(r=>{
-  const dedupeKey=String(
-   r?.id ??
-   `${r?.order_db_id??''}|${r?.catalog_id??''}|${r?.old_catalog_id??''}|${r?.created_at??''}|${r?.rating??r?.stars??''}|${r?.name??r?.user_name??''}`
-  );
-  if(seen.has(dedupeKey))return;
-  seen.add(dedupeKey);
+ for(const r of allFeedback){
+   const direct=[
+     r?.catalog_id,r?.card_id,r?.product_id
+   ].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(norm);
 
-  const ids=new Set();
+   let match=direct.some(x=>currentIds.has(x));
 
-  [r?.catalog_id,r?.card_id,r?.product_id].forEach(v=>{
-   if(v!==undefined&&v!==null&&norm(v))ids.add(norm(v));
-  });
+   // Legacy feedback: resolve through the order that created the review.
+   if(!match){
+     const oid=String(r?.order_db_id??r?.order_id??'').trim();
+     const order=oid?orderMap.get(oid):null;
 
-  const order=orderMap[String(r?.order_db_id??'')];
-  if(order){
-   const title=norm(order.card_title);
-   const omodel=modelKey(order.card_model);
-   const pname=norm(product?.name??product?.title??product?.card_name??product?.product_name);
-   const pmodel=modelKey(product?.model??product?.code??product?.card_model??product?.model_no);
-   const titleMatch=pname&&title&&(title===pname||title.includes(pname));
-   const modelMatch=!omodel||!pmodel||omodel===pmodel||omodel.includes(pmodel)||pmodel.includes(omodel);
-   if(titleMatch&&modelMatch){
-    const cid=product?.id??product?.catalog_id;
-    if(cid!==undefined&&cid!==null&&norm(cid))ids.add(norm(cid));
+     if(order){
+       const orderTitle=norm(
+         order?.card_title??order?.card_name??order?.product_name??order?.name??''
+       );
+       const orderModel=norm(
+         order?.card_model??order?.model??order?.code??order?.model_no??''
+       );
+
+       // Prefer exact title; model is only an additional compatibility check.
+       if(currentTitle && orderTitle && orderTitle===currentTitle){
+         match=!currentModel || !orderModel || orderModel===currentModel;
+       }
+
+       // If the order itself has a catalog id, use that as a stronger match.
+       const orderCatalog=norm(order?.catalog_id??order?.card_id??order?.product_id??'');
+       if(orderCatalog && currentIds.has(orderCatalog)) match=true;
+     }
    }
-  }
 
-  r._resolved_catalog_ids=[...ids];
-  const matches=r._resolved_catalog_ids.some(x=>keySet.has(x));
-  if(matches && Number(r?.rating??r?.stars??0)>0) resolvedRows.push(r);
+   // Some legacy rows stored the old model/code directly. Do not use model
+   // alone when multiple catalog cards share the same model.
+   if(!match){
+     const oldModel=norm(r?.old_catalog_id??r?.card_model??r?.model??r?.code??'');
+     const oldTitle=norm(r?.card_title??r?.card_name??r?.product_name??r?.title??'');
+     if(currentTitle && oldTitle && oldTitle===currentTitle){
+       match=!currentModel || !oldModel || oldModel===currentModel;
+     }
+   }
+
+   if(match && Number(r?.rating??r?.stars??0)>0){
+     const key=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+String(r?.order_db_id??r?.order_id??'')+'|'+String(r?.rating??r?.stars??'');
+     if(!seen.has(key)){
+       seen.add(key);
+       resolved.push(r);
+     }
+   }
+ }
+
+ feedbackRows=resolved;
+
+ // Local-device reviews for this exact catalog.
+ try{
+   const localKeys=[
+     String(activeId??''),
+     String(product?.id??''),
+     String(product?.catalog_id??'')
+   ].filter(Boolean);
+
+   for(const k of localKeys){
+     const a=JSON.parse(localStorage.getItem('catalog_feedback_'+k)||'[]');
+     if(Array.isArray(a)) feedbackRows.push(...a);
+   }
+
+   const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+   for(const k of localKeys){
+     const r=map?.[k];
+     if(r && Number(r?.rating??r?.stars??0)>0) feedbackRows.push(r);
+   }
+ }catch(e){}
+
+ const unique=new Set();
+ feedbackRows=feedbackRows.filter(r=>{
+   const k=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+String(r?.order_db_id??r?.order_id??'')+'|'+String(r?.catalog_id??'')+'|'+String(r?.rating??r?.stars??'');
+   if(unique.has(k)) return false;
+   unique.add(k);
+   return true;
  });
 
- feedbackRows=resolvedRows;
+ // Keep the Index handoff aggregate as a summary fallback only when no
+ // individual rows could be resolved.
  if(!feedbackRows.length){
-  const fallbackRating=Number(product?.rating??product?.avg_rating??product?.average_rating??product?.stars??product?.catalog_rating??0);
-  if(fallbackRating>0)feedbackRows=[{catalog_id:keys[0]||'',rating:Math.max(1,Math.min(5,fallbackRating)),name:'Catalog Rating',feedback:''}];
+   const fallbackRating=Number(product?._ratingAvg??product?.rating??product?.avg_rating??product?.average_rating??product?.stars??product?.catalog_rating??0);
+   if(fallbackRating>0){
+     feedbackRows=[{
+       catalog_id:String(activeId??product?.id??''),
+       rating:Math.max(1,Math.min(5,fallbackRating)),
+       name:'Catalog Rating',
+       feedback:'',
+       _aggregateOnly:true
+     }];
+   }
  }
+
  renderRatings();
 }
+
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
 function renderRatings(){
  const rows=feedbackRows.map(r=>({
@@ -396,6 +468,10 @@ function renderRatings(){
    document.getElementById('c'+n).textContent=c;
    document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%';
  }
+
+ // If only the aggregate handoff is available, do not invent a star
+ // distribution. Keep the bars at zero rather than showing false data.
+ // Once the individual legacy rows resolve, the exact counts above appear.
 
  document.getElementById('reviewList').innerHTML=rows.length
    ?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join('')
