@@ -293,8 +293,8 @@
             .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
         }
     
-        /* DP CHAT LINK (full page) */
-        .cust-corr-modal{display:none!important;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.62);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:14px;}
+        /* CUSTOMER CORRECTION CHAT POPUP */
+        .cust-corr-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.62);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:14px;}
         .cust-corr-panel{width:min(560px,100%);max-height:min(760px,92vh);overflow:hidden;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);display:flex;flex-direction:column;border:1px solid #e2e8f0;}
         .cust-corr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;background:linear-gradient(135deg,#f8fbff,#eef4ff);border-bottom:1px solid #e2e8f0;}
         .cust-corr-head h3{margin:0;font-size:17px;color:#0f2f70;}
@@ -343,6 +343,10 @@
 .voice-msg audio{width:220px;max-width:100%;height:34px;margin-top:4px;}
 @media(max-width:520px){.cust-corr-msg{max-width:90%;}.voice-msg audio{width:190px;}.cust-corr-actions{grid-template-columns:1fr!important;}}
 
+
+/* DP Chat unread blinking */
+.btn-open-correction.dp-chat-unread{background:#dc2626!important;color:#fff!important;animation:dpMyOrderChatBlink 1s infinite;box-shadow:0 0 0 0 rgba(220,38,38,.75)!important;}
+@keyframes dpMyOrderChatBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.75)!important}50%{opacity:.45;box-shadow:0 0 0 8px rgba(220,38,38,0)!important}}
 </style>
 
 <style>
@@ -513,72 +517,30 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             loadRecommendedCatalog();
         });
 
-
-        function getCurrentLoggedUser() {
-            let userObj = {};
-            try {
-                userObj = JSON.parse(
-                    localStorage.getItem('dp_current_user') ||
-                    localStorage.getItem('dp_logged_in_user') ||
-                    localStorage.getItem('user') ||
-                    '{}'
-                );
-            } catch(e) {}
-            return userObj || {};
-        }
-
-        function normalizeCustomerMobile(value) {
-            return String(value ?? '').replace(/\D/g, '').slice(-10);
-        }
-
-        function isOrderForCurrentUser(order, currentMobile) {
-            if (!order || !currentMobile) return false;
-            const orderMobile = normalizeCustomerMobile(order.mobile || order.phone || '');
-            return !!orderMobile && orderMobile === currentMobile;
-        }
-
         function loadInitialLocalOrders() {
-            const userObj = getCurrentLoggedUser();
-            const currentMobile = normalizeCustomerMobile(userObj.mobile || userObj.phone || '');
-
-            // बिना logged-in customer के किसी भी पुराने/cached order को न दिखाएं।
-            if (!currentMobile) {
-                fetchedOrdersList = [];
-                renderOrdersUI();
-                updateUserGreeting();
-                return;
-            }
-
             let localList = [];
             const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
-
             for (const k of keys) {
                 try {
                     const data = JSON.parse(localStorage.getItem(k) || '[]');
-                    if (Array.isArray(data) && data.length) {
-                        const mine = data.filter(order => isOrderForCurrentUser(order, currentMobile));
-                        if (mine.length) {
-                            localList = mine;
-                            break;
-                        }
+                    if (Array.isArray(data) && data.length > 0) {
+                        localList = data;
+                        break;
                     }
                 } catch(e) {}
             }
 
-            // Latest order भी तभी दिखाएं जब वह इसी logged-in mobile का हो।
-            if (!localList.length) {
+            if (localList.length === 0) {
                 try {
-                    const latest = JSON.parse(
-                        localStorage.getItem('dp_latest_confirmed_order') || 'null'
-                    );
-                    if (latest && isOrderForCurrentUser(latest, currentMobile)) {
-                        localList = [latest];
-                    }
+                    const latest = JSON.parse(localStorage.getItem('dp_latest_confirmed_order') || 'null');
+                    if (latest) localList = [latest];
                 } catch(e) {}
             }
 
-            fetchedOrdersList = localList;
-            renderOrdersUI();
+            if (localList.length > 0) {
+                fetchedOrdersList = localList;
+                renderOrdersUI();
+            }
             updateUserGreeting();
         }
 
@@ -605,204 +567,74 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             }
         }
 
-
         async function syncWithCloudFast() {
-            const userObj = getCurrentLoggedUser();
-            const currentMobile = normalizeCustomerMobile(userObj.mobile || userObj.phone || '');
+            let userObj = {};
+            try { userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}'); } catch(e) {}
 
-            // सबसे महत्वपूर्ण सुरक्षा: current login का mobile नहीं है तो
-            // Supabase से एक भी customer order नहीं लाना है।
-            if (!currentMobile) {
-                fetchedOrdersList = [];
-                renderOrdersUI();
-                return;
-            }
+            const clean = v => String(v ?? '').trim();
+            const phone = clean(userObj.phone || userObj.mobile || (fetchedOrdersList[0] && (fetchedOrdersList[0].mobile || fetchedOrdersList[0].phone)));
 
-            if (!supabaseClient) {
-                fetchedOrdersList = (fetchedOrdersList || []).filter(
-                    order => isOrderForCurrentUser(order, currentMobile)
-                );
-                renderOrdersUI();
-                return;
-            }
+            if (!supabaseClient) { renderOrdersUI(); return; }
 
             try {
-                // केवल वर्तमान logged-in mobile के orders।
-                let { data, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .eq('mobile', currentMobile)
-                    .order('id', { ascending: false })
-                    .limit(100);
-
-                // कुछ पुराने schemas में phone column हो सकता है।
-                // इस स्थिति में भी केवल current mobile ही query होगा।
+                // हमेशा cloud के असली orders लाएँ ताकि Admin द्वारा बदला गया status तुरंत My Orders में दिखे।
+                let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
+                if (phone) query = query.eq('mobile', phone);
+                let { data, error } = await query;
+                if (error && phone) {
+                    // phone column न होने पर केवल mobile से दोबारा query करें।
+                    const retry = await supabaseClient.from('orders').select('*').eq('mobile', phone).order('id', { ascending: false }).limit(100);
+                    data = retry.data; error = retry.error;
+                }
                 if (error) {
-                    const retry = await supabaseClient
-                        .from('orders')
-                        .select('*')
-                        .eq('phone', currentMobile)
-                        .order('id', { ascending: false })
-                        .limit(100);
-
-                    if (!retry.error) {
-                        data = retry.data || [];
-                        error = null;
-                    }
+                    // अंतिम fallback: recent cloud orders पढ़ें; इससे My Orders पूरी तरह बंद नहीं होगा।
+                    const retryAll = await supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
+                    if (retryAll.error) throw retryAll.error;
+                    data = retryAll.data || [];
                 }
 
-                // IMPORTANT: error होने पर ALL orders fallback नहीं करना है।
-                if (error) {
-                    console.error('My Orders user-specific query error:', error);
-                    fetchedOrdersList = (fetchedOrdersList || []).filter(
-                        order => isOrderForCurrentUser(order, currentMobile)
-                    );
-                    renderOrdersUI();
-                    return;
-                }
-
-                // अंतिम सुरक्षा filter: Supabase से अगर कोई unexpected row आए,
-                // तब भी दूसरे mobile का order UI में नहीं आएगा।
-                const cloud = (Array.isArray(data) ? data : []).filter(
-                    order => isOrderForCurrentUser(order, currentMobile)
-                );
-
+                const cloud = Array.isArray(data) ? data : [];
                 let local = [];
-                try {
-                    local = JSON.parse(localStorage.getItem('my_orders_list') || '[]');
-                    if (!Array.isArray(local)) local = [];
-                } catch(e) {}
+                try { local = JSON.parse(localStorage.getItem('my_orders_list') || '[]'); if(!Array.isArray(local)) local=[]; } catch(e) {}
 
-                // Local cache को भी current customer तक सीमित रखें।
-                local = local.filter(
-                    order => isOrderForCurrentUser(order, currentMobile)
-                );
-
+                // Cloud record को प्राथमिकता दें। Local record को केवल तभी रखें जब उसका cloud counterpart न मिला हो।
                 const merged = [];
                 const usedCloud = new Set();
-                const norm = v => String(v ?? '').trim().toLowerCase();
-                const num = v => {
-                    const n = parseFloat(v);
-                    return Number.isFinite(n) ? n : null;
-                };
+                const norm = v => clean(v).toLowerCase();
+                const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
 
-                for (const localOrder of local) {
-                    let best = null;
-                    let bestScore = -1;
-                    let bestIndex = -1;
-
-                    for (let i = 0; i < cloud.length; i++) {
+                for (const l of local) {
+                    let best = null, bestScore = -1, bestIndex = -1;
+                    for (let i=0;i<cloud.length;i++) {
                         if (usedCloud.has(i)) continue;
-
-                        const cloudOrder = cloud[i];
-                        let score = 0;
-
-                        if (
-                            localOrder.id &&
-                            cloudOrder.id &&
-                            String(localOrder.id) === String(cloudOrder.id)
-                        ) score += 100;
-
-                        if (
-                            localOrder.order_id &&
-                            cloudOrder.order_id &&
-                            norm(localOrder.order_id) === norm(cloudOrder.order_id)
-                        ) score += 90;
-
-                        if (
-                            norm(localOrder.mobile || localOrder.phone) &&
-                            norm(localOrder.mobile || localOrder.phone) ===
-                            norm(cloudOrder.mobile || cloudOrder.phone)
-                        ) score += 35;
-
-                        if (
-                            norm(localOrder.customer_name || localOrder.name) &&
-                            norm(localOrder.customer_name || localOrder.name) ===
-                            norm(cloudOrder.customer_name || cloudOrder.name)
-                        ) score += 20;
-
-                        if (
-                            norm(localOrder.card_title || localOrder.card_name) &&
-                            norm(localOrder.card_title || localOrder.card_name) ===
-                            norm(cloudOrder.card_title || cloudOrder.card_name)
-                        ) score += 15;
-
-                        const lt = num(localOrder.total_amount);
-                        const ct = num(cloudOrder.total_amount);
-                        if (lt !== null && ct !== null && Math.abs(lt - ct) < 0.01) {
-                            score += 15;
+                        const c=cloud[i]; let score=0;
+                        if (l.id && c.id && String(l.id)===String(c.id)) score += 100;
+                        if (l.order_id && c.order_id && norm(l.order_id)===norm(c.order_id)) score += 90;
+                        if (norm(l.mobile||l.phone) && norm(l.mobile||l.phone)===norm(c.mobile||c.phone)) score += 35;
+                        if (norm(l.customer_name||l.name) && norm(l.customer_name||l.name)===norm(c.customer_name||c.name)) score += 20;
+                        if (norm(l.card_title||l.card_name) && norm(l.card_title||l.card_name)===norm(c.card_title||c.card_name)) score += 15;
+                        const lt=num(l.total_amount), ct=num(c.total_amount);
+                        if (lt!==null && ct!==null && Math.abs(lt-ct)<0.01) score += 15;
+                        if (l.created_at && c.created_at) {
+                            const diff=Math.abs(new Date(l.created_at).getTime()-new Date(c.created_at).getTime());
+                            if (Number.isFinite(diff) && diff <= 24*60*60*1000) score += 10;
                         }
-
-                        if (localOrder.created_at && cloudOrder.created_at) {
-                            const diff = Math.abs(
-                                new Date(localOrder.created_at).getTime() -
-                                new Date(cloudOrder.created_at).getTime()
-                            );
-                            if (Number.isFinite(diff) && diff <= 24 * 60 * 60 * 1000) {
-                                score += 10;
-                            }
-                        }
-
-                        if (score > bestScore) {
-                            bestScore = score;
-                            best = cloudOrder;
-                            bestIndex = i;
-                        }
+                        if (score>bestScore) { bestScore=score; best=c; bestIndex=i; }
                     }
-
-                    if (
-                        best &&
-                        bestScore >= (
-                            localOrder.id ? 100 :
-                            (localOrder.order_id ? 90 : 45)
-                        )
-                    ) {
-                        merged.push({...localOrder, ...best});
-                        usedCloud.add(bestIndex);
+                    if (best && bestScore >= (l.id ? 100 : (l.order_id ? 90 : 45))) {
+                        merged.push({...l,...best}); usedCloud.add(bestIndex);
                     } else {
-                        merged.push(localOrder);
+                        merged.push(l);
                     }
                 }
+                for (let i=0;i<cloud.length;i++) if(!usedCloud.has(i)) merged.push(cloud[i]);
 
-                // Current customer के नए cloud orders जोड़ें।
-                for (let i = 0; i < cloud.length; i++) {
-                    if (!usedCloud.has(i)) {
-                        merged.push(cloud[i]);
-                    }
-                }
-
-                // अंतिम और अनिवार्य user filter।
-                fetchedOrdersList = merged
-                    .filter(order => isOrderForCurrentUser(order, currentMobile))
-                    .sort(
-                        (a, b) =>
-                            new Date(b.created_at || 0) -
-                            new Date(a.created_at || 0)
-                    );
-
+                fetchedOrdersList = merged.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
                 fetchedOrdersList = await attachCloudRatings(fetchedOrdersList);
-
-                localStorage.setItem(
-                    'my_orders_list',
-                    JSON.stringify(fetchedOrdersList)
-                );
-
-                // User-specific cache अलग भी रखें, ताकि अगले login में
-                // दूसरे account का cached data mix न हो।
-                localStorage.setItem(
-                    'my_orders_list_' + currentMobile,
-                    JSON.stringify(fetchedOrdersList)
-                );
-
+                localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                 renderOrdersUI();
-
             } catch(e) {
                 console.error('My Orders cloud sync error:', e);
-
-                // Error की स्थिति में भी दूसरे customer के orders नहीं दिखेंगे।
-                fetchedOrdersList = (fetchedOrdersList || []).filter(
-                    order => isOrderForCurrentUser(order, currentMobile)
-                );
                 renderOrdersUI();
             }
         }
@@ -896,7 +728,24 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             alert("आपका ऑर्डर सफलता से रद्द (Cancelled) कर दिया गया है!");
         }
 
-        function renderOrdersUI() {
+        function dpChatArr(v){ try { return Array.isArray(v)?v:(typeof v==='string'?JSON.parse(v||'[]'):[]); } catch(e){ return []; } }
+function dpChatLatestCustomerActivity(ord){
+  const msgs=dpChatArr(ord&&ord.customer_messages), files=dpChatArr(ord&&ord.customer_files);
+  const all=[...msgs,...files].map(x=>new Date(x&&x.at||0).getTime()).filter(Number.isFinite);
+  return all.length?Math.max(...all):0;
+}
+function isCustomerDpChatUnread(ord){
+  const latest=dpChatLatestCustomerActivity(ord); if(!latest) return false;
+  const key='dp_chat_customer_seen_'+String(ord.id||ord.order_id||'');
+  return latest>Number(localStorage.getItem(key)||0);
+}
+function markCustomerDpChatSeen(ord){
+  const latest=dpChatLatestCustomerActivity(ord); if(!latest)return;
+  const key='dp_chat_customer_seen_'+String(ord.id||ord.order_id||'');
+  localStorage.setItem(key,String(latest));
+}
+
+function renderOrdersUI() {
             const container = document.getElementById('ordersContainer');
             if (!container) return;
 
@@ -960,9 +809,9 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                         ${ord.rating || ord.stars ? `<div style="background:#fffaf0;border:1px solid #fde68a;border-radius:4px;padding:8px 10px;margin-bottom:12px;font-size:13px;"><b>आपकी रेटिंग:</b> <span style="color:#f59e0b;font-size:18px;letter-spacing:1px;">${'★'.repeat(Math.max(0,Math.min(5,parseInt(ord.rating||ord.stars||0)||0)))}${'☆'.repeat(5-Math.max(0,Math.min(5,parseInt(ord.rating||ord.stars||0)||0)))}</span>${ord.rating_feedback ? ` <span style="color:#475569;">${escapeHtml(ord.rating_feedback)}</span>` : ''}</div>` : ''}
 
                         <div style="display:flex;justify-content:flex-end;margin:0 0 14px;">
-                            <a class="btn-open-correction" href="dpchat.html?order_id=${encodeURIComponent(orderKey)}&role=customer">
-                                <i class="fa-solid fa-comments"></i> DP Chat
-                            </a>
+                            <button type="button" class="btn-open-correction ${isCustomerDpChatUnread(ord) ? 'dp-chat-unread' : ''}" onclick="openCustomerCorrectionModal(${index})" title="${isCustomerDpChatUnread(ord) ? 'नई बातचीत / नया मैटर आया है' : 'सुधार / बातचीत'}">
+                                <i class="fa-solid ${isCustomerDpChatUnread(ord) ? 'fa-comment-dots' : 'fa-comments'}"></i> ${isCustomerDpChatUnread(ord) ? 'नई बातचीत' : 'सुधार / बातचीत'}
+                            </button>
                         </div>
 
                         <div class="order-card-footer">
@@ -1156,6 +1005,7 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         }
 
         async function openCustomerCorrectionModal(index){
+  try{ markCustomerDpChatSeen(fetchedOrdersList[index]); }catch(e){}
             const ord=await resolveCustomerOrder(index);
             if(!ord || !ord.id){
                 alert('इस ऑर्डर का Database रिकॉर्ड अभी उपलब्ध नहीं है। कृपया पहले “रिफ्रेश” दबाएँ और फिर सुधार/बातचीत खोलें।');
