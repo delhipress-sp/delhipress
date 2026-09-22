@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -255,7 +256,71 @@ async function selectCatalogVariant(index){
  render(); await loadVariants(); await loadFeedback(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function loadFeedback(){feedbackRows=[];if(sb&&activeId){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {data,error}=await sb.from(tbl).select('*').eq('catalog_id',activeId).order('created_at',{ascending:false}).limit(100);if(!error&&Array.isArray(data)){feedbackRows=data;break}}catch(e){}}}let local=[];try{local=JSON.parse(localStorage.getItem('catalog_feedback_'+activeId)||'[]');if(!Array.isArray(local))local=[];}catch(e){local=[]}feedbackRows=[...feedbackRows,...local];renderRatings();}
+async function loadFeedback(){
+ feedbackRows=[];
+ const keys=[...new Set([
+   String(activeId??'').trim(),
+   String(product?.id??'').trim(),
+   String(product?.catalog_id??'').trim(),
+   String(product?.card_id??'').trim(),
+   String(product?.product_id??'').trim(),
+   String(product?.model??'').trim(),
+   String(product?.code??'').trim(),
+   String(product?.card_model??'').trim(),
+   String(product?.model_no??'').trim()
+ ].filter(Boolean))];
+ if(sb&&keys.length){
+   const found=[];
+   for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){
+     for(const key of keys){
+       try{
+         const {data,error}=await sb.from(tbl).select('*').eq('catalog_id',key).order('created_at',{ascending:false}).limit(100);
+         if(!error&&Array.isArray(data)) found.push(...data);
+       }catch(e){}
+     }
+     if(found.length) break;
+   }
+   const seen=new Set();
+   feedbackRows=found.filter(r=>{
+     const k=String(r.id??'')+'|'+String(r.created_at??'')+'|'+String(r.catalog_id??'')+'|'+String(r.rating??r.stars??'');
+     if(seen.has(k)) return false; seen.add(k); return true;
+   });
+ }
+ // My Orders also keeps the latest catalog rating in this shared browser map.
+ // Read it even when Supabase feedback is unavailable or RLS blocks the read.
+ try{
+   const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+   const mapped=[];
+   for(const key of keys){
+     const r=map[String(key)];
+     if(r && Number(r.rating||r.stars)>0) mapped.push({...r,catalog_id:r.catalog_id||key});
+   }
+   const seenMap=new Set();
+   for(const r of mapped){
+     const k=String(r.catalog_id)+'|'+String(r.rating||r.stars)+'|'+String(r.created_at||'');
+     if(!seenMap.has(k)){seenMap.add(k);feedbackRows.push(r);}
+   }
+ }catch(e){}
+ let local=[];
+ for(const key of keys){
+   try{
+     const a=JSON.parse(localStorage.getItem('catalog_feedback_'+key)||'[]');
+     if(Array.isArray(a)) local.push(...a);
+   }catch(e){}
+ }
+ const localSeen=new Set();
+ local=local.filter(r=>{
+   const k=String(r.id??'')+'|'+String(r.created_at??'')+'|'+String(r.catalog_id??'')+'|'+String(r.rating??r.stars??'');
+   if(localSeen.has(k)) return false; localSeen.add(k); return true;
+ });
+ feedbackRows=[...feedbackRows,...local];
+ // Catalog row's own rating remains a fallback.
+ if(!feedbackRows.length){
+   const fallbackRating=Number(product?.rating??product?.avg_rating??product?.average_rating??product?.stars??product?.catalog_rating??0);
+   if(fallbackRating>0){feedbackRows=[{catalog_id:keys[0]||'',rating:Math.max(1,Math.min(5,fallbackRating)),name:'Catalog Rating',feedback:''}];}
+ }
+ renderRatings();
+}
 function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
 function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
@@ -487,7 +552,7 @@ function orderNow(){const logged=localStorage.getItem('dp_current_user')||localS
 document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
 async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
 async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
-async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
+async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,stars:selectedRating,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:new Date().toISOString()};try{const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');map[String(product.id)]={...row,catalog_id:String(product.id)};localStorage.setItem('dp_catalog_ratings',JSON.stringify(map));}catch(e){}let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
 (async function(){
   updateCart();
 
