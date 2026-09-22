@@ -221,14 +221,34 @@
                 btn.innerText = "मोबाइल से लॉगिन करें"; btn.disabled = false; return;
             }
             try {
-                const { data: user, error } = await supabaseClient.from('users').select('*').eq('mobile', mobile).maybeSingle();
+                // पुराने duplicate mobile records होने की स्थिति में maybeSingle()
+                // गलत/पुराना record चुन सकता था। इसलिए matching mobile के records
+                // लेकर वही record चुनें जिसका password वास्तव में match करता है।
+                const { data: users, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('mobile', mobile)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
                 if (error) throw error;
-                if (user && String(user.pass || '').trim() === pass) {
-                    saveUserData(user);
-                    alert("स्वागत है, " + (user.name || "ग्राहक") + "!");
+
+                const matchedUser = (Array.isArray(users) ? users : []).find(
+                    u => String(u.pass ?? '').trim() === pass
+                );
+
+                if (matchedUser) {
+                    // पुराने account/session को overwrite करके केवल यही user active रखें।
+                    localStorage.removeItem('dp_current_user');
+                    localStorage.removeItem('dp_logged_in_user');
+                    localStorage.removeItem('user');
+
+                    saveUserData(matchedUser);
+
+                    alert("स्वागत है, " + (matchedUser.name || "ग्राहक") + "!");
                     setTimeout(() => { window.location.href = redirectTarget; }, 300);
-                } else if (user) {
-                    alert("गलत पासवर्ड! कृपया सही पासवर्ड डालें।");
+                } else if (Array.isArray(users) && users.length > 0) {
+                    alert("गलत पासवर्ड! कृपया वही पासवर्ड डालें जो अकाउंट बनाते समय रखा था।");
                 } else {
                     alert("यह मोबाइल नंबर रजिस्टर्ड नहीं है। पहले नया अकाउंट बनाएं।");
                     toggleAuthView('register');
