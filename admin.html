@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -787,75 +788,192 @@
             }
         }
 
+        // ===== CUSTOMER RATING ADMIN CONTROLS =====
+        // केवल catalog_feedback को ही rating source माना गया है।
+        // Index HTML को इस file में कोई बदलाव नहीं किया गया है।
+
         async function loadAdminRatings() {
-            const tbody=document.getElementById('ratingsTableBody');
-            if(!tbody) return;
-            tbody.innerHTML='<tr><td colspan="8">रेटिंग लोड हो रही है...</td></tr>';
-            if(!supabaseClient){tbody.innerHTML='<tr><td colspan="8" style="color:red;">Supabase कनेक्ट नहीं है।</td></tr>';return;}
-            try{
-                const tables=['catalog_feedback','catalog_reviews','reviews','feedback'];
-                const all=[];
-                for(const tbl of tables){
-                    try{
-                        const {data,error}=await supabaseClient.from(tbl).select('*').order('created_at',{ascending:false}).limit(200);
-                        if(!error && Array.isArray(data)) all.push(...data.map(x=>({...x,_source:tbl})));
-                    }catch(e){}
+            const tbody = document.getElementById('ratingsTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="8">रेटिंग लोड हो रही है...</td></tr>';
+
+            if (!supabaseClient) {
+                tbody.innerHTML = '<tr><td colspan="8" style="color:red;">Supabase कनेक्ट नहीं है।</td></tr>';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog_feedback')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(500);
+
+                if (error) throw error;
+
+                const rows = Array.isArray(data) ? data : [];
+
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="8">अभी कोई रेटिंग / रिव्यू नहीं मिला।</td></tr>';
+                    return;
                 }
-                const seen=new Set();
-                const rows=all.filter(r=>{
-                    const key=[r.id||'',r.catalog_id||'',r.order_id||r.order_db_id||'',r.created_at||'',r.name||r.user_name||'',r.rating||r.stars||''].join('|');
-                    if(seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                }).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-                if(!rows.length){tbody.innerHTML='<tr><td colspan="8">अभी कोई रेटिंग / रिव्यू नहीं मिला।</td></tr>';return;}
-                const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-                const imgs=v=>{try{const a=typeof v==='string'?JSON.parse(v||'[]'):v;return Array.isArray(a)?a:[]}catch(e){return[]}};
-                tbody.innerHTML=rows.map(r=>{
-                    const rating=Math.max(0,Math.min(5,parseInt(r.rating||r.stars||0)||0));
-                    const photos=imgs(r.review_images||r.images||r.image_urls||r.photos);
-                    const source=String(r._source||'catalog_feedback');
-                    const rowId=r.id!=null?String(r.id):'';
-                    const orderId=r.order_id!=null?String(r.order_id):(r.order_db_id!=null?String(r.order_db_id):'');
-                    const catalogId=r.catalog_id!=null?String(r.catalog_id):'';
-                    const sponsored=!!(r.sponsored||r.is_sponsored||r.sponsor||r.featured_review);
-                    const action=rowId?`<div class="btn-rating-actions">
-                        <button type="button" class="btn-rating-delete" onclick="deleteAdminRating(${JSON.stringify(source)},${JSON.stringify(rowId)})"><i class="fa-solid fa-trash"></i> डिलीट</button>
-                        <button type="button" class="btn-rating-sponsor" onclick="sponsorAdminRating(${JSON.stringify(source)},${JSON.stringify(rowId)},${!sponsored})"><i class="fa-solid fa-star"></i> ${sponsored?'स्पॉन्सर हटाएँ':'स्पॉन्सर'}</button>
-                    </div>`:'<span style="font-size:10px;color:#94a3b8;">ID उपलब्ध नहीं</span>';
+
+                const esc = (v) => String(v ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+
+                const imgs = (v) => {
+                    try {
+                        const a = typeof v === 'string' ? JSON.parse(v || '[]') : v;
+                        return Array.isArray(a) ? a : [];
+                    } catch (e) {
+                        return [];
+                    }
+                };
+
+                tbody.innerHTML = rows.map(r => {
+                    const rating = Math.max(
+                        0,
+                        Math.min(5, parseInt(r.rating ?? r.stars ?? 0, 10) || 0)
+                    );
+
+                    const photos = imgs(
+                        r.review_images ?? r.images ?? r.image_urls ?? r.photos
+                    );
+
+                    const rowId = r.id != null ? String(r.id) : '';
+                    const orderId = r.order_id != null
+                        ? String(r.order_id)
+                        : (r.order_db_id != null ? String(r.order_db_id) : '');
+
+                    const catalogId = r.catalog_id != null
+                        ? String(r.catalog_id)
+                        : '';
+
+                    const sponsored = r.sponsored === true;
+
+                    const action = rowId
+                        ? `<div class="btn-rating-actions">
+                            <button type="button"
+                                class="btn-rating-delete"
+                                data-rating-id="${esc(rowId)}"
+                                onclick="deleteAdminRating('${esc(rowId)}')">
+                                <i class="fa-solid fa-trash"></i> डिलीट
+                            </button>
+                            <button type="button"
+                                class="btn-rating-sponsor"
+                                data-rating-id="${esc(rowId)}"
+                                onclick="sponsorAdminRating('${esc(rowId)}', ${sponsored ? 'false' : 'true'})">
+                                <i class="fa-solid fa-star"></i>
+                                ${sponsored ? 'स्पॉन्सर हटाएँ' : 'स्पॉन्सर'}
+                            </button>
+                        </div>`
+                        : '<span style="font-size:10px;color:#94a3b8;">ID उपलब्ध नहीं</span>';
+
                     return `<tr>
-                        <td>${r.created_at?new Date(r.created_at).toLocaleString('hi-IN'):'-'}</td>
-                        <td><b>${esc(r.name||r.user_name||'ग्राहक')}</b></td>
-                        <td>#${esc(orderId||'-')}</td>
-                        <td>${esc(catalogId||'-')}</td>
-                        <td style="color:#f59e0b;font-size:17px;font-weight:800;">${'★'.repeat(rating)}${'☆'.repeat(5-rating)}</td>
-                        <td style="text-align:left;max-width:320px;">${esc(r.feedback||r.comment||r.message||'रेटिंग दी गई है।')}</td>
-                        <td>${photos.length?photos.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" style="width:42px;height:42px;object-fit:cover;border-radius:5px;margin:2px;"></a>`).join(''):'-'}</td>
+                        <td>${r.created_at ? new Date(r.created_at).toLocaleString('hi-IN') : '-'}</td>
+                        <td><b>${esc(r.name || r.user_name || 'ग्राहक')}</b></td>
+                        <td>#${esc(orderId || '-')}</td>
+                        <td>${esc(catalogId || '-')}</td>
+                        <td style="color:#f59e0b;font-size:17px;font-weight:800;">
+                            ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
+                        </td>
+                        <td style="text-align:left;max-width:320px;">
+                            ${esc(r.feedback || r.comment || r.message || 'रेटिंग दी गई है।')}
+                        </td>
+                        <td>
+                            ${photos.length
+                                ? photos.map(u => `
+                                    <a href="${esc(u)}" target="_blank" rel="noopener">
+                                        <img src="${esc(u)}"
+                                             style="width:42px;height:42px;object-fit:cover;border-radius:5px;margin:2px;">
+                                    </a>`).join('')
+                                : '-'}
+                        </td>
                         <td>${action}</td>
                     </tr>`;
                 }).join('');
-            }catch(e){tbody.innerHTML=`<tr><td colspan="8" style="color:red;">रेटिंग लोड करने में त्रुटि: ${String(e.message||e)}</td></tr>`;}
+
+            } catch (e) {
+                console.error('loadAdminRatings error:', e);
+                tbody.innerHTML =
+                    `<tr><td colspan="8" style="color:red;">
+                        रेटिंग लोड करने में त्रुटि: ${String(e.message || e)}
+                    </td></tr>`;
+            }
         }
 
-        async function deleteAdminRating(sourceTable,rowId){
-            if(!sourceTable||!rowId||!supabaseClient)return;
-            if(!confirm('क्या आप इस रेटिंग / रिव्यू को डिलीट करना चाहते हैं? यह कार्रवाई वापस नहीं होगी।'))return;
-            try{
-                const {error}=await supabaseClient.from(sourceTable).delete().eq('id',rowId);
-                if(error)throw error;
-                alert('रेटिंग / रिव्यू डिलीट कर दिया गया है।');
+        async function deleteAdminRating(rowId) {
+            if (!rowId || !supabaseClient) {
+                alert('रेटिंग ID या Supabase उपलब्ध नहीं है।');
+                return;
+            }
+
+            if (!confirm('क्या आप इस रेटिंग / रिव्यू को डिलीट करना चाहते हैं? यह कार्रवाई वापस नहीं होगी।')) {
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog_feedback')
+                    .delete()
+                    .eq('id', rowId)
+                    .select('id');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    throw new Error(
+                        'डिलीट अनुरोध चला, लेकिन कोई रिकॉर्ड डिलीट नहीं हुआ। Supabase RLS DELETE policy जाँचें।'
+                    );
+                }
+
+                alert('रेटिंग / रिव्यू सफलतापूर्वक डिलीट कर दिया गया है।');
                 await loadAdminRatings();
-            }catch(err){alert('रेटिंग डिलीट करने में त्रुटि: '+err.message);}
+
+            } catch (err) {
+                console.error('deleteAdminRating error:', err);
+                alert('रेटिंग डिलीट नहीं हुई:\n' + String(err.message || err));
+            }
         }
 
-        async function sponsorAdminRating(sourceTable,rowId,makeSponsored){
-            if(!sourceTable||!rowId||!supabaseClient)return;
-            try{
-                const {error}=await supabaseClient.from(sourceTable).update({sponsored:!!makeSponsored}).eq('id',rowId);
-                if(error)throw error;
-                alert(makeSponsored?'रेटिंग को स्पॉन्सर कर दिया गया है।':'स्पॉन्सर हटाया गया है।');
+        async function sponsorAdminRating(rowId, makeSponsored) {
+            if (!rowId || !supabaseClient) {
+                alert('रेटिंग ID या Supabase उपलब्ध नहीं है।');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog_feedback')
+                    .update({ sponsored: !!makeSponsored })
+                    .eq('id', rowId)
+                    .select('id, sponsored');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    throw new Error(
+                        'स्पॉन्सर अपडेट हुआ नहीं। Supabase RLS UPDATE policy जाँचें।'
+                    );
+                }
+
+                alert(
+                    makeSponsored
+                        ? 'रेटिंग को स्पॉन्सर कर दिया गया है।'
+                        : 'स्पॉन्सर हटाया गया है।'
+                );
+
                 await loadAdminRatings();
-            }catch(err){alert('स्पॉन्सर सेट करने में त्रुटि: '+err.message);}
+
+            } catch (err) {
+                console.error('sponsorAdminRating error:', err);
+                alert('स्पॉन्सर सेट करने में त्रुटि:\n' + String(err.message || err));
+            }
         }
 
         function buildCustomerAnalytics(orders) {
