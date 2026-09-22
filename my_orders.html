@@ -930,6 +930,25 @@ function renderOrdersUI() {
 
             // Catalog Detail इसी table से Reviews पढ़ता है।
             const row={catalog_id:catalogId||null,order_id:ord.order_id||null,order_db_id:ord.id||null,rating:orderRatingValue,stars:orderRatingValue,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:createdAt};
+            // Shared browser rating map: Catalog Detail and Index can read the same rating
+            // immediately, even if the Supabase feedback table is unavailable.
+            if(catalogId){
+                try{
+                    const ratingMap=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+                    ratingMap[String(catalogId)]={
+                        catalog_id:String(catalogId),
+                        rating:orderRatingValue,
+                        stars:orderRatingValue,
+                        name:name,
+                        user_name:name,
+                        feedback:text,
+                        comment:text,
+                        review_images:imageUrls,
+                        created_at:createdAt
+                    };
+                    localStorage.setItem('dp_catalog_ratings',JSON.stringify(ratingMap));
+                }catch(e){}
+            }
             let saved=false;
             let saveError='';
 
