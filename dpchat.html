@@ -151,6 +151,13 @@ async function loadOrder(){
     if(!op||phone!==op)return fail('यह ऑर्डर आपके अकाउंट से संबंधित नहीं है।');
   }
   currentOrder=o;
+  if(role==='admin'){
+    try{
+      const items=[...(Array.isArray(o.customer_messages)?o.customer_messages:[]),...(Array.isArray(o.customer_files)?o.customer_files:[])];
+      const latest=items.reduce((m,x)=>Math.max(m, new Date(x&&x.at?x.at:0).getTime()||0),0);
+      if(latest) localStorage.setItem('dp_chat_admin_seen_'+String(o.id),String(latest));
+    }catch(e){}
+  }
   $('chatTitle').textContent=role==='admin'?'ग्राहक से बातचीत':'दिल्ली प्रेस';
   $('chatSubtitle').textContent=`${o.customer_name||o.name||'ग्राहक'} • ${o.mobile||o.phone||''}`;
   $('orderTitle').textContent=`#${o.order_id||o.id} • ${o.card_title||o.card_name||'ऑर्डर'}`;
