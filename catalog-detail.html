@@ -65,27 +65,6 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
 .zoom-tools button.active{background:#2874f0;color:#fff}
 .video-full-btn{position:absolute;right:10px;bottom:10px;z-index:6;border:0;background:#0009;color:#fff;border-radius:18px;padding:6px 10px;font-size:11px;cursor:pointer}
 @media(max-width:800px){.photo-click-hint{font-size:9px}.media-play-overlay{width:60px;height:60px}.zoom-stage{height:82vh}}
-/* Detail-page polish: fast, clean, mobile-friendly catalog view */
-.detail-price{font-weight:900}
-.loading-soft{animation:detailPulse 1.4s ease-in-out infinite}
-@keyframes detailPulse{0%,100%{opacity:.45}50%{opacity:1}}
-@media(max-width:768px){
-  .section{border-radius:16px!important}
-  .recommended-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
-}
-
-/* Catalog image zoom popup */
-.zoom-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;align-items:center;justify-content:center;overflow:hidden}
-.zoom-modal.show{display:flex}
-.zoom-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.zoom-image{max-width:92vw;max-height:82vh;object-fit:contain;transform:scale(1);transition:transform .15s ease;user-select:none;-webkit-user-drag:none;touch-action:none}
-.zoom-close{position:absolute;right:14px;top:14px;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:#172b4d;font-size:24px;font-weight:800;z-index:3}
-.zoom-controls{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.96);padding:8px 10px;border-radius:30px;z-index:3;box-shadow:0 4px 20px #0006}
-.zoom-controls button{width:44px;height:44px;border:0;border-radius:50%;background:#063b91;color:#fff;font-size:21px;font-weight:800}
-.zoom-level{min-width:58px;text-align:center;font-weight:800;color:#172b4d}
-.zoom-hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;background:#0008;padding:5px 10px;border-radius:16px}
-.main-image img{cursor:zoom-in}
-@media(max-width:520px){.zoom-image{max-width:96vw;max-height:78vh}.zoom-controls{bottom:18px}.zoom-hint{top:12px;font-size:11px}}
 </style>
 </head>
 <body>
@@ -102,7 +81,7 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
       <div class="gallery">
         <div class="main-image" id="mainImageBox">
           <button class="arrow left" onclick="prevImage()"><i class="fa-solid fa-chevron-left"></i></button>
-          <img id="mainImage" src="" alt="Catalog" onclick="openZoom()">
+          <img id="mainImage" src="" alt="Catalog">
           <video id="mainVideo" playsinline preload="metadata" controls style="display:none;width:100%;height:100%;object-fit:contain;background:#000"></video>
           <button id="mediaPlayOverlay" type="button" onclick="playMainVideo()" aria-label="वीडियो चलाएँ" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:58px;height:58px;border:0;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:25px;align-items:center;justify-content:center;cursor:pointer"><i class="fa-solid fa-play"></i></button>
           <button id="videoFullBtn" type="button" onclick="openVideoFullscreen()" aria-label="वीडियो फुल स्क्रीन" style="display:none;position:absolute;right:48px;bottom:10px;z-index:8;border:0;border-radius:8px;background:rgba(0,0,0,.7);color:#fff;padding:7px 9px;cursor:pointer"><i class="fa-solid fa-expand"></i></button>
@@ -158,16 +137,15 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
 </div>
 
 <div id="zoomModal" class="zoom-modal" aria-hidden="true">
+  <button class="zoom-close" type="button" onclick="closeZoomViewer()">×</button>
   <div class="zoom-stage" id="zoomStage">
-    <div class="zoom-hint">चित्र पर डबल टैप / पिंच करें या + / − दबाएँ</div>
-    <button class="zoom-close" type="button" onclick="closeZoom()" aria-label="बंद करें">×</button>
-    <img id="zoomImage" class="zoom-image" src="" alt="Catalog Preview">
-    <div class="zoom-controls">
-      <button type="button" onclick="zoomOut()" aria-label="Zoom out">−</button>
-      <span class="zoom-level" id="zoomLevel">100%</span>
-      <button type="button" onclick="zoomIn()" aria-label="Zoom in">+</button>
-      <button type="button" onclick="zoomReset()" aria-label="Reset">↺</button>
-    </div>
+    <img id="zoomImage" src="" alt="Card preview">
+  </div>
+  <div class="zoom-tools">
+    <button type="button" onclick="changeZoom(-.2)" title="Zoom Out">−</button>
+    <button type="button" onclick="resetZoom()" title="Reset">1:1</button>
+    <button type="button" onclick="changeZoom(.2)" title="Zoom In">+</button>
+    <button type="button" id="threeDBtn" onclick="toggle3D()" title="3D">3D</button>
   </div>
 </div>
 <div id="toast" class="toast"></div>
@@ -191,27 +169,25 @@ function getImages(c){
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 async function findProduct(){
-  // IMPORTANT: the URL id is the identity of the catalog currently opened.
-  // Do not let an old localStorage object override it.
-  const handoffKeys=['dp_catalog_detail_fallback','dp_catalog_detail_selected','dp_selected_catalog_card','order_selected_card'];
-
-  if(activeId){
-    for(const key of handoffKeys){
-      const raws=[];
-      try{const x=sessionStorage.getItem(key);if(x)raws.push(x)}catch(e){}
-      try{const x=localStorage.getItem(key);if(x)raws.push(x)}catch(e){}
-      for(const raw of raws){
-        try{
-          const f=JSON.parse(raw);
-          if(!f) continue;
-          const fid=String(f.id??f.catalog_id??'').trim();
-          if(fid && String(fid)===String(activeId)) return f;
-        }catch(e){}
-      }
+  // The Index page sends the exact selected card before navigation.
+  // Always trust that fresh handoff first; this avoids an old/mismatched URL id
+  // or a slow Supabase request keeping the detail page on the loading screen.
+  const handoffKeys=['dp_catalog_detail_selected','dp_catalog_detail_fallback','dp_selected_catalog_card'];
+  for(const key of handoffKeys){
+    const raws=[];
+    try{const x=sessionStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+    try{const x=localStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+    for(const raw of raws){
+      try{
+        const f=JSON.parse(raw);
+        if(!f) continue;
+        if(f._from_index || key==='dp_catalog_detail_selected') return f;
+        if(!activeId || f.id==null || String(f.id)===String(activeId) || String(f.catalog_id??'')===String(activeId)) return f;
+      }catch(e){}
     }
   }
 
-  // Direct URL / refresh fallback: load the exact catalog from Supabase.
+  // Direct URL / refresh fallback: try all supported Supabase tables.
   if(sb&&activeId){
     for(const tbl of ['catalog','cards','cards_catalog']){
       try{
@@ -223,31 +199,15 @@ async function findProduct(){
     }
   }
 
-  // Cached Index catalog fallback, again matching the current URL id.
+  // Cached Index catalog fallback.
   try{
-    const raw=localStorage.getItem('dp_index_catalog')||
-              localStorage.getItem('dp_index_catalog_cache_v3')||
-              sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+    const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
     const rows=JSON.parse(raw);
     if(Array.isArray(rows)&&rows.length){
-      const hit=activeId
-        ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId))
-        : rows[0];
+      const hit=activeId ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId)) : rows[0];
       if(hit)return hit;
     }
   }catch(e){}
-
-  // Only when there is no URL id, use a complete saved card as a last resort.
-  if(!activeId){
-    for(const key of ['dp_catalog_detail_fallback','dp_catalog_detail_selected','dp_selected_catalog_card']){
-      try{
-        const raw=localStorage.getItem(key)||sessionStorage.getItem(key);
-        if(!raw)continue;
-        const f=JSON.parse(raw);
-        if(f&&(f.name||f.title||f.image||f.image_url||f.photo))return f;
-      }catch(e){}
-    }
-  }
   return null;
 }
 function variantColor(c){
@@ -286,206 +246,68 @@ async function selectCatalogVariant(index){
 
 async function loadFeedback(){
   feedbackRows=[];
+  const active=String(activeId||product?.id||product?.catalog_id||'').trim();
   const norm=v=>String(v??'').trim().toLowerCase();
-  const keyNorm=v=>norm(v).replace(/\s+/g,' ');
-  const activeCatalogId=norm(activeId||product?.id||product?.catalog_id||'');
-  const activeIds=new Set([
-    activeCatalogId, product?.id, product?.catalog_id, product?.card_id, product?.product_id
-  ].map(norm).filter(Boolean));
-
   let rows=[];
   if(sb){
     try{
-      const {data,error}=await Promise.race([
-        sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('rating timeout')),8000))
-      ]);
-      if(!error && Array.isArray(data)) rows=data;
+      const {data,error}=await sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(500);
+      if(!error&&Array.isArray(data)) rows=data;
     }catch(e){}
   }
 
-  // Build order -> catalog mapping for old feedback rows.
-  const orderMap={};
-  if(sb&&rows.length){
-    const orderIds=[...new Set(
-      rows.flatMap(r=>[r?.order_db_id,r?.order_id])
-        .map(v=>String(v??'').trim()).filter(Boolean)
-    )];
+  // Direct catalog_id reviews.
+  feedbackRows=rows.filter(r=>[r?.catalog_id,r?.card_id,r?.product_id].some(v=>norm(v)===norm(active)));
 
+  // Legacy reviews: catalog_id contains the old model text (e.g. 140026),
+  // while order_db_id points to the exact order/card. Resolve by order title.
+  const orderIds=[...new Set(rows.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];
+  const orderMap={};
+  if(sb&&orderIds.length){
     for(let i=0;i<orderIds.length;i+=100){
       const ids=orderIds.slice(i,i+100);
-
-      // Current schema used by the site.
       try{
-        const {data,error}=await sb.from('orders')
-          .select('id,card_model,card_title')
-          .in('id',ids);
-        if(!error&&Array.isArray(data)){
-          data.forEach(o=>orderMap[String(o.id)]=o);
-        }
+        const {data,error}=await sb.from('orders').select('id,card_model,card_title').in('id',ids);
+        if(!error&&Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
       }catch(e){}
-
-      // Compatibility fallback for older orders schemas.
-      const missing=ids.filter(x=>!orderMap[String(x)]);
-      if(missing.length){
-        try{
-          const {data,error}=await sb.from('orders')
-            .select('id,model,title')
-            .in('id',missing);
-          if(!error&&Array.isArray(data)){
-            data.forEach(o=>orderMap[String(o.id)]={
-              id:o.id,
-              card_model:o.model,
-              card_title:o.title
-            });
-          }
-        }catch(e){}
-      }
     }
   }
-
-  const pname=keyNorm(product?.name??product?.title??product?.card_name??product?.product_name);
-  const pmodel=norm(product?.model??product?.code??product?.card_model??product?.model_no);
-
-  function titleMatches(a,b){
-    a=keyNorm(a); b=keyNorm(b);
-    if(!a||!b)return false;
-    if(a===b)return true;
-    const aa=new Set(a.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
+  const pname=norm(product?.name||product?.title||product?.card_name||product?.product_name);
+  const pmodel=norm(product?.model||product?.code||product?.card_model||product?.model_no);
+  const titleMatch=(a,b)=>{
+    a=norm(a);b=norm(b);if(!a||!b)return false;if(a===b||a.includes(b)||b.includes(a))return true;
+    const aa=a.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3);
     const bb=new Set(b.split(/[^a-z0-9\u0900-\u097f]+/).filter(x=>x.length>=3));
-    let hit=0; aa.forEach(x=>{if(bb.has(x))hit++;});
-    return hit>=2 || (hit>=1&&(a.includes(b)||b.includes(a)));
-  }
-
+    return aa.filter(x=>bb.has(x)).length>=2;
+  };
   rows.forEach(r=>{
-    const rating=Number(r?.rating??r?.stars??0);
-    if(!(rating>=1&&rating<=5))return;
-
-    let matched=false;
-
-    // 1. Direct catalog ID is always authoritative.
-    const directIds=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
-    if(directIds.some(x=>activeIds.has(x))) matched=true;
-
-    // 2. Legacy feedback: use order_db_id/order_id to find the exact card.
-    if(!matched){
-      const oid=String(r?.order_db_id??r?.order_id??'').trim();
-      const o=orderMap[oid];
-      if(o){
-        const oname=o?.card_title??o?.title??'';
-        const omodel=norm(o?.card_model??o?.model??'');
-        const titleOk=titleMatches(oname,pname);
-        const modelOk=!pmodel||!omodel||pmodel===omodel||pmodel.includes(omodel)||omodel.includes(pmodel);
-        if(titleOk&&modelOk)matched=true;
-      }
-    }
-
-    // 3. Some very old rows contain only catalog/model/title.
-    if(!matched){
-      const rmodel=norm(r?.model??r?.code??r?.card_model??'');
-      const rname=keyNorm(r?.card_title??r?.title??r?.name??'');
-      if(pname&&rname&&titleMatches(rname,pname)){
-        if(!pmodel||!rmodel||pmodel===rmodel||pmodel.includes(rmodel)||rmodel.includes(pmodel)){
-          matched=true;
-        }
-      }
-    }
-
-    if(matched)feedbackRows.push(r);
+    if(feedbackRows.includes(r))return;
+    const oid=String(r?.order_db_id||r?.order_id||'').trim();
+    const o=orderMap[oid];
+    if(!o)return;
+    const om=norm(o.card_model), ot=norm(o.card_title);
+    const modelOk=!pmodel||!om||pmodel===om||pmodel.includes(om)||om.includes(pmodel);
+    if(modelOk&&titleMatch(ot,pname)) feedbackRows.push(r);
   });
 
-  // Local fallback for reviews saved by older versions.
+  // Local fallback used by older Detail versions.
   try{
     const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-    Object.keys(map||{}).forEach(k=>{
-      if(activeIds.has(norm(k))){
-        const r=map[k];
-        if(Number(r?.rating??r?.stars??0)>=1)feedbackRows.push({...r,catalog_id:r.catalog_id||k});
-      }
-    });
+    if(map&&map[active]) feedbackRows.push(map[active]);
   }catch(e){}
-
   try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(!k||!k.startsWith('catalog_feedback_'))continue;
-      if(!activeIds.has(norm(k.slice('catalog_feedback_'.length))))continue;
-      const a=JSON.parse(localStorage.getItem(k)||'[]');
-      if(Array.isArray(a))feedbackRows.push(...a);
-    }
+    const local=JSON.parse(localStorage.getItem('catalog_feedback_'+active)||'[]');
+    if(Array.isArray(local)) feedbackRows.push(...local);
   }catch(e){}
 
-  // De-duplicate while preserving separate reviews.
   const seen=new Set();
   feedbackRows=feedbackRows.filter(r=>{
-    const k=String(r?.id??'')+'|'+String(r?.created_at??'')+'|'+
-            String(r?.order_db_id??r?.order_id??'')+'|'+
-            String(r?.catalog_id??'')+'|'+
-            String(r?.rating??r?.stars??'')+'|'+
-            String(r?.feedback??r?.comment??'');
-    if(seen.has(k))return false;
-    seen.add(k);return true;
+    const k=String(r?.id||'')+'|'+String(r?.created_at||'')+'|'+String(r?.order_db_id||r?.order_id||'')+'|'+String(r?.rating||r?.stars||'')+'|'+String(r?.feedback||r?.comment||'');
+    if(seen.has(k))return false;seen.add(k);return true;
   });
-
   renderRatings();
 }
-function reviewImageList(r){
- let v=r?.review_images??r?.images??r?.image_urls??r?.photos??r?.review_image??r?.photo??[];
- if(typeof v==='string'){
-   const raw=v.trim(); if(!raw)return[];
-   try{v=JSON.parse(raw)}catch(e){v=raw.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)}
- }
- if(!Array.isArray(v))v=[v];
- return v.map(x=>{
-   if(typeof x==='string')return x.trim();
-   if(x&&typeof x==='object')return String(x.url??x.image_url??x.src??'').trim();
-   return'';
- }).filter(Boolean);
-}
-
-function renderRatings(){
-  const rows=feedbackRows.map(r=>({
-    rating:Math.max(1,Math.min(5,parseInt(r?.rating??r?.stars??0,10)||0)),
-    name:r?.name||r?.user_name||'ग्राहक',
-    text:r?.feedback||r?.comment||r?.message||'',
-    images:reviewImageList(r)
-  })).filter(r=>r.rating);
-
-  const total=rows.reduce((a,r)=>a+r.rating,0);
-  const avg=rows.length?total/rows.length:0;
-
-  document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';
-  document.getElementById('topStars').textContent=stars(avg);
-  document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';
-  document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';
-  document.getElementById('bigStars').textContent=stars(avg);
-  document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';
-
-  for(let n=1;n<=5;n++){
-    const c=rows.filter(r=>r.rating===n).length;
-    document.getElementById('c'+n).textContent=c;
-    document.getElementById('b'+n).style.width=(rows.length?(c/rows.length*100):0)+'%';
-  }
-
-  document.getElementById('reviewList').innerHTML=rows.length
-    ? rows.slice(0,50).map(r=>{
-        const photos=r.images.length
-          ? '<div class="review-images">'+r.images.map(u=>
-              '<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+
-              '<img src="'+esc(u)+'" alt="Review photo" loading="lazy" onerror="this.style.display=\\'none\\'">'+
-              '</a>'
-            ).join('')+'</div>'
-          : '';
-        return '<div class="review">'+
-          '<div class="review-head"><b>'+esc(r.name)+'</b><span class="review-stars">'+
-          '★'.repeat(r.rating)+'☆'.repeat(5-r.rating)+
-          '</span></div>'+
-          '<div class="review-text">'+esc(r.text||'रेटिंग दी गई है।')+'</div>'+
-          photos+
-          '</div>';
-      }).join('')
-    : '<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>';
-}
+function renderRatings(){const rows=feedbackRows.map(r=>({rating:Math.max(1,Math.min(5,parseInt(r.rating||r.stars||0)||0)),name:r.name||r.user_name||'ग्राहक',text:r.feedback||r.comment||r.message||'',images:reviewImageList(r)})).filter(r=>r.rating);let total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:parseFloat(product?.rating||product?.avg_rating||0)||0;document.getElementById('ratingPill').textContent=(avg?avg.toFixed(1):'0')+' ★';document.getElementById('topStars').textContent=stars(avg);document.getElementById('reviewCount').textContent=rows.length+' Ratings & Reviews';document.getElementById('bigRating').textContent=avg?avg.toFixed(1):'0.0';document.getElementById('bigStars').textContent=stars(avg);document.getElementById('bigReviewCount').textContent=rows.length+' Reviews';for(let n=1;n<=5;n++){const c=rows.filter(r=>r.rating===n).length;document.getElementById('c'+n).textContent=c;document.getElementById('b'+n).style.width=(rows.length?c/rows.length*100:0)+'%'}document.getElementById('reviewList').innerHTML=rows.length?rows.slice(0,20).map(r=>`<div class="review"><div class="review-head"><b>${esc(r.name)}</b><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="review-text">${esc(r.text||'रेटिंग दी गई है।')}</div>${r.images.length?'<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>':''}</div>`).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>'}
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
 function render(){const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];document.getElementById('title').textContent=c.name||c.title||'शादी कार्ड';document.getElementById('model').textContent=(c.model||c.code)?'मॉडल: '+(c.model||c.code):'';const o=original(c),s=sale(c);document.getElementById('priceBox').innerHTML=o>s&&s>0?`<span class="old">₹${o.toLocaleString('en-IN')}</span><span class="price">₹${s.toLocaleString('en-IN')}</span><span class="off">${Math.round((o-s)/o*100)}% OFF</span>`:`<span class="price">₹${(s||o||0).toLocaleString('en-IN')}</span>`;document.getElementById('stock').textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';document.getElementById('stock').style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';document.getElementById('stock').style.color=c.in_stock===false?'#d61c43':'#07864f';document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';renderGallery();document.getElementById('loading').style.display='none';document.getElementById('productArea').style.display='block'}
 function getVideos(c){
@@ -562,6 +384,27 @@ function playMainVideo(){
 function openVideoFullscreen(){
   const v=document.getElementById('mainVideo'); if(v?.requestFullscreen)v.requestFullscreen().catch(()=>{});
 }
+function openZoomViewer(){
+  const m=mediaItems[imageIndex]; if(!m||m.type!=='image')return;
+  const modal=document.getElementById('zoomModal'), zi=document.getElementById('zoomImage');
+  zi.src=m.url; zoomScale=1; rotY=0; rotX=0; zi.classList.remove('is-3d'); updateZoomTransform();
+  modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+}
+function closeZoomViewer(){const m=document.getElementById('zoomModal');m.classList.remove('show');m.setAttribute('aria-hidden','true')}
+let zoomScale=1,rotY=0,rotX=0,threeD=false;
+function updateZoomTransform(){
+  const z=document.getElementById('zoomImage'); if(!z)return;
+  z.style.setProperty('--zoom',zoomScale);z.style.setProperty('--ry',rotY+'deg');z.style.setProperty('--rx',rotX+'deg');
+  z.classList.toggle('is-3d',threeD);
+}
+function changeZoom(delta){zoomScale=Math.max(.5,Math.min(3,zoomScale+delta));updateZoomTransform()}
+function resetZoom(){zoomScale=1;rotY=0;rotX=0;threeD=false;document.getElementById('threeDBtn')?.classList.remove('active');updateZoomTransform()}
+function toggle3D(){
+  threeD=!threeD;
+  if(threeD){rotY=14;rotX=-4;document.getElementById('threeDBtn')?.classList.add('active')}
+  else{rotY=0;rotX=0;document.getElementById('threeDBtn')?.classList.remove('active')}
+  updateZoomTransform();
+}
 document.getElementById('zoomModal')?.addEventListener('click',e=>{if(e.target.id==='zoomModal')closeZoomViewer()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoomViewer()});
 document.getElementById('mainImageBox')?.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].screenX},{passive:true});
@@ -593,74 +436,6 @@ function detailDiscount(c){
 function detailCardImage(c){
   return c?.image||c?.image_url||c?.photo||getImages(c)[0]||placeholder;
 }
-function getSmallRating(c){
-  const n=Number(c?._ratingAvg ?? c?.rating ?? c?.avg_rating ?? c?.average_rating ?? 0);
-  return Number.isFinite(n)&&n>0 ? n.toFixed(1) : '0.0';
-}
-function getSmallStars(c){
-  const n=Number(c?._ratingAvg ?? c?.rating ?? c?.avg_rating ?? c?.average_rating ?? 0);
-  const v=Number.isFinite(n)&&n>0?n:0;
-  const full=Math.floor(v), half=(v-full)>=0.5?1:0;
-  return '★'.repeat(full)+(half?'★':'')+'☆'.repeat(Math.max(0,5-full-half));
-}
-async function enrichSmallCardRatings(rows){
-  if(!sb||!Array.isArray(rows)||!rows.length)return rows;
-  try{
-    const {data,error}=await Promise.race([
-      sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('small rating timeout')),5000))
-    ]);
-    if(error||!Array.isArray(data))return rows;
-
-    const orderIds=[...new Set(data.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];
-    const orderMap={};
-    if(orderIds.length){
-      try{
-        const {data:orders,error:oerr}=await sb.from('orders')
-          .select('id,card_model,card_title,model,title').in('id',orderIds);
-        if(!oerr&&Array.isArray(orders))orders.forEach(o=>orderMap[String(o.id)]=o);
-      }catch(e){}
-    }
-
-    const norm=v=>String(v??'').trim().toLowerCase();
-    const modelNorm=v=>norm(v).replace(/[^a-z0-9]+/g,'');
-    rows.forEach(c=>{
-      const cid=norm(c?.id??c?.catalog_id);
-      const cname=norm(c?.name??c?.title??c?.card_name??c?.product_name);
-      const cmodel=modelNorm(c?.model??c?.code??c?.card_model??c?.model_no);
-      let vals=[];
-
-      data.forEach(r=>{
-        const direct=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
-        if(cid && direct.includes(cid)){
-          const v=Number(r?.rating??r?.stars??0); if(v>0)vals.push(v);
-          return;
-        }
-
-        const oid=String(r?.order_db_id??r?.order_id??'').trim();
-        const o=orderMap[oid];
-        if(!o)return;
-        const oname=norm(o?.card_title??o?.title);
-        const omodel=modelNorm(o?.card_model??o?.model);
-        const titleMatch=cname&&oname&&(cname===oname||cname.includes(oname)||oname.includes(cname));
-        const modelMatch=!cmodel||!omodel||cmodel===omodel||cmodel.includes(omodel)||omodel.includes(cmodel);
-        if(titleMatch&&modelMatch){
-          const v=Number(r?.rating??r?.stars??0); if(v>0)vals.push(v);
-        }
-      });
-
-      if(vals.length){
-        c._ratingCount=vals.length;
-        c._ratingAvg=vals.reduce((a,v)=>a+Math.max(1,Math.min(5,v)),0)/vals.length;
-      }else{
-        c._ratingCount=0;
-        c._ratingAvg=0;
-      }
-    });
-  }catch(e){}
-  return rows;
-}
-
 function renderSmallCards(rows,boxId,emptyText){
   const box=document.getElementById(boxId);if(!box)return;
   if(!Array.isArray(rows)||!rows.length){
@@ -685,7 +460,7 @@ function renderSmallCards(rows,boxId,emptyText){
     return '<div class="card-sample" onclick="openCatalogCard('+i+',\''+boxId+'\')" title="कैटलॉग विवरण खोलें">'
       +'<div class="img-box"><img src="'+esc(img)+'" alt="'+name+'" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\';"></div>'
       +'<div class="card-info"><h4>'+name+'</h4><div class="model-text">'+model+'</div>'+priceHtml
-      +'<div class="card-rating-row"><span class="rating-stars">'+(getSmallStars(c))+'</span><span class="rating-text">'+(getSmallRating(c))+'</span><span class="rating-label">रेटिंग</span></div>'
+      +'<div class="card-rating-row"><span class="rating-stars">★★★★★</span><span class="rating-text">'+Number(c.rating??c.stars??5).toFixed(1)+'</span><span class="rating-label">रेटिंग</span></div>'
       +'<div style="margin-bottom:6px;">'+stockBadge+'</div></div></div>';
   }).join('');
 }
@@ -712,10 +487,6 @@ function loadRecentlyViewed(){
   rows=rows.slice(0,12);
   window._recentRows=rows;
   renderSmallCards(rows,'recentCatalog','अभी कोई Recently Viewed कार्ड नहीं है।');
-  enrichSmallCardRatings(rows).then(()=>{
-    window._recentRows=rows;
-    renderSmallCards(rows,'recentCatalog','अभी कोई Recently Viewed कार्ड नहीं है।');
-  }).catch(()=>{});
 }
 function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window._recentRows||[]):(window._updatedRows||[]);const c=rows[index];if(!c)return;try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));saveRecentlyViewed(c);}catch(e){}location.href='catalog-detail.html?id='+encodeURIComponent(c.id??'');}
 async function fetchTableRows(tbl,limit=100){if(!sb)return [];try{const query=sb.from(tbl).select('*').order('id',{ascending:false}).limit(limit);const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));const res=await Promise.race([query,timeout]);if(res?.error||!Array.isArray(res?.data))return [];return res.data.map(x=>({...x,_source_table:tbl}));}catch(e){return [];}}
@@ -766,75 +537,23 @@ function orderNow(){const logged=localStorage.getItem('dp_current_user')||localS
 document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
 async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
 async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
-async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,stars:selectedRating,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:new Date().toISOString()};try{const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');map[String(product.id)]={...row,catalog_id:String(product.id)};localStorage.setItem('dp_catalog_ratings',JSON.stringify(map));}catch(e){}let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
+async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
 (async function(){
   updateCart();
-
-  // More Products is independent of the selected product. Render it immediately
-  // from the same cache used by Index, then refresh from Supabase if necessary.
+  // Start More Products immediately from the Index cache; it must not depend on the main product query.
   loadMoreUpdatedCards().catch(()=>{});
-
-  try{ product=await findProduct(); }catch(e){ product=null; }
-
-  if(product){
-    if(product.id!=null && activeId==null) activeId=product.id;
-    render();
-    saveRecentlyViewed(product);
-    loadRecentlyViewed();
-    loadMoreUpdatedCards().catch(()=>{});
-    loadVariants().catch(()=>{});
-    if(product.id||activeId) loadFeedback().catch(()=>{});
+  product=await findProduct();
+  if(!product){
+    document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';
     return;
   }
-
-  // Final local fallback: older pages may have saved only the selected card.
-  try{
-    const candidates=['dp_catalog_detail_fallback','dp_catalog_detail_selected','dp_selected_catalog_card'];
-    for(const key of candidates){
-      const raw=localStorage.getItem(key)||sessionStorage.getItem(key);
-      if(!raw) continue;
-      const f=JSON.parse(raw);
-      if(f && (f.name||f.title||f.image||f.image_url||f.photo)){
-        product=f; render(); saveRecentlyViewed(product); loadRecentlyViewed();
-        loadFeedback().catch(()=>{});
-        return;
-      }
-    }
-  }catch(e){}
-
-  document.getElementById('loading').innerHTML='कैटलॉग विवरण अभी उपलब्ध नहीं है। कृपया कार्ड को कैटलॉग से दोबारा खोलें।';
+  render();
+  saveRecentlyViewed(product);
+  loadRecentlyViewed();
+  loadMoreUpdatedCards().catch(()=>{});
+  loadVariants().catch(()=>{});
+  if(product.id||activeId) loadFeedback().catch(()=>{});
 })();
-
-// Never leave a customer on an endless loading state. If the main query was
-// slow, use the saved Index handoff/cache and render the page immediately.
-setTimeout(()=>{
-  const loading=document.getElementById('loading');
-  const area=document.getElementById('productArea');
-  if(!loading || loading.style.display==='none' || (area && area.style.display!=='none')) return;
-  try{
-    const raw=localStorage.getItem('dp_catalog_detail_fallback')||localStorage.getItem('dp_catalog_detail_selected')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3');
-    if(raw){
-      const value=JSON.parse(raw);
-      const f=Array.isArray(value) ? (value.find(x=>!activeId || String(x?.id??x?.catalog_id??'')===String(activeId))||value[0]) : value;
-      if(f && (f.name||f.title||f.image||f.image_url||f.photo)){
-        product=f; render(); saveRecentlyViewed(product); loadRecentlyViewed(); loadFeedback().catch(()=>{});
-        return;
-      }
-    }
-  }catch(e){}
-  loading.innerHTML='कैटलॉग विवरण अभी उपलब्ध नहीं है। कृपया वापस जाकर कार्ड दोबारा खोलें।';
-},5500);
-
-/* Zoom popup */
-let zoomScale=1, zoomX=0, zoomY=0, zoomStartX=0, zoomStartY=0, zoomDragging=false;
-function updateZoom(){const im=document.getElementById('zoomImage');if(!im)return;im.style.transform=`translate(${zoomX}px,${zoomY}px) scale(${zoomScale})`;document.getElementById('zoomLevel').textContent=Math.round(zoomScale*100)+'%';}
-function openZoom(){const src=document.getElementById('mainImage')?.src;if(!src)return;const m=document.getElementById('zoomModal'),im=document.getElementById('zoomImage');im.src=src;zoomScale=1;zoomX=0;zoomY=0;updateZoom();m.classList.add('show');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
-function closeZoom(){const m=document.getElementById('zoomModal');if(!m)return;m.classList.remove('show');m.setAttribute('aria-hidden','true');document.body.style.overflow='';}
-function zoomIn(){zoomScale=Math.min(4,zoomScale+.25);updateZoom();}
-function zoomOut(){zoomScale=Math.max(1,zoomScale-.25);if(zoomScale===1){zoomX=0;zoomY=0}updateZoom();}
-function zoomReset(){zoomScale=1;zoomX=0;zoomY=0;updateZoom();}
-document.addEventListener('keydown',e=>{if(!document.getElementById('zoomModal')?.classList.contains('show'))return;if(e.key==='Escape')closeZoom();if(e.key==='+'||e.key==='=')zoomIn();if(e.key==='-')zoomOut();});
-(function(){const stage=document.getElementById('zoomStage'),im=document.getElementById('zoomImage');if(!stage||!im)return;let sx=0,sy=0,moved=false;stage.addEventListener('pointerdown',e=>{if(e.target!==im)return;zoomDragging=true;moved=false;sx=e.clientX-zoomX;sy=e.clientY-zoomY;im.setPointerCapture?.(e.pointerId)});stage.addEventListener('pointermove',e=>{if(!zoomDragging||zoomScale<=1)return;const nx=e.clientX-sx,ny=e.clientY-sy;if(Math.abs(nx-zoomX)>2||Math.abs(ny-zoomY)>2)moved=true;zoomX=nx;zoomY=ny;updateZoom()});stage.addEventListener('pointerup',e=>{zoomDragging=false;try{im.releasePointerCapture?.(e.pointerId)}catch(_){} });let lastTap=0;im.addEventListener('click',()=>{const now=Date.now();if(now-lastTap<320){zoomScale=zoomScale>1?1:2;zoomX=0;zoomY=0;updateZoom()}lastTap=now});stage.addEventListener('wheel',e=>{if(!document.getElementById('zoomModal')?.classList.contains('show'))return;e.preventDefault();e.deltaY<0?zoomIn():zoomOut()},{passive:false});stage.addEventListener('click',e=>{if(e.target===stage)closeZoom()});})();
 </script>
 </body>
 </html>
