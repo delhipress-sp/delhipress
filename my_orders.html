@@ -526,8 +526,9 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
 
         window.addEventListener('DOMContentLoaded', () => {
             loadInitialLocalOrders();
-            syncWithCloudFast();
+            // Never keep the whole My Orders page blocked by catalog/review requests.
             loadRecommendedCatalog();
+            syncWithCloudFast();
         });
 
         function loadInitialLocalOrders() {
@@ -609,9 +610,16 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                 // CLOUD IS SOURCE OF TRUTH. If the successful query is empty, keep it empty.
                 // Do NOT resurrect Admin-deleted orders from localStorage.
                 fetchedOrdersList = cloud.sort((a,b)=>Number(b.id||0)-Number(a.id||0));
-                fetchedOrdersList = await attachCloudRatings(fetchedOrdersList);
+                // Orders themselves render immediately. Ratings/reviews are background data.
                 localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                 renderOrdersUI();
+                attachCloudRatings(fetchedOrdersList).then(withRatings=>{
+                    if(Array.isArray(withRatings)){
+                        fetchedOrdersList=withRatings;
+                        localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
+                        renderOrdersUI();
+                    }
+                }).catch(()=>{});
             } catch(e) {
                 console.error('My Orders cloud sync error:', e);
                 // Only a failed/timeout cloud request may use the already visible local copy.
@@ -1152,42 +1160,63 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         async function requestMoreCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('needs_more'); }
         async function approveCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('approved'); }
 
-        /* 1. LOAD RECOMMENDED CATALOG DIRECT FROM SUPABASE CATALOG TABLE */
+        /* RECOMMENDED CATALOG: EXACT SAME ADMIN SOURCE AS INDEX */
         async function loadRecommendedCatalog() {
-            const container = document.getElementById('recommendedCatalogContainer');
-            if (!container) return;
-            container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;">कार्ड लोड हो रहे हैं...</p>`;
-            let fetched=[];
-            if (supabaseClient) {
-                try{
-                    const {data,error}=await Promise.race([
-                        supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(12),
-                        new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),5000))
-                    ]);
-                    if(!error && Array.isArray(data)) fetched=data;
-                }catch(e){}
-            }
-            if(!fetched.length){
-                try{
-                    const raw=localStorage.getItem('dp_index_catalog');
-                    const parsed=raw?JSON.parse(raw):[];
-                    if(Array.isArray(parsed)) fetched=parsed;
-                }catch(e){}
-            }
-            if(!fetched.length){
-                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+            const container=document.getElementById('recommendedCatalogContainer');
+            if(!container) return;
+
+            // Show Index's last known complete catalog immediately only when it contains
+            // multiple cards. Never show a stale one-card cache as the page's catalog.
+            let cache=[];
+            try{
+                const raw=localStorage.getItem('dp_index_catalog') || sessionStorage.getItem('dp_index_catalog_cache_v3') || '';
+                const parsed=raw?JSON.parse(raw):[];
+                if(Array.isArray(parsed) && parsed.length>1) cache=parsed;
+            }catch(e){}
+            if(cache.length){ renderRecommendedCatalogCards(cache); }
+            else container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग तैयार हो रहा है...</p>`;
+
+            // Admin's `catalog` table is the single source of truth, exactly like Index.
+            if(!supabaseClient){
+                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग उपलब्ध नहीं है।</p>`;
                 return;
             }
-            // Deduplicate by real catalog ID.
-            const seen=new Set(); fetched=fetched.filter(c=>{const id=String(c?.id??'').trim();if(!id||seen.has(id))return false;seen.add(id);return true;});
+            try{
+                const {data,error}=await Promise.race([
+                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}),
+                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),3000))
+                ]);
+                if(error) throw error;
+                const live=Array.isArray(data)?data:[];
+                const seen=new Set();
+                const clean=live.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
+                // Successful empty result is authoritative: do not resurrect old catalog cards.
+                renderRecommendedCatalogCards(clean);
+                try{ localStorage.setItem('dp_index_catalog',JSON.stringify(clean)); }catch(e){}
+                try{ sessionStorage.setItem('dp_index_catalog_cache_v3',JSON.stringify(clean)); }catch(e){}
+            }catch(e){
+                // If live request fails, retain a complete multi-card Index cache; never a one-card stale cache.
+                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग अभी लोड नहीं हो पाया।</p>`;
+            }
+        }
+
+        function renderRecommendedCatalogCards(fetched){
+            const container=document.getElementById('recommendedCatalogContainer');
+            if(!container)return;
+            if(!Array.isArray(fetched)||!fetched.length){
+                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+                recommendedCards=[]; return;
+            }
             recommendedCards=fetched;
             container.innerHTML=fetched.map((c,idx)=>{
                 const name=c.name||c.title||c.card_name||c.product_name||'शादी कार्ड';
                 const model=c.model||c.code||c.card_model||c.model_no||'';
-                const keys=['catalog_rate','catalog_price','original_rate','mrp','sale_rate','selling_price','rate','price','amount','card_price','unit_price','per_piece_price','price_per_piece','printing_price'];
-                let rate=0; for(const key of keys){const n=Number(String(c?.[key]??'').replace(/[₹,\s]/g,''));if(Number.isFinite(n)&&n>0){rate=n;break;}}
-                const img=c.image||c.image_url||c.card_image||c.photo||safeCardPlaceholder;
-                return `<div class="card-sample"><div class="img-box" onclick="selectRecommendedForOrder(${idx})"><img src="${img}" alt="${name}" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';"></div><div class="card-info"><h4>${name}</h4><div class="model-text">${model}</div><div class="card-price-tag">₹${rate} / पीस</div><button type="button" class="btn-select-card" onclick="selectRecommendedForOrder(${idx})"><i class="fa-solid fa-bolt"></i> ऑर्डर करें</button></div></div>`;
+                const img=c.image_url||c.image||c.photo||c.thumbnail||c.card_image||c.cover_image||safeCardPlaceholder;
+                const sale=Number(c.sale_rate??c.selling_price??c.rate??c.price??c.amount??c.card_price??0)||0;
+                const original=Number(c.catalog_rate??c.catalog_price??c.original_rate??c.mrp??0)||0;
+                const price=sale>0?sale:original;
+                const off=(original>price&&price>0)?Math.round((original-price)/original*100):0;
+                return `<article class="catalog-card" data-rec-index="${idx}">\n                    <a href="catalog-detail.html?id=${encodeURIComponent(c.id??'')}" style="text-decoration:none;color:inherit;display:block">\n                    <div class="catalog-card-image-wrap"><img src="${String(img).replace(/"/g,'&quot;')}" alt="${String(name).replace(/"/g,'&quot;')}" loading="lazy" onerror="this.src='${safeCardPlaceholder}'"></div>\n                    <div class="catalog-card-body"><h4>${escapeHtml(name)}</h4>${model?`<div class="catalog-model">${escapeHtml(model)}</div>`:''}<div class="catalog-price">₹${price.toLocaleString('en-IN')}${off?` <span class="catalog-off">${off}% OFF</span>`:''}</div><div class="catalog-rating">★★★★★ <b>0.0</b> <span>रेटिंग</span></div><div class="catalog-stock">उपलब्ध (In Stock)</div></div></a></article>`;
             }).join('');
         }
 
@@ -1288,31 +1317,77 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             let ord = fetchedOrdersList[index];
             if (!ord) return;
 
-            // Order Details review: first read the exact review linked to THIS order.
-            // Only use catalog_id as a legacy fallback when no order-linked review exists.
+            // DIRECT ORDER REVIEW RESOLVER:
+            // My Orders -> exact order -> catalog_feedback.  Legacy reviews are resolved
+            // through the same Admin catalog source as Index, so the review cannot get lost.
             let review = null;
             const clean=v=>String(v??'').trim();
+            const norm=v=>clean(v).toLowerCase().replace(/[^a-z0-9]+/g,'');
             const orderDbId=clean(ord.id), orderId=clean(ord.order_id);
-            const catalogIds=new Set([ord.catalog_id,ord.catalogId,ord.card_id,ord.product_id,ord.card_catalog_id,ord.catalog_item_id].filter(v=>clean(v)).map(v=>clean(v).toLowerCase()));
+            let catalogIds=new Set([ord.catalog_id,ord.catalogId,ord.card_id,ord.product_id,ord.card_catalog_id,ord.catalog_item_id]
+              .filter(v=>clean(v)).map(v=>clean(v).toLowerCase()));
+
             if(supabaseClient){
-                try{
-                    if(orderDbId){
-                        const r=await Promise.race([supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',Number(orderDbId)).order('created_at',{ascending:false}).limit(1),new Promise((_,reject)=>setTimeout(()=>reject(new Error('review timeout')),4000))]);
-                        if(!r.error && Array.isArray(r.data) && r.data[0]) review=r.data[0];
+              try{
+                const timeout=ms=>new Promise((_,reject)=>setTimeout(()=>reject(new Error('review timeout')),2500));
+
+                // 1) Exact order-linked review is always authoritative.
+                const linkedQueries=[];
+                if(orderDbId) linkedQueries.push(supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',Number(orderDbId)).order('created_at',{ascending:false}).limit(20));
+                if(orderId) linkedQueries.push(supabaseClient.from('catalog_feedback').select('*').eq('order_id',orderId).order('created_at',{ascending:false}).limit(20));
+                if(linkedQueries.length){
+                  const results=await Promise.race([Promise.all(linkedQueries),timeout(2500)]);
+                  for(const r of results||[]){ if(!r?.error && Array.isArray(r?.data) && r.data.length){ review=r.data[0]; break; } }
+                }
+
+                // 2) If old feedback has no order link, resolve this order to the Admin catalog
+                // using catalog ID first, then exact model/title similarity.
+                if(!review){
+                  let catalogRows=[];
+                  try{
+                    const cr=await Promise.race([
+                      supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
+                      timeout(2500)
+                    ]);
+                    if(!cr.error&&Array.isArray(cr.data)) catalogRows=cr.data;
+                  }catch(e){}
+
+                  const orderModel=norm(ord.card_model||ord.model||ord.code||'');
+                  const orderTitle=norm(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
+                  const titleMatch=(a,b)=>{
+                    a=norm(a); b=norm(b); if(!a||!b)return false;
+                    return a===b || a.includes(b) || b.includes(a);
+                  };
+                  for(const c of catalogRows){
+                    const cid=clean(c?.id);
+                    if(cid && catalogIds.has(cid.toLowerCase())) continue;
+                    const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
+                    const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
+                    const modelOk=!orderModel||!cm||cm===orderModel||cm.includes(orderModel)||orderModel.includes(cm);
+                    const titleOk=!orderTitle||!ct||titleMatch(orderTitle,ct);
+                    if(modelOk&&titleOk&&cid){ catalogIds.add(cid.toLowerCase()); break; }
+                  }
+
+                  // 3) Read feedback once and match by resolved catalog ID.
+                  try{
+                    const fr=await Promise.race([
+                      supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
+                      timeout(2500)
+                    ]);
+                    if(!fr.error&&Array.isArray(fr.data)){
+                      review=fr.data.find(r=>[r?.catalog_id,r?.card_id,r?.product_id].some(v=>catalogIds.has(clean(v).toLowerCase())))||null;
                     }
-                    if(!review && orderId){
-                        const r=await Promise.race([supabaseClient.from('catalog_feedback').select('*').eq('order_id',orderId).order('created_at',{ascending:false}).limit(1),new Promise((_,reject)=>setTimeout(()=>reject(new Error('review timeout')),4000))]);
-                        if(!r.error && Array.isArray(r.data) && r.data[0]) review=r.data[0];
-                    }
-                    // Legacy rows without order linkage.
-                    if(!review && catalogIds.size){
-                        const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000);
-                        if(!error && Array.isArray(data)) review=data.find(r=>[r.catalog_id,r.card_id,r.product_id].some(v=>catalogIds.has(clean(v).toLowerCase())))||null;
-                    }
-                }catch(e){}
+                  }catch(e){}
+                }
+              }catch(e){ console.warn('Order review resolver:',e); }
             }
+
+            // Local fallback for a review saved during the same session.
             if(!review){
-                try{ const local=JSON.parse(localStorage.getItem('dp_order_rating_'+String(ord.id||ord.order_id||index))||'null'); if(local) review=local; }catch(e){}
+              try{
+                const local=JSON.parse(localStorage.getItem('dp_order_rating_'+String(ord.id||ord.order_id||index))||'null');
+                if(local) review=local;
+              }catch(e){}
             }
 
             const total = parseFloat(ord.total_amount || 0);
@@ -1324,7 +1399,7 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             const reviewName = review?.name ?? review?.user_name ?? ord.rating_name ?? '';
             let reviewImages = review?.review_images ?? review?.images ?? review?.image_urls ?? review?.photos ?? [];
             if(typeof reviewImages==='string'){
-                try{reviewImages=JSON.parse(reviewImages)}catch(e){reviewImages=reviewImages.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)}
+              try{reviewImages=JSON.parse(reviewImages)}catch(e){reviewImages=reviewImages.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)}
             }
             if(!Array.isArray(reviewImages)) reviewImages=[reviewImages];
             reviewImages=reviewImages.map(x=>typeof x==='string'?x.trim():String(x?.url??x?.image_url??x?.src??'').trim()).filter(x=>/^https?:\/\//i.test(x));
