@@ -1077,95 +1077,58 @@
             catalogRatingSyncPromise = (async () => {
                 const rows = [];
 
-                // Local backups created by the Rating page.
+                // Browser fallback written by My Orders.
                 try {
                     const local = JSON.parse(localStorage.getItem('dp_catalog_ratings') || '{}');
                     if (local && typeof local === 'object') {
-                        Object.keys(local).forEach(k => rows.push({...local[k], catalog_id:k, _source:'local'}));
+                        Object.keys(local).forEach(k => rows.push({
+                            ...local[k],
+                            catalog_id: local[k]?.catalog_id ?? k,
+                            _source: 'local'
+                        }));
                     }
                 } catch(e) {}
 
-                // Per-catalog local backups: catalog_feedback_<catalogId>
+                // Per-catalog browser fallback.
                 try {
-                    const keys = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
-                        if (k && k.indexOf('catalog_feedback_') === 0) keys.push(k);
+                    for (let i=0; i<localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (!key || !key.startsWith('catalog_feedback_')) continue;
+                        const cid = key.slice('catalog_feedback_'.length);
+                        const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                        if (Array.isArray(arr)) {
+                            arr.forEach(x => rows.push({
+                                ...x,
+                                catalog_id: x?.catalog_id ?? cid,
+                                _source: 'local-per-catalog'
+                            }));
+                        }
                     }
-                    keys.forEach(k => {
-                        try {
-                            const cid = k.substring('catalog_feedback_'.length);
-                            const arr = JSON.parse(localStorage.getItem(k) || '[]');
-                            if (Array.isArray(arr)) arr.forEach(x => rows.push({...x, catalog_id: x?.catalog_id ?? cid, _source:'local-per-catalog'}));
-                        } catch(e) {}
-                    });
                 } catch(e) {}
 
-                // Supabase ratings.
+                // Supabase source used by Admin / My Orders.
                 if (supabaseClient) {
                     try {
                         const result = await Promise.race([
-                            supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
-                            new Promise((_,reject)=>setTimeout(()=>reject(new Error('rating timeout')),8000))
+                            supabaseClient.from('catalog_feedback')
+                                .select('*')
+                                .order('created_at', {ascending:true})
+                                .limit(2000),
+                            new Promise((_, reject) =>
+                                setTimeout(() => reject(new Error('rating timeout')), 8000)
+                            )
                         ]);
                         if (!result.error && Array.isArray(result.data)) {
-                            rows.push(...result.data.map(x=>({...x,_source:'supabase'})));
+                            rows.push(...result.data.map(x => ({...x, _source:'supabase'})));
                         }
                     } catch(e) {}
                 }
 
-                const norm = v => String(v ?? '').trim().toLowerCase();
-                const modelNorm = v => norm(v).replace(/[^a-z0-9]+/g,'');
-                const titleNorm = v => norm(v).replace(/\s+/g,' ');
-
-                // Resolve reviews that came from My Orders.
-                const orderMap = {};
-                if (supabaseClient) {
-                    const orderRefs = [...new Set(rows.flatMap(r => [
-                        r?.order_db_id, r?.order_id
-                    ]).map(v=>String(v??'').trim()).filter(Boolean))];
-
-                    for (let i=0; i<orderRefs.length; i+=100) {
-                        const chunk = orderRefs.slice(i,i+100);
-                        try {
-                            const numeric = chunk.map(Number).filter(Number.isFinite);
-                            if (numeric.length) {
-                                const rr = await supabaseClient.from('orders')
-                                    .select('id,order_id,card_model,card_title,card_name,product_name,model,title,catalog_id,card_id,product_id')
-                                    .in('id',numeric);
-                                if (!rr.error && Array.isArray(rr.data)) {
-                                    rr.data.forEach(o => {
-                                        orderMap[String(o.id)] = o;
-                                        if (o.order_id != null) orderMap[String(o.order_id)] = o;
-                                    });
-                                }
-                            }
-                        } catch(e) {}
-                    }
-
-                    // Also try text order_id when it is not numeric.
-                    for (let i=0; i<orderRefs.length; i++) {
-                        const ref = orderRefs[i];
-                        if (/^\d+$/.test(ref)) continue;
-                        try {
-                            const rr = await supabaseClient.from('orders')
-                                .select('id,order_id,card_model,card_title,card_name,product_name,model,title,catalog_id,card_id,product_id')
-                                .eq('order_id',ref).limit(1);
-                            if (!rr.error && rr.data?.[0]) {
-                                const o=rr.data[0];
-                                orderMap[String(o.id)] = o;
-                                orderMap[String(o.order_id)] = o;
-                            }
-                        } catch(e) {}
-                    }
-                }
-
-                // Deduplicate.
+                // Deduplicate by actual review id / review signature.
                 const uniqueRows = [];
                 const seen = new Set();
-
                 rows.forEach(r => {
-                    const k = String(
+                    const key = String(
                         r?.id ??
                         [
                             r?.order_db_id ?? r?.order_id ?? '',
@@ -1175,84 +1138,80 @@
                             r?.name ?? r?.user_name ?? ''
                         ].join('|')
                     );
-                    if (seen.has(k)) return;
-                    seen.add(k);
-
-                    r._resolved_catalog_ids = [];
-
-                    // Direct catalog ID match.
-                    const direct = [r?.catalog_id,r?.card_id,r?.product_id]
-                        .map(norm).filter(Boolean);
-
-                    globalCards.forEach(card => {
-                        const cid = norm(card?.id ?? card?.catalog_id ?? card?.card_id ?? card?.product_id);
-                        if (cid && direct.includes(cid)) r._resolved_catalog_ids.push(cid);
-                    });
-
-                    const orderRef = String(r?.order_db_id ?? r?.order_id ?? '').trim();
-                    const order = orderMap[orderRef];
-
-                    // Order's own catalog ID is authoritative when present.
-                    if (order) {
-                        const oc = [order?.catalog_id,order?.card_id,order?.product_id]
-                            .map(norm).filter(Boolean);
-                        oc.forEach(cid => {
-                            globalCards.forEach(card => {
-                                const cardId = norm(card?.id ?? card?.catalog_id ?? card?.card_id ?? card?.product_id);
-                                if (cardId && cid === cardId && !r._resolved_catalog_ids.includes(cardId)) {
-                                    r._resolved_catalog_ids.push(cardId);
-                                }
-                            });
-                        });
-
-                        // Legacy orders without catalog_id: title + model match.
-                        if (!r._resolved_catalog_ids.length) {
-                            const ot = titleNorm(order?.card_title ?? order?.card_name ?? order?.product_name ?? order?.title ?? '');
-                            const om = modelNorm(order?.card_model ?? order?.model ?? order?.code ?? '');
-                            globalCards.forEach(card => {
-                                const ct = titleNorm(card?.name ?? card?.title ?? card?.card_name ?? card?.product_name ?? '');
-                                const cm = modelNorm(card?.model ?? card?.code ?? card?.card_model ?? card?.model_no ?? '');
-                                if (!ot || !ct) return;
-                                const titleMatch = ot===ct || ot.includes(ct) || ct.includes(ot);
-                                const modelMatch = !om || !cm || om===cm || om.includes(cm) || cm.includes(om);
-                                if (titleMatch && modelMatch) {
-                                    const cid=norm(card?.id ?? card?.catalog_id ?? card?.card_id ?? card?.product_id);
-                                    if (cid && !r._resolved_catalog_ids.includes(cid)) r._resolved_catalog_ids.push(cid);
-                                }
-                            });
-                        }
-                    }
-
+                    if (seen.has(key)) return;
+                    seen.add(key);
                     uniqueRows.push(r);
                 });
 
+                const norm = v => String(v ?? '').trim().toLowerCase();
                 globalCards.forEach(card => {
-                    const cid = norm(card?.id ?? card?.catalog_id ?? card?.card_id ?? card?.product_id);
-                    let sum=0,count=0;
+                    const cardIds = [
+                        card?.id, card?.catalog_id, card?.card_id, card?.product_id
+                    ].map(norm).filter(Boolean);
 
-                    uniqueRows.forEach(r => {
-                        const ids = Array.isArray(r._resolved_catalog_ids) ? r._resolved_catalog_ids : [];
-                        const val = Number(r?.rating ?? r?.stars ?? 0);
-                        if (cid && ids.includes(cid) && val >= 1 && val <= 5) {
-                            sum += val;
-                            count++;
-                        }
+                    const matched = uniqueRows.filter(r => {
+                        const reviewIds = [
+                            r?.catalog_id, r?.card_id, r?.product_id
+                        ].map(norm).filter(Boolean);
+                        return reviewIds.some(id => cardIds.includes(id));
                     });
 
-                    card._ratingAvg = count ? sum/count : 0;
-                    card._ratingCount = count;
+                    const vals = matched
+                        .map(r => Number(r?.rating ?? r?.stars ?? 0))
+                        .filter(v => Number.isFinite(v) && v >= 1 && v <= 5);
+
+                    // Keep any legacy/order resolver already present, but direct catalog ID
+                    // is authoritative and does not depend on the order table.
+                    if (vals.length) {
+                        card._ratingAvg = vals.reduce((a,b) => a+b, 0) / vals.length;
+                        card._ratingCount = vals.length;
+                    } else {
+                        card._ratingAvg = 0;
+                        card._ratingCount = 0;
+                    }
                 });
 
                 return globalCards;
-            })().finally(()=>{catalogRatingSyncPromise=null;});
+            })().finally(() => { catalogRatingSyncPromise = null; });
 
             return catalogRatingSyncPromise;
         }
 
         function getCardRating(card) {
-            const avg = Number(card?._ratingAvg ?? card?.rating ?? card?.avg_rating ?? card?.average_rating ?? card?.stars ?? 0);
-            const count = Number(card?._ratingCount ?? card?.rating_count ?? card?.review_count ?? card?.reviews_count ?? 0) || 0;
-            return {avg: avg > 0 ? Math.max(0, Math.min(5, avg)) : 0, count};
+            let avg = Number(card?._ratingAvg ?? card?.rating ?? card?.avg_rating ?? card?.average_rating ?? card?.stars ?? 0);
+            let count = Number(card?._ratingCount ?? card?.rating_count ?? card?.review_count ?? card?.reviews_count ?? 0) || 0;
+
+            // Final fallback: My Orders writes the same rating into dp_catalog_ratings.
+            // Read it directly here so a card never stays at 0.0 merely because the
+            // asynchronous Supabase resolver finished late or a legacy ID was used.
+            try {
+                const map = JSON.parse(localStorage.getItem('dp_catalog_ratings') || '{}');
+                const ids = [card?.id, card?.catalog_id, card?.card_id, card?.product_id]
+                    .filter(v => v !== undefined && v !== null && String(v).trim() !== '')
+                    .map(v => String(v).trim());
+
+                const matches = [];
+                ids.forEach(k => {
+                    const x = map[k];
+                    if (x) matches.push(x);
+                });
+
+                if (matches.length) {
+                    const vals = matches
+                        .map(x => Number(x?.rating ?? x?.stars ?? 0))
+                        .filter(v => Number.isFinite(v) && v >= 1 && v <= 5);
+
+                    if (vals.length) {
+                        avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+                        count = vals.length;
+                    }
+                }
+            } catch(e) {}
+
+            return {
+                avg: avg > 0 ? Math.max(0, Math.min(5, avg)) : 0,
+                count
+            };
         }
 
         function renderCatalogCards(cards) {
