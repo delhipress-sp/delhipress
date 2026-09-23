@@ -306,6 +306,63 @@
             }
         }
 
+        function readWeddingMatterFromIndexedDB() {
+            return new Promise((resolve) => {
+                try {
+                    const req = indexedDB.open('DelhiPressOrderDB', 1);
+                    req.onsuccess = function(e) {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('matter')) { db.close(); resolve(null); return; }
+                        const tx = db.transaction('matter', 'readonly');
+                        const get = tx.objectStore('matter').get('current');
+                        get.onsuccess = () => { const v = get.result?.matter || null; db.close(); resolve(v); };
+                        get.onerror = () => { db.close(); resolve(null); };
+                    };
+                    req.onerror = () => resolve(null);
+                } catch (e) { resolve(null); }
+            });
+        }
+
+        async function uploadWeddingMatterToCloud(orderId) {
+            try {
+                const matter = await readWeddingMatterFromIndexedDB();
+                if (!matter || !matter.dataUrl || !supabaseClient) return null;
+
+                const safeName = String(matter.name || 'matter').replace(/[^a-zA-Z0-9._-]/g, '_');
+                const path = `customer-matter/${String(orderId || Date.now())}_${Date.now()}_${safeName}`;
+                const blob = await fetch(matter.dataUrl).then(r => r.blob());
+
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('order-corrections')
+                    .upload(path, blob, {
+                        contentType: matter.type || blob.type || 'application/octet-stream',
+                        upsert: false
+                    });
+                if (uploadError) throw uploadError;
+
+                const { data: publicData } = supabaseClient.storage
+                    .from('order-corrections')
+                    .getPublicUrl(path);
+                const url = publicData?.publicUrl || '';
+                if (!url) throw new Error('Uploaded file URL नहीं मिला।');
+
+                return {
+                    kind: 'matter',
+                    name: matter.name || safeName,
+                    mime: matter.type || blob.type || '',
+                    fileType: matter.type || blob.type || '',
+                    size: matter.size || blob.size || 0,
+                    url,
+                    path,
+                    from: 'customer',
+                    at: new Date().toISOString()
+                };
+            } catch (e) {
+                console.warn('Handwritten matter cloud upload failed:', e);
+                return null;
+            }
+        }
+
         async function finalizeAndSubmitOrder() {
             const submitBtn = document.getElementById('btnSubmitOrder');
             const isUpi = document.getElementById('radioUpi').checked;
@@ -356,6 +413,26 @@
                 payment_receipt: compressedScreenshotBase64 || '',
                 created_at: new Date().toISOString()
             };
+
+            // Handwritten/photo/PDF matter is uploaded as a separate file.
+            // The URL is saved in orders.customer_files so My Orders and Admin
+            // can open the original file independently of the typed matter.
+            let uploadedMatterFile = null;
+            if (currentData.wedding_matter_uploaded || currentData.wedding_matter_file) {
+                uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
+                if (uploadedMatterFile) {
+                    cleanOrderPayload.customer_files = [uploadedMatterFile];
+                    cleanOrderPayload.wedding_matter_file = {
+                        name: uploadedMatterFile.name,
+                        type: uploadedMatterFile.mime,
+                        size: uploadedMatterFile.size,
+                        url: uploadedMatterFile.url,
+                        path: uploadedMatterFile.path
+                    };
+                } else {
+                    cleanOrderPayload.customer_files = [];
+                }
+            }
 
             // 1. First save locally so My Orders can show the order immediately.
             try {
