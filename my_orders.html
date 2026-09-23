@@ -640,20 +640,43 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         }
 
         async function attachCloudRatings(list){
-            if(!supabaseClient || !Array.isArray(list) || !list.length) return list;
-            try{
-                const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(500);
-                if(error || !Array.isArray(data)) return list;
-                return list.map(o=>{
-                    const matches=data.filter(r=>
-                        (o.order_id && r.order_id && String(o.order_id)===String(r.order_id)) ||
-                        (o.id && r.order_db_id && String(o.id)===String(r.order_db_id))
-                    );
-                    if(!matches.length) return o;
-                    const r=matches[0];
-                    return {...o,rating:r.rating||r.stars,rating_feedback:r.feedback||r.comment||'',rating_name:r.name||r.user_name||''};
-                });
-            }catch(e){return list;}
+            if(!Array.isArray(list) || !list.length) return list;
+            let data=[];
+            if(supabaseClient){
+                try{
+                    const {data:rows,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(1000);
+                    if(!error && Array.isArray(rows)) data=rows;
+                }catch(e){}
+            }
+            // Local order-rating cache is also checked, so the rating appears immediately
+            // after submission even before the next cloud refresh.
+            const localByOrder={};
+            for(const o of list){
+                const oid=String(o?.id||o?.order_id||'').trim();
+                if(!oid) continue;
+                try{
+                    const raw=localStorage.getItem('dp_order_rating_'+oid);
+                    if(raw){ const x=JSON.parse(raw); if(x) localByOrder[oid]=x; }
+                }catch(e){}
+            }
+            return list.map(o=>{
+                const oid=String(o?.id||'').trim();
+                const ono=String(o?.order_id||'').trim();
+                const matches=data.filter(r=>
+                    (oid && r?.order_db_id!=null && String(r.order_db_id)===oid) ||
+                    (ono && r?.order_id!=null && String(r.order_id)===ono)
+                ).sort((a,b)=>new Date(b?.created_at||0)-new Date(a?.created_at||0));
+                const r=matches[0] || localByOrder[oid] || localByOrder[ono];
+                if(!r) return o;
+                return {...o,
+                    rating:Number(r.rating??r.stars??0)||0,
+                    stars:Number(r.stars??r.rating??0)||0,
+                    rating_feedback:r.feedback||r.comment||'',
+                    rating_name:r.name||r.user_name||'',
+                    rating_images:Array.isArray(r.review_images)?r.review_images:(r.review_images?(()=>{try{const a=JSON.parse(r.review_images);return Array.isArray(a)?a:[]}catch(e){return[]}})():[]),
+                    rating_created_at:r.created_at||''
+                };
+            });
         }
 
         async function fetchCustomerOrders() {
@@ -1497,7 +1520,16 @@ function renderOrdersUI() {
                 <div class="receipt-row"><span>एडवांस जमा:</span> <b style="color:green;">₹${advance}</b></div>
                 <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
                 <div class="receipt-row"><span>UTR / Txn ID:</span> <b>${ord.txn_id || 'उपलब्ध नहीं'}</b></div>
-                <div class="receipt-section-title">५. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
+
+                <div class="receipt-section-title">५. ग्राहक की रेटिंग एवं रिव्यू</div>
+                <div style="background:#fffaf0;border:1px solid #fde68a;border-radius:10px;padding:12px;margin-bottom:12px;">
+                    ${Number(ord.rating||ord.stars||0)>0 ? `
+                      <div style="font-size:13px;font-weight:800;color:#334155;margin-bottom:5px;">रेटिंग: <span style="color:#f59e0b;font-size:20px;letter-spacing:1px;">${'★'.repeat(Math.max(0,Math.min(5,Number(ord.rating||ord.stars||0))))}${'☆'.repeat(5-Math.max(0,Math.min(5,Number(ord.rating||ord.stars||0))))}</span> <span style="color:#1d4ed8;">${Number(ord.rating||ord.stars||0).toFixed(1)}/5</span></div>
+                      <div style="font-size:13px;color:#475569;">${escapeReceiptText(ord.rating_feedback||'रिव्यू नहीं लिखा गया।')}</div>
+                    ` : '<div style="font-size:13px;color:#94a3b8;">इस ऑर्डर की रेटिंग अभी उपलब्ध नहीं है।</div>'}
+                </div>
+
+                <div class="receipt-section-title">६. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
                 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.7;">
                     ${escapeReceiptText(ord.custom_notes || ord.order_notes || ord.notes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}
                 </div>
