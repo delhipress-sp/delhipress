@@ -1451,8 +1451,6 @@ function renderOrdersUI() {
                 const img=c.image||c.image_url||c.card_image||c.photo||safeCardPlaceholder;
                 const vals=resolvedByCatalog.get(String(c.id??c.catalog_id??'').trim())||[];
                 const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
-                c._ratingAvg=avg;
-                c._ratingCount=vals.length;
                 const inStock=c.in_stock!==false;
                 const stock=inStock?'<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>':'<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>';
                 let price='';
@@ -1522,36 +1520,6 @@ function renderOrdersUI() {
             // के बिना सेव हुआ है, तो उसी Order के exact Catalog (title + model + image) की
             // aggregate rating fallback के रूप में दिखाएँ। इससे Index पर 1 rating होने पर
             // Order Details में 0.0 नहीं रहेगा।
-            // पहले इसी My Orders पेज पर दिख रहे Index-style Recommended Catalog से
-            // उसी कार्ड की authoritative rating लें। इससे Order Details और Index/Recommended
-            // Catalog में rating/count बिल्कुल एक जैसे रहते हैं।
-            try {
-                await loadRecommendedCatalog();
-                const cleanLocal = v => String(v ?? '').trim();
-                const normLocal = v => cleanLocal(v).toLowerCase().replace(/\s+/g,' ');
-                const compactLocal = v => normLocal(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'');
-                const modelLocal = v => normLocal(v).replace(/[^a-z0-9]+/g,'');
-                const otLocal = cleanLocal(ord.card_title || ord.card_name || ord.title || ord.product_name || '');
-                const omLocal = cleanLocal(ord.card_model || ord.model || ord.card_code || ord.model_no || '');
-                let bestLocal = null, bestScoreLocal = -1;
-                (Array.isArray(recommendedCards) ? recommendedCards : []).forEach(c => {
-                    const ct=cleanLocal(c?.name || c?.title || c?.card_name || c?.product_name || '');
-                    const cm=cleanLocal(c?.model || c?.code || c?.card_model || c?.model_no || '');
-                    if(!ct || !otLocal) return;
-                    let score=0;
-                    const a=compactLocal(otLocal), b=compactLocal(ct);
-                    if(normLocal(otLocal)===normLocal(ct)) score+=1000;
-                    else if(a===b) score+=900;
-                    else if(a.includes(b)||b.includes(a)) score+=650;
-                    if(omLocal && cm && modelLocal(omLocal)===modelLocal(cm)) score+=250;
-                    if(score>bestScoreLocal){bestScoreLocal=score;bestLocal=c;}
-                });
-                if(bestLocal && Number(bestLocal._ratingAvg||0)>0){
-                    ord={...ord, rating:Number(bestLocal._ratingAvg)||0, stars:Number(bestLocal._ratingAvg)||0, rating_count:Number(bestLocal._ratingCount||0)};
-                    fetchedOrdersList[index]=ord;
-                }
-            } catch(e) { console.warn('Recommended catalog rating sync failed:',e); }
-
             if (supabaseClient) {
                 try {
                     const clean = v => String(v ?? '').trim();
@@ -1565,20 +1533,55 @@ function renderOrdersUI() {
                     const orderImage = clean(ord.card_image || ord.image || ord.image_url || '');
 
                     let feedbackRows = [];
+
+                    // सबसे पहले इसी Order की exact rows सीधे Supabase से पढ़ें।
+                    // इससे My Orders किसी broad catalog/model match पर निर्भर नहीं रहेगा।
                     try {
-                        const { data, error } = await supabaseClient
-                            .from('catalog_feedback')
-                            .select('*')
-                            .order('created_at', { ascending: false })
-                            .limit(2000);
-                        if (!error && Array.isArray(data)) feedbackRows = data;
+                        if (orderDbId) {
+                            const { data } = await supabaseClient
+                                .from('catalog_feedback').select('*')
+                                .eq('order_db_id', orderDbId)
+                                .order('created_at', { ascending: false });
+                            if (Array.isArray(data)) feedbackRows.push(...data);
+                        }
+                    } catch (e) {}
+                    try {
+                        if (orderId) {
+                            const { data } = await supabaseClient
+                                .from('catalog_feedback').select('*')
+                                .eq('order_id', orderId)
+                                .order('created_at', { ascending: false });
+                            if (Array.isArray(data)) feedbackRows.push(...data);
+                        }
                     } catch (e) {}
 
-                    // 1) सबसे पहले exact order-linked review.
-                    let exact = feedbackRows.find(r =>
+                    // फिर पूरा feedback set लें ताकि पुराने/legacy reviews भी मिल सकें।
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('catalog_feedback').select('*')
+                            .order('created_at', { ascending: false }).limit(2000);
+                        if (!error && Array.isArray(data)) feedbackRows.push(...data);
+                    } catch (e) {}
+
+                    // Duplicate copies हटाएँ, लेकिन अलग-अलग review rows को न हटाएँ।
+                    const feedbackSeen = new Set();
+                    feedbackRows = feedbackRows.filter(r => {
+                        const k = String(r?.id ?? '') || [
+                            r?.order_db_id ?? '', r?.order_id ?? '', r?.catalog_id ?? '',
+                            r?.rating ?? r?.stars ?? '', r?.created_at ?? '',
+                            r?.feedback ?? r?.comment ?? ''
+                        ].join('|');
+                        if (feedbackSeen.has(k)) return false;
+                        feedbackSeen.add(k); return true;
+                    });
+
+                    // 1) exact order-linked review हमेशा सबसे ऊपर।
+                    let exactCandidates = feedbackRows.filter(r =>
                         (orderDbId && r?.order_db_id != null && String(r.order_db_id).trim() === orderDbId) ||
                         (orderId && r?.order_id != null && String(r.order_id).trim() === orderId)
                     );
+                    exactCandidates.sort((a,b) => String(b?.created_at||'').localeCompare(String(a?.created_at||'')));
+                    let exact = exactCandidates[0] || null;
 
                     // 2) अगर exact order link नहीं मिला, तो इसी Order का exact Catalog ID resolve करें।
                     let catalogId = clean(ord.catalog_id || ord.card_id || ord.product_id || ord.catalogId || '');
@@ -1615,10 +1618,10 @@ function renderOrdersUI() {
                             const rid = norm(r?.catalog_id ?? r?.card_id ?? r?.product_id ?? '');
                             const rating = Number(r?.rating ?? r?.stars ?? 0);
                             return rid === cid && rating >= 1 && rating <= 5;
-                        });
+                        }).sort((a,b) => String(b?.created_at||'').localeCompare(String(a?.created_at||'')));
+
                         if (candidates.length) {
-                            // Latest review is used for the order's displayed rating when there is
-                            // no immutable order link in an older feedback row.
+                            // Legacy row में order link न हो तो उसी catalog का latest review दिखाएँ।
                             exact = candidates[0];
                             exact = { ...exact, _catalogFallback: true, _catalogRatingCount: candidates.length };
                         }
@@ -1713,7 +1716,8 @@ function renderOrdersUI() {
                     ${Number(ord.rating||ord.stars||0)>0 ? `
                       <div style="font-size:13px;font-weight:800;color:#334155;margin-bottom:5px;">रेटिंग: <span style="color:#f59e0b;font-size:20px;letter-spacing:1px;">${'★'.repeat(Math.max(0,Math.min(5,Number(ord.rating||ord.stars||0))))}${'☆'.repeat(5-Math.max(0,Math.min(5,Number(ord.rating||ord.stars||0))))}</span> <span style="color:#1d4ed8;">${Number(ord.rating||ord.stars||0).toFixed(1)}/5</span></div>
                       ${ord.rating_name ? `<div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:4px;">द्वारा: ${escapeReceiptText(ord.rating_name)}</div>` : ''}
-                      <div style="font-size:13px;color:#475569;">${escapeReceiptText(ord.rating_feedback||'रिव्यू नहीं लिखा गया।')}</div>
+                      <div style="font-size:13px;color:#475569;margin-bottom:8px;">${escapeReceiptText(ord.rating_feedback||'रिव्यू नहीं लिखा गया।')}</div>
+                      ${(Array.isArray(ord.rating_images) && ord.rating_images.length) ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">${ord.rating_images.map(u=>{const url=String(u?.url??u?.image_url??u?.src??u??''); return /^https?:\/\//i.test(url)?`<a href="${escapeReceiptText(url)}" target="_blank" rel="noopener"><img src="${escapeReceiptText(url)}" alt="Review photo" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;" onerror="this.style.display='none'"></a>`:''}).join('')}</div>` : ''}
                     ` : '<div style="font-size:13px;color:#94a3b8;">इस ऑर्डर की रेटिंग अभी उपलब्ध नहीं है।</div>'}
                 </div>
 
