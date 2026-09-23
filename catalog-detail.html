@@ -200,7 +200,7 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
     </section>
 
     <section class="rating-summary-card" id="ratingSummarySection">
-      <div class="rating-summary-head"><h2>रेटिंग और रिव्यू</h2><span id="ratingSectionCount" style="font-size:12px;color:#2874f0;font-weight:800">0 Reviews</span></div>
+      <div class="rating-summary-head"><h2>रेटिंग और रिव्यू</h2><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end"><span id="ratingSectionCount" style="font-size:12px;color:#2874f0;font-weight:800">0 Reviews</span><button type="button" onclick="openStandaloneRating()" style="border:0;background:#2874f0;color:#fff;border-radius:8px;padding:8px 12px;font-weight:800;cursor:pointer">⭐ रेटिंग/रिव्यू दें</button></div></div>
       <div class="rating-summary-grid">
         <div class="rating-score-box"><strong id="bigRating">0.0</strong><div class="score-stars" id="bigStars">☆☆☆☆☆</div><small id="bigReviewCount">0 Reviews</small></div>
         <div class="rating-bars-box">
@@ -353,6 +353,18 @@ async function selectCatalogVariant(index){
  render(); await loadVariants(); await loadFeedback(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function openStandaloneRating(){
+  const cid=String(activeId??product?.id??id??'').trim();
+  if(!cid)return;
+  try{localStorage.setItem('dp_rating_catalog_context',JSON.stringify({
+    catalog_id:cid,
+    name:product?.name??product?.title??product?.card_name??'',
+    model:product?.model??product?.code??product?.card_model??'',
+    image:getImages(product||{})[0]||''
+  }));}catch(e){}
+  window.location.href='rating.html?id='+encodeURIComponent(cid);
+}
+
 async function loadFeedback(){
   feedbackRows=[];
   if(!product){renderRatings();return;}
@@ -381,20 +393,14 @@ async function loadFeedback(){
   }catch(e){}
 
   // Load the orders referenced by reviews. This resolves old model-only feedback safely.
-  const orderDbIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??'').trim()).filter(v=>/^\d+$/.test(v)))];
-  const orderNos=[...new Set(rawRows.map(r=>String(r?.order_id??'').trim()).filter(Boolean))];
+  const orderIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
   const orderMap={};
-  if(sb){
-    for(let i=0;i<orderDbIds.length;i+=100){
+  if(sb&&orderIds.length){
+    const nums=orderIds.map(Number).filter(Number.isFinite);
+    for(let i=0;i<nums.length;i+=100){
       try{
-        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',orderDbIds.slice(i,i+100).map(Number));
-        if(!error&&Array.isArray(data)) data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o;});
-      }catch(e){}
-    }
-    for(let i=0;i<orderNos.length;i+=100){
-      try{
-        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('order_id',orderNos.slice(i,i+100));
-        if(!error&&Array.isArray(data)) data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o;});
+        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',nums.slice(i,i+100));
+        if(!error&&Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
       }catch(e){}
     }
   }
@@ -471,16 +477,13 @@ async function loadAllRatingRows(){
   const rows=[];
   try{const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');if(local&&typeof local==='object')Object.keys(local).forEach(k=>rows.push({...local[k],catalog_id:k}));}catch(e){}
   if(sb){try{const {data,error}=await Promise.race([sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))]);if(!error&&Array.isArray(data))rows.push(...data)}catch(e){}}
-  const orderDbIds=[...new Set(rows.map(r=>String(r?.order_db_id??'').trim()).filter(v=>/^\d+$/.test(v)))];
-  const orderNos=[...new Set(rows.map(r=>String(r?.order_id??'').trim()).filter(Boolean))];
+  const orderIds=[...new Set(rows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
   const orderMap={};
-  if(sb){
-    for(let i=0;i<orderDbIds.length;i+=100){
-      const nums=orderDbIds.slice(i,i+100).map(Number);
-      try{const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',nums);if(!error&&Array.isArray(data))data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o})}catch(e){}
-    }
-    for(let i=0;i<orderNos.length;i+=100){
-      try{const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('order_id',orderNos.slice(i,i+100));if(!error&&Array.isArray(data))data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o})}catch(e){}
+  if(sb&&orderIds.length){
+    for(let i=0;i<orderIds.length;i+=100){
+      const chunk=orderIds.slice(i,i+100), nums=chunk.map(Number).filter(Number.isFinite);
+      if(!nums.length)continue;
+      try{const {data,error}=await sb.from('orders').select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id').in('id',nums);if(!error&&Array.isArray(data))data.forEach(o=>orderMap[String(o.id)]=o)}catch(e){}
     }
   }
   const seen=new Set();
