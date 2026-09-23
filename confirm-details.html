@@ -118,8 +118,7 @@ body{margin:0;background:#fff;color:#212121;font-family:Inter,Mukta,Arial,sans-s
         <div class="total" id="productTotal">₹0</div>
       </div>
     </section>
-
-    <div class="delivery">🚚 &nbsp; Delivery by <b id="deliveryDate">—</b></div>
+    <div class="delivery" style="color:#111;">🖨️ &nbsp; <b>कार्ड प्रिंट होते ही सूचना दिया जाएगा</b></div>
     <div class="openbox">▱ &nbsp; <b>Order delivery will be done</b> ›</div>
 
     <div class="divider"></div>
@@ -145,11 +144,12 @@ const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');
 const name=pick(address.fullName,order.customer_name,order.name);
 const mobile=pick(address.mobile,order.mobile,order.phone);
 const fullAddress=pick(address.address,order.address,order.delivery_address);
+const gpsParts=[address.post,address.police,address.district,address.state,address.pincode].filter(Boolean).join(', ');
 const area=[address.post,address.police,address.district,address.state,address.pincode].filter(Boolean).join(', ');
 
 document.getElementById('name').textContent=name||'—';
 document.getElementById('mobile').textContent=mobile||'—';
-document.getElementById('address').textContent=[fullAddress,area].filter(Boolean).join(', ')||'—';
+document.getElementById('address').textContent=[fullAddress,gpsParts].filter(Boolean).join(', ')||'—';
 
 const img=pick(order.card_image,order.image,order.product_image);
 const imgEl=document.getElementById('productImg');
@@ -168,8 +168,6 @@ const balance=Number(order.balance_amount||0);
 if(balance>0 && total>0) document.getElementById('saveText').textContent='Advance '+money(advance)+' • Balance '+money(balance);
 else document.getElementById('saveText').textContent='Order total '+money(total);
 
-const d=new Date(); d.setDate(d.getDate()+7);
-document.getElementById('deliveryDate').textContent=d.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short'});
 
 function goPayment(){
   if(!name || !mobile || !fullAddress){
