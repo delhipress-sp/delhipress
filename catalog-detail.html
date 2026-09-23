@@ -401,6 +401,15 @@ async function loadFeedback(){
     }catch(e){}
   }
 
+  // Same local per-catalog backup used by the Rating page.
+  if(!rows.length){
+    try{
+      const localKey='catalog_feedback_'+String(activeId??product?.id??'').trim();
+      const localRows=JSON.parse(localStorage.getItem(localKey)||'[]');
+      if(Array.isArray(localRows) && localRows.length) rows=localRows;
+    }catch(e){}
+  }
+
   // Legacy model/title-only rows: only when no direct catalog row exists.
   if(!rows.length){
     rows=allRatingRows.filter(r=>ratingBelongsToProductForCard(r,aliases,product));
