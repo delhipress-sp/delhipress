@@ -726,7 +726,7 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         }
 
         function renderOrdersUI() {
-            window.__customerOrders = globalOrdersCache || orders || [];
+            window.__customerOrders = Array.isArray(fetchedOrdersList) ? fetchedOrdersList : [];
             const container = document.getElementById('ordersContainer');
             if (!container) return;
 
