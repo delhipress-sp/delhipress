@@ -1469,7 +1469,8 @@
 
         async function uploadCatalogAdminFile(file, folder='catalog'){
             if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
-            if(file.size > 12*1024*1024) throw new Error('फाइल 12 MB से छोटी रखें।');
+            // वीडियो/फोटो के लिए इस पेज पर कोई 12 MB client-side limit नहीं है।
+            // 1 मिनट तक की मोबाइल रिकॉर्डिंग सीधे Storage में अपलोड की जा सकती है।
             const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'bin';
             const path=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
             const buckets=['catalog','cards']; let last=null;
