@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -816,7 +815,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                         <div class="order-card-footer">
                             <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <div class="footer-action-buttons">
-                                <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
+                                <button class="btn-rate-order" onclick="openOrderRating(${index})">
                                     <i class="fa-solid fa-star"></i> रेटिंग दें
                                 </button>
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
@@ -834,26 +833,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             }).join('');
         }
 
-
-        async function openStandaloneOrderRating(index){
-            const ord=await resolveCustomerOrder(index);
-            if(!ord){alert('ऑर्डर का रिकॉर्ड नहीं मिला। पहले रिफ्रेश करें।');return;}
-            const ctx={
-                catalog_id:ord.catalog_id||ord.card_id||ord.product_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'',
-                order_db_id:ord.id??'',
-                order_id:ord.order_id??'',
-                name:ord.card_title||ord.card_name||ord.product_name||ord.title||'',
-                model:ord.card_model||ord.model||ord.code||ord.model_no||'',
-                customer_name:ord.customer_name||'',
-                image:ord.card_image||ord.image||ord.image_url||''
-            };
-            try{localStorage.setItem('dp_rating_order_context',JSON.stringify(ctx));}catch(e){}
-            const params=new URLSearchParams();
-            if(ctx.catalog_id)params.set('id',ctx.catalog_id);
-            if(ctx.order_db_id)params.set('order_db_id',ctx.order_db_id);
-            if(ctx.order_id)params.set('order_id',ctx.order_id);
-            window.location.href='rating.html'+(params.toString()?'?'+params.toString():'');
-        }
 
         let orderRatingIndex = null;
         let orderRatingValue = 0;
@@ -904,56 +883,41 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             const compact=v=>norm(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'');
             const stripModel=v=>norm(v).replace(/\s*\([^()]*\)\s*$/,'').trim();
             const orderTitle=clean(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
-            const orderModel=clean(ord.card_model||ord.model||ord.code||ord.model_no||ord.card_code||'');
-            const suppliedId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||ord.product_id||'');
+            const orderModel=clean(ord.card_model||ord.model||ord.code||ord.model_no||'');
+            const suppliedId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'');
             let catalogId=suppliedId;
 
-            // Exact Admin/Index catalog match. पहले ID, फिर पूरा नाम, फिर base-name,
-            // और अंत में model को tie-breaker रखें। एक model कई cards में हो सकता है।
-            const catalogSources=[];
+            // सबसे पहले Admin/Index के live catalog से इस Order को exact card से जोड़ें।
+            // Model अकेला पर्याप्त नहीं है क्योंकि एक model कई catalog cards में हो सकता है।
             if(supabaseClient){
-                for(const tbl of ['catalog','cards','cards_catalog']){
-                    try{
-                        const {data,error}=await supabaseClient.from(tbl).select('*').limit(1000);
-                        if(!error&&Array.isArray(data)) catalogSources.push(...data);
-                    }catch(e){}
-                }
+                try{
+                    const {data,error}=await supabaseClient.from('catalog').select('*').limit(1000);
+                    if(!error&&Array.isArray(data)){
+                        let best=null,bestScore=-1;
+                        const ot=norm(orderTitle), ob=compact(stripModel(orderTitle)), om=norm(orderModel);
+                        for(const c of data){
+                            const cid=clean(c?.id??c?.catalog_id??c?.card_id); if(!cid)continue;
+                            const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
+                            const cb=compact(stripModel(ct));
+                            const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
+                            let score=0;
+                            // IMPORTANT: catalog ID saved in an old/local order may be stale.
+                            // When the order has an exact model (for example S90026), the
+                            // live catalog row with that exact model MUST win over another
+                            // card having the same generic title.
+                            if(om&&cm&&om===cm)score+=5000;
+                            else if(om&&cm&&(om.includes(cm)||cm.includes(om)))score+=1800;
+                            if(ot&&ct===ot)score+=500;
+                            else if(ob&&cb&&ob===cb)score+=450;
+                            else if(ob&&cb&&(ob.includes(cb)||cb.includes(ob)))score+=250;
+                            // Use supplied catalog_id only as a fallback/tie-breaker.
+                            if(suppliedId&&cid===suppliedId)score+=100;
+                            if(score>bestScore){bestScore=score;best=c;}
+                        }
+                        if(best){catalogId=clean(best.id??best.catalog_id??best.card_id);}
+                    }
+                }catch(e){console.warn('Catalog resolve before rating:',e);}
             }
-            // Direct/cache fallback भी रखें, ताकि network धीमा होने पर catalog_id न छूटे।
-            try{
-                const raw=localStorage.getItem('dp_index_catalog')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'';
-                const cached=raw?JSON.parse(raw):[];
-                if(Array.isArray(cached)) catalogSources.push(...cached);
-            }catch(e){}
-
-            if(catalogSources.length){
-                let best=null,bestScore=-1;
-                const ot=norm(orderTitle), ob=compact(stripModel(orderTitle)), om=norm(orderModel);
-                const seenIds=new Set();
-                for(const c of catalogSources){
-                    const cid=clean(c?.id??c?.catalog_id??c?.card_id); if(!cid||seenIds.has(cid))continue;
-                    seenIds.add(cid);
-                    const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
-                    const cb=compact(stripModel(ct));
-                    const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??c?.card_code??'');
-                    let score=0;
-                    if(suppliedId&&cid===suppliedId)score+=5000;
-                    if(ot&&ct===ot)score+=3000;
-                    else if(ob&&cb&&ob===cb)score+=2500;
-                    else if(ob&&cb&&(ob.includes(cb)||cb.includes(ob)))score+=1200;
-                    if(om&&cm&&om===cm)score+=300;
-                    if(score>bestScore){bestScore=score;best=c;}
-                }
-                if(best&&bestScore>0) catalogId=clean(best.id??best.catalog_id??best.card_id);
-            }
-
-            // catalog_feedback में catalog_id NOT NULL है; बिना exact ID के cloud
-            // insert नहीं करेंगे, ताकि "device only" में गलत review न जाए।
-            if(!catalogId){
-                alert('इस ऑर्डर का कैटलॉग ID नहीं मिला। कृपया My Orders को एक बार Refresh करके फिर रेटिंग दें।');
-                return;
-            }
-            catalogId=String(catalogId);
 
             const name=(document.getElementById('orderRatingName').value||'').trim()||ord.customer_name||'ग्राहक';
             const text=(document.getElementById('orderRatingText').value||'').trim();
@@ -961,118 +925,55 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             const orderId=ord.id||ord.order_id||('local_'+Date.now());
             const createdAt=new Date().toISOString();
             const imageUrls=await uploadOrderReviewImages(files,orderId);
+            const row={catalog_id:catalogId||null,order_id:ord.order_id||null,order_db_id:ord.id||null,rating:orderRatingValue,stars:orderRatingValue,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:createdAt};
 
-            // सभी ID text में भेजें — इससे पुराने text-type order_db_id schema से भी match रहेगा।
-            const row={
-                catalog_id:catalogId,
-                order_id:ord.order_id!=null?String(ord.order_id):null,
-                order_db_id:ord.id!=null?String(ord.id):null,
-                rating:Number(orderRatingValue),
-                stars:Number(orderRatingValue),
-                name,
-                user_name:name,
-                feedback:text,
-                comment:text,
-                review_images:Array.isArray(imageUrls)?imageUrls:[],
-                created_at:createdAt
-            };
+            // Browser में तुरंत shared rating cache रखें ताकि Index और Catalog Detail
+            // Supabase response का इंतजार किए बिना यही rating दिखा सकें।
+            if(catalogId){
+                try{
+                    const ratingMap=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+                    ratingMap[String(catalogId)]={...row,catalog_id:String(catalogId)};
+                    localStorage.setItem('dp_catalog_ratings',JSON.stringify(ratingMap));
+                }catch(e){}
+            }
 
-            let saved=false, saveError='';
-
+            let saved=false;
             if(supabaseClient){
                 try{
-                    // पहले इसी Order की पुरानी review खोजें। order_db_id text है, इसलिए
-                    // Number() नहीं लगाएँगे।
+                    // एक Order की एक ही current rating रखें। पहले उसी order की पुरानी
+                    // feedback row खोजें; मिलने पर update, नहीं तो insert करें।
                     let existing=null;
-                    if(ord.id!=null){
-                        try{
-                            const q=await supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',String(ord.id)).order('created_at',{ascending:false}).limit(1);
-                            if(!q.error&&Array.isArray(q.data)&&q.data[0]) existing=q.data[0];
-                        }catch(e){}
+                    const lookups=[];
+                    if(ord.id!=null) lookups.push(supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',Number(ord.id)).order('created_at',{ascending:false}).limit(1));
+                    if(ord.order_id) lookups.push(supabaseClient.from('catalog_feedback').select('*').eq('order_id',String(ord.order_id)).order('created_at',{ascending:false}).limit(1));
+                    if(lookups.length){
+                        const results=await Promise.all(lookups.map(q=>q.catch(()=>null)));
+                        for(const q of results){if(!q?.error&&Array.isArray(q.data)&&q.data[0]){existing=q.data[0];break;}}
                     }
-                    if(!existing&&ord.order_id){
-                        try{
-                            const q=await supabaseClient.from('catalog_feedback').select('*').eq('order_id',String(ord.order_id)).order('created_at',{ascending:false}).limit(1);
-                            if(!q.error&&Array.isArray(q.data)&&q.data[0]) existing=q.data[0];
-                        }catch(e){}
-                    }
-
                     if(existing?.id!=null){
-                        const up=await supabaseClient.from('catalog_feedback').update(row).eq('id',existing.id);
-                        if(!up.error) saved=true;
-                        else saveError=up.error.message||String(up.error);
+                        const {error}=await supabaseClient.from('catalog_feedback').update(row).eq('id',existing.id);
+                        if(!error)saved=true;
+                        else console.error('catalog_feedback update:',error);
                     }
-
-                    // Full row fail होने पर minimal compatible row try करें।
                     if(!saved){
-                        const ins=await supabaseClient.from('catalog_feedback').insert(row);
-                        if(!ins.error) saved=true;
-                        else saveError=ins.error.message||String(ins.error);
+                        const {error}=await supabaseClient.from('catalog_feedback').insert(row);
+                        if(!error)saved=true;
+                        else console.error('catalog_feedback insert:',error);
                     }
-
-                    // पुराने/extra column की वजह से full insert fail हो तो यह minimal
-                    // payload PostgreSQL की required columns के साथ save करेगा।
-                    if(!saved){
-                        const minimal={
-                            catalog_id:catalogId,
-                            rating:Number(orderRatingValue),
-                            name,
-                            feedback:text,
-                            created_at:createdAt
-                        };
-                        const ins2=await supabaseClient.from('catalog_feedback').insert(minimal);
-                        if(!ins2.error) saved=true;
-                        else saveError=ins2.error.message||String(ins2.error);
-                    }
-                }catch(e){
-                    saveError=e?.message||String(e);
-                }
-            }else{
-                saveError='Supabase connection उपलब्ध नहीं है।';
+                }catch(e){console.error('catalog_feedback save:',e);}
             }
-
-            if(!saved){
-                console.error('catalog_feedback save failed:',saveError);
-                alert('रेटिंग Supabase में सेव नहीं हुई। कारण: '+(saveError||'Database save failed')+'। कृपया एक बार Refresh करके फिर कोशिश करें।');
-                return;
-            }
-
-            // Cloud save successful होने के बाद ही shared rating cache update करें।
-            try{
-                const ratingMap=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-                ratingMap[catalogId]=row;
-                localStorage.setItem('dp_catalog_ratings',JSON.stringify(ratingMap));
-            }catch(e){}
-
-            const catalogKey='catalog_feedback_'+catalogId;
+            const catalogKey='catalog_feedback_'+String(catalogId||'unknown');
             let localReviews=[]; try{localReviews=JSON.parse(localStorage.getItem(catalogKey)||'[]');if(!Array.isArray(localReviews))localReviews=[];}catch(e){}
             localReviews.unshift(row); localStorage.setItem(catalogKey,JSON.stringify(localReviews.slice(0,100)));
             localStorage.setItem('dp_order_rating_'+String(ord.id||ord.order_id||orderRatingIndex),JSON.stringify(row));
-
             try{
                 const lists=['my_orders_list','dp_all_orders','user_orders','dp_my_orders'];
-                lists.forEach(k=>{
-                    let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){}
-                    if(!Array.isArray(a))a=[];
-                    a=a.map(x=>(String(x.id||x.order_id)===String(ord.id||ord.order_id))
-                        ? {...x,rating:orderRatingValue,stars:orderRatingValue,rating_feedback:text,rating_name:name,rating_images:imageUrls,rating_created_at:createdAt,catalog_id:catalogId}
-                        : x);
-                    localStorage.setItem(k,JSON.stringify(a));
-                });
+                lists.forEach(k=>{let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){};if(!Array.isArray(a))a=[];a=a.map(x=>(String(x.id||x.order_id)===String(ord.id||ord.order_id)?{...x,rating:orderRatingValue,stars:orderRatingValue,rating_feedback:text,rating_name:name,rating_images:imageUrls,rating_created_at:createdAt,catalog_id:catalogId||x.catalog_id}:x));localStorage.setItem(k,JSON.stringify(a));});
             }catch(e){}
-
-            fetchedOrdersList[orderRatingIndex]={
-                ...fetchedOrdersList[orderRatingIndex],
-                ...ord,
-                rating:orderRatingValue,
-                stars:orderRatingValue,
-                rating_feedback:text,
-                rating_name:name,
-                rating_images:imageUrls,
-                catalog_id:catalogId
-            };
+            // Cloud में save हो चुका है तो उसी exact order review को तुरंत UI में भी दिखाएँ।
+            fetchedOrdersList[orderRatingIndex]={...fetchedOrdersList[orderRatingIndex],...ord,rating:orderRatingValue,stars:orderRatingValue,rating_feedback:text,rating_name:name,rating_images:imageUrls,catalog_id:catalogId||ord.catalog_id};
             closeOrderRating();
-            alert('आपकी रेटिंग और रिव्यू सफलतापूर्वक Supabase में सेव हो गया।');
+            alert(saved?'आपकी रेटिंग और रिव्यू सफलतापूर्वक सेव हो गया।':'रेटिंग इस डिवाइस में सेव हो गई।');
             renderOrdersUI();
         }
 
