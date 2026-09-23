@@ -1,1757 +1,757 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>एडमिन पैनल - दिल्ली प्रेस</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>कैटलॉग विवरण - दिल्ली प्रेस (सज्जाद प्रिंटर्स)</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overflow-x:hidden}
+.top{height:58px;background:#063b91;color:#fff;display:flex;align-items:center;gap:14px;padding:0 5%;position:sticky;top:0;z-index:1000;box-shadow:0 2px 10px #0002}
+.back{color:#fff;text-decoration:none;font-size:20px;padding:8px}.brand{font-size:20px;font-weight:800}.top-cart{margin-left:auto;color:#fff;text-decoration:none;position:relative;font-size:20px}.badge{position:absolute;top:-8px;right:-10px;background:#e51e3b;color:#fff;border-radius:50%;font-size:10px;min-width:19px;height:19px;text-align:center;padding-top:2px}
+.wrap{max-width:1180px;margin:12px auto;padding:0 10px}.crumb{font-size:12px;color:#64748b;margin:6px 2px 10px}.product{display:grid;grid-template-columns:52% 48%;background:#fff;border-radius:4px;box-shadow:0 1px 3px #0001;overflow:hidden}.gallery{padding:15px;border-right:1px solid #e5e7eb}.main-image{height:480px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;position:relative;border-radius:3px}.main-image img{width:100%;height:100%;object-fit:contain}.arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:70px;border:0;background:#0007;color:#fff;font-size:24px;cursor:pointer;z-index:3}.arrow.left{left:0}.arrow.right{right:0}.count{position:absolute;bottom:10px;right:10px;background:#0009;color:#fff;border-radius:15px;padding:3px 10px;font-size:12px}.thumbs{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px}.thumb{width:68px;height:68px;flex:0 0 68px;border:1px solid #d7dee8;background:#fff;border-radius:3px;overflow:hidden;cursor:pointer}.thumb.active{border:2px solid #2874f0}.thumb img{width:100%;height:100%;object-fit:cover}.details{padding:20px 24px}.title{font-size:27px;font-weight:700;color:#172b4d;margin-bottom:4px}.model{font-size:13px;color:#667085;margin-bottom:12px}.rating-line{display:flex;align-items:center;gap:5px;margin:4px 0 10px;font-size:11px;line-height:1}.rating-pill{font-weight:800;color:#1e3a68;background:none;border-radius:0;padding:0;font-size:11px}.stars{color:#f5a623;letter-spacing:1px;font-size:12px}.reviews-count{color:#718096;font-size:11px;font-weight:700}.rating-label{color:#718096;font-weight:700}.price-box{border-top:1px solid #eee;border-bottom:1px solid #eee;padding:10px 0;margin-bottom:14px}.old{color:#7b8799;text-decoration:line-through;font-size:12px;font-weight:700;margin-right:6px}.price{font-size:18px;color:#e51e3b;font-weight:800}.off{display:inline-block;background:#08a86a;color:#fff;border-radius:12px;padding:3px 7px;font-size:10px;font-weight:800;margin-left:5px;vertical-align:2px}.stock{display:inline-flex;padding:4px 12px;border-radius:20px;background:#e6f8ef;color:#07864f;font-size:12px;font-weight:800;margin-bottom:12px}.desc-card{background:#fafbfc;border:1px solid #e6eaf0;border-radius:5px;padding:12px;margin:8px 0 15px}.desc-card h3{font-size:17px;margin-bottom:5px}.desc{font-size:14px;color:#475467;white-space:pre-line}.actions{display:none}.sticky-actions{position:fixed;left:0;right:0;bottom:0;z-index:4000;background:#fff;border-top:1px solid #dfe3e8;box-shadow:0 -4px 16px #0002;padding:8px max(10px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-right));display:grid;grid-template-columns:1fr 1fr;gap:8px}.sticky-actions .btn{min-height:48px;font-size:16px;border-radius:4px}.sticky-actions .cart{background:#ff9f00}.sticky-actions .order{background:#ff4d2e}.sticky-actions .btn:active{transform:scale(.99)}.btn{border:0;border-radius:3px;padding:13px 8px;font-weight:800;font-size:15px;cursor:pointer}.cart{background:#ff9f00;color:#fff}.order{background:#ff4d2e;color:#fff}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}.feature{border:1px solid #e3e7ed;padding:9px 6px;text-align:center;border-radius:4px;font-size:11px;color:#475467}.feature i{display:block;color:#2874f0;font-size:19px;margin-bottom:3px}
+.section{background:#fff;margin-top:12px;border-radius:4px;box-shadow:0 1px 3px #0001;padding:18px}.section h2{font-size:21px;margin-bottom:12px;border-bottom:1px solid #eee;padding-bottom:9px}.rating-grid{display:grid;grid-template-columns:180px 1fr;gap:25px;align-items:center}.big-rating{text-align:center}.big-rating strong{font-size:42px}.big-rating .stars{font-size:21px}.bars{display:flex;flex-direction:column;gap:7px}.barrow{display:grid;grid-template-columns:30px 1fr 45px;gap:8px;align-items:center;font-size:12px}.bar{height:7px;background:#e9edf2;border-radius:10px;overflow:hidden}.bar i{display:block;height:100%;background:#f59e0b}.feedback{display:grid;grid-template-columns:1fr 1fr;gap:15px}.feedback form{border:1px solid #e4e8ef;border-radius:5px;padding:14px}.stars-select{display:flex;gap:4px;margin:8px 0 12px}.star-btn{border:0;background:transparent;color:#cbd5e1;font-size:27px;cursor:pointer}.star-btn.selected{color:#f59e0b}.feedback input,.feedback textarea{width:100%;border:1px solid #d5dce5;border-radius:4px;padding:10px;margin-bottom:9px;outline:none}.feedback textarea{height:100px;resize:vertical}.review-upload{display:flex;align-items:center;justify-content:center;gap:7px;border:1px dashed #b8c2d1;border-radius:6px;padding:10px;margin:2px 0 9px;color:#2874f0;font-weight:700;cursor:pointer;background:#f8fbff}.feedback-image-preview{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.feedback-image-preview .preview-item{width:68px;height:68px;border:1px solid #e5e7eb;border-radius:5px;overflow:hidden;background:#f8fafc}.feedback-image-preview img{width:100%;height:100%;object-fit:cover}.review-images{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.review-images img{width:72px;height:72px;object-fit:cover;border-radius:5px;border:1px solid #e5e7eb}.submit{background:#2874f0;color:#fff;border:0;border-radius:4px;padding:10px 18px;font-weight:800;cursor:pointer}.review-list{display:flex;flex-direction:column;gap:9px}.review{border-bottom:1px solid #eee;padding:9px 0}.review:last-child{border-bottom:0}.review-head{display:flex;justify-content:space-between;font-size:12px}.review-stars{color:#f59e0b}.review-text{font-size:13px;color:#475467;margin-top:2px}.empty{color:#98a2b3;font-size:13px}
+.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:#172b4d;color:#fff;padding:10px 18px;border-radius:25px;display:none;z-index:5000;font-size:13px}.toast.show{display:block}
+@media(max-width:800px){.product{grid-template-columns:1fr;border-radius:0}.gallery{border-right:0;border-bottom:1px solid #e5e7eb;padding:0}.main-image{height:56vh;min-height:360px;max-height:620px;border-radius:0}.thumbs{padding:10px 8px 4px}.details{padding:15px 12px 20px}.title{font-size:22px}.rating-grid,.feedback{grid-template-columns:1fr}.rating-grid{gap:12px}.features{grid-template-columns:repeat(3,1fr)}.wrap{padding:0 5px}.section{padding:13px}}
+@media(max-width:480px){.main-image{height:330px}.price{font-size:26px}.actions{grid-template-columns:1fr 1fr}.feature{font-size:9px}.top{padding:0 10px}.brand{font-size:16px}}
 
-    <style>
-        :root {
-            --primary: #e63946;
-            --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
-            --secondary: #f77f00;
-            --dark: #0f172a;
-            --light: #fdfbf7;
-            --green: #10b981;
-            --blue: #2563eb;
-            --glass-bg: rgba(255, 255, 255, 0.94);
-            --glass-border: rgba(255, 255, 255, 0.6);
-            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
-        }
+.variant-section{margin-top:12px;background:#fff;border-radius:4px;box-shadow:0 1px 3px #0001;padding:14px}.variant-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;margin-bottom:10px}.variant-list{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 6px}.variant-card{min-width:92px;max-width:110px;background:#fff;border:1px solid #dbe2ea;border-radius:8px;padding:5px;cursor:pointer;text-align:center;transition:.15s}.variant-card.active{border:2px solid #2874f0;box-shadow:0 2px 8px #2874f033}.variant-card img{width:78px;height:78px;object-fit:contain;border-radius:5px;background:#f8fafc}.variant-color{font-size:12px;font-weight:800;color:#172b4d;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.variant-price{font-size:11px;color:#07864f;font-weight:800}.variant-model{font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.delivery-terms{margin-top:12px}.delivery-box{display:flex;gap:12px;align-items:flex-start;background:#f1f8ff;border:1px solid #d8e9ff;border-radius:6px;padding:12px;margin-bottom:12px;color:#334155}.delivery-box i{font-size:22px;color:#2874f0;margin-top:2px}.terms-box{background:#fffdf5;border:1px solid #f0dfaa;border-radius:6px;padding:12px;color:#475467;font-size:13px}.terms-box ol{margin:7px 0 0 20px}.terms-box li{margin:5px 0}
+/* More Products = Index catalog card design (same data, price, rating and stock) */
+.recommended-section .recommended-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.recommended-section .card-sample{border:1px solid #dbe5ef;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;transition:.22s;cursor:pointer;min-width:0}
+.recommended-section .card-sample:hover{transform:translateY(-3px);box-shadow:0 9px 20px rgba(0,0,0,.10)}
+.recommended-section .card-sample .img-box{position:relative;overflow:hidden;cursor:pointer;background:#f3f6fa;height:155px}
+.recommended-section .card-sample .img-box img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
+.recommended-section .card-sample:hover .img-box img{transform:scale(1.05)}
+.recommended-section .card-info{padding:9px 10px 10px;text-align:left}
+.recommended-section .card-info h4{font-size:16px;color:#13265a;margin-bottom:1px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recommended-section .model-text{font-size:12px;color:#344c77;margin-bottom:2px}
+.recommended-section .card-price-tag{color:#e51e3b;font-size:18px;font-weight:800}
+.recommended-section .card-price-box{margin:2px 0 3px;line-height:1.2}
+.recommended-section .card-original-price{display:inline-block;color:#7b8799;font-size:12px;font-weight:700;text-decoration:line-through;margin-right:6px}
+.recommended-section .card-sale-price{display:inline-block;color:#e51e3b;font-size:18px;font-weight:800}
+.recommended-section .card-discount-badge{display:inline-block;background:#08a86a;color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:12px;margin-left:5px;vertical-align:2px}
+.recommended-section .card-price-note{display:block;color:#52647f;font-size:10px;font-weight:700;margin-top:2px}
+.recommended-section .card-rating-row{display:flex;align-items:center;gap:5px;margin:4px 0 7px;font-size:11px;line-height:1}
+.recommended-section .rating-stars{color:#f5a623;letter-spacing:1px;font-size:12px}
+.recommended-section .rating-text{font-weight:800;color:#1e3a68}
+.recommended-section .rating-label{color:#718096;font-weight:700}
+.recommended-section .stock-badge{display:inline-block;font-size:11px;padding:4px 13px;border-radius:20px;font-weight:800}
+.recommended-section .in-stock{background:#d7f6e8;color:#12945e}.recommended-section .out-stock{background:#ffdfe4;color:#d61c43}
+@media(max-width:800px){.recommended-section .recommended-grid{grid-template-columns:repeat(3,1fr);gap:8px}.recommended-section .card-sample .img-box{height:145px}.recommended-section .card-info{padding:8px}.recommended-section .card-info h4{font-size:13px}.recommended-section .model-text{font-size:10px}.recommended-section .card-sale-price,.recommended-section .card-price-tag{font-size:15px}.recommended-section .card-original-price{font-size:10px}.recommended-section .card-discount-badge{font-size:9px;padding:2px 5px}.recommended-section .card-price-note{font-size:9px}.recommended-section .stock-badge{font-size:9px;padding:3px 8px}}
+@media(max-width:520px){.recommended-section .recommended-grid{grid-template-columns:repeat(2,1fr);gap:8px}.recommended-section .card-sample .img-box{height:145px}.recommended-section .card-info{padding:7px}.recommended-section .card-info h4{font-size:13px}}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; }
-        
-        body {
-            background-color: #0d1322;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
-                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: #1e293b;
-            line-height: 1.5;
-            padding: 15px;
-            padding-bottom: 60px;
-            min-height: 100vh;
-        }
+.recommended-section{margin-top:12px}.recommended-head{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding-bottom:9px;margin-bottom:14px}.recommended-head h2{margin:0;border:0;padding:0}.recommended-head span{font-size:12px;color:#64748b}.recommended-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.rec-card,.recommended-card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;cursor:pointer;transition:.15s;min-width:0}.rec-card:hover,.recommended-card:hover{box-shadow:0 4px 14px #0002;transform:translateY(-1px)}.rec-img,.recommended-img{height:190px;background:#f8fafc;display:flex;align-items:center;justify-content:center;overflow:hidden}.rec-img img,.recommended-img img{width:100%;height:100%;object-fit:contain}.rec-body,.recommended-info{padding:10px}.rec-name,.recommended-info h3{font-size:15px;font-weight:700;color:#172b4d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rec-model,.recommended-model{font-size:11px;color:#7b8799;margin:2px 0 6px}.rec-price,.recommended-price{font-size:17px;font-weight:800;color:#172b4d}.rec-old{font-size:11px;color:#98a2b3;text-decoration:line-through;margin-right:5px}.rec-btn{display:block;width:100%;margin-top:8px;border:0;border-radius:4px;background:#2874f0;color:#fff;padding:8px;font-weight:700;font-size:12px}.rec-more{grid-column:1/-1;text-align:center;margin-top:3px}.rec-more a{display:inline-block;color:#2874f0;text-decoration:none;font-weight:700;font-size:13px}@media(max-width:800px){.recommended-grid{grid-template-columns:repeat(3,1fr);gap:8px}.rec-img,.recommended-img{height:145px}.rec-body,.recommended-info{padding:8px}.rec-name,.recommended-info h3{font-size:13px}.rec-price,.recommended-price{font-size:15px}}@media(max-width:520px){.recommended-grid{grid-template-columns:repeat(2,1fr)}.rec-img,.recommended-img{height:165px}.recommended-head h2{font-size:18px}}
 
-        .top-nav-bar {
-            max-width: 1250px; margin: 0 auto 16px auto;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(14px);
-            padding: 12px 18px; border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .top-nav-bar a { text-decoration: none; color: #ffffff; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-
-        .admin-card {
-            background: var(--glass-bg); backdrop-filter: blur(20px);
-            max-width: 1250px; margin: 0 auto; border-radius: 16px;
-            box-shadow: var(--card-shadow); padding: 22px;
-            border: 1px solid var(--glass-border);
-        }
-
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 4px; color: #334155; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
-
-        .admin-table-wrapper { width: 100%; overflow-x: auto; margin-top: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 1050px; }
-        .admin-table th, .admin-table td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: center; vertical-align: middle; }
-        .admin-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 13px; }
-
-        .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .btn-rating-actions { display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:wrap; }
-        .btn-rating-delete { background:#ef4444; color:#fff; border:none; padding:6px 9px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:800; }
-        .btn-rating-sponsor { background:#f59e0b; color:#fff; border:none; padding:6px 9px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:800; }
-        .btn-rating-delete:hover, .btn-rating-sponsor:hover { filter:brightness(1.05); transform:translateY(-1px); }
-
-        .btn-open-dp-chat {
-            display:inline-flex; align-items:center; justify-content:center; gap:6px;
-            background:linear-gradient(135deg,#075e54,#128c7e); color:#fff !important;
-            border:0; padding:7px 12px; border-radius:20px; cursor:pointer;
-            font-size:11px; font-weight:800; text-decoration:none; white-space:nowrap;
-            box-shadow:0 5px 14px rgba(7,94,84,.20);
-        }
-        .btn-open-dp-chat:hover { transform:translateY(-1px); filter:brightness(1.05); }
-        .btn-open-dp-chat.dp-chat-unread {
-            background: #dc2626 !important;
-            box-shadow: 0 0 0 0 rgba(220,38,38,.75);
-            animation: dpChatBlink 1s infinite;
-        }
-        @keyframes dpChatBlink {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(220,38,38,.75); }
-            50% { opacity: .45; box-shadow: 0 0 0 8px rgba(220,38,38,0); }
-        }
-
-        .btn-view { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .btn-notice { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-
-        .stock-badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: bold; }
-        .in-stock { background: #dcfce7; color: #15803d; }
-        .out-stock { background: #fee2e2; color: #b91c1c; }
-
-        .btn-stock-toggle { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
-        .btn-price-edit { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
-        .btn-price-edit:hover { transform: translateY(-1px); filter: brightness(1.05); }
-
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn {
-            flex: 1; min-width: 140px; padding: 12px 14px; background: #e2e8f0;
-            color: #334155; border: none; border-radius: 10px; font-weight: 800;
-            cursor: pointer; font-size: 13px;
-        }
-        .tab-btn.active { background: var(--primary-gradient); color: white; }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
-            display: none; justify-content: center; align-items: center; z-index: 9999; padding: 15px;
-        }
-        .modal-content {
-            background: white; width: 100%; max-width: 700px; max-height: 92vh;
-            border-radius: 14px; overflow-y: auto; padding: 22px; position: relative;
-        }
-        .receipt-container { border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; background: #fff; }
-        .receipt-header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 14px; }
-        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 4px; }
-        .receipt-section-title { background: #f8fafc; padding: 5px 10px; font-weight: 800; color: var(--primary); margin: 12px 0 8px 0; border-left: 3px solid var(--primary); font-size: 13px; }
-
-        @keyframes alarm3DGlow {
-            0% {
-                transform: perspective(600px) translateZ(0px) scale(1);
-                box-shadow: 0 4px 6px rgba(220, 38, 38, 0.4), 0 0 10px #ff3838, inset 0 1px 1px rgba(255,255,255,0.6);
-            }
-            50% {
-                transform: perspective(600px) translateZ(8px) scale(1.06);
-                box-shadow: 0 8px 20px rgba(239, 68, 68, 0.9), 0 0 25px #ff0000, 0 0 40px #ff7878, inset 0 2px 4px #ffffff;
-                background: linear-gradient(135deg, #ff0000 0%, #b91c1c 100%);
-            }
-            100% {
-                transform: perspective(600px) translateZ(0px) scale(1);
-                box-shadow: 0 4px 6px rgba(220, 38, 38, 0.4), 0 0 10px #ff3838, inset 0 1px 1px rgba(255,255,255,0.6);
-            }
-        }
-
-        .btn-alarm-3d {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-            color: #ffffff !important;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 11px;
-            font-weight: 800;
-            text-decoration: none;
-            cursor: pointer;
-            animation: alarm3DGlow 1.2s infinite ease-in-out;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-alarm-3d:hover {
-            transform: scale(1.08) translateY(-2px);
-        }
-
-        .btn-approved-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #dcfce7;
-            color: #15803d;
-            border: 1px solid #86efac;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .btn-reviewed-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 10px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: #fff;
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            text-align: center;
-        }
-        .stat-card h5 { font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; }
-        .stat-card h3 { font-size: 24px; color: var(--primary); font-weight: 800; margin-top: 4px; }
-        .chart-wrapper {
-            background: #fff;
-            padding: 18px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
-            max-height: 380px;
-        }
-
-        /* ===== UPGRADED DELHI PRESS ADMIN UI ===== */
-        body {
-            padding: 12px;
-            background:
-                radial-gradient(circle at 0% 0%, rgba(230,57,70,.18), transparent 32%),
-                radial-gradient(circle at 100% 10%, rgba(37,99,235,.22), transparent 34%),
-                radial-gradient(circle at 50% 100%, rgba(16,185,129,.14), transparent 38%),
-                #071a32;
-        }
-        .top-nav-bar {
-            max-width: 1250px;
-            margin: 0 auto 12px;
-            min-height: 64px;
-            border-radius: 18px;
-            background: rgba(5, 24, 48, .92);
-            box-shadow: 0 12px 30px rgba(0,0,0,.25);
-        }
-        .top-nav-bar a:first-child {
-            gap: 10px;
-        }
-        .top-nav-bar a:first-child::before {
-            content: "DP";
-            width: 40px; height: 40px;
-            display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 50%;
-            background: linear-gradient(135deg,#e63946,#d62828);
-            border: 3px solid #fff;
-            box-shadow: 0 0 0 3px rgba(230,57,70,.25);
-            font-size: 13px;
-            font-weight: 900;
-        }
-        .admin-card {
-            border-radius: 22px;
-            padding: 22px;
-            box-shadow: 0 20px 55px rgba(0,0,0,.20);
-        }
-        .nav-tabs { gap: 8px; }
-        .tab-btn {
-            border-radius: 12px;
-            min-height: 46px;
-            transition: transform .15s ease, box-shadow .15s ease;
-        }
-        .tab-btn:hover { transform: translateY(-1px); }
-        .tab-btn.active { box-shadow: 0 8px 20px rgba(230,57,70,.25); }
-        .admin-table-wrapper {
-            border-radius: 14px;
-            box-shadow: 0 5px 18px rgba(15,23,42,.05);
-        }
-        .admin-table th {
-            position: sticky; top: 0; z-index: 1;
-            background: linear-gradient(#f8fafc,#eef2f7);
-        }
-        .catalog-filter-bar {
-            display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-            background:#f8fafc; border:1px solid #dbe3ee;
-            padding:12px; border-radius:12px; margin:0 0 12px;
-        }
-        .catalog-filter-bar label { margin:0; display:flex; align-items:center; gap:6px; }
-        .catalog-filter-bar select {
-            width:auto; min-width:230px; padding:8px 10px;
-        }
-        .category-pill {
-            display:inline-block; padding:3px 8px; border-radius:999px;
-            font-size:10px; font-weight:800; white-space:nowrap;
-        }
-        .cat-muslim { background:#dcfce7; color:#166534; }
-        .cat-hindu { background:#ffedd5; color:#9a3412; }
-        .cat-banner { background:#dbeafe; color:#1d4ed8; }
-        .cat-other { background:#f1f5f9; color:#475569; }
-        .mini-admin-stats {
-            display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
-        }
-        .mini-admin-stat {
-            padding:12px 14px; border-radius:13px; background:linear-gradient(135deg,#fff,#f8fafc);
-            border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;
-        }
-        .mini-admin-stat b { font-size:20px; color:#0f172a; }
-        .mini-admin-stat span { font-size:11px; color:#64748b; font-weight:700; }
-        .admin-mobile-bar {
-            display:none; position:fixed; left:10px; right:10px; bottom:10px; z-index:9998;
-            background:rgba(5,24,48,.96); border:1px solid rgba(255,255,255,.15);
-            border-radius:20px; padding:8px; box-shadow:0 15px 35px rgba(0,0,0,.35);
-            justify-content:space-around;
-        }
-        .admin-mobile-bar button {
-            border:0; background:transparent; color:#fff; font-size:10px; font-weight:700;
-            display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 9px;
-        }
-        .admin-mobile-bar i { font-size:17px; color:#facc15; }
-        @media(max-width:768px) {
-            body { padding:8px; padding-bottom:78px; }
-            .admin-card { padding:13px; border-radius:18px; }
-            .top-nav-bar { border-radius:15px; padding:9px 12px; }
-            .top-nav-bar a:first-child { font-size:14px !important; }
-            .mini-admin-stats { grid-template-columns:1fr 1fr 1fr; gap:6px; }
-            .mini-admin-stat { padding:9px 7px; flex-direction:column; text-align:center; gap:2px; }
-            .mini-admin-stat b { font-size:17px; }
-            .mini-admin-stat span { font-size:9px; }
-            .catalog-filter-bar select { width:100%; min-width:0; }
-            .admin-mobile-bar { display:flex; }
-        }
-
-    </style>
+/* Flipkart-style media gallery: photos + video + zoom/3D */
+.media-video-thumb{position:relative}
+.media-video-thumb::after{content:'▶';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:#2874f0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px #0004}
+.media-video-label{position:absolute;left:4px;bottom:3px;background:#172b4d;color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:800}
+.main-media-video{width:100%;height:100%;object-fit:contain;background:#000;display:none}
+.media-play-overlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;border:0;border-radius:50%;background:#2874f0;color:#fff;box-shadow:0 5px 22px #0005;z-index:5;display:none;cursor:pointer;font-size:25px}
+.photo-click-hint{position:absolute;left:10px;bottom:10px;background:#0008;color:#fff;padding:4px 9px;border-radius:15px;font-size:10px;z-index:4;pointer-events:none}
+.zoom-modal{position:fixed;inset:0;background:#07111eeF;z-index:9000;display:none;align-items:center;justify-content:center;padding:12px}
+.zoom-modal.show{display:flex}
+.zoom-stage{width:min(96vw,1100px);height:min(90vh,760px);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;perspective:1200px}
+.zoom-stage img{max-width:92%;max-height:88%;object-fit:contain;transform-origin:center;transition:transform .22s ease;user-select:none;touch-action:none;cursor:grab;filter:drop-shadow(0 10px 28px #0007)}
+.zoom-stage img.is-3d{transform:scale(var(--zoom,1)) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));}
+.zoom-close{position:absolute;right:8px;top:5px;border:0;background:#fff;color:#172b4d;width:42px;height:42px;border-radius:50%;font-size:22px;z-index:3;cursor:pointer}
+.zoom-tools{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:7px;background:#fff;padding:7px;border-radius:25px;box-shadow:0 5px 18px #0005;z-index:3}
+.zoom-tools button{border:0;background:#f1f5f9;color:#172b4d;width:42px;height:36px;border-radius:18px;font-size:15px;font-weight:800;cursor:pointer}
+.zoom-tools button.active{background:#2874f0;color:#fff}
+.video-full-btn{position:absolute;right:10px;bottom:10px;z-index:6;border:0;background:#0009;color:#fff;border-radius:18px;padding:6px 10px;font-size:11px;cursor:pointer}
+@media(max-width:800px){.photo-click-hint{font-size:9px}.media-play-overlay{width:60px;height:60px}.zoom-stage{height:82vh}}
+</style>
 </head>
 <body>
-
-    <div class="top-nav-bar">
-        <a href="index.html" style="font-size: 16px; color: #fff; font-weight:800;"><i class="fa-solid fa-print" style="color:var(--primary);"></i> <b>दिल्ली प्रेस एडमिन</b></a>
-        <div style="display: flex; gap: 8px;">
-            <a href="index.html" style="color:#fff;"><i class="fa-solid fa-house"></i> होम पेज</a>
+<header class="top">
+  <a class="back" href="index.html" aria-label="वापस"><i class="fa-solid fa-arrow-left"></i></a>
+  <div class="brand">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</div>
+  <a class="top-cart" href="cart.html"><i class="fa-solid fa-cart-shopping"></i><span class="badge" id="cartCount">0</span></a>
+</header>
+<div class="wrap">
+  <div class="crumb"><a href="index.html" style="color:#2874f0;text-decoration:none">होम</a> / कैटलॉग / विवरण</div>
+  <div id="loading" class="section" style="text-align:center">कैटलॉग लोड हो रहा है...</div>
+  <main id="productArea" style="display:none">
+    <section class="product">
+      <div class="gallery">
+        <div class="main-image" id="mainImageBox">
+          <button class="arrow left" onclick="prevImage()"><i class="fa-solid fa-chevron-left"></i></button>
+          <img id="mainImage" src="" alt="Catalog">
+          <video id="mainVideo" playsinline preload="metadata" controls style="display:none;width:100%;height:100%;object-fit:contain;background:#000"></video>
+          <button id="mediaPlayOverlay" type="button" onclick="playMainVideo()" aria-label="वीडियो चलाएँ" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:58px;height:58px;border:0;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:25px;align-items:center;justify-content:center;cursor:pointer"><i class="fa-solid fa-play"></i></button>
+          <button id="videoFullBtn" type="button" onclick="openVideoFullscreen()" aria-label="वीडियो फुल स्क्रीन" style="display:none;position:absolute;right:48px;bottom:10px;z-index:8;border:0;border-radius:8px;background:rgba(0,0,0,.7);color:#fff;padding:7px 9px;cursor:pointer"><i class="fa-solid fa-expand"></i></button>
+          <button class="arrow right" onclick="nextImage()"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="count" id="imageCount">1 / 1</div>
         </div>
-    </div>
-
-    <div class="admin-card">
-        <div id="adminPinSection" style="max-width: 380px; margin: 50px auto; text-align: center;">
-            <div style="font-size: 46px; color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i></div>
-            <h3 style="color: var(--dark); margin-bottom: 16px; font-weight:800;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
-            <div class="form-group" style="text-align: left;">
-                <label>सुरक्षा पिन:</label>
-                <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
-            </div>
-            <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">प्रवेश करें</button>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+      <div class="details">
+        <h1 class="title" id="title">शादी कार्ड</h1>
+        <div class="model" id="model"></div>
+        <div id="variantSection" class="variant-section" style="display:none;padding:10px;margin:0 0 12px;box-shadow:none;border:1px solid #e6eaf0;">
+          <div class="variant-head"><i class="fa-solid fa-palette" style="color:#2874f0"></i> रंग / Color</div>
+          <div id="variantList" class="variant-list"></div>
         </div>
+        <div class="rating-line"><span class="stars" id="topStars">★★★★★</span><span class="rating-pill" id="ratingPill">0.0</span><span class="rating-label">रेटिंग</span><span class="reviews-count" id="reviewCount">0 Ratings & Reviews</span></div>
+        <div class="price-box" id="priceBox"></div>
+        <div class="stock" id="stock">उपलब्ध (In Stock)</div>
+        <div class="desc-card"><h3>विवरण</h3><div class="desc" id="description">इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।</div></div>
+        <div class="actions"><button class="btn cart" onclick="addToCart()"><i class="fa-solid fa-cart-plus"></i> कार्ट में जोड़ें</button><button class="btn order" onclick="orderNow()"><i class="fa-solid fa-bolt"></i> अभी ऑर्डर करें</button></div>
+        <div class="features"><div class="feature"><i class="fa-solid fa-shield-halved"></i>सुरक्षित ऑर्डर</div><div class="feature"><i class="fa-solid fa-truck-fast"></i>समय पर सेवा</div><div class="feature"><i class="fa-solid fa-headset"></i>ग्राहक सहायता</div></div>
+      </div>
+    </section>
+    <section class="section delivery-terms">
+      <h2>डिलीवरी और टर्म्स & कंडीशन</h2>
+      <div class="delivery-box"><i class="fa-solid fa-truck-fast"></i><div><b>डिलीवरी समय</b><br>अधिकतम 1 सप्ताह (7 दिन) के भीतर डिलीवरी का प्रयास किया जाएगा।</div></div>
+      <div class="terms-box">
+        <b>टर्म्स & कंडीशन</b>
+        <ol>
+          <li>कार्ड की छपाई शुरू होने से पहले कृपया पूरा Matter, नाम, पता, तारीख, समय और अन्य विवरण एक बार अवश्य ध्यानपूर्वक जाँच लें।</li>
+          <li>प्रिंटिंग के लिए अंतिम स्वीकृति देने के बाद किसी भी नाम, तारीख, शब्द, वर्तनी या अन्य Matter की त्रुटि के लिए ग्राहक स्वयं जिम्मेदार होंगे।</li>
+          <li>कार्ड छपाई से पहले एक बार अवश्य देख लें। छपाई शुरू होने के बाद की गई गलती/परिवर्तन की जिम्मेदारी ग्राहक की होगी।</li>
+          <li>स्क्रीन पर दिखने वाले रंग और वास्तविक प्रिंट के रंग में थोड़ा अंतर संभव है।</li>
+          <li>डिलीवरी का समय ऑर्डर की मात्रा, डिजाइन की स्वीकृति और अन्य कार्यभार के अनुसार प्रभावित हो सकता है।</li>
+        </ol>
+      </div>
+    </section>
+    <section class="section"><h2>रेटिंग और रिव्यू</h2><div class="rating-grid"><div class="big-rating"><strong id="bigRating">0.0</strong><div class="stars" id="bigStars">★★★★★</div><div class="reviews-count" id="bigReviewCount">0 Reviews</div></div><div class="bars"><div class="barrow"><span>5★</span><div class="bar"><i id="b5" style="width:0%"></i></div><span id="c5">0</span></div><div class="barrow"><span>4★</span><div class="bar"><i id="b4" style="width:0%"></i></div><span id="c4">0</span></div><div class="barrow"><span>3★</span><div class="bar"><i id="b3" style="width:0%"></i></div><span id="c3">0</span></div><div class="barrow"><span>2★</span><div class="bar"><i id="b2" style="width:0%"></i></div><span id="c2">0</span></div><div class="barrow"><span>1★</span><div class="bar"><i id="b1" style="width:0%"></i></div><span id="c1">0</span></div></div></div></section>
+    <section class="section feedback"><div style="grid-column:1/-1"><h2>ग्राहक रेटिंग और रिव्यू</h2><div id="reviewList" class="review-list"><div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div></div></div></section>
+  </main>
+  <div class="sticky-actions" id="stickyActions" aria-label="ऑर्डर विकल्प">
+    <button type="button" class="btn cart" onclick="addToCart()"><i class="fa-solid fa-cart-plus"></i> कार्ट में जोड़ें</button>
+    <button type="button" class="btn order" onclick="orderNow()"><i class="fa-solid fa-bolt"></i> अभी ऑर्डर करें</button>
+  </div>
+    <section class="section recommended-section" id="recentSection">
+      <div class="recommended-head"><h2>Recently Viewed</h2><span>आपने हाल में देखे हुए कार्ड</span></div>
+      <div id="recentCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">अभी कोई Recently Viewed कार्ड नहीं है।</div></div>
+    </section>
+    <section class="section recommended-section" id="recommendedSection">
+      <div class="recommended-head"><h2>More Products</h2></div>
+      <div id="recommendedCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">लोड हो रहा है...</div></div>
+    </section>
+</div>
 
-        <div id="adminDashboard" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 16px;">
-                <h2 style="color: var(--primary); font-size: 22px; font-weight:800;">एडमिन डैशबोर्ड</h2>
-                <button type="button" onclick="handleAdminLogout()" style="background: #e2e8f0; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">लॉगआउट</button>
-            </div>
+<div id="zoomModal" class="zoom-modal" aria-hidden="true">
+  <button class="zoom-close" type="button" onclick="closeZoomViewer()">×</button>
+  <div class="zoom-stage" id="zoomStage">
+    <img id="zoomImage" src="" alt="Card preview">
+  </div>
+  <div class="zoom-tools">
+    <button type="button" onclick="changeZoom(-.2)" title="Zoom Out">−</button>
+    <button type="button" onclick="resetZoom()" title="Reset">1:1</button>
+    <button type="button" onclick="changeZoom(.2)" title="Zoom In">+</button>
+    <button type="button" id="threeDBtn" onclick="toggle3D()" title="3D">3D</button>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoicXN2aHRma3JsemNsbnF3eXBmZHkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4ODI0Nzc2MywiZXhwIjoyMTAzODIzNzYzfQ.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+let sb=null, product=null, images=[], imageIndex=0, selectedRating=0, feedbackRows=[];
+try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
+const id=new URLSearchParams(location.search).get('id');
+let activeId=id;
+const placeholder="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><rect width='100%' height='100%' fill='%23f3f6fa'/><text x='50%' y='50%' font-size='28' fill='%2394a3b8' text-anchor='middle'>Card Image</text></svg>";
+function sale(c){let n=parseFloat(c.sale_rate??c.selling_price??c.selling_rate??c.current_rate??c.rate??c.price);return Number.isFinite(n)&&n>0?n:0}
+function original(c){let n=parseFloat(c.catalog_rate??c.original_rate??c.actual_rate??c.mrp??c.list_price);return Number.isFinite(n)&&n>0?n:0}
+function getImages(c){
+ let a=[];
+ const fields=['images','image_urls','gallery','photos','gallery_images','product_images','catalog_images'];
+ for(const f of fields){let v=c?.[f]; if(Array.isArray(v)) a.push(...v); else if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else if(typeof j==='string') a.push(j); else a.push(v)}catch(e){a.push(...v.split(/\s*,\s*\n?/).filter(Boolean))}}}
+ for(const f of ['image','image_url','photo','main_image']){const v=c?.[f]; if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else a.push(v)}catch(e){a.push(v)}}}
+ // Admin के fallback record में पूरी Gallery description के अंदर [[GALLERY:url1|url2...]] के रूप में भी रहती है।
+ for(const f of ['description','details','note','custom_notes']){
+   const text=String(c?.[f]||'');
+   const re=/\[\[GALLERY:([^\]]+)\]\]/ig; let m;
+   while((m=re.exec(text))){ a.push(...String(m[1]||'').split('|').map(x=>x.trim()).filter(Boolean)); }
+ }
+ return [...new Set(a.map(v=>String(v??'').trim()).filter(v=>/^https?:\/\//i.test(v)||v.startsWith('data:')))];
+}
+function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+async function findProduct(){
+  // Index से आया हुआ exact card सबसे पहले लें, लेकिन URL id से mismatch हो तो कभी नहीं।
+  const handoffKeys=['dp_catalog_detail_selected','dp_catalog_detail_fallback','dp_selected_catalog_card'];
+  for(const key of handoffKeys){
+    const raws=[];
+    try{const x=sessionStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+    try{const x=localStorage.getItem(key);if(x)raws.push(x)}catch(e){}
+    for(const raw of raws){
+      try{
+        const f=JSON.parse(raw);
+        if(!f) continue;
+        const fid=String(f.id??f.catalog_id??'').trim();
+        if(activeId && fid && fid===String(activeId)) return f;
+        if(!activeId && (f._from_index || key==='dp_catalog_detail_selected')) return f;
+      }catch(e){}
+    }
+  }
 
-            <div class="nav-tabs">
-                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)</button>
-                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
-                <button type="button" class="tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i> ग्राहक ग्राफ़ व लिस्ट</button>
-                <button type="button" class="tab-btn" id="tabBtnRatings" onclick="switchAdminTab('ratings')"><i class="fa-solid fa-star"></i> ग्राहक रेटिंग</button>
-            </div>
+  // Direct URL / refresh: Supabase का वही catalog row लें।
+  if(sb&&activeId){
+    for(const tbl of ['catalog','cards','cards_catalog']){
+      try{
+        const query=sb.from(tbl).select('*').eq('id',activeId).limit(1);
+        const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),4500));
+        const {data,error}=await Promise.race([query,timeout]);
+        if(!error&&Array.isArray(data)&&data[0]) return {...data[0],_source_table:tbl};
+      }catch(e){}
+    }
+  }
 
-            <!-- TAB 1: ORDERS -->
-            <div id="tabOrdersSection">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h4 style="font-weight:800;">डेटाबेस से प्राप्त ग्राहक ऑर्डर्स</h4>
-                    <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
-                </div>
-                <div class="admin-table-wrapper">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID / दिनांक</th>
-                                <th>कार्ड विवरण</th>
-                                <th>ग्राहक</th>
-                                <th>वर-वधू</th>
-                                <th>बिल / एडवांस</th>
-                                <th>स्टेटस बदलें</th>
-                                <th>मैटर अपलोड</th>
-                                <th>ग्राहक स्थिति</th>
-                                <th>सूचना / देरी कारण</th>
-                                <th>रसीद</th>
-                                <th>हटाएं</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
+  // Index की live cache fallback।
+  try{
+    const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+    const rows=JSON.parse(raw);
+    if(Array.isArray(rows)&&rows.length){
+      const hit=activeId
+        ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId))
+        : rows[0];
+      if(hit)return hit;
+    }
+  }catch(e){}
+  return null;
+}
+function variantColor(c){
+ const direct=String(c?.variant_color??c?.color??c?.card_color??'').trim(); if(direct)return direct;
+ const d=String(c?.description??''); const m=d.match(/\[\[COLOR:([^\]]+)\]\]/i); return m?m[1].trim():'';
+}
+function cleanDescription(c){return String(c?.description??c?.details??c?.description_hi??c?.matter??c?.note??'').replace(/\n?\[\[COLOR:[^\]]+\]\]/ig,'').trim()}
+async function loadVariants(){
+ const box=document.getElementById('variantSection'), list=document.getElementById('variantList'); if(!box||!list||!product)return;
+ const model=String(product.model??product.code??'').trim(), category=String(product.category??'').trim();
+ if(!sb||!model){box.style.display='none';return;}
+ let all=[];
+ for(const tbl of ['catalog','cards','cards_catalog']){
+   try{const {data,error}=await sb.from(tbl).select('*').limit(300);if(!error&&Array.isArray(data))all.push(...data.map(x=>({...x,_source_table:tbl})))}catch(e){}
+ }
+ const rows=all.filter(x=>{
+   const xm=String(x.model??x.code??'').trim(), xc=String(x.category??'').trim();
+   return xm && xm.toLowerCase()===model.toLowerCase() && (!category || !xc || xc.toLowerCase()===category.toLowerCase());
+ });
+ const seen=new Set(), unique=rows.filter(x=>{const k=String(x._source_table)+':'+String(x.id);if(seen.has(k))return false;seen.add(k);return true});
+ if(unique.length<=1){box.style.display='none';return;}
+ window.__variantRows=unique; box.style.display='block';
+ list.innerHTML=unique.map((v,i)=>{
+   const color=variantColor(v) || ('रंग '+(i+1));
+   const img=getImages(v)[0]||placeholder, rate=sale(v)||original(v);
+   const active=String(v.id)===String(product.id);
+   return `<button type="button" class="variant-card ${active?'active':''}" onclick="selectCatalogVariant(${i})" title="${esc(color)}">\n     <img src="${esc(img)}" alt="${esc(color)}" onerror="this.src='${placeholder}'">\n     <div class="variant-color">${esc(color)}</div>\n     <div class="variant-model">${esc(v.model||v.code||'')}</div>\n     <div class="variant-price">₹${rate||0}</div>\n   </button>`;
+ }).join('');
+}
+async function selectCatalogVariant(index){
+ const v=(window.__variantRows||[])[index]; if(!v)return;
+ product=v; activeId=v.id; imageIndex=0;
+ try{history.replaceState(null,'','catalog-detail.html?id='+encodeURIComponent(v.id))}catch(e){}
+ render(); await loadVariants(); await loadFeedback(); window.scrollTo({top:0,behavior:'smooth'});
+}
 
-            <!-- TAB 2: CATALOG -->
-            <div id="tabCatalogSection" style="display: none;">
-                <div style="background: #fdfaf6; border: 1px solid #fed7aa; padding: 16px; border-radius: 10px; margin-bottom: 18px;">
-                    <h4 style="color: var(--secondary); margin-bottom: 12px; font-weight:800;">+ नया कार्ड जोड़ें</h4>
-                    <form id="newCardForm" onsubmit="handleAddNewCatalogCard(event)">
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>नाम:</label><input type="text" id="admCardName" required></div>
-                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>मॉडल:</label><input type="text" id="admCardModel" required></div>
-                            <div class="form-group" style="width: 110px;"><label>कैटलॉग रेट / MRP (₹):</label><input type="number" id="admCardRate" min="0" step="0.5" required></div>
-                            <div class="form-group" style="width: 110px;"><label>सेल रेट (₹):</label><input type="number" id="admCardSaleRate" min="0" step="0.5" placeholder="Sale Rate"></div>
-                            <div class="form-group" style="width: 140px;">
-                                <label>स्टॉक:</label>
-                                <select id="admCardStock"><option value="true">उपलब्ध</option><option value="false">समाप्त</option></select>
-                            </div>
-                            <div class="form-group" style="width: 190px;">
-                                <label>श्रेणी:</label>
-                                <select id="admCardCategory">
-                                    <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
-                                    <option value="hindu">🪔 हिंदू शादी कार्ड</option>
-                                    <option value="banner">🖼️ फ्लेक्स व बैनर</option>
-                                    <option value="other">📦 अन्य</option>
-                                </select>
-                            </div>
-                            <div class="form-group" style="flex: 1; min-width: 250px;">
-                                <label>फोटो — Gallery से कई फोटो चुनें:</label>
-                                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                    <button type="button" onclick="openCatalogGallery()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-images"></i> Gallery</button>
-                                    <button type="button" onclick="openCatalogCamera()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-camera"></i> Camera</button>
-                                    <span id="catalogPhotoCount" style="font-size:11px;color:#64748b;align-self:center;">कोई फोटो नहीं</span>
-                                </div>
-                                <input type="file" id="admCardFile" accept="image/*" multiple hidden>
-                                <input type="file" id="admCardCamera" accept="image/*" capture="environment" hidden>
-                            </div>
-                            <div class="form-group" style="flex: 1; min-width: 220px;">
-                                <label>कार्ड वीडियो (अधिकतम 1 मिनट):</label>
-                                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-                                    <input type="file" id="admCardVideo" accept="video/*" style="max-width:170px;">
-                                    <button type="button" onclick="openCatalogVideoRecorder()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-video"></i> वीडियो कैमरा</button>
-                                    <span id="catalogVideoStatus" style="font-size:11px;color:#64748b;">वीडियो नहीं चुना</span>
-                                </div>
-                                <small style="color:#64748b;font-size:10px;">मोबाइल से सीधे वीडियो रिकॉर्ड करके भी कैटलॉग में अपलोड कर सकते हैं। अधिकतम 1 मिनट।</small>
-                            </div>
-                        </div>
-                        <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
-                        <span style="display:inline-block; margin-left:10px; font-size:11px; color:#64748b;">श्रेणी चुनने से Index में वही फ़िल्टर सही कार्ड दिखाएगा।</span>
-                    </form>
-                </div>
-                <div class="catalog-filter-bar">
-                    <label for="adminCategoryFilter"><i class="fa-solid fa-filter" style="color:var(--primary);"></i> श्रेणी चुनें:</label>
-                    <select id="adminCategoryFilter" onchange="filterAdminCatalog(this.value)">
-                        <option value="all">🌟 सभी कार्ड्स (All Cards)</option>
-                        <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
-                        <option value="hindu">🪔 हिंदू शादी कार्ड</option>
-                        <option value="banner">🖼️ फ्लेक्स व बैनर</option>
-                        <option value="other">📦 अन्य</option>
-                    </select>
-                </div>
-                <div class="admin-table-wrapper">
-                    <table class="admin-table">
-                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>कैटलॉग रेट</th><th>सेल रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>वीडियो</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
-                        <tbody id="catalogTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
+async function loadFeedback(){
+  feedbackRows=[];
+  const allRows=[];
 
-            <!-- TAB 3: CUSTOMER RATINGS -->
-            <div id="tabRatingsSection" style="display: none;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <h4 style="font-weight:800;"><i class="fa-solid fa-star" style="color:#f59e0b;"></i> ग्राहक द्वारा दी गई रेटिंग और रिव्यू</h4>
-                    <button onclick="loadAdminRatings()" style="background:#f1f5f9;border:1px solid #cbd5e1;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
-                </div>
-                <div class="admin-table-wrapper">
-                    <table class="admin-table" style="min-width:900px;">
-                        <thead><tr><th>तारीख</th><th>ग्राहक</th><th>ऑर्डर ID</th><th>कैटलॉग ID</th><th>रेटिंग</th><th>रिव्यू</th><th>फोटो</th><th>कार्रवाई</th></tr></thead>
-                        <tbody id="ratingsTableBody"><tr><td colspan="8">रेटिंग लोड हो रही है...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
+  // यही source Admin ratings में भी इस्तेमाल होता है।
+  try{
+    if(sb){
+      const {data,error}=await Promise.race([
+        sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('feedback timeout')),8000))
+      ]);
+      if(!error&&Array.isArray(data)) allRows.push(...data.map(x=>({...x,_rating_source:'supabase'})));
+    }
+  }catch(e){}
 
-            <!-- TAB 4: CUSTOMER ANALYTICS & GRAPH -->
-            <div id="tabAnalyticsSection" style="display: none;">
-                <div class="analytics-grid">
-                    <div class="stat-card">
-                        <h5>कुल विशिष्ट ग्राहक</h5>
-                        <h3 id="statTotalCustomers">0</h3>
-                    </div>
-                    <div class="stat-card">
-                        <h5>ईमेल पंजीकृत</h5>
-                        <h3 id="statTotalEmails" style="color: var(--blue);">0</h3>
-                    </div>
-                    <div class="stat-card">
-                        <h5>कुल प्राप्त ऑर्डर्स</h5>
-                        <h3 id="statTotalOrders" style="color: var(--green);">0</h3>
-                    </div>
-                </div>
+  // Device/local fallback
+  try{
+    const local=JSON.parse(localStorage.getItem('catalog_feedback_'+String(activeId||id||''))||'[]');
+    if(Array.isArray(local)) allRows.push(...local.map(x=>({...x,_rating_source:'local'})));
+  }catch(e){}
 
-                <div class="chart-wrapper">
-                    <h4 style="font-weight: 800; margin-bottom: 12px; color: #334155;"><i class="fa-solid fa-chart-column" style="color:var(--primary);"></i> पिछले 7 दिनों का नया ग्राहक व ऑर्डर ग्राफ़</h4>
-                    <div style="position: relative; height: 280px; width: 100%;">
-                        <canvas id="customerChart"></canvas>
-                    </div>
-                </div>
+  // Direct product aliases
+  const clean=v=>String(v??'').trim().toLowerCase();
+  const modelKey=v=>clean(v).replace(/[^a-z0-9]+/g,'');
+  const productId=clean(product?.id??activeId??'');
+  const productAliases=new Set(
+    [product?.id,product?.catalog_id,product?.card_id,product?.product_id]
+      .map(clean).filter(Boolean)
+  );
+  if(productId)productAliases.add(productId);
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;">
-                    <h4 style="font-weight: 800;"><i class="fa-solid fa-users" style="color:var(--blue);"></i> पंजीकृत एवं ऑर्डर करने वाले सभी ग्राहकों की लिस्ट</h4>
-                    <button onclick="buildCustomerAnalytics(globalOrdersCache)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रीफ़्रेश लिस्ट</button>
-                </div>
+  const productTitle=clean(product?.name??product?.title??product?.card_name??product?.product_name??'');
+  const productModel=modelKey(product?.model??product?.code??product?.card_model??product?.model_no??'');
 
-                <div class="admin-table-wrapper">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>ग्राहक का नाम</th>
-                                <th>ईमेल / संपर्क विवरण</th>
-                                <th>फ़ोन नंबर</th>
-                                <th>कुल ऑर्डर्स</th>
-                                <th>कुल व्यापार (₹)</th>
-                                <th>प्रथम आगमन तिथि</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customerTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
+  // order_db_id/order_id से पुरानी rating को उसी order के card title/model से जोड़ेंगे।
+  const orderIds=[...new Set(allRows.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];
+  const orderMap={};
+  if(sb&&orderIds.length){
+    for(let i=0;i<orderIds.length;i+=100){
+      const ids=orderIds.slice(i,i+100).map(Number).filter(Number.isFinite);
+      if(!ids.length)continue;
+      try{
+        const {data,error}=await sb.from('orders')
+          .select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,title')
+          .in('id',ids);
+        if(!error&&Array.isArray(data))data.forEach(o=>orderMap[String(o.id)]=o);
+      }catch(e){}
+    }
+  }
 
-        </div>
-    </div>
+  const sameTitle=(a,b)=>{
+    a=clean(a);b=clean(b);
+    if(!a||!b)return false;
+    if(a===b||a.includes(b)||b.includes(a))return true;
+    const aa=a.replace(/[^a-z0-9\u0900-\u097f]+/g,'');
+    const bb=b.replace(/[^a-z0-9\u0900-\u097f]+/g,'');
+    return !!aa&&!!bb&&(aa===bb||aa.includes(bb)||bb.includes(aa));
+  };
+  const sameModel=(a,b)=>{
+    a=modelKey(a);b=modelKey(b);
+    if(!a||!b)return true;
+    return a===b||a.includes(b)||b.includes(a);
+  };
 
-    <!-- Receipt Modal -->
-    <div class="modal-overlay" id="orderModal">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h3 style="color:var(--primary); font-size:18px; font-weight:800;">ऑर्डर एवं सम्पूर्ण शादी मैटर रसीद</h3>
-                <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
-            </div>
-            <div id="printableReceiptArea" class="receipt-container"></div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;">PDF डाउनलोड</button>
-                <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;">प्रिंट</button>
-            </div>
-        </div>
-    </div>
+  const matched=[];
+  const seen=new Set();
 
-    <!-- Customer Correction Modal -->
-    <div class="modal-overlay" id="correctionModal">
-        <div class="modal-content" style="max-width: 520px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">
-                <h3 style="color:#b91c1c; font-size:17px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार / स्थिति विवरण</h3>
-                <button type="button" onclick="closeCorrectionModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
-            </div>
-            <div id="correctionModalBody" style="font-size: 13px; color:#1e293b; line-height: 1.6;"></div>
-            <div style="margin-top: 18px; display: flex; gap: 10px;">
-                <button type="button" id="btnMarkReviewed" style="flex:1; padding: 10px; background: var(--green); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">✓ मैंने देख लिया (अलार्म बंद करें)</button>
-                <button type="button" onclick="closeCorrectionModal()" style="padding: 10px 16px; background: #94a3b8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">बंद करें</button>
-            </div>
-        </div>
-    </div>
+  allRows.forEach(r=>{
+    const rowKey=String(
+      r?.id ??
+      [r?.order_db_id??r?.order_id??'',r?.catalog_id??'',r?.created_at??'',r?.rating??r?.stars??'',r?.name??r?.user_name??''].join('|')
+    );
+    if(seen.has(rowKey))return;
 
-    <!-- प्रेस समस्या / सूचना भेजने का मॉडल -->
-    <div class="modal-overlay" id="noticeModal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fed7aa; padding-bottom: 8px;">
-                <h3 style="color:#c2410c; font-size:17px; font-weight:800;"><i class="fa-solid fa-bullhorn"></i> ग्राहक को स्थिति / देरी का कारण बताएं</h3>
-                <button type="button" onclick="closeNoticeModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
-            </div>
+    let belongs=false;
 
-            <p style="font-size:12px; color:#64748b; margin-bottom:10px;">
-                त्वरित कारण चुनें या नीचे अपनी समस्या लिखकर ग्राहक को भेजें:
-            </p>
+    // नया record: direct catalog_id/card_id/product_id.
+    const direct=[r?.catalog_id,r?.card_id,r?.product_id].map(clean).filter(Boolean);
+    if(direct.some(x=>productAliases.has(x))) belongs=true;
 
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
-                <button type="button" onclick="setQuickNotice('बिजली न रहने के कारण मैटर टाइपिंग में 1 से 2 दिन का समय लग सकता है।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">⚡ बिजली समस्या</button>
-                <button type="button" onclick="setQuickNotice('अत्यधिक ऑर्डर्स की व्यस्तता के कारण आपके कार्ड मैटर में 1 से 2 दिन का समय लग सकता है।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">📦 अत्यधिक ऑर्डर्स</button>
-                <button type="button" onclick="setQuickNotice('इंटरनेट/मशीन में तकनीकी खराबी के कारण काम में थोड़ा विलंब हो रहा है। जल्द तैयार होगा।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">🛠️ तकनीकी समस्या</button>
-            </div>
-
-            <textarea id="adminNoticeInput" rows="3" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; outline:none;" placeholder="यहाँ अपना कारण विस्तार से लिखें..."></textarea>
-
-            <div style="margin-top: 14px; display: flex; gap: 10px;">
-                <button type="button" id="btnSendAdminNotice" style="flex:1; padding: 10px; background: var(--secondary); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
-                    <i class="fa-solid fa-paper-plane"></i> ग्राहक को सूचना भेजें
-                </button>
-                <button type="button" onclick="closeNoticeModal()" style="padding: 10px 16px; background: #94a3b8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">रद्द करें</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-        
-        let supabaseClient = null;
-        try {
-            if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {}
-
-        let globalOrdersCache = [];
-        let customerChartInstance = null;
-        let currentNoticeOrderId = null;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('dp_admin_auth') === 'true') showDashboard();
-        });
-
-        function verifyAdminPin() {
-            const entered = document.getElementById('adminPin').value.trim();
-            if (["1234", "9304", "815352"].includes(entered)) {
-                sessionStorage.setItem('dp_admin_auth', 'true');
-                sessionStorage.setItem('dp_admin_chat_access', 'true');
-                showDashboard();
-            } else {
-                alert("गलत पिन!");
-            }
+    // पुराना record: केवल model/code text से नहीं; order के title + model से।
+    if(!belongs){
+      const order=orderMap[String(r?.order_db_id??r?.order_id??'').trim()];
+      if(order){
+        const ot=order?.card_title??order?.card_name??order?.product_name??order?.title??'';
+        const om=order?.card_model??order?.model??'';
+        belongs=sameTitle(ot,productTitle)&&sameModel(om,productModel);
+        if(!belongs){
+          const oc=[order?.catalog_id,order?.card_id,order?.product_id].map(clean).filter(Boolean);
+          belongs=oc.some(x=>productAliases.has(x));
         }
-
-        // नई ग्राहक बातचीत/मैटर आने पर DP Chat बटन को बिना पेज रिफ्रेश किए अपडेट करें।
-        setInterval(() => {
-            if (document.getElementById('adminDashboard')?.style.display !== 'none') {
-                loadAdminOrders();
-            }
-        }, 10000);
-
-        function handleAdminLogout() {
-            sessionStorage.removeItem('dp_admin_auth');
-            sessionStorage.removeItem('dp_admin_chat_access');
-            location.reload();
-        }
-
-        function showDashboard() {
-            document.getElementById('adminPinSection').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'block';
-            loadAdminOrders();
-            loadCatalogStock();
-        }
-
-        function switchAdminTab(tab) {
-            document.getElementById('tabOrdersSection').style.display = (tab === 'orders') ? 'block' : 'none';
-            document.getElementById('tabCatalogSection').style.display = (tab === 'catalog') ? 'block' : 'none';
-            document.getElementById('tabRatingsSection').style.display = (tab === 'ratings') ? 'block' : 'none';
-            document.getElementById('tabAnalyticsSection').style.display = (tab === 'analytics') ? 'block' : 'none';
-
-            document.getElementById('tabBtnOrders').classList.toggle('active', tab === 'orders');
-            document.getElementById('tabBtnCatalog').classList.toggle('active', tab === 'catalog');
-            document.getElementById('tabBtnRatings').classList.toggle('active', tab === 'ratings');
-            document.getElementById('tabBtnAnalytics').classList.toggle('active', tab === 'analytics');
-
-            if (tab === 'ratings') loadAdminRatings();
-            if (tab === 'analytics') buildCustomerAnalytics(globalOrdersCache);
-        }
-
-        function dpChatLatestCustomerActivity(order) {
-            const messages = Array.isArray(order.customer_messages) ? order.customer_messages : [];
-            const files = Array.isArray(order.customer_files) ? order.customer_files : [];
-            const all = messages.concat(files);
-            if (!all.length) return 0;
-            return Math.max(...all.map(x => {
-                const t = new Date(x && x.at ? x.at : 0).getTime();
-                return Number.isFinite(t) ? t : 0;
-            }));
-        }
-
-        function isAdminDpChatUnread(order) {
-            const latest = dpChatLatestCustomerActivity(order);
-            if (!latest) return false;
-            const seenKey = 'dp_chat_admin_seen_' + String(order.id);
-            const seen = Number(localStorage.getItem(seenKey) || 0);
-            return latest > seen;
-        }
-
-        async function loadAdminOrders() {
-            const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '<tr><td colspan="11">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
-
-            if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="11" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
-                return;
-            }
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .order('id', { ascending: false });
-
-                if (error) {
-                    tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
-                    return;
-                }
-
-                globalOrdersCache = data || [];
-                const miniOrders = document.getElementById('miniOrdersCount');
-                if (miniOrders) miniOrders.innerText = globalOrdersCache.length;
-
-                if (globalOrdersCache.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="11">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = globalOrdersCache.map(o => {
-                    const unread = isAdminDpChatUnread(o);
-                    let correctionBtn = `
-                        <a class="btn-open-dp-chat ${unread ? 'dp-chat-unread' : ''}" href="dpchat.html?order_id=${encodeURIComponent(o.id)}&role=admin" title="${unread ? 'नई ग्राहक बातचीत / मैटर आया है' : 'DP Chat'}">
-                            <i class="fa-solid ${unread ? 'fa-comment-dots' : 'fa-comments'}"></i> ${unread ? 'नई बातचीत' : 'DP Chat'}
-                        </a>
-                    `;
-                    
-
-                    return `
-                    <tr>
-                        <td>#${o.id}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</small></td>
-                        <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
-                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}<br><small style="color:#2563eb;">${o.email || o.customer_email || ''}</small></td>
-                        <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || o.advance_amount || 0}</td>
-                        <td>
-                            <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
-                                <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="Received" ${o.status === 'Received' ? 'selected' : ''}>Received</option>
-                                <option value="Matter Typing" ${o.status === 'Matter Typing' ? 'selected' : ''}>Matter Typing</option>
-                                <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
-                                <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready</option>
-                            </select>
-                        </td>
-                        <td>
-                            <label style="background:var(--blue); color:white; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; display:inline-block;">
-                                अपलोड मैटर <input type="file" onchange="uploadOrderMatter('${o.id}', this)" accept="image/*,.pdf" style="display:none;">
-                            </label>
-                            ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" style="color:var(--green); font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-down"></i> मैटर देखें</b></a>` : ''}
-                        </td>
-                        <td>${correctionBtn}</td>
-                        <td>
-                            <button class="btn-notice" onclick="openNoticeModal('${o.id}')">
-                                <i class="fa-solid fa-message"></i> कारण बताएं
-                            </button>
-                        </td>
-                        <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')">रसीद</button></td>
-                        <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                    </tr>
-                    `;
-                }).join('');
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="11" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
-            }
-        }
-
-        /* कारण व सूचना मोडल फंक्शन्स */
-        function openNoticeModal(orderId) {
-            currentNoticeOrderId = orderId;
-            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
-            
-            let existingNotice = '';
-            if (o && o.custom_notes && o.custom_notes.includes('[ADMIN_NOTICE]')) {
-                const parts = o.custom_notes.split('[ADMIN_NOTICE]');
-                existingNotice = parts[1] ? parts[1].trim() : '';
-            }
-
-            document.getElementById('adminNoticeInput').value = existingNotice;
-            document.getElementById('btnSendAdminNotice').onclick = () => saveAdminNotice(orderId);
-            document.getElementById('noticeModal').style.display = 'flex';
-        }
-
-        function closeNoticeModal() {
-            document.getElementById('noticeModal').style.display = 'none';
-        }
-
-        function setQuickNotice(msg) {
-            document.getElementById('adminNoticeInput').value = msg;
-        }
-
-        async function saveAdminNotice(orderId) {
-            const noticeText = document.getElementById('adminNoticeInput').value.trim();
-            if (!noticeText) {
-                alert("कृपया कोई कारण या सूचना लिखें!");
-                return;
-            }
-
-            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
-            if (!o || !supabaseClient) return;
-
-            const btn = document.getElementById('btnSendAdminNotice');
-            btn.disabled = true;
-            btn.innerText = "भेजा जा रहा है...";
-
-            try {
-                let baseNotes = o.custom_notes || '';
-                if (baseNotes.includes('[ADMIN_NOTICE]')) {
-                    baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
-                }
-
-                const finalNotes = (baseNotes ? baseNotes + "\n\n" : "") + "[ADMIN_NOTICE] " + noticeText;
-
-                const { error } = await supabaseClient
-                    .from('orders')
-                    .update({ custom_notes: finalNotes })
-                    .eq('id', Number(orderId));
-
-                if (error) throw error;
-
-                o.custom_notes = finalNotes;
-                alert("ग्राहक को सूचना सफलतापूर्वक भेज दी गई है!");
-                closeNoticeModal();
-            } catch (err) {
-                alert("सूचना भेजने में त्रुटि: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ग्राहक को सूचना भेजें';
-            }
-        }
-
-        // ===== CUSTOMER RATING ADMIN CONTROLS =====
-        // केवल catalog_feedback को ही rating source माना गया है।
-        // Index HTML को इस file में कोई बदलाव नहीं किया गया है।
-
-        async function loadAdminRatings() {
-            const tbody = document.getElementById('ratingsTableBody');
-            if (!tbody) return;
-
-            tbody.innerHTML = '<tr><td colspan="8">रेटिंग लोड हो रही है...</td></tr>';
-
-            if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="8" style="color:red;">Supabase कनेक्ट नहीं है।</td></tr>';
-                return;
-            }
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('catalog_feedback')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(500);
-
-                if (error) throw error;
-
-                const rows = Array.isArray(data) ? data : [];
-
-                if (!rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="8">अभी कोई रेटिंग / रिव्यू नहीं मिला।</td></tr>';
-                    return;
-                }
-
-                const esc = (v) => String(v ?? '')
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#39;');
-
-                const imgs = (v) => {
-                    try {
-                        const a = typeof v === 'string' ? JSON.parse(v || '[]') : v;
-                        return Array.isArray(a) ? a : [];
-                    } catch (e) {
-                        return [];
-                    }
-                };
-
-                tbody.innerHTML = rows.map(r => {
-                    const rating = Math.max(
-                        0,
-                        Math.min(5, parseInt(r.rating ?? r.stars ?? 0, 10) || 0)
-                    );
-
-                    const photos = imgs(
-                        r.review_images ?? r.images ?? r.image_urls ?? r.photos
-                    );
-
-                    const rowId = r.id != null ? String(r.id) : '';
-                    const orderId = r.order_id != null
-                        ? String(r.order_id)
-                        : (r.order_db_id != null ? String(r.order_db_id) : '');
-
-                    const catalogId = r.catalog_id != null
-                        ? String(r.catalog_id)
-                        : '';
-
-                    const sponsored = r.sponsored === true;
-
-                    const action = rowId
-                        ? `<div class="btn-rating-actions">
-                            <button type="button"
-                                class="btn-rating-delete"
-                                data-rating-id="${esc(rowId)}"
-                                onclick="deleteAdminRating('${esc(rowId)}')">
-                                <i class="fa-solid fa-trash"></i> डिलीट
-                            </button>
-                            <button type="button"
-                                class="btn-rating-sponsor"
-                                data-rating-id="${esc(rowId)}"
-                                onclick="sponsorAdminRating('${esc(rowId)}', ${sponsored ? 'false' : 'true'})">
-                                <i class="fa-solid fa-star"></i>
-                                ${sponsored ? 'स्पॉन्सर हटाएँ' : 'स्पॉन्सर'}
-                            </button>
-                        </div>`
-                        : '<span style="font-size:10px;color:#94a3b8;">ID उपलब्ध नहीं</span>';
-
-                    return `<tr>
-                        <td>${r.created_at ? new Date(r.created_at).toLocaleString('hi-IN') : '-'}</td>
-                        <td><b>${esc(r.name || r.user_name || 'ग्राहक')}</b></td>
-                        <td>#${esc(orderId || '-')}</td>
-                        <td>${esc(catalogId || '-')}</td>
-                        <td style="color:#f59e0b;font-size:17px;font-weight:800;">
-                            ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
-                        </td>
-                        <td style="text-align:left;max-width:320px;">
-                            ${esc(r.feedback || r.comment || r.message || 'रेटिंग दी गई है।')}
-                        </td>
-                        <td>
-                            ${photos.length
-                                ? photos.map(u => `
-                                    <a href="${esc(u)}" target="_blank" rel="noopener">
-                                        <img src="${esc(u)}"
-                                             style="width:42px;height:42px;object-fit:cover;border-radius:5px;margin:2px;">
-                                    </a>`).join('')
-                                : '-'}
-                        </td>
-                        <td>${action}</td>
-                    </tr>`;
-                }).join('');
-
-            } catch (e) {
-                console.error('loadAdminRatings error:', e);
-                tbody.innerHTML =
-                    `<tr><td colspan="8" style="color:red;">
-                        रेटिंग लोड करने में त्रुटि: ${String(e.message || e)}
-                    </td></tr>`;
-            }
-        }
-
-        async function deleteAdminRating(rowId) {
-            if (!rowId || !supabaseClient) {
-                alert('रेटिंग ID या Supabase उपलब्ध नहीं है।');
-                return;
-            }
-
-            if (!confirm('क्या आप इस रेटिंग / रिव्यू को डिलीट करना चाहते हैं? यह कार्रवाई वापस नहीं होगी।')) {
-                return;
-            }
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('catalog_feedback')
-                    .delete()
-                    .eq('id', rowId)
-                    .select('id');
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    throw new Error(
-                        'डिलीट अनुरोध चला, लेकिन कोई रिकॉर्ड डिलीट नहीं हुआ। Supabase RLS DELETE policy जाँचें।'
-                    );
-                }
-
-                alert('रेटिंग / रिव्यू सफलतापूर्वक डिलीट कर दिया गया है।');
-                await loadAdminRatings();
-
-            } catch (err) {
-                console.error('deleteAdminRating error:', err);
-                alert('रेटिंग डिलीट नहीं हुई:\n' + String(err.message || err));
-            }
-        }
-
-        async function sponsorAdminRating(rowId, makeSponsored) {
-            if (!rowId || !supabaseClient) {
-                alert('रेटिंग ID या Supabase उपलब्ध नहीं है।');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('catalog_feedback')
-                    .update({ sponsored: !!makeSponsored })
-                    .eq('id', rowId)
-                    .select('id, sponsored');
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    throw new Error(
-                        'स्पॉन्सर अपडेट हुआ नहीं। Supabase RLS UPDATE policy जाँचें।'
-                    );
-                }
-
-                alert(
-                    makeSponsored
-                        ? 'रेटिंग को स्पॉन्सर कर दिया गया है।'
-                        : 'स्पॉन्सर हटाया गया है।'
-                );
-
-                await loadAdminRatings();
-
-            } catch (err) {
-                console.error('sponsorAdminRating error:', err);
-                alert('स्पॉन्सर सेट करने में त्रुटि:\n' + String(err.message || err));
-            }
-        }
-
-        function buildCustomerAnalytics(orders) {
-            const customerMap = {};
-            let totalEmails = 0;
-
-            orders.forEach(o => {
-                const phone = (o.mobile || o.customer_phone || '').trim();
-                const email = (o.email || o.customer_email || '').trim();
-                const name = (o.customer_name || 'अज्ञात ग्राहक').trim();
-                const key = email ? email.toLowerCase() : (phone || `cust_${o.id}`);
-
-                if (!customerMap[key]) {
-                    customerMap[key] = {
-                        name: name,
-                        email: email,
-                        phone: phone,
-                        ordersCount: 0,
-                        totalSpent: 0,
-                        firstDate: o.created_at ? new Date(o.created_at) : new Date()
-                    };
-                    if (email) totalEmails++;
-                }
-
-                customerMap[key].ordersCount += 1;
-                customerMap[key].totalSpent += parseFloat(o.total_amount || 0);
-
-                if (o.created_at) {
-                    const d = new Date(o.created_at);
-                    if (d < customerMap[key].firstDate) customerMap[key].firstDate = d;
-                }
-            });
-
-            const customersList = Object.values(customerMap);
-
-            document.getElementById('statTotalCustomers').innerText = customersList.length;
-            document.getElementById('statTotalEmails').innerText = totalEmails;
-            document.getElementById('statTotalOrders').innerText = orders.length;
-            const miniCustomers = document.getElementById('miniCustomersCount');
-            if (miniCustomers) miniCustomers.innerText = customersList.length;
-
-            const tbody = document.getElementById('customerTableBody');
-            if (customersList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">कोई ग्राहक डेटा उपलब्ध नहीं है।</td></tr>';
-            } else {
-                tbody.innerHTML = customersList.map((c, i) => `
-                    <tr>
-                        <td><b>${i + 1}</b></td>
-                        <td><b>${c.name}</b></td>
-                        <td>${c.email ? `<span style="color:#2563eb; font-weight:600;"><i class="fa-regular fa-envelope"></i> ${c.email}</span>` : '<span style="color:#94a3b8;">-</span>'}</td>
-                        <td>${c.phone ? `📞 ${c.phone}` : '-'}</td>
-                        <td><span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:12px; font-weight:bold;">${c.ordersCount} ऑर्डर्स</span></td>
-                        <td><b>₹${c.totalSpent}</b></td>
-                        <td>${c.firstDate.toLocaleDateString('hi-IN')}</td>
-                    </tr>
-                `).join('');
-            }
-
-            renderCustomerGraph(orders);
-        }
-
-        function renderCustomerGraph(orders) {
-            const ctx = document.getElementById('customerChart').getContext('2d');
-            
-            const last7Days = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                last7Days.push(d.toISOString().split('T')[0]);
-            }
-
-            const ordersPerDay = {};
-            const customersPerDay = {};
-            last7Days.forEach(day => {
-                ordersPerDay[day] = 0;
-                customersPerDay[day] = new Set();
-            });
-
-            orders.forEach(o => {
-                if (o.created_at) {
-                    const day = o.created_at.split('T')[0];
-                    if (ordersPerDay[day] !== undefined) {
-                        ordersPerDay[day] += 1;
-                        const identifier = o.email || o.mobile || o.customer_phone || o.id;
-                        customersPerDay[day].add(identifier);
-                    }
-                }
-            });
-
-            const labels = last7Days.map(d => {
-                const parts = d.split('-');
-                return `${parts[2]}/${parts[1]}`;
-            });
-            const ordersData = last7Days.map(d => ordersPerDay[d]);
-            const customersData = last7Days.map(d => customersPerDay[d].size);
-
-            if (customerChartInstance) {
-                customerChartInstance.destroy();
-            }
-
-            customerChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'नए ग्राहक (Customer Activity)',
-                            data: customersData,
-                            backgroundColor: 'rgba(37, 99, 235, 0.75)',
-                            borderColor: '#1d4ed8',
-                            borderWidth: 1,
-                            borderRadius: 6
-                        },
-                        {
-                            label: 'ऑर्डर्स की संख्या (Orders)',
-                            data: ordersData,
-                            backgroundColor: 'rgba(230, 57, 70, 0.75)',
-                            borderColor: '#b91c1c',
-                            borderWidth: 1,
-                            borderRadius: 6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0 }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: { font: { family: 'Poppins', weight: 'bold' } }
-                        }
-                    }
-                }
-            });
-        }
-
-        function openCorrectionModal(orderId) {
-            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
-            if (!o) return;
-
-            let displayText = o.customer_correction || '(कोई विवरण नहीं)';
-            if (typeof displayText === 'string' && displayText.startsWith('[REVIEWED]')) {
-                displayText = displayText.replace('[REVIEWED]', '').trim();
-            }
-
-            const modalBody = document.getElementById('correctionModalBody');
-            modalBody.innerHTML = `
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:12px;">
-                    <div style="margin-bottom:6px;"><strong>ऑर्डर ID:</strong> #${o.id} | <strong>ग्राहक:</strong> ${o.customer_name || '-'} (📞 ${o.mobile || o.customer_phone || '-'})</div>
-                    <div style="margin-bottom:6px;"><strong>ग्राहक संदेश / स्थिति विवरण:</strong></div>
-                    <div style="background:white; padding:10px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#b91c1c; white-space:pre-wrap;">${displayText}</div>
-                </div>
-                ${o.customer_correction_file ? `
-                    <div style="margin-bottom:14px; text-align:center;">
-                        <a href="${o.customer_correction_file}" target="_blank" download style="display:inline-block; background:var(--blue); color:white; padding:8px 16px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:12px;">
-                            <i class="fa-solid fa-file-arrow-down"></i> संलग्न सुधार फ़ाइल / फोटो देखें
-                        </a>
-                    </div>
-                ` : ''}
-            `;
-
-            document.getElementById('btnMarkReviewed').onclick = () => markCorrectionReviewed(o.id);
-            document.getElementById('correctionModal').style.display = 'flex';
-        }
-
-        function closeCorrectionModal() {
-            document.getElementById('correctionModal').style.display = 'none';
-        }
-
-        async function markCorrectionReviewed(orderId) {
-            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
-            if (!o || !supabaseClient) return;
-
-            try {
-                let currentText = o.customer_correction || 'सुधार देखा गया';
-                if (!currentText.startsWith('[REVIEWED]')) {
-                    currentText = '[REVIEWED] ' + currentText;
-                }
-
-                const { error } = await supabaseClient
-                    .from('orders')
-                    .update({ customer_correction: currentText })
-                    .eq('id', Number(orderId));
-
-                if (error) {
-                    alert("अपडेट नहीं हो पाया: " + error.message);
-                } else {
-                    alert("समीक्षा पूर्ण! अलार्म बंद कर दिया गया है।");
-                    closeCorrectionModal();
-                    loadAdminOrders();
-                }
-            } catch (e) {
-                alert("नेटवर्क त्रुटि: " + e.message);
-            }
-        }
-
-        async function uploadOrderMatter(orderId, input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64File = reader.result;
-
-                if (supabaseClient) {
-                    const { error } = await supabaseClient
-                        .from('orders')
-                        .update({ order_matter: base64File })
-                        .eq('id', Number(orderId));
-
-                    if (error) {
-                        alert("मैटर अपलोड नहीं हो पाया: " + error.message);
-                    } else {
-                        alert("मैटर सफलतापूर्वक अपलोड हो गया!");
-                        loadAdminOrders();
-                    }
-                }
-            };
-        }
-
-        async function updateOrderStatus(id, newStatus) {
-            if (!supabaseClient) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('orders')
-                    .update({ status: newStatus })
-                    .eq('id', Number(id));
-
-                if (error) alert("स्टेटस अपडेट नहीं हो सका: " + error.message);
-            } catch (e) {
-                alert("नेटवर्क त्रुटि!");
-            }
-        }
-
-        async function deleteAdminOrder(id) {
-            if (!confirm("क्या आप वाकई इस ऑर्डर को डेटाबेस से हटाना चाहते हैं?")) return;
-            if (!supabaseClient) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('orders')
-                    .delete()
-                    .eq('id', Number(id));
-
-                if (error) {
-                    alert("हटाया नहीं जा सका: " + error.message);
-                } else {
-                    alert("ऑर्डर हटा दिया गया!");
-                    loadAdminOrders();
-                }
-            } catch (e) {
-                alert("नेटवर्क त्रुटि: " + e.message);
-            }
-        }
-
-        /* CATALOG FUNCTIONS (USING 'catalog' TABLE) */
-        let globalCatalogCache = [];
-
-        function categoryLabel(cat) {
-            const v = String(cat || '').toLowerCase();
-            if (v === 'muslim' || v.includes('muslim') || v.includes('मुस्लिम') || v.includes('nikah') || v.includes('निकाह')) return ['🌙 मुस्लिम', 'cat-muslim'];
-            if (v === 'hindu' || v.includes('hindu') || v.includes('हिंदू') || v.includes('विवाह')) return ['🪔 हिंदू', 'cat-hindu'];
-            if (v === 'banner' || v === 'flex' || v.includes('बैनर') || v.includes('फ्लेक्स')) return ['🖼️ बैनर / फ्लेक्स', 'cat-banner'];
-            return ['📦 अन्य', 'cat-other'];
-        }
-
-        function filterAdminCatalog(category) {
-            const cards = category === 'all' ? globalCatalogCache : globalCatalogCache.filter(c => {
-                const raw = String(c.category || '').toLowerCase();
-                const name = `${c.name || ''} ${c.card_name || ''} ${c.model || ''}`.toLowerCase();
-                if (category === 'muslim') return raw === 'muslim' || name.includes('muslim') || name.includes('मुस्लिम') || name.includes('nikah') || name.includes('निकाह');
-                if (category === 'hindu') return raw === 'hindu' || name.includes('hindu') || name.includes('हिंदू') || name.includes('विवाह');
-                if (category === 'banner') return raw === 'banner' || name.includes('banner') || name.includes('flex') || name.includes('बैनर') || name.includes('फ्लेक्स');
-                if (category === 'other') return !['muslim','hindu','banner'].includes(raw);
-                return true;
-            });
-            renderCatalogAdminTable(cards);
-        }
-
-        function renderCatalogAdminTable(data) {
-            const tbody = document.getElementById('catalogTableBody');
-            if (!tbody) return;
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11">इस श्रेणी में कोई कार्ड उपलब्ध नहीं है।</td></tr>';
-                return;
-            }
-            tbody.innerHTML = data.map(c => {
-                const [catText, catClass] = categoryLabel(c.category);
-                const mrp = Number(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
-                const sale = Number(c.sale_rate ?? c.selling_price ?? c.selling_rate ?? c.rate ?? c.price ?? mrp) || 0;
-                const hasVideo = !!(c.video_url || c.video || c.video_urls || c.catalog_video);
-                const imgs = (()=>{ try { const v=c.gallery_images||c.images||c.image_urls; return Array.isArray(v)?v:(typeof v==='string'?JSON.parse(v):[]); } catch(e){return [];} })();
-                return `
-                    <tr>
-                        <td><div style="display:flex;gap:3px;justify-content:center;align-items:center;flex-wrap:wrap;max-width:120px;">${[c.image||c.image_url,...imgs].filter(Boolean).slice(0,5).map(u=>`<img src="${String(u).replace(/"/g,'&quot;')}" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;" onerror="this.style.display='none'">`).join('')}</div></td>
-                        <td><b>${c.name || c.card_name || c.title || '-'}</b></td>
-                        <td>${c.model || c.code || '-'}</td>
-                        <td><span class="category-pill ${catClass}">${catText}</span></td>
-                        <td><b style="color:#64748b;text-decoration:${sale<mrp?'line-through':'none'};">₹${mrp.toLocaleString('en-IN')}</b></td>
-                        <td><b style="color:var(--primary);font-size:14px;">₹${sale.toLocaleString('en-IN')}</b><br><button type="button" class="btn-price-edit" onclick="editCardSaleRate('${c.id}', ${sale})"><i class="fa-solid fa-pen-to-square"></i> सेल रेट</button></td>
-                        <td><span class="stock-badge ${c.in_stock !== false ? 'in-stock' : 'out-stock'}">${c.in_stock !== false ? 'उपलब्ध' : 'समाप्त'}</span></td>
-                        <td><button type="button" class="btn-price-edit" onclick="editCardPrice('${c.id}', ${mrp})"><i class="fa-solid fa-pen-to-square"></i> MRP</button></td>
-                        <td>${hasVideo ? '<span style="color:#059669;font-weight:800;"><i class="fa-solid fa-circle-play"></i> उपलब्ध</span>' : '<span style="color:#94a3b8;">नहीं</span>'}</td>
-                        <td><button class="btn-stock-toggle" style="background:${c.in_stock !== false ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${c.in_stock === false})">${c.in_stock !== false ? 'समाप्त करें' : 'उपलब्ध करें'}</button></td>
-                        <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                    </tr>`;
-            }).join('');
-            const count = document.getElementById('miniCatalogCount');
-            if (count) count.innerText = globalCatalogCache.length;
-        }
-
-        async function loadCatalogStock() {
-            const tbody = document.getElementById('catalogTableBody');
-            if (!tbody || !supabaseClient) return;
-            tbody.innerHTML = '<tr><td colspan="11">कैटलॉग लोड हो रहा है...</td></tr>';
-            try {
-                const { data, error } = await supabaseClient
-                    .from('catalog')
-                    .select('*')
-                    .order('id', { ascending: false });
-
-                if (error) {
-                    tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
-                    return;
-                }
-                globalCatalogCache = data || [];
-                renderCatalogAdminTable(globalCatalogCache);
-            } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
-            }
-        }
-
-        let selectedCatalogPhotos = [];
-        function mergeCatalogFiles(list){
-            const incoming=Array.from(list||[]).filter(f=>f && f.type && f.type.startsWith('image/'));
-            const seen=new Set(selectedCatalogPhotos.map(f=>f.name+'_'+f.size));
-            incoming.forEach(f=>{const k=f.name+'_'+f.size;if(!seen.has(k)){selectedCatalogPhotos.push(f);seen.add(k);}});
-            const count=document.getElementById('catalogPhotoCount'); if(count) count.textContent=selectedCatalogPhotos.length ? `${selectedCatalogPhotos.length} फोटो चुनी गईं` : 'कोई फोटो नहीं';
-            const input=document.getElementById('admCardFile');
-            if(input){try{const dt=new DataTransfer();selectedCatalogPhotos.forEach(f=>dt.items.add(f));input.files=dt.files;}catch(e){}}
-        }
-        function openCatalogGallery(){const el=document.getElementById('admCardFile');if(!el)return;el.removeAttribute('capture');el.multiple=true;el.accept='image/*';el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
-        function openCatalogCamera(){const el=document.getElementById('admCardCamera');if(!el)return;el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
-
-        // मोबाइल कैमरा से सीधे कैटलॉग वीडियो रिकॉर्ड करने का सिस्टम
-        let catalogVideoStream = null;
-        let catalogVideoRecorder = null;
-        let catalogVideoChunks = [];
-        let catalogVideoRecordTimer = null;
-        let catalogVideoSeconds = 0;
-
-        function getSupportedVideoMime(){
-            const types=[
-                'video/webm;codecs=vp9,opus',
-                'video/webm;codecs=vp8,opus',
-                'video/webm',
-                'video/mp4'
-            ];
-            for(const t of types){
-                try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t; }catch(e){}
-            }
-            return '';
-        }
-
-        function openCatalogVideoRecorder(){
-            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){
-                // पुराने/असमर्थित browser में direct camera fallback खोलें।
-                const input=document.getElementById('admCardVideo');
-                if(input){ input.setAttribute('capture','environment'); input.click(); }
-                return;
-            }
-            showCatalogVideoRecorderUI();
-            navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true})
-                .then(stream=>{
-                    catalogVideoStream=stream;
-                    const preview=document.getElementById('catalogVideoPreview');
-                    if(preview){preview.srcObject=stream;preview.play().catch(()=>{});}
-                    const start=document.getElementById('catalogVideoStartBtn');
-                    if(start) start.disabled=false;
-                    setCatalogVideoStatus('कैमरा तैयार है — रिकॉर्ड शुरू करें।',' #0f766e');
-                })
-                .catch(err=>{
-                    closeCatalogVideoRecorder();
-                    alert('कैमरा/माइक्रोफोन की अनुमति नहीं मिली। कृपया Camera और Microphone permission Allow करें।');
-                });
-        }
-
-        function showCatalogVideoRecorderUI(){
-            let modal=document.getElementById('catalogVideoRecorderModal');
-            if(modal){modal.style.display='flex';return;}
-            modal=document.createElement('div');
-            modal.id='catalogVideoRecorderModal';
-            modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center;padding:14px;';
-            modal.innerHTML=`<div style="width:min(520px,100%);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <b style="font-size:17px;">🎥 कैटलॉग वीडियो रिकॉर्ड करें</b>
-                    <button type="button" onclick="closeCatalogVideoRecorder()" style="border:0;background:#f1f5f9;border-radius:50%;width:34px;height:34px;font-size:18px;">×</button>
-                </div>
-                <video id="catalogVideoPreview" muted playsinline autoplay style="width:100%;max-height:58vh;background:#000;border-radius:12px;object-fit:cover;"></video>
-                <div id="catalogVideoTimer" style="text-align:center;font-size:18px;font-weight:800;margin:8px 0;color:#dc2626;">00:00 / 01:00</div>
-                <div id="catalogVideoRecorderStatus" style="text-align:center;font-size:12px;color:#64748b;margin-bottom:9px;">कैमरा शुरू हो रहा है…</div>
-                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-                    <button type="button" id="catalogVideoStartBtn" disabled onclick="startCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#dc2626;color:#fff;font-weight:800;">🔴 रिकॉर्ड शुरू</button>
-                    <button type="button" id="catalogVideoStopBtn" disabled onclick="stopCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;">⏹ रोकें</button>
-                    <button type="button" onclick="closeCatalogVideoRecorder()" style="padding:10px 18px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-weight:800;">रद्द करें</button>
-                </div>
-                <div style="font-size:11px;color:#64748b;text-align:center;margin-top:9px;">वीडियो अधिकतम 60 सेकंड का होगा। रिकॉर्डिंग के बाद वीडियो अपने-आप Catalog Video में लग जाएगा।</div>
-            </div>`;
-            document.body.appendChild(modal);
-        }
-
-        function setCatalogVideoStatus(msg,color){
-            const el=document.getElementById('catalogVideoRecorderStatus');
-            if(el){el.textContent=msg;el.style.color=color||'#64748b';}
-        }
-
-        function startCatalogVideoRecording(){
-            if(!catalogVideoStream) return;
-            const mime=getSupportedVideoMime();
-            try{catalogVideoRecorder=new MediaRecorder(catalogVideoStream,mime?{mimeType:mime}:undefined);}catch(e){alert('इस मोबाइल में वीडियो रिकॉर्डिंग शुरू नहीं हो सकी।');return;}
-            catalogVideoChunks=[]; catalogVideoSeconds=0;
-            catalogVideoRecorder.ondataavailable=e=>{if(e.data && e.data.size) catalogVideoChunks.push(e.data);};
-            catalogVideoRecorder.onstop=()=>{
-                clearInterval(catalogVideoRecordTimer);
-                const type=catalogVideoRecorder?.mimeType||mime||'video/webm';
-                const blob=new Blob(catalogVideoChunks,{type});
-                const ext=type.includes('mp4')?'mp4':'webm';
-                const file=new File([blob],`catalog_video_${Date.now()}.${ext}`,{type});
-                if(file.size>12*1024*1024){
-                    alert('रिकॉर्ड किया गया वीडियो 12 MB से बड़ा है। कृपया छोटा/कम गुणवत्ता वाला वीडियो रिकॉर्ड करें।');
-                    setCatalogVideoStatus('वीडियो बहुत बड़ा है।',' #dc2626');
-                    return;
-                }
-                const input=document.getElementById('admCardVideo');
-                if(input){try{const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;}catch(e){}}
-                const st=document.getElementById('catalogVideoStatus');
-                if(st) st.textContent=`🎥 रिकॉर्ड किया गया वीडियो (${catalogVideoSeconds} सेकंड)`;
-                setCatalogVideoStatus('वीडियो तैयार है। इसे Catalog में सुरक्षित किया जा सकता है।','#0f766e');
-                stopCatalogVideoStream();
-            };
-            catalogVideoRecorder.start(250);
-            const start=document.getElementById('catalogVideoStartBtn'),stop=document.getElementById('catalogVideoStopBtn');
-            if(start) start.disabled=true; if(stop) stop.disabled=false;
-            setCatalogVideoStatus('🔴 रिकॉर्डिंग चल रही है…','#dc2626');
-            updateCatalogVideoTimer();
-            catalogVideoRecordTimer=setInterval(()=>{
-                catalogVideoSeconds++; updateCatalogVideoTimer();
-                if(catalogVideoSeconds>=60) stopCatalogVideoRecording();
-            },1000);
-        }
-
-        function updateCatalogVideoTimer(){
-            const el=document.getElementById('catalogVideoTimer');
-            if(el) el.textContent=`00:${String(catalogVideoSeconds).padStart(2,'0')} / 01:00`;
-        }
-
-        function stopCatalogVideoRecording(){
-            clearInterval(catalogVideoRecordTimer);
-            if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();
-            const stop=document.getElementById('catalogVideoStopBtn');if(stop)stop.disabled=true;
-            const start=document.getElementById('catalogVideoStartBtn');if(start)start.disabled=true;
-        }
-
-        function stopCatalogVideoStream(){
-            if(catalogVideoStream){catalogVideoStream.getTracks().forEach(t=>t.stop());catalogVideoStream=null;}
-        }
-
-        function closeCatalogVideoRecorder(){
-            try{if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();}catch(e){}
-            clearInterval(catalogVideoRecordTimer);
-            stopCatalogVideoStream();
-            const modal=document.getElementById('catalogVideoRecorderModal');
-            if(modal) modal.remove();
-        }
-
-        document.addEventListener('change',function(e){
-            if(e.target && e.target.id==='admCardVideo' && e.target.files?.[0]){
-                const f=e.target.files[0];
-                const st=document.getElementById('catalogVideoStatus');
-                if(st) st.textContent=`🎬 ${f.name}`;
-            }
-        });
-
-        async function uploadCatalogAdminFile(file, folder='catalog'){
-            if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
-            // वीडियो/फोटो के लिए इस पेज पर कोई 12 MB client-side limit नहीं है।
-            // 1 मिनट तक की मोबाइल रिकॉर्डिंग सीधे Storage में अपलोड की जा सकती है।
-            const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'bin';
-            const path=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-            const buckets=['review-images','catalog','cards']; let last=null;
-            for(const bucket of buckets){
-                try{
-                    const {error}=await supabaseClient.storage.from(bucket).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
-                    if(!error){const {data}=supabaseClient.storage.from(bucket).getPublicUrl(path);if(data?.publicUrl)return data.publicUrl;}
-                    last=error;
-                }catch(e){last=e;}
-            }
-            // Image fallback only; video should not be silently converted into a huge DB field.
-            if(file.type.startsWith('image/')){
-                return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('फोटो पढ़ी नहीं जा सकी।'));r.readAsDataURL(file);});
-            }
-            throw new Error('वीडियो Storage में अपलोड नहीं हो सका। Supabase Storage की upload/public policy जाँचें।'+(last?.message?` ${last.message}`:''));
-        }
-        function getVideoDuration(file){return new Promise((resolve,reject)=>{const u=URL.createObjectURL(file),v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{const d=v.duration;URL.revokeObjectURL(u);resolve(d)};v.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('वीडियो की अवधि पढ़ी नहीं जा सकी।'))};v.src=u;});}
-        async function compressCatalogVideo(file){
-            // Smart browser-side compression: keep resolution up to 720p and avoid
-            // recompressing files that are already small. Target is roughly 2–3 MB
-            // for a 60-second clip; shorter clips can remain smaller/larger as needed.
-            if(!file || !file.type.startsWith('video/')) return file;
-            if(file.size <= 3*1024*1024) return file;
-            const duration=await getVideoDuration(file);
-            if(!Number.isFinite(duration) || duration<=0) return file;
-
-            const video=document.createElement('video');
-            video.muted=true; video.playsInline=true; video.preload='auto';
-            const url=URL.createObjectURL(file); video.src=url;
-            await new Promise((resolve,reject)=>{
-                video.onloadedmetadata=()=>resolve();
-                video.onerror=()=>reject(new Error('वीडियो पढ़ा नहीं जा सका।'));
-            });
-            try{ await video.play(); }catch(e){}
-
-            const maxW=1280, maxH=720;
-            const scale=Math.min(1,maxW/video.videoWidth||1,maxH/video.videoHeight||1);
-            const w=Math.max(2,Math.round((video.videoWidth||1280)*scale/2)*2);
-            const h=Math.max(2,Math.round((video.videoHeight||720)*scale/2)*2);
-            const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
-            const ctx=canvas.getContext('2d',{alpha:false});
-            const stream=canvas.captureStream(30);
-            try{
-                if(video.captureStream){
-                    const src=video.captureStream();
-                    const audioTracks=src.getAudioTracks();
-                    audioTracks.forEach(t=>stream.addTrack(t));
-                }
-            }catch(e){}
-
-            const targetBytes=3.0*1024*1024;
-            const totalKbps=Math.max(360,Math.min(1800,(targetBytes*8/1024)/duration));
-            const audioKbps=48;
-            const videoKbps=Math.max(300,Math.round(totalKbps-audioKbps));
-            const mimeCandidates=[
-                'video/webm;codecs=vp9,opus',
-                'video/webm;codecs=vp8,opus',
-                'video/webm'
-            ];
-            let mime='';
-            for(const m of mimeCandidates){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)){mime=m;break;} }
-            if(!window.MediaRecorder || !mime){ URL.revokeObjectURL(url); return file; }
-
-            const chunks=[];
-            const recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:videoKbps*1000,audioBitsPerSecond:audioKbps*1000});
-            recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-            const done=new Promise((resolve,reject)=>{
-                recorder.onerror=()=>reject(new Error('वीडियो compression शुरू नहीं हो सका।'));
-                recorder.onstop=()=>resolve();
-            });
-            recorder.start(500);
-            let stopped=false;
-            const draw=()=>{
-                if(stopped)return;
-                if(video.readyState>=2)ctx.drawImage(video,0,0,w,h);
-                requestAnimationFrame(draw);
-            };
-            requestAnimationFrame(draw);
-            await new Promise(resolve=>setTimeout(resolve,Math.min(duration*1000,60000)+150));
-            stopped=true;
-            if(recorder.state!=='inactive')recorder.stop();
-            await done;
-            stream.getTracks().forEach(t=>t.stop());
-            video.pause(); video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url);
-            const blob=new Blob(chunks,{type:mime});
-            if(!blob.size || blob.size>=file.size){ return file; }
-            const ext='webm';
-            return new File([blob],`catalog_compressed_${Date.now()}.${ext}`,{type:mime,lastModified:Date.now()});
-        }
-
-
-        async function insertAdminCatalogPayload(base){
-            const variants=[
-                {...base},
-                (()=>{const x={...base};delete x.gallery_images;delete x.video_urls;delete x.video_url;delete x.catalog_video;delete x.images;delete x.image_urls;return x;})(),
-                (()=>{const x={name:base.name,card_name:base.card_name,model:base.model,rate:base.rate,price:base.price,image:base.image,image_url:base.image_url,in_stock:base.in_stock,category:base.category,description:base.description};return x;})(),
-                (()=>{const x={name:base.name,model:base.model,rate:base.rate,price:base.price,image:base.image,image_url:base.image_url,in_stock:base.in_stock};return x;})()
-            ];
-            let last=null;
-            for(const payload of variants){try{const {error}=await supabaseClient.from('catalog').insert([payload]);if(!error)return;last=error;}catch(e){last=e;}}
-            throw last||new Error('Catalog insert failed');
-        }
-
-        async function handleAddNewCatalogCard(e) {
-            e.preventDefault();
-            const btn=document.getElementById('addCardSubmitBtn'); btn.disabled=true; btn.innerText='सुरक्षित हो रहा है...';
-            try{
-                const name=document.getElementById('admCardName').value.trim();
-                const model=document.getElementById('admCardModel').value.trim();
-                const mrp=parseFloat(document.getElementById('admCardRate').value);
-                const saleInput=parseFloat(document.getElementById('admCardSaleRate')?.value);
-                const sale=Number.isFinite(saleInput)?saleInput:mrp;
-                const in_stock=document.getElementById('admCardStock').value==='true';
-                const category=document.getElementById('admCardCategory').value;
-                const photos=selectedCatalogPhotos.length?selectedCatalogPhotos:Array.from(document.getElementById('admCardFile')?.files||[]);
-                const video=document.getElementById('admCardVideo')?.files?.[0]||null;
-                if(!photos.length) throw new Error('कृपया Gallery/Camera से कम से कम 1 फोटो चुनें।');
-                if(!name) throw new Error('कार्ड का नाम दर्ज करें।');
-                if(!Number.isFinite(mrp)||mrp<0) throw new Error('मान्य कैटलॉग रेट डालें।');
-                if(!Number.isFinite(sale)||sale<0) throw new Error('मान्य सेल रेट डालें।');
-                if(video){
-                    if(!video.type.startsWith('video/')) throw new Error('केवल वीडियो फाइल चुनें।');
-                    const duration=await getVideoDuration(video);
-                    if(duration>60) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया 1 मिनट (60 सेकंड) के अंदर का वीडियो चुनें।`);
-                }
-                const imageUrls=[]; for(const f of photos.slice(0,10)) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
-                let videoUrl='';
-                if(video){
-                    setCatalogVideoStatus('⏳ वीडियो compress हो रहा है…','#b45309');
-                    const compressedVideo=await compressCatalogVideo(video);
-                    videoUrl=await uploadCatalogAdminFile(compressedVideo,'catalog');
-                    const st=document.getElementById('catalogVideoStatus');
-                    if(st) st.textContent=`🎬 वीडियो तैयार: ${(compressedVideo.size/1024/1024).toFixed(2)} MB`;
-                }
-                const fallbackDescription=`[[GALLERY:${imageUrls.join('|')}]]${videoUrl?` [[VIDEO:${videoUrl}]]`:''}`;
-                const base={name,card_name:name,title:name,model,code:model,category,image:imageUrls[0],image_url:imageUrls[0],images:imageUrls,image_urls:JSON.stringify(imageUrls),gallery_images:JSON.stringify(imageUrls),catalog_rate:mrp,original_rate:mrp,mrp,sale_rate:sale,selling_price:sale,rate:sale,price:sale,in_stock,description:fallbackDescription,video_url:videoUrl,video_urls:videoUrl?JSON.stringify([videoUrl]):JSON.stringify([]),catalog_video:videoUrl};
-                await insertAdminCatalogPayload(base);
-                alert(`नया कार्ड सफलतापूर्वक जोड़ा गया।\n${imageUrls.length} फोटो${videoUrl?' और 1 वीडियो':''} सेव किया गया।`);
-                document.getElementById('newCardForm').reset(); selectedCatalogPhotos=[]; const cnt=document.getElementById('catalogPhotoCount');if(cnt)cnt.textContent='कोई फोटो नहीं'; loadCatalogStock();
-            }catch(err){alert('कार्ड जोड़ने में त्रुटि: '+(err.message||err));}
-            finally{btn.disabled=false;btn.innerText='+ सुरक्षित करें';}
-        }
-
-        // कैटलॉग कार्ड का रेट/Price एडिट करें
-        async function editCardPrice(id, currentPrice) {
-            if (!supabaseClient) {
-                alert("डेटाबेस कनेक्ट नहीं है!");
-                return;
-            }
-
-            const entered = prompt("नया रेट (₹/पीस) दर्ज करें:", currentPrice);
-            if (entered === null) return;
-
-            const newPrice = parseFloat(String(entered).trim());
-            if (!Number.isFinite(newPrice) || newPrice < 0) {
-                alert("कृपया सही कीमत दर्ज करें।");
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient
-                    .from('catalog')
-                    .update({ rate: newPrice })
-                    .eq('id', Number(id));
-
-                if (error) {
-                    alert("रेट अपडेट नहीं हो पाया: " + error.message);
-                    return;
-                }
-
-                const card = globalCatalogCache.find(x => String(x.id) === String(id));
-                if (card) card.rate = newPrice;
-                alert("रेट सफलतापूर्वक बदल दिया गया: ₹" + newPrice + " / पीस");
-                const selected = document.getElementById('adminCategoryFilter');
-                filterAdminCatalog(selected ? selected.value : 'all');
-            } catch (e) {
-                alert("रेट अपडेट करते समय नेटवर्क त्रुटि: " + e.message);
-            }
-        }
-
-        async function editCardSaleRate(id, currentPrice) {
-            if (!supabaseClient) { alert('डेटाबेस कनेक्ट नहीं है!'); return; }
-            const entered=prompt('नया सेल रेट (₹/पीस) दर्ज करें:', currentPrice);
-            if(entered===null)return; const n=parseFloat(String(entered).trim());
-            if(!Number.isFinite(n)||n<0){alert('कृपया सही सेल रेट दर्ज करें।');return;}
-            try{
-                const payload={sale_rate:n,selling_price:n,rate:n,price:n};
-                let {error}=await supabaseClient.from('catalog').update(payload).eq('id',Number(id));
-                if(error){
-                    // पुराने schema में sale_rate/selling_price न हों तो कम-से-कम rate/price अपडेट करें।
-                    const r=await supabaseClient.from('catalog').update({rate:n,price:n}).eq('id',Number(id)); error=r.error;
-                }
-                if(error)throw error; alert('सेल रेट सफलतापूर्वक बदल दिया गया: ₹'+n+' / पीस'); loadCatalogStock();
-            }catch(e){alert('सेल रेट अपडेट नहीं हो पाया: '+(e.message||e));}
-        }
-
-        async function toggleCardStock(id, newStatus) {
-            if (!supabaseClient) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('catalog')
-                    .update({ in_stock: newStatus })
-                    .eq('id', Number(id));
-
-                if (error) alert("स्टॉक स्थिति नहीं बदली: " + error.message);
-                else loadCatalogStock();
-            } catch (e) {
-                alert("नेटवर्क त्रुटि!");
-            }
-        }
-
-        async function deleteCatalogCard(id) {
-            if (!confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) return;
-            if (!supabaseClient) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('catalog')
-                    .delete()
-                    .eq('id', Number(id));
-
-                if (error) alert("हटाया नहीं जा सका: " + error.message);
-                else loadCatalogStock();
-            } catch (e) {
-                alert("नेटवर्क त्रुटि!");
-            }
-        }
-
-        /* RECEIPT MODAL FUNCTIONS */
-        function openOrderReceiptModal(orderId) {
-            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
-            if (!o) return;
-
-            let baseNotes = o.custom_notes || '';
-            if (baseNotes.includes('[ADMIN_NOTICE]')) {
-                baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
-            }
-
-            const area = document.getElementById('printableReceiptArea');
-            area.innerHTML = `
-                <div class="receipt-header">
-                    <h2 style="font-size:20px; font-weight:800; color:#e63946;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:12px; color:#475569;">शादी कार्ड, विजिटिंग कार्ड, फ्लेक्स बैनर एवं ऑनलाइन प्रिंटिंग सेवा</p>
-                    <p style="font-size:11px; color:#64748b;">ऑर्डर क्रमांक: #${o.id} | दिनांक: ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</p>
-                </div>
-                <div class="receipt-section-title">ग्राहक व ऑर्डर विवरण</div>
-                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${o.customer_name || '-'}</b></div>
-                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${o.mobile || o.customer_phone || '-'}</b></div>
-                <div class="receipt-row"><span>ईमेल आईडी:</span> <b>${o.email || o.customer_email || '-'}</b></div>
-                <div class="receipt-row"><span>कार्ड मॉडल / नाम:</span> <b>${o.card_title || 'शादी कार्ड'}</b></div>
-                <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${o.quantity || 100} पीस</b></div>
-
-                <div class="receipt-section-title">वैवाहिक विवरण (शुभ विवाह)</div>
-                <div class="receipt-row"><span>वर (लड़का):</span> <b>${o.groom_name || '-'}</b></div>
-                <div class="receipt-row"><span>वधू (लड़की):</span> <b>${o.bride_name || '-'}</b></div>
-
-                <div class="receipt-section-title">बिल एवं भुगतान स्थिति</div>
-                <div class="receipt-row"><span>कुल राशि:</span> <b>₹${o.total_amount || 0}</b></div>
-                <div class="receipt-row"><span>अग्रिम जमा (एडवांस):</span> <b style="color:var(--green);">₹${o.advance_paid || o.advance_amount || 0}</b></div>
-                <div class="receipt-row"><span>शेष बकाया:</span> <b style="color:var(--primary);">₹${(o.total_amount || 0) - (o.advance_paid || o.advance_amount || 0)}</b></div>
-                <div class="receipt-row"><span>ऑर्डर स्टेटस:</span> <b>${o.status || 'Pending'}</b></div>
-                <div class="receipt-row" style="flex-direction:column; margin-top:6px;"><span>विशेष विवरण / शायरी:</span> <b>${baseNotes || 'कोई अतिरिक्त मैटर नहीं'}</b></div>
-            `;
-
-            document.getElementById('orderModal').style.display = 'flex';
-        }
-
-        function closeOrderModal() {
-            document.getElementById('orderModal').style.display = 'none';
-        }
-
-        function downloadReceiptPDF() {
-            const element = document.getElementById('printableReceiptArea');
-            const opt = {
-                margin: 10,
-                filename: `Delhi_Press_Receipt_${Date.now()}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-    </script>
+      }
+    }
+
+    // अगर feedback row में नया title/model मौजूद है तो उसे भी match करें।
+    if(!belongs){
+      const rt=r?.card_title??r?.card_name??r?.product_name??r?.title??'';
+      const rm=r?.card_model??r?.model??r?.code??'';
+      belongs=sameTitle(rt,productTitle)&&sameModel(rm,productModel);
+    }
+
+    if(belongs){
+      seen.add(rowKey);
+      matched.push(r);
+    }
+  });
+
+  feedbackRows=matched;
+  renderRatings();
+
+  // Related cards के rating को भी Index जैसा live रखें।
+  try{await loadAllRatingRows();}catch(e){}
+}
+
+function ratingMatchForCard(card,rows,orderMap){
+  const clean=v=>String(v??'').trim().toLowerCase();
+  const modelKey=v=>clean(v).replace(/[^a-z0-9]+/g,'');
+  const aliases=new Set([card?.id,card?.catalog_id,card?.card_id,card?.product_id].map(clean).filter(Boolean));
+  const title=clean(card?.name??card?.title??card?.card_name??card?.product_name??'');
+  const model=modelKey(card?.model??card?.code??card?.card_model??card?.model_no??'');
+  const sameTitle=(a,b)=>{a=clean(a);b=clean(b);if(!a||!b)return false;if(a===b||a.includes(b)||b.includes(a))return true;const aa=a.replace(/[^a-z0-9\u0900-\u097f]+/g,'');const bb=b.replace(/[^a-z0-9\u0900-\u097f]+/g,'');return !!aa&&!!bb&&(aa===bb||aa.includes(bb)||bb.includes(aa));};
+  const sameModel=(a,b)=>{a=modelKey(a);b=modelKey(b);if(!a||!b)return true;return a===b||a.includes(b)||b.includes(a);};
+  let sum=0,count=0;
+  rows.forEach(r=>{
+    const val=Math.max(1,Math.min(5,Number(r?.rating??r?.stars??0)||0));
+    if(!val)return;
+    let ok=[r?.catalog_id,r?.card_id,r?.product_id].map(clean).some(x=>aliases.has(x));
+    if(!ok){
+      const o=orderMap[String(r?.order_db_id??r?.order_id??'')];
+      if(o){
+        ok=sameTitle(o?.card_title??o?.card_name??o?.product_name??o?.title??'',title)
+          && sameModel(o?.card_model??o?.model??'',model);
+        if(!ok)ok=[o?.catalog_id,o?.card_id,o?.product_id].map(clean).some(x=>aliases.has(x));
+      }
+    }
+    if(!ok){
+      ok=sameTitle(r?.card_title??r?.card_name??r?.product_name??r?.title??'',title)
+        && sameModel(r?.card_model??r?.model??r?.code??'',model);
+    }
+    if(ok){sum+=val;count++;}
+  });
+  return {avg:count?sum/count:0,count};
+}
+
+let __allRatingRows=[];
+let __allRatingOrders={};
+async function loadAllRatingRows(){
+  if(__allRatingRows.length)return __allRatingRows;
+  if(!sb)return [];
+  try{
+    const {data,error}=await sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000);
+    if(!error&&Array.isArray(data))__allRatingRows=data;
+  }catch(e){}
+  const ids=[...new Set(__allRatingRows.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];
+  for(let i=0;i<ids.length;i+=100){
+    const nums=ids.slice(i,i+100).map(Number).filter(Number.isFinite);
+    if(!nums.length)continue;
+    try{
+      const {data,error}=await sb.from('orders').select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,title').in('id',nums);
+      if(!error&&Array.isArray(data))data.forEach(o=>__allRatingOrders[String(o.id)]=o);
+    }catch(e){}
+  }
+  return __allRatingRows;
+}
+function reviewImageList(r){let v=r.review_images??r.images??r.image_urls??r.photos??[];if(typeof v==='string'){try{v=JSON.parse(v)}catch(e){v=v.split(/\s*,\s*\n?/).filter(Boolean)}}return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}
+function renderRatings(){
+  const rows=feedbackRows.map(r=>({
+    rating:Math.max(1,Math.min(5,Number(r?.rating??r?.stars??0)||0)),
+    name:r?.name||r?.user_name||'ग्राहक',
+    text:r?.feedback||r?.comment||r?.message||'',
+    images:reviewImageList(r),
+    sponsored:r?.sponsored===true,
+    date:r?.created_at?new Date(r.created_at).toLocaleDateString('hi-IN',{day:'2-digit',month:'short',year:'numeric'}):''
+  })).filter(r=>r.rating>0);
+
+  const total=rows.reduce((a,r)=>a+r.rating,0);
+  const avg=rows.length?total/rows.length:0;
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  set('ratingPill',(avg?avg.toFixed(1):'0.0')+(rows.length?' ('+rows.length+')':''));
+  set('topStars',stars(avg));
+  set('reviewCount',rows.length+' Ratings & Reviews');
+  set('bigRating',avg?avg.toFixed(1):'0.0');
+  set('bigStars',stars(avg));
+  set('bigReviewCount',rows.length+' Reviews');
+
+  for(let n=1;n<=5;n++){
+    const c=rows.filter(r=>Math.round(r.rating)===n).length;
+    set('c'+n,c);
+    const b=document.getElementById('b'+n);
+    if(b)b.style.width=(rows.length?c/rows.length*100:0)+'%';
+  }
+
+  const box=document.getElementById('reviewList');
+  if(!box)return;
+  box.innerHTML=rows.length
+    ? rows.slice(0,100).map(r=>{
+        const imgs=r.images.length
+          ? '<div class="review-images">'+r.images.map(u=>'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="Review photo" loading="lazy"></a>').join('')+'</div>'
+          : '';
+        const sponsor=r.sponsored?'<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:10px;background:#fff7d6;color:#a16207;font-size:10px;font-weight:800">★ स्पॉन्सर</span>':'';
+        return '<div class="review"><div class="review-head"><b>'+esc(r.name)+'</b>'+sponsor+'<span class="review-date">'+esc(r.date)+'</span></div><div class="review-stars">'+('★'.repeat(Math.round(r.rating)))+('☆'.repeat(5-Math.round(r.rating)))+'</div><div class="review-text">'+esc(r.text||'रेटिंग दी गई है।')+'</div>'+imgs+'</div>';
+      }).join('')
+    : '<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>';
+}
+function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
+function render(){
+  const c=product;
+  saveRecentlyViewed(c);
+  images=getImages(c);
+  if(!images.length)images=[placeholder];
+
+  const title=c.name||c.title||c.card_name||'शादी कार्ड';
+  const model=c.model||c.code||c.card_model||'';
+  const category=c.category||'';
+  const o=original(c), s=sale(c);
+  const priceBox=document.getElementById('priceBox');
+
+  // Index HTML का वही price logic: Catalog Rate + Sale Rate + OFF.
+  if(priceBox){
+    if(o>s&&s>0){
+      const off=Math.round(((o-s)/o)*100);
+      priceBox.innerHTML='<div class="card-price-box" style="margin:0 0 3px"><span class="card-original-price">₹'+o.toLocaleString('en-IN')+'</span><span class="card-sale-price">₹'+s.toLocaleString('en-IN')+'</span><span class="card-discount-badge">'+off+'% OFF</span></div><span class="card-price-note">असली रेट: ₹'+o.toLocaleString('en-IN')+' • अभी: ₹'+s.toLocaleString('en-IN')+' / पीस</span>';
+    }else if(s>0){
+      priceBox.innerHTML='<div class="card-price-tag">₹'+s.toLocaleString('en-IN')+' / पीस</div>';
+    }else if(o>0){
+      priceBox.innerHTML='<div class="card-price-tag">₹'+o.toLocaleString('en-IN')+' / पीस</div>';
+    }else{
+      priceBox.innerHTML='<div class="card-price-tag">रेट उपलब्ध नहीं</div>';
+    }
+  }
+
+  document.getElementById('title').textContent=title;
+  document.getElementById('model').innerHTML=
+    (model?'मॉडल: '+esc(model):'')+
+    (category?' <span style="margin-left:8px;color:#52647f">• '+esc(category)+'</span>':'');
+  const stock=document.getElementById('stock');
+  if(stock){
+    stock.textContent=c.in_stock===false?'स्टॉक समाप्त (Out of Stock)':'उपलब्ध (In Stock)';
+    stock.style.background=c.in_stock===false?'#ffe4e8':'#e6f8ef';
+    stock.style.color=c.in_stock===false?'#d61c43':'#07864f';
+  }
+  document.getElementById('description').textContent=cleanDescription(c)||'इस कैटलॉग आइटम का विवरण उपलब्ध नहीं है।';
+
+  renderGallery();
+  document.getElementById('loading').style.display='none';
+  document.getElementById('productArea').style.display='block';
+}
+function getVideos(c){
+  const out=[];
+  const fields=['video_url','video','catalog_video','video_urls','videos','video_url_list'];
+  for(const f of fields){
+    const v=c?.[f];
+    if(Array.isArray(v)) out.push(...v);
+    else if(typeof v==='string'&&v.trim()){
+      try{const j=JSON.parse(v); if(Array.isArray(j)) out.push(...j); else if(typeof j==='string') out.push(j); else out.push(v)}
+      catch(e){out.push(...v.split(/\s*,\s*\n?/).filter(Boolean))}
+    }
+  }
+  for(const f of ['description','details','note','custom_notes']){
+    const text=String(c?.[f]||'');
+    const re=/\[\[VIDEO:([^\]]+)\]\]/ig; let m;
+    while((m=re.exec(text))) out.push(m[1].trim());
+  }
+  return [...new Set(out.map(v=>typeof v==='string'?v.trim():v?.url||v?.video_url||'').filter(v=>/^https?:\/\//i.test(v)))];
+}
+let mediaItems=[];
+function renderGallery(){
+  const t=document.getElementById('thumbs');
+  if(!t)return;
+  mediaItems=[
+    ...images.map((url,i)=>({type:'image',url,index:i})),
+    ...getVideos(product).map(url=>({type:'video',url}))
+  ];
+  if(!mediaItems.length) mediaItems=[{type:'image',url:placeholder,index:0}];
+  t.innerHTML=mediaItems.map((m,i)=>{
+    if(m.type==='video') return `<button class="thumb media-video-thumb" title="कार्ड वीडियो चलाएँ" onclick="setMedia(${i})">
+      <video src="${esc(m.url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video><span class="media-video-label">VIDEO</span>
+    </button>`;
+    return `<button class="thumb" onclick="setMedia(${i})"><img src="${esc(m.url)}" alt="Card ${i+1}" onerror="this.src='${placeholder}'"></button>`;
+  }).join('');
+  setMedia(Math.min(imageIndex,mediaItems.length-1));
+}
+function setMedia(i){
+  if(!mediaItems.length)return;
+  const idx=(i+mediaItems.length)%mediaItems.length;
+  const m=mediaItems[idx];
+  imageIndex=idx;
+  const img=document.getElementById('mainImage');
+  const vid=document.getElementById('mainVideo');
+  const play=document.getElementById('mediaPlayOverlay');
+  const full=document.getElementById('videoFullBtn');
+  if(m.type==='video'){
+    // Video mode में photo बिल्कुल hide रहे, ताकि दोनों media एक साथ/आधे-आधे न दिखें।
+    if(img){img.style.setProperty('display','none','important');}
+    if(vid){vid.style.setProperty('display','block','important');vid.src=m.url;vid.style.width='100%';vid.style.height='100%';vid.style.objectFit='contain';try{vid.currentTime=0}catch(e){}}
+    if(play)play.style.display='flex';
+    if(full)full.style.display='block';
+  }else{
+    if(vid){try{vid.pause()}catch(e){};vid.removeAttribute('src');try{vid.load()}catch(e){};vid.style.setProperty('display','none','important');}
+    if(img){img.style.setProperty('display','block','important');img.src=m.url;}
+    if(play)play.style.display='none';
+    if(full)full.style.display='none';
+  }
+  const counter=document.getElementById('imageCount');
+  if(counter)counter.textContent=(idx+1)+' / '+mediaItems.length;
+  document.querySelectorAll('.thumb').forEach((x,n)=>x.classList.toggle('active',n===idx));
+}
+function setImage(i){
+  if(!mediaItems.length){renderGallery();return;}
+  const imagePositions=mediaItems.map((m,n)=>m.type==='image'?n:-1).filter(n=>n>=0);
+  const pos=imagePositions.length?imagePositions[((i%imagePositions.length)+imagePositions.length)%imagePositions.length]:0;
+  setMedia(pos);
+}
+function prevImage(){setMedia(imageIndex-1)}
+function nextImage(){setMedia(imageIndex+1)}
+function playMainVideo(){
+  const v=document.getElementById('mainVideo'); if(!v)return;
+  v.play().catch(()=>{}); document.getElementById('mediaPlayOverlay').style.display='none';
+}
+function openVideoFullscreen(){
+  const v=document.getElementById('mainVideo'); if(v?.requestFullscreen)v.requestFullscreen().catch(()=>{});
+}
+function openZoomViewer(){
+  const m=mediaItems[imageIndex]; if(!m||m.type!=='image')return;
+  const modal=document.getElementById('zoomModal'), zi=document.getElementById('zoomImage');
+  zi.src=m.url; zoomScale=1; rotY=0; rotX=0; zi.classList.remove('is-3d'); updateZoomTransform();
+  modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+}
+function closeZoomViewer(){const m=document.getElementById('zoomModal');m.classList.remove('show');m.setAttribute('aria-hidden','true')}
+let zoomScale=1,rotY=0,rotX=0,threeD=false;
+function updateZoomTransform(){
+  const z=document.getElementById('zoomImage'); if(!z)return;
+  z.style.setProperty('--zoom',zoomScale);z.style.setProperty('--ry',rotY+'deg');z.style.setProperty('--rx',rotX+'deg');
+  z.classList.toggle('is-3d',threeD);
+}
+function changeZoom(delta){zoomScale=Math.max(.5,Math.min(3,zoomScale+delta));updateZoomTransform()}
+function resetZoom(){zoomScale=1;rotY=0;rotX=0;threeD=false;document.getElementById('threeDBtn')?.classList.remove('active');updateZoomTransform()}
+function toggle3D(){
+  threeD=!threeD;
+  if(threeD){rotY=14;rotX=-4;document.getElementById('threeDBtn')?.classList.add('active')}
+  else{rotY=0;rotX=0;document.getElementById('threeDBtn')?.classList.remove('active')}
+  updateZoomTransform();
+}
+document.getElementById('zoomModal')?.addEventListener('click',e=>{if(e.target.id==='zoomModal')closeZoomViewer()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoomViewer()});
+document.getElementById('mainImageBox')?.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].screenX},{passive:true});
+document.getElementById('mainImageBox')?.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].screenX-touchStartX;
+  if(Math.abs(dx)>45)(dx<0?nextImage:prevImage)();
+},{passive:true});
+function addToCart(){if(!product)return;let cart=JSON.parse(localStorage.getItem('dp_cart_items')||'[]');let item=cart.find(x=>String(x.id)===String(product.id));if(item)item.quantity=(item.quantity||100)+100;else cart.push({id:product.id,name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||'',quantity:100});localStorage.setItem('dp_cart_items',JSON.stringify(cart));updateCart();showToast('कार्ड कार्ट में जोड़ दिया गया है!')}
+function updateCart(){try{document.getElementById('cartCount').textContent=JSON.parse(localStorage.getItem('dp_cart_items')||'[]').length}catch(e){}}
+function recentKey(c){return String(c?._source_table||'')+':'+String(c?.id??c?.catalog_id??'');}
+function saveRecentlyViewed(c){
+  if(!c)return;
+  try{let rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];const key=recentKey(c);rows=rows.filter(x=>recentKey(x)!==key);rows.unshift({...c,_source_table:c._source_table||''});localStorage.setItem('dp_recently_viewed_catalog',JSON.stringify(rows.slice(0,12)));}catch(e){}
+}
+function detailOriginalRate(c){
+  const n=parseFloat(c?.catalog_rate??c?.original_rate??c?.actual_rate??c?.mrp??c?.list_price);
+  return Number.isFinite(n)&&n>0?n:0;
+}
+function detailSaleRate(c){
+  const n=parseFloat(c?.sale_rate??c?.selling_price??c?.selling_rate??c?.current_rate??c?.rate??c?.price);
+  return Number.isFinite(n)&&n>0?n:0;
+}
+function detailDiscount(c){
+  const o=detailOriginalRate(c), s=detailSaleRate(c);
+  if(o>s&&s>0)return Math.round(((o-s)/o)*100);
+  const d=parseFloat(c?.discount??c?.discount_percent??c?.discountPercentage);
+  return Number.isFinite(d)&&d>0?Math.round(d):0;
+}
+function detailCardImage(c){
+  return c?.image||c?.image_url||c?.photo||getImages(c)[0]||placeholder;
+}
+function renderSmallCards(rows,boxId,emptyText){
+  const box=document.getElementById(boxId);if(!box)return;
+  if(!Array.isArray(rows)||!rows.length){
+    box.innerHTML='<div class="empty" style="grid-column:1/-1;text-align:center">'+esc(emptyText)+'</div>';
+    return;
+  }
+  box.innerHTML=rows.map((c,i)=>{
+    const name=esc(c.name||c.title||c.card_name||c.product_name||'शादी कार्ड');
+    const model=esc(c.model||c.code||c.card_model||c.model_no||'');
+    const o=detailOriginalRate(c), rate=detailSaleRate(c), discount=detailDiscount(c);
+    const img=detailCardImage(c);
+    const inStock=c.in_stock!==false;
+    const stockBadge=inStock
+      ? '<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>'
+      : '<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>';
+    let priceHtml='';
+    if(o>rate&&rate>0){
+      priceHtml='<div class="card-price-box"><span class="card-original-price">₹'+o.toLocaleString('en-IN')+'</span><span class="card-sale-price">₹'+rate.toLocaleString('en-IN')+'</span><span class="card-discount-badge">'+discount+'% OFF</span></div><span class="card-price-note">असली रेट: ₹'+o.toLocaleString('en-IN')+' • अभी: ₹'+rate.toLocaleString('en-IN')+' / पीस</span>';
+    }else{
+      priceHtml='<div class="card-price-tag">₹'+(rate||o||0).toLocaleString('en-IN')+' / पीस</div>';
+    }
+    const rav=Number(c._ratingAvg??c.rating??c.avg_rating??c.average_rating??c.stars??0)||0;
+    const rct=Number(c._ratingCount??c.rating_count??c.review_count??c.reviews_count??0)||0;
+    const ratingText=rav>0 ? rav.toFixed(1)+(rct?' ('+rct+')':'') : '0.0';
+    return '<div class="card-sample" onclick="openCatalogCard('+i+',\''+boxId+'\')" title="कैटलॉग विवरण खोलें">'
+      +'<div class="img-box"><img src="'+esc(img)+'" alt="'+name+'" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\';"></div>'
+      +'<div class="card-info"><h4>'+name+'</h4><div class="model-text">'+model+'</div>'+priceHtml
+      +'<div class="card-rating-row"><span class="rating-stars">★★★★★</span><span class="rating-text">'+ratingText+'</span><span class="rating-label">रेटिंग</span></div>'
+      +'<div style="margin-bottom:6px;">'+stockBadge+'</div></div></div>';
+  }).join('');
+}
+
+function loadRecentlyViewed(){
+  let rows=[];
+  try{rows=JSON.parse(localStorage.getItem('dp_recently_viewed_catalog')||'[]');if(!Array.isArray(rows))rows=[];}catch(e){rows=[];}
+  const cur=String(product?.id??id??'');
+  const seen=new Set();
+  rows=rows.filter(x=>{
+    const k=recentKey(x); if(String(x?.id??x?.catalog_id??'')===cur)return false;
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  // First visit/new browser पर भी section खाली न रहे: Index के दूसरे cards दिखाएँ।
+  if(!rows.length){
+    try{
+      const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+      const cached=JSON.parse(raw);
+      if(Array.isArray(cached)){
+        rows=cached.filter(x=>String(x?.id??x?.catalog_id??'')!==cur).slice(0,8);
+      }
+    }catch(e){}
+  }
+  rows=rows.slice(0,12);
+  window._recentRows=rows;
+  renderSmallCards(rows,'recentCatalog','अभी कोई Recently Viewed कार्ड नहीं है।');
+}
+function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window._recentRows||[]):(window._updatedRows||[]);const c=rows[index];if(!c)return;try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));saveRecentlyViewed(c);}catch(e){}location.href='catalog-detail.html?id='+encodeURIComponent(c.id??'');}
+async function fetchTableRows(tbl,limit=100){if(!sb)return [];try{const query=sb.from(tbl).select('*').order('id',{ascending:false}).limit(limit);const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));const res=await Promise.race([query,timeout]);if(res?.error||!Array.isArray(res?.data))return [];return res.data.map(x=>({...x,_source_table:tbl}));}catch(e){return [];}}
+async function loadMoreUpdatedCards(){
+  const box=document.getElementById('recommendedCatalog');if(!box)return;
+  let rows=[];
+  try{
+    const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]');
+    if(Array.isArray(local)&&local.length) rows=local;
+  }catch(e){}
+
+  if(!rows.length){
+    for(const tbl of ['catalog','cards','cards_catalog']){
+      rows=await fetchTableRows(tbl,100);
+      if(rows.length)break;
+    }
+  }
+
+  const cur=String(product?.id??id??'');
+  const seen=new Set();
+  rows=rows.filter(x=>{
+    const k=String(x.id??x.code??x.model??'');
+    if(!k||seen.has(k)||String(x.id??'')===cur)return false;
+    seen.add(k);return true;
+  }).slice(0,20);
+
+  try{
+    const ratingRows=await loadAllRatingRows();
+    rows=rows.map(c=>{
+      const rr=ratingMatchForCard(c,ratingRows,__allRatingOrders);
+      return {...c,_ratingAvg:rr.avg,_ratingCount:rr.count};
+    });
+  }catch(e){}
+
+  window._updatedRows=rows;
+  renderSmallCards(rows,'recommendedCatalog','अभी कोई अन्य कैटलॉग कार्ड उपलब्ध नहीं है।');
+}
+
+async function loadRecommendedCatalog(){await loadMoreUpdatedCards();}
+
+function openRecommended(rid){
+  if(!rid)return;
+  try{
+    const pools=[window._recommendedRows||[],window._recentRows||[],window._updatedRows||[]];
+    let c=null;
+    for(const p of pools){c=p.find(x=>String(x.id)===String(rid));if(c)break;}
+    if(c){
+      localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));
+      saveRecentlyViewed(c);
+    }
+  }catch(e){}
+  location.href='catalog-detail.html?id='+encodeURIComponent(rid);
+}
+function orderNow(){const logged=localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user');if(!logged){alert('ऑर्डर करने के लिए कृपया पहले लॉगिन करें।');location.href='login.html';return}const data={id:product.id||'',name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||''};localStorage.setItem('order_selected_card',JSON.stringify(data));location.href='order.html?id='+encodeURIComponent(data.id)}
+document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
+async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
+async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
+async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString(),sponsored:false};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));__allRatingRows=[];__allRatingOrders={};await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
+(async function(){
+  updateCart();
+  product=await findProduct();
+  if(!product){
+    document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';
+    return;
+  }
+  // Exact selected card पहले render करें; उसके बाद ratings/variants/recommended data आए।
+  render();
+  saveRecentlyViewed(product);
+  loadRecentlyViewed();
+  loadVariants().catch(()=>{});
+  loadFeedback().catch(()=>{});
+  loadMoreUpdatedCards().catch(()=>{});
+})();
+</script>
 </body>
 </html>
