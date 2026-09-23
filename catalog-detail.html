@@ -110,30 +110,6 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
  .rating-match-head h2,.customer-reviews-head h2{font-size:19px}
 }
 
-
-/* ===== FLIPKART MATCH DETAIL - FINAL ===== */
-.detail-rating-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:7px 0 12px}
-.detail-rating-stars{color:#f5a623;font-size:17px;letter-spacing:1px;font-weight:800}
-.detail-rating-number{font-size:15px;font-weight:900;color:#17325f}
-.detail-rating-count{font-size:13px;color:#667085;font-weight:700}
-.rating-summary-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.06);padding:16px;margin-top:12px}
-.rating-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #edf1f5;padding-bottom:10px;margin-bottom:14px}
-.rating-summary-head h2{margin:0;border:0;padding:0;font-size:20px;color:#172b4d}
-.rating-summary-grid{display:grid;grid-template-columns:135px 1fr;gap:20px;align-items:center}
-.rating-score-box{text-align:center;border-right:1px solid #edf1f5;padding-right:15px}
-.rating-score-box strong{display:block;font-size:40px;line-height:1;color:#172b4d}
-.rating-score-box .score-stars{font-size:18px;color:#f5a623;letter-spacing:1px;margin:5px 0}
-.rating-score-box small{color:#718096;font-weight:700}
-.rating-bars-box{display:flex;flex-direction:column;gap:7px}
-.rating-bar-row{display:grid;grid-template-columns:28px 1fr 28px;gap:7px;align-items:center;font-size:11px;color:#64748b;font-weight:700}
-.rating-bar-track{height:7px;background:#edf1f5;border-radius:20px;overflow:hidden}.rating-bar-fill{height:100%;background:#f5a623;border-radius:20px}
-.review-form-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:15px;margin-top:12px;box-shadow:0 3px 12px rgba(0,0,0,.05)}
-.review-form-card h3{font-size:18px;color:#172b4d;margin-bottom:7px}.review-form-card .hint{font-size:12px;color:#718096;margin-bottom:8px}
-.review-form-card input,.review-form-card textarea{border-radius:9px!important;border:1px solid #d9e1ea!important;background:#fff}
-.review-form-card textarea{height:90px!important}.rating-submit{background:#2874f0;color:#fff;border:0;border-radius:9px;padding:11px 18px;font-weight:900;width:100%}
-.customer-reviews-section{margin-top:12px!important;background:#fff;border:1px solid #e2e8f0;border-radius:12px!important;box-shadow:0 3px 12px rgba(0,0,0,.06)!important;padding:15px!important}
-.customer-reviews-head h2{font-size:19px!important}.review-card{background:#fff;border:1px solid #edf1f5;border-radius:10px;margin:8px 0;padding:11px!important}.review-card-stars{font-size:16px!important}.review-card-text{font-size:13px;line-height:1.55;color:#3f4d61}.review-image-btn{width:78px!important;height:78px!important}.recommended-section{border-radius:12px!important}.recommended-head h2{font-size:20px!important;color:#172b4d}.recommended-section .card-sample{border-radius:12px!important;box-shadow:0 3px 12px rgba(0,0,0,.07)!important}.recommended-section .card-sample .img-box{height:190px!important;background:#f5f7fa}.recommended-section .card-info h4{font-size:15px!important}.recommended-section .card-rating-row{margin:5px 0 8px!important}
-@media(max-width:520px){.details{padding:13px 10px 18px}.detail-rating-stars{font-size:15px}.detail-rating-number{font-size:14px}.rating-summary-grid{grid-template-columns:105px 1fr;gap:10px}.rating-score-box{padding-right:8px}.rating-score-box strong{font-size:34px}.rating-summary-card,.review-form-card,.customer-reviews-section{padding:12px!important}.recommended-section .card-sample .img-box{height:150px!important}}
 </style>
 </head>
 <body>
@@ -168,11 +144,6 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
       <div class="details">
         <h1 class="title" id="title">शादी कार्ड</h1>
         <div class="model" id="model"></div>
-        <div class="detail-rating-line" aria-label="कैटलॉग रेटिंग">
-          <span class="detail-rating-stars" id="topStars">☆☆☆☆☆</span>
-          <span class="detail-rating-number" id="ratingPill">0.0</span>
-          <span class="detail-rating-count" id="reviewCount">0 Ratings &amp; Reviews</span>
-        </div>
         <div id="variantSection" class="variant-section" style="display:none;padding:10px;margin:0 0 12px;box-shadow:none;border:1px solid #e6eaf0;">
           <div class="variant-head"><i class="fa-solid fa-palette" style="color:#2874f0"></i> रंग / Color</div>
           <div id="variantList" class="variant-list"></div>
@@ -199,23 +170,9 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
       </div>
     </section>
 
-    <section class="rating-summary-card" id="ratingSummarySection">
-      <div class="rating-summary-head"><h2>रेटिंग और रिव्यू</h2><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end"><span id="ratingSectionCount" style="font-size:12px;color:#2874f0;font-weight:800">0 Reviews</span><button type="button" onclick="openStandaloneRating()" style="border:0;background:#2874f0;color:#fff;border-radius:8px;padding:8px 12px;font-weight:800;cursor:pointer">⭐ रेटिंग/रिव्यू दें</button></div></div>
-      <div class="rating-summary-grid">
-        <div class="rating-score-box"><strong id="bigRating">0.0</strong><div class="score-stars" id="bigStars">☆☆☆☆☆</div><small id="bigReviewCount">0 Reviews</small></div>
-        <div class="rating-bars-box">
-          <div class="rating-bar-row"><span>5★</span><div class="rating-bar-track"><i id="b5" class="rating-bar-fill" style="width:0%"></i></div><span id="c5">0</span></div>
-          <div class="rating-bar-row"><span>4★</span><div class="rating-bar-track"><i id="b4" class="rating-bar-fill" style="width:0%"></i></div><span id="c4">0</span></div>
-          <div class="rating-bar-row"><span>3★</span><div class="rating-bar-track"><i id="b3" class="rating-bar-fill" style="width:0%"></i></div><span id="c3">0</span></div>
-          <div class="rating-bar-row"><span>2★</span><div class="rating-bar-track"><i id="b2" class="rating-bar-fill" style="width:0%"></i></div><span id="c2">0</span></div>
-          <div class="rating-bar-row"><span>1★</span><div class="rating-bar-track"><i id="b1" class="rating-bar-fill" style="width:0%"></i></div><span id="c1">0</span></div>
-        </div>
-      </div>
-    </section>
-
     <section class="customer-reviews-section" id="customerReviewsSection">
-      <div class="customer-reviews-head"><h2>ग्राहकों के रिव्यू <span id="customerReviewCount">(0)</span></h2><span>सभी रिव्यू</span></div>
-      <div id="reviewList" class="review-list"><div class="empty">रिव्यू लोड हो रहे हैं...</div></div>
+      <div class="customer-reviews-head"><h2>ग्राहक समीक्षा <span id="customerReviewCount">(0)</span></h2><span>सभी देखें ›</span></div>
+      <div id="reviewList" class="review-list"><div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div></div>
     </section>
 
   </main>
@@ -223,6 +180,10 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
     <button type="button" class="btn cart" onclick="addToCart()"><i class="fa-solid fa-cart-plus"></i> कार्ट में जोड़ें</button>
     <button type="button" class="btn order" onclick="orderNow()"><i class="fa-solid fa-bolt"></i> अभी ऑर्डर करें</button>
   </div>
+    <section class="section recommended-section" id="recentSection">
+      <div class="recommended-head"><h2>Recently Viewed</h2><span>आपने हाल में देखे हुए कार्ड</span></div>
+      <div id="recentCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">अभी कोई Recently Viewed कार्ड नहीं है।</div></div>
+    </section>
     <section class="section recommended-section" id="recommendedSection">
       <div class="recommended-head"><h2>More Products</h2></div>
       <div id="recommendedCatalog" class="recommended-grid"><div class="empty" style="grid-column:1/-1;text-align:center">लोड हो रहा है...</div></div>
@@ -244,13 +205,11 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
 <div id="toast" class="toast"></div>
 <script>
 const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoicXN2aHRma3JsemNsbnF3eXBmZHkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4ODI0Nzc2MywiZXhwIjoyMTAzODIzNzYzfQ.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+const SUPABASE_ANON_KEY="sb_publishable_UOq3tq9XZQ3cpGngx9uhbw_pDmLdCFS";
 let sb=null, product=null, images=[], imageIndex=0, selectedRating=0, feedbackRows=[];
 let allRatingRows=[];
 try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
-const urlParams=new URLSearchParams(location.search);
-const id=urlParams.get('id');
-const activeReviewId=urlParams.get('review_id') || '';
+const id=new URLSearchParams(location.search).get('id');
 let activeId=id;
 const placeholder="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><rect width='100%' height='100%' fill='%23f3f6fa'/><text x='50%' y='50%' font-size='28' fill='%2394a3b8' text-anchor='middle'>Card Image</text></svg>";
 function sale(c){let n=parseFloat(c.sale_rate??c.selling_price??c.selling_rate??c.current_rate??c.rate??c.price);return Number.isFinite(n)&&n>0?n:0}
@@ -353,113 +312,118 @@ async function selectCatalogVariant(index){
  render(); await loadVariants(); await loadFeedback(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function openStandaloneRating(){
-  const cid=String(activeId??product?.id??id??'').trim();
-  if(!cid)return;
-  try{localStorage.setItem('dp_rating_catalog_context',JSON.stringify({
-    catalog_id:cid,
-    name:product?.name??product?.title??product?.card_name??'',
-    model:product?.model??product?.code??product?.card_model??'',
-    image:getImages(product||{})[0]||''
-  }));}catch(e){}
-  window.location.href='rating.html?id='+encodeURIComponent(cid);
-}
-
 async function loadFeedback(){
   feedbackRows=[];
-  if(!product){renderRatings();return;}
+
+  // पहले common rating loader चलाएँ।
+  try{ await loadAllRatingRows(); }catch(e){}
 
   const aliases=getProductAliases(product);
-  const pt=productTitle(product), pm=productModel(product);
-  let rawRows=[];
 
-  // Supabase feedback is the primary source.
+  // Index से Detail पर आने पर वही card object मिलता है जिसमें _ratingAvg/_ratingCount मौजूद हैं।
+  // इन्हें तुरंत fallback rating source की तरह रखें ताकि Detail कभी 0 न दिखाए जबकि Index पर rating मौजूद हो।
+  const indexAvg=Number(product?._ratingAvg??0);
+  const indexCount=Number(product?._ratingCount??0);
+  window.__indexRatingFallback={
+    avg:Number.isFinite(indexAvg)&&indexAvg>0?indexAvg:0,
+    count:Number.isFinite(indexCount)&&indexCount>0?indexCount:0
+  };
+
+  let rows=allRatingRows.filter(r=>{
+    const ids=[
+      r?.catalog_id,r?.card_id,r?.product_id,
+      ...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])
+    ].map(cleanKey).filter(Boolean);
+    return ids.some(x=>aliases.has(x));
+  });
+
+  // सबसे महत्वपूर्ण: selected card की वास्तविक ID से catalog_feedback को सीधे पढ़ें।
+  // इससे Detail page Index से अलग resolver पर निर्भर नहीं रहेगा।
   if(sb){
+    const candidateIds=[...new Set([
+      activeId,
+      product?.id,
+      product?.catalog_id,
+      product?.card_id,
+      product?.product_id
+    ].filter(v=>v!==undefined&&v!==null&&cleanKey(v)).map(v=>String(v).trim()))];
+
+    const direct=[];
+    for(const cid of candidateIds){
+      for(const field of ['catalog_id','card_id','product_id']){
+        try{
+          const {data,error}=await Promise.race([
+            sb.from('catalog_feedback').select('*').eq(field,cid).order('created_at',{ascending:true}).limit(2000),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error('direct rating timeout')),5000))
+          ]);
+          if(!error&&Array.isArray(data)) direct.push(...data);
+        }catch(e){}
+      }
+    }
+
+    // Exact numeric lookup भी रखें, क्योंकि कुछ Supabase schemas में ID integer है।
+    for(const cid of candidateIds){
+      const n=Number(cid);
+      if(!Number.isFinite(n))continue;
+      try{
+        const {data,error}=await sb.from('catalog_feedback').select('*').eq('catalog_id',n).order('created_at',{ascending:true}).limit(2000);
+        if(!error&&Array.isArray(data)) direct.push(...data);
+      }catch(e){}
+    }
+
+    if(direct.length){
+      rows.push(...direct);
+    }
+  }
+
+  // अगर selected product का source object Index cache से आया है, उसी exact cached card
+  // को ढूँढकर उसके resolved rating rows भी जोड़ें।
+  if(!rows.length){
     try{
-      const {data,error}=await Promise.race([
-        sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('feedback timeout')),7000))
-      ]);
-      if(!error&&Array.isArray(data)) rawRows=data;
+      const raw=localStorage.getItem('dp_index_catalog')||
+                localStorage.getItem('dp_index_catalog_cache_v3')||
+                sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+      const cards=JSON.parse(raw);
+      if(Array.isArray(cards)){
+        const cur=cards.find(c=>
+          String(c?.id??c?.catalog_id??'')===String(activeId??product?.id??'') ||
+          (String(c?.model??c?.code??'')===String(product?.model??product?.code??'') &&
+           String(c?.name??c?.title??'')===String(product?.name??product?.title??''))
+        );
+        if(cur){
+          const ca=getProductAliases(cur);
+          rows=allRatingRows.filter(r=>{
+            const ids=[r?.catalog_id,r?.card_id,r?.product_id,...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])].map(cleanKey).filter(Boolean);
+            return ids.some(x=>ca.has(x));
+          });
+        }
+      }
     }catch(e){}
   }
 
-  // Local data is only a fallback/supplement and is deduplicated below.
-  try{
-    const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-    if(local&&typeof local==='object') Object.keys(local).forEach(k=>rawRows.push({...local[k],catalog_id:local[k]?.catalog_id||k,_source:'local'}));
-    const local2=JSON.parse(localStorage.getItem('catalog_feedback_'+String(product.id||id))||'[]');
-    if(Array.isArray(local2)) rawRows.push(...local2.map(x=>({...x,catalog_id:x?.catalog_id||product.id,_source:'local'})));
-  }catch(e){}
-
-  // Load the orders referenced by reviews. This resolves old model-only feedback safely.
-  const orderIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
-  const orderMap={};
-  if(sb&&orderIds.length){
-    const nums=orderIds.map(Number).filter(Number.isFinite);
-    for(let i=0;i<nums.length;i+=100){
-      try{
-        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',nums.slice(i,i+100));
-        if(!error&&Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
-      }catch(e){}
-    }
-  }
-
-  const matches=[];
-  for(const r of rawRows){
-    const direct=[r?.catalog_id,r?.card_id,r?.product_id].map(cleanKey).filter(Boolean);
-    const directRealIds=direct.filter(x=>/^\d+(?:\.0+)?$/.test(x));
-    const directLegacy=direct.filter(x=>/model|code|मॉडल|कोड/i.test(x));
-
-    // A real numeric catalog ID is authoritative.
-    if(directRealIds.length){
-      if(directRealIds.some(x=>aliases.has(x))) matches.push(r);
-      continue;
-    }
-
-    const oid=String(r?.order_db_id??r?.order_id??'').trim();
-    const o=orderMap[oid];
-    const ot=productTitle(o), om=productModel(o);
-    const oc=[o?.catalog_id,o?.card_id,o?.product_id].map(cleanKey).filter(Boolean);
-
-    // Order's real catalog ID wins when present.
-    if(oc.some(x=>aliases.has(x))){matches.push(r);continue;}
-    if(oc.some(x=>/^\d+(?:\.0+)?$/.test(x))) continue;
-
-    // Legacy "Model / Code: XXXXX" reviews: resolve by the order's exact
-    // title/model first, and only then by the product model if there is no order.
-    const titleOK=!!(pt&&ot&&(pt===ot||pt.includes(ot)||ot.includes(pt)||titleScore(pt,ot)>=0.60));
-    const modelOK=!!(pm&&om&&(pm===om||pm.includes(om)||om.includes(pm)));
-    const legacyModel=directLegacy.join(' ');
-    const legacyModelOK=!!(legacyModel&&pm&&modelKey(legacyModel).includes(pm));
-    if((titleOK&&(!pm||!om||modelOK)) || (legacyModelOK&&(!o || (titleOK||modelOK)))) matches.push(r);
-  }
-
-  // If the broad query was blocked, make one direct catalog-id query as a final fallback.
-  if(!matches.length && sb){
-    for(const cid of aliases){
-      if(!/^\d+(?:\.0+)?$/.test(cid)) continue;
-      try{
-        const {data,error}=await sb.from('catalog_feedback').select('*').eq('catalog_id',cid).order('created_at',{ascending:false}).limit(200);
-        if(!error&&Array.isArray(data)) matches.push(...data);
-      }catch(e){}
-    }
+  // Legacy model/title-only rows: only when no direct catalog row exists.
+  if(!rows.length){
+    rows=allRatingRows.filter(r=>ratingBelongsToProductForCard(r,aliases,product));
   }
 
   const dedup=new Map();
-  for(const r of matches){
+  for(const r of rows){
     const rid=String(r?.id??'').trim();
-    const sig=rid?'id:'+rid:[String(r?.order_db_id??r?.order_id??'').trim(),cleanKey(r?.catalog_id??''),cleanKey(r?.name??r?.user_name??''),String(r?.rating??r?.stars??''),cleanKey(r?.feedback??r?.comment??r?.review??r?.review_text??r?.text??''),reviewImageList(r).join(','),String(r?.created_at??'')].join('|');
+    const sig=rid ? 'id:'+rid : [
+      String(r?.order_db_id??r?.order_id??'').trim(),
+      cleanKey(r?.catalog_id??r?.card_id??r?.product_id??''),
+      cleanKey(r?.name??r?.user_name??r?.customer_name??''),
+      String(r?.rating??r?.stars??''),
+      cleanKey(r?.feedback??r?.comment??r?.review??r?.review_text??r?.text??''),
+      reviewImageList(r).join(','),
+      String(r?.created_at??'')
+    ].join('|');
     if(!dedup.has(sig))dedup.set(sig,r);
   }
+
   feedbackRows=[...dedup.values()];
   renderRatings();
 }
-function sameModelKey(a,b){
-  a=modelKey(a); b=modelKey(b);
-  return !a||!b||a===b||a.includes(b)||b.includes(a);
-}
-
 function cleanKey(v){return String(v??'').trim().toLowerCase().replace(/\s+/g,' ')}
 function modelKey(v){return cleanKey(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'')}
 function tokenize(v){return cleanKey(v).replace(/[^a-z0-9\u0900-\u097f]+/g,' ').split(/\s+/).filter(x=>x.length>1)}
@@ -551,20 +515,24 @@ function renderRatings(){
     images:reviewImageList(r),
     date:r?.created_at?new Date(r.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):''
   })).filter(r=>r.rating>0);
-  const total=rows.reduce((a,r)=>a+r.rating,0),avg=rows.length?total/rows.length:0;
+  const total=rows.reduce((a,r)=>a+r.rating,0);
+  const loadedAvg=rows.length?total/rows.length:0;
+  const fallback=window.__indexRatingFallback||{avg:0,count:0};
+  const avg=loadedAvg || Number(fallback.avg||0);
+  const displayCount=rows.length || Number(fallback.count||0);
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val};
   const ratingNumber=avg?avg.toFixed(1):'0.0';
-  set('ratingPill',ratingNumber+(rows.length?' ('+rows.length+')':''));
+  set('ratingPill',ratingNumber+(displayCount?' ('+displayCount+')':''));
   set('topStars',stars(avg));
   set('reviewCount',rows.length+' Ratings & Reviews');
   set('photoRatingStars',stars(avg));
   set('photoRatingText',ratingNumber);
-  set('photoRatingCount','('+rows.length+')');
+  set('photoRatingCount','('+displayCount+')');
   set('bigRating',avg?avg.toFixed(1):'0.0');
   set('bigStars',stars(avg));
   set('bigReviewCount',rows.length+' Reviews');
-  set('ratingSectionCount',rows.length+' Reviews');
-  set('customerReviewCount','('+rows.length+')');
+  set('ratingSectionCount',displayCount+' Reviews');
+  set('customerReviewCount','('+displayCount+')');
   for(let n=1;n<=5;n++){
     const c=rows.filter(r=>Math.round(r.rating)===n).length;
     set('c'+n,c);
@@ -821,58 +789,34 @@ function loadRecentlyViewed(){
 function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window._recentRows||[]):(window._updatedRows||[]);const c=rows[index];if(!c)return;try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify(c));saveRecentlyViewed(c);}catch(e){}location.href='catalog-detail.html?id='+encodeURIComponent(c.id??'');}
 async function fetchTableRows(tbl,limit=100){if(!sb)return [];try{const query=sb.from(tbl).select('*').order('id',{ascending:false}).limit(limit);const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));const res=await Promise.race([query,timeout]);if(res?.error||!Array.isArray(res?.data))return [];return res.data.map(x=>({...x,_source_table:tbl}));}catch(e){return [];}}
 async function loadMoreUpdatedCards(){
-  const box=document.getElementById('recommendedCatalog');
-  if(!box)return;
-  const cur=String(product?.id??id??'').trim();
+  if(!allRatingRows.length){try{await loadAllRatingRows()}catch(e){}}
+  const box=document.getElementById('recommendedCatalog');if(!box)return;
   let rows=[];
-
-  // पहले Index cache — More Products तुरंत दिखेंगे, Supabase की speed पर निर्भर नहीं।
-  const cacheKeys=['dp_index_catalog','dp_index_catalog_cache_v3'];
-  for(const key of cacheKeys){
-    try{
-      const raw=localStorage.getItem(key)||sessionStorage.getItem(key)||'';
-      const parsed=raw?JSON.parse(raw):[];
-      if(Array.isArray(parsed)&&parsed.length){rows=parsed;break;}
-    }catch(e){}
-  }
-
-  const paint=async()=>{
-    const byId=new Map();
-    for(const r of rows){
-      const key=String(r?.id??r?.catalog_id??'').trim();
-      if(!key||key===cur)continue;
-      if(!byId.has(key))byId.set(key,r);
-    }
-    const visible=[...byId.values()].slice(0,20);
-    window._updatedRows=visible;
-    renderSmallCards(visible,'recommendedCatalog','वर्तमान में कोई दूसरा कैटलॉग उपलब्ध नहीं है।');
-  };
-
-  // Cache को तुरंत paint करें। Rating fetch इसके बाद background में होगा।
-  await paint();
-
-  // Live Admin catalog background refresh — page को block नहीं करेगा।
-  if(sb){
-    try{
-      const {data,error}=await Promise.race([
-        sb.from('catalog').select('*').limit(1000),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500))
-      ]);
-      if(!error&&Array.isArray(data)&&data.length){
-        rows=[...rows,...data.map(x=>({...x,_source_table:'catalog'}))];
-        await paint();
-        try{localStorage.setItem('dp_index_catalog',JSON.stringify(data));}catch(e){}
-        try{sessionStorage.setItem('dp_index_catalog_cache_v3',JSON.stringify(data));}catch(e){}
-      }
-    }catch(e){}
-  }
-
-  // Ratings को अलग background step में लगाएँ; More Products को इसके लिए रोकें नहीं।
+  // Exact Index catalog first. This is the source for More Products.
   try{
-    await loadAllRatingRows();
-    await paint();
+    const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]');
+    if(Array.isArray(local)&&local.length) rows=local;
   }catch(e){}
+
+  // If the cache is missing (for example first visit/direct URL), read Supabase.
+  if(!rows.length){
+    for(const tbl of ['catalog','cards','cards_catalog']){
+      rows=await fetchTableRows(tbl,100);
+      if(rows.length)break;
+    }
+  }
+
+  const cur=String(product?.id??id??'');
+  const seen=new Set();
+  rows=rows.filter(x=>{
+    const k=String(x.id??x.code??x.model??'');
+    if(!k||seen.has(k)||String(x.id??'')===cur)return false;
+    seen.add(k);return true;
+  }).slice(0,20);
+  window._updatedRows=rows;
+  renderSmallCards(rows,'recommendedCatalog','अभी कोई अन्य कैटलॉग कार्ड उपलब्ध नहीं है।');
 }
+
 async function loadRecommendedCatalog(){await loadMoreUpdatedCards();}
 
 function openRecommended(rid){
@@ -889,21 +833,28 @@ function openRecommended(rid){
   location.href='catalog-detail.html?id='+encodeURIComponent(rid);
 }
 function orderNow(){const logged=localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user');if(!logged){alert('ऑर्डर करने के लिए कृपया पहले लॉगिन करें।');location.href='login.html';return}const data={id:product.id||'',name:product.name||product.title||'शादी कार्ड',model:product.model||product.code||'',rate:sale(product),image:images[0]||''};localStorage.setItem('order_selected_card',JSON.stringify(data));location.href='order.html?id='+encodeURIComponent(data.id)}
-
-
-
+document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
+async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
+async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
+async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
 (async function(){
   updateCart();
-  // Main product first: Index handoff/cache is immediate. Ratings and More Products run once in background.
+  // Start More Products immediately from the Index cache; it must not depend on the main product query.
+  loadAllRatingRows().then(()=>{loadMoreUpdatedCards().catch(()=>{});}).catch(()=>{});
+  loadMoreUpdatedCards().catch(()=>{});
   product=await findProduct();
-  if(!product){document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';return;}
+  if(!product){
+    document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';
+    return;
+  }
   render();
   saveRecentlyViewed(product);
+  loadRecentlyViewed();
   loadMoreUpdatedCards().catch(()=>{});
-  loadFeedback().catch(()=>{});
   loadVariants().catch(()=>{});
+  if(product.id||activeId) loadFeedback().catch(()=>{});
+  loadAllRatingRows().then(()=>loadMoreUpdatedCards()).catch(()=>{});
 })();
-
 
 document.addEventListener('click',e=>{
   const img=e.target?.closest?.('#mainImage');
