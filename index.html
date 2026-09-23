@@ -907,97 +907,37 @@
             const container = document.getElementById('catalogContainer');
             if (!container) return;
 
-            // पहले local cache, फिर session cache — खाली/टूटा cache कभी render को नहीं रोकेगा।
-            let hadCache = false;
-            const cacheKeys = [
-                'dp_index_catalog',
-                'dp_index_catalog_cache_v3',
-                'dp_index_catalog_cache_v2'
-            ];
-
-            for (const storageName of ['localStorage','sessionStorage']) {
-                try {
-                    const storage = window[storageName];
-                    for (const key of cacheKeys) {
-                        const raw = storage.getItem(key);
-                        if (!raw) continue;
-                        const cachedCards = JSON.parse(raw);
-                        if (Array.isArray(cachedCards) && cachedCards.length) {
-                            hadCache = true;
-                            globalCards = cachedCards;
-                            syncIndexCatalogCache(cachedCards);
-                            try { renderRealCardsFromCatalog(cachedCards); } catch(e) {}
-                            try { renderCatalogCards(cachedCards); } catch(e) {}
-                            // Rating बाद में आए तो cards फिर से render होंगे; catalog blank नहीं होगा।
-                            loadCatalogRatings()
-                                .then(()=>{ try {
-                                    renderRealCardsFromCatalog(globalCards);
-                                    renderCatalogCards(globalCards);
-                                } catch(e){} })
-                                .catch(()=>{});
-                            break;
-                        }
-                    }
-                } catch(e) {}
-                if (hadCache) break;
-            }
-
-            // Supabase उपलब्ध नहीं है तो cached catalog दिखाकर रुकें।
-            if (!supabaseClient) {
-                if (!hadCache) {
-                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#ef4444">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
-                }
-                return;
-            }
-
-            // मुख्य और आधिकारिक Catalog source: `catalog` table.
-            // दूसरे tables को तभी देखें जब मुख्य table से वास्तविक error आए।
-            // तीनों tables का data मिलाने से duplicate/अलग cards आकर catalog
-            // दोबारा render होने पर कभी-कभी cards गायब/बदल सकते थे।
+            // IMPORTANT: live Supabase catalog is the primary source.
+            // Old local/session cache is used ONLY if live loading completely fails.
+            let liveRows = [];
             const tables = ['catalog', 'cards', 'cards_catalog'];
-            const allRows = [];
-            let primaryQuerySucceeded = false;
 
-            for (let ti = 0; ti < tables.length; ti++) {
-                const tbl = tables[ti];
+            // Read all three catalog sources. Do NOT stop after the first table,
+            // because in this project the Admin/catalog data can be split between tables.
+            for (const tbl of tables) {
                 try {
                     const result = await Promise.race([
-                        supabaseClient.from(tbl).select('*'),
+                        supabaseClient?.from(tbl).select('*'),
                         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
                     ]);
-
-                    if (!result.error) {
-                        primaryQuerySucceeded = true;
-                        if (Array.isArray(result.data)) {
-                            result.data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
-                        }
-                        // `catalog` सफल हुआ तो उसी का data authoritative है।
-                        break;
+                    if (result && !result.error && Array.isArray(result.data)) {
+                        result.data.forEach(row => liveRows.push({ ...row, _source_table: tbl }));
                     }
                 } catch(e) {}
-
-                // केवल error की स्थिति में अगला fallback table देखें।
             }
 
-            // अगर मुख्य query सफल होकर खाली लौटी है, तो उसे valid empty result मानें।
-            // दूसरे पुराने tables से अलग/पुराना catalog नहीं मिलाएँगे।
-            if (!allRows.length && !primaryQuerySucceeded) {
-                if (hadCache && Array.isArray(globalCards) && globalCards.length) {
-                    try { renderCatalogCards(globalCards); } catch(e) {}
-                    return;
-                }
-
-                // आखिरी REST fallback — केवल तब जब Supabase JS query असफल हुई हो।
+            // REST fallback if SDK did not return any rows.
+            if (!liveRows.length && supabaseClient) {
                 for (const tbl of tables) {
                     try {
                         const controller = new AbortController();
-                        const timer = setTimeout(() => controller.abort(), 7000);
+                        const timer = setTimeout(() => controller.abort(), 8000);
                         const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
                         const res = await fetch(url, {
                             method:'GET',
                             headers:{
-                                'apikey':SUPABASE_ANON_KEY,
-                                'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,
+                                'apikey': SUPABASE_ANON_KEY,
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
                                 'Accept':'application/json'
                             },
                             signal:controller.signal,
@@ -1007,56 +947,84 @@
                         clearTimeout(timer);
                         if (res.ok) {
                             const data = await res.json();
-                            if (Array.isArray(data) && data.length) {
-                                data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
-                                break;
-                            }
+                            if (Array.isArray(data)) data.forEach(row => liveRows.push({ ...row, _source_table: tbl }));
                         }
                     } catch(e) {}
                 }
             }
 
-            if (!allRows.length) {
-                if (!hadCache) {
-                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
+            if (liveRows.length) {
+                // Same catalog ID appearing in more than one fallback table is one card.
+                // Prefer the first source (catalog -> cards -> cards_catalog).
+                const byId = new Map();
+                const noId = [];
+                for (const row of liveRows) {
+                    const id = String(row?.id ?? row?.catalog_id ?? '').trim();
+                    if (!id) {
+                        noId.push(row);
+                        continue;
+                    }
+                    if (!byId.has(id)) byId.set(id, row);
                 }
+
+                let fetchedData = [...byId.values(), ...noId];
+                fetchedData = fetchedData.filter(Boolean).sort((a,b) => {
+                    const da = new Date(a.created_at || a.updated_at || 0).getTime() || 0;
+                    const db = new Date(b.created_at || b.updated_at || 0).getTime() || 0;
+                    if (db !== da) return db - da;
+                    return (Number(b.id)||0) - (Number(a.id)||0);
+                });
+
+                globalCards = fetchedData;
+                syncIndexCatalogCache(fetchedData);
+                try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(fetchedData)); } catch(e) {}
+
+                // Render the complete live catalog only after the complete list is ready.
+                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                try { renderCatalogCards(globalCards); } catch(e) {}
+
+                // Rating refresh changes only the card's rating display; it must not replace
+                // the catalog with an old cached list.
+                loadCatalogRatings()
+                    .then(() => {
+                        try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                        try { renderCatalogCards(globalCards); } catch(e) {}
+                    })
+                    .catch(() => {});
                 return;
             }
 
-            // केवल उसी source में बिल्कुल वही record दोबारा आए तो duplicate हटाएँ।
-            const seen = new Set();
-            const fetchedData = allRows.filter(card => {
-                const source = String(card._source_table || '');
-                const id = String(card.id ?? '');
-                const signature = [
-                    source, id,
-                    String(card.name ?? card.title ?? '').trim().toLowerCase(),
-                    String(card.model ?? card.code ?? '').trim().toLowerCase(),
-                    String(card.image ?? card.image_url ?? card.photo ?? '').trim()
-                ].join('|');
-                if (seen.has(signature)) return false;
-                seen.add(signature);
-                return true;
-            }).sort((a,b) => {
-                const da = new Date(a.created_at || a.updated_at || 0).getTime() || 0;
-                const db = new Date(b.created_at || b.updated_at || 0).getTime() || 0;
-                if (db !== da) return db - da;
-                return (Number(b.id)||0) - (Number(a.id)||0);
-            });
+            // Live database failed completely: use the last known cache as a fallback only.
+            let cachedCards = null;
+            for (const storageName of ['localStorage','sessionStorage']) {
+                try {
+                    const storage = window[storageName];
+                    for (const key of ['dp_index_catalog','dp_index_catalog_cache_v3','dp_index_catalog_cache_v2']) {
+                        const raw = storage.getItem(key);
+                        if (!raw) continue;
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length) {
+                            cachedCards = parsed;
+                            break;
+                        }
+                    }
+                } catch(e) {}
+                if (cachedCards) break;
+            }
 
-            globalCards = fetchedData;
-            syncIndexCatalogCache(fetchedData);
-            try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(fetchedData)); } catch(e) {}
-
-            try { renderRealCardsFromCatalog(fetchedData); } catch(e) {}
-            try { renderCatalogCards(fetchedData); } catch(e) {}
-
-            loadCatalogRatings()
-                .then(()=>{ try {
-                    renderRealCardsFromCatalog(globalCards);
-                    renderCatalogCards(globalCards);
-                } catch(e){} })
-                .catch(()=>{});
+            if (cachedCards) {
+                globalCards = cachedCards;
+                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                try { renderCatalogCards(globalCards); } catch(e) {}
+                loadCatalogRatings()
+                    .then(() => {
+                        try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                        try { renderCatalogCards(globalCards); } catch(e) {}
+                    })
+                    .catch(() => {});
+            } else {
+                container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
+            }
         }
 
         let catalogLoadPromise = null;
