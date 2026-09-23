@@ -358,6 +358,23 @@
 .voice-msg audio{width:220px;max-width:100%;height:34px;margin-top:4px;}
 @media(max-width:520px){.cust-corr-msg{max-width:90%;}.voice-msg audio{width:190px;}.cust-corr-actions{grid-template-columns:1fr!important;}}
 
+
+/* FINAL MOBILE CATALOG CARD FIT FIX */
+.catalog-card{min-width:0;overflow:hidden;background:#fff;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.catalog-card-image-wrap{width:100%;height:150px;overflow:hidden;background:#f3f6fa;display:flex;align-items:center;justify-content:center;}
+.catalog-card-image-wrap img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;display:block;}
+.catalog-card-body{padding:8px 9px;}
+.catalog-card-body h4{font-size:13px;line-height:1.3;margin:0 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.catalog-model{font-size:10px;color:#64748b;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.catalog-price{font-size:15px;font-weight:800;color:#e53935;}
+.catalog-off{font-size:9px;background:#08a86a;color:#fff;border-radius:10px;padding:2px 5px;}
+.catalog-rating{font-size:11px;margin-top:4px;color:#f5a623;white-space:nowrap;}
+.catalog-rating b{color:#1e3a68;margin-left:3px;}
+.catalog-rating span{color:#718096;margin-left:2px;}
+.catalog-stock{display:inline-block;margin-top:5px;font-size:9px;background:#d7f6e8;color:#12945e;padding:3px 7px;border-radius:10px;font-weight:700;}
+#recommendedCatalogContainer{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+@media(max-width:700px){#recommendedCatalogContainer{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.catalog-card-image-wrap{height:145px}.bottom-showcase-box{padding:12px!important}.showcase-header-title{font-size:18px!important;margin-bottom:10px!important}.catalog-card-body{padding:7px 8px}.catalog-price{font-size:14px}}
+@media(max-width:380px){.catalog-card-image-wrap{height:125px}.catalog-card-body h4{font-size:12px}.catalog-price{font-size:13px}}
 </style>
 
 <style>
@@ -398,7 +415,7 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
 .footer-logout-btn{display:block;width:100%;max-width:340px;margin:8px auto 0;background:#fff;color:#e53935;border:1px solid #e53935;border-radius:3px;padding:10px;font-weight:800;cursor:pointer;}
 @media(max-width:768px){.container{margin-top:8px!important}.user-welcome-card{border-radius:0!important;margin-left:-10px;margin-right:-10px}.order-card{border-left:0!important;border-right:0!important}.my-orders-footer{margin-left:-10px;margin-right:-10px;}}
 
-.btn-card-video{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:8px;padding:8px 10px;font-weight:800;cursor:pointer}.order-video-modal{position:fixed;inset:0;background:rgba(15,23,42,.82);display:none;align-items:center;justify-content:center;z-index:99999;padding:14px}.order-video-panel{width:min(620px,96vw);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.3)}.order-video-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer}.order-video-panel video{width:100%;max-height:70vh;border-radius:10px;background:#000}
+margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer}.order-video-panel video{width:100%;max-height:70vh;border-radius:10px;background:#000}
 </style>
 </head>
 <body>
@@ -801,7 +818,6 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                                 <button class="btn-rate-order" onclick="openOrderRating(${index})">
                                     <i class="fa-solid fa-star"></i> रेटिंग दें
                                 </button>
-                                <button class="btn-card-video" onclick="openOrderCardVideo(${index})"><i class="fa-solid fa-circle-play"></i> कार्ड वीडियो</button>
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
@@ -904,13 +920,41 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             const createdAt=new Date().toISOString();
             const imageUrls=await uploadOrderReviewImages(files,orderId);
             const row={catalog_id:catalogId||null,order_id:ord.order_id||null,order_db_id:ord.id||null,rating:orderRatingValue,stars:orderRatingValue,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:createdAt};
+
+            // Browser में तुरंत shared rating cache रखें ताकि Index और Catalog Detail
+            // Supabase response का इंतजार किए बिना यही rating दिखा सकें।
+            if(catalogId){
+                try{
+                    const ratingMap=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+                    ratingMap[String(catalogId)]={...row,catalog_id:String(catalogId)};
+                    localStorage.setItem('dp_catalog_ratings',JSON.stringify(ratingMap));
+                }catch(e){}
+            }
+
             let saved=false;
             if(supabaseClient){
                 try{
-                    const {error}=await supabaseClient.from('catalog_feedback').insert(row);
-                    if(!error)saved=true;
-                    else console.error('catalog_feedback insert:',error);
-                }catch(e){console.error('catalog_feedback insert:',e);}
+                    // एक Order की एक ही current rating रखें। पहले उसी order की पुरानी
+                    // feedback row खोजें; मिलने पर update, नहीं तो insert करें।
+                    let existing=null;
+                    const lookups=[];
+                    if(ord.id!=null) lookups.push(supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',Number(ord.id)).order('created_at',{ascending:false}).limit(1));
+                    if(ord.order_id) lookups.push(supabaseClient.from('catalog_feedback').select('*').eq('order_id',String(ord.order_id)).order('created_at',{ascending:false}).limit(1));
+                    if(lookups.length){
+                        const results=await Promise.all(lookups.map(q=>q.catch(()=>null)));
+                        for(const q of results){if(!q?.error&&Array.isArray(q.data)&&q.data[0]){existing=q.data[0];break;}}
+                    }
+                    if(existing?.id!=null){
+                        const {error}=await supabaseClient.from('catalog_feedback').update(row).eq('id',existing.id);
+                        if(!error)saved=true;
+                        else console.error('catalog_feedback update:',error);
+                    }
+                    if(!saved){
+                        const {error}=await supabaseClient.from('catalog_feedback').insert(row);
+                        if(!error)saved=true;
+                        else console.error('catalog_feedback insert:',error);
+                    }
+                }catch(e){console.error('catalog_feedback save:',e);}
             }
             const catalogKey='catalog_feedback_'+String(catalogId||'unknown');
             let localReviews=[]; try{localReviews=JSON.parse(localStorage.getItem(catalogKey)||'[]');if(!Array.isArray(localReviews))localReviews=[];}catch(e){}
@@ -1192,38 +1236,36 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             const container=document.getElementById('recommendedCatalogContainer');
             if(!container) return;
 
-            // Show Index's last known complete catalog immediately only when it contains
-            // multiple cards. Never show a stale one-card cache as the page's catalog.
+            // सबसे पहले Index का वही cache दिखाएँ — Supabase धीमा हो तब भी catalog खाली नहीं रहेगा।
             let cache=[];
             try{
                 const raw=localStorage.getItem('dp_index_catalog') || sessionStorage.getItem('dp_index_catalog_cache_v3') || '';
                 const parsed=raw?JSON.parse(raw):[];
-                if(Array.isArray(parsed) && parsed.length>1) cache=parsed;
+                if(Array.isArray(parsed) && parsed.length) cache=parsed;
             }catch(e){}
             if(cache.length){ renderRecommendedCatalogCards(cache); }
-            else container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग तैयार हो रहा है...</p>`;
+            else container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग लोड हो रहा है...</p>`;
 
-            // Admin's `catalog` table is the single source of truth, exactly like Index.
             if(!supabaseClient){
                 if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग उपलब्ध नहीं है।</p>`;
                 return;
             }
             try{
+                // केवल Admin की मुख्य catalog table पढ़ें; तीन tables को एक साथ पढ़कर 3–5 सेकंड की देरी नहीं होगी।
                 const {data,error}=await Promise.race([
-                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}),
-                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),3000))
+                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
+                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),4500))
                 ]);
                 if(error) throw error;
                 const live=Array.isArray(data)?data:[];
                 const seen=new Set();
-                const clean=live.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
-                // Successful empty result is authoritative: do not resurrect old catalog cards.
+                const clean=live.filter(c=>{const id=String(c?.id??c?.catalog_id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
                 renderRecommendedCatalogCards(clean);
                 try{ localStorage.setItem('dp_index_catalog',JSON.stringify(clean)); }catch(e){}
                 try{ sessionStorage.setItem('dp_index_catalog_cache_v3',JSON.stringify(clean)); }catch(e){}
             }catch(e){
-                // If live request fails, retain a complete multi-card Index cache; never a one-card stale cache.
-                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग अभी लोड नहीं हो पाया।</p>`;
+                // Live slow/fail होने पर पहले से दिख रहा cache वैसा ही रहने दें।
+                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग अभी लोड नहीं हो पाया। कृपया रिफ्रेश करें।</p>`;
             }
         }
 
@@ -1566,8 +1608,5 @@ function closeOrderCardVideo(){const m=document.getElementById('orderVideoModal'
             <button class="btn-submit-rating" type="button" onclick="submitOrderRating()"><i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें</button>
         </div>
     </div>
-
-
-<div class="order-video-modal" id="orderVideoModal" onclick="if(event.target===this)closeOrderCardVideo()"><div class="order-video-panel"><div class="order-video-head"><b id="orderVideoTitle">कार्ड वीडियो</b><button type="button" onclick="closeOrderCardVideo()">×</button></div><video id="orderVideoPlayer" controls playsinline preload="metadata"></video><div id="orderVideoStatus" style="font-size:12px;color:#64748b;margin-top:7px"></div></div></div>
 </body>
 </html>
