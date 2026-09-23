@@ -347,6 +347,41 @@
 /* DP Chat unread blinking */
 .btn-open-correction.dp-chat-unread{background:#dc2626!important;color:#fff!important;animation:dpMyOrderChatBlink 1s infinite;box-shadow:0 0 0 0 rgba(220,38,38,.75)!important;}
 @keyframes dpMyOrderChatBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.75)!important}50%{opacity:.45;box-shadow:0 0 0 8px rgba(220,38,38,0)!important}}
+
+        /* RECOMMENDED CATALOG: exact Index card styling */
+        .bottom-showcase-box .card-sample{
+            background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;
+            box-shadow:0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;
+            transition:.22s;min-width:0;
+        }
+        .bottom-showcase-box .card-sample:hover{transform:translateY(-3px);box-shadow:0 9px 20px rgba(0,0,0,.10)}
+        .bottom-showcase-box .card-sample .img-box{position:relative;overflow:hidden;cursor:pointer;background:#f3f6fa;height:155px}
+        .bottom-showcase-box .card-sample .img-box img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
+        .bottom-showcase-box .card-info{padding:9px 10px 10px;text-align:left}
+        .bottom-showcase-box .card-info h4{font-size:16px;color:#13265a;margin:0 0 1px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .bottom-showcase-box .model-text{font-size:12px;color:#344c77;margin-bottom:2px}
+        .bottom-showcase-box .card-price-tag{color:#e51e3b;font-size:18px;font-weight:800}
+        .bottom-showcase-box .card-price-box{margin:2px 0 3px;line-height:1.2}
+        .bottom-showcase-box .card-original-price{display:inline-block;color:#7b8799;font-size:12px;font-weight:700;text-decoration:line-through;margin-right:6px}
+        .bottom-showcase-box .card-sale-price{display:inline-block;color:#e51e3b;font-size:18px;font-weight:800}
+        .bottom-showcase-box .card-discount-badge{display:inline-block;background:#08a86a;color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:12px;margin-left:5px;vertical-align:2px}
+        .bottom-showcase-box .card-price-note{display:block;color:#52647f;font-size:10px;font-weight:700;margin-top:2px}
+        .bottom-showcase-box .card-rating-row{display:flex;align-items:center;gap:5px;margin:4px 0 7px;font-size:11px;line-height:1}
+        .bottom-showcase-box .rating-stars{color:#f5a623;letter-spacing:1px;font-size:12px}
+        .bottom-showcase-box .rating-text{font-weight:800;color:#1e3a68}
+        .bottom-showcase-box .rating-label{color:#718096;font-weight:700}
+        @media(max-width:520px){
+            .bottom-showcase-box .card-sample .img-box{height:155px}
+            .bottom-showcase-box .card-info{padding:7px 8px 9px}
+            .bottom-showcase-box .card-info h4{font-size:13px}
+            .bottom-showcase-box .model-text{font-size:10px}
+            .bottom-showcase-box .card-price-tag{font-size:15px}
+            .bottom-showcase-box .card-sale-price{font-size:15px}
+            .bottom-showcase-box .card-original-price{font-size:10px}
+            .bottom-showcase-box .card-discount-badge{font-size:9px;padding:2px 5px}
+            .bottom-showcase-box .card-price-note{font-size:9px}
+        }
+
 </style>
 
 <style>
@@ -1352,29 +1387,69 @@ function renderOrdersUI() {
             }
             recommendedCards=fetched;
 
-            /* Index जैसी catalog_feedback rating */
+            /* Index के समान catalog_feedback rating sync.
+               पुराने model-only reviews को order title/model से सही card से जोड़ें। */
             let feedback=[];
+            let orderMap={};
             if(supabaseClient){
                 try{
                     const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000);
                     if(!error&&Array.isArray(data)) feedback=data;
                 }catch(e){}
+                try{
+                    const ids=[...new Set(feedback.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];
+                    if(ids.length){
+                        const {data,error}=await supabaseClient.from('orders').select('id,card_model,card_title,model,title').in('id',ids);
+                        if(!error&&Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
+                    }
+                }catch(e){}
             }
-            const ratingMap=new Map();
-            feedback.forEach(r=>{
-                const cid=String(r?.catalog_id??r?.card_id??r?.product_id??'').trim();
-                if(!cid)return;
-                const val=Math.max(0,Math.min(5,Number(r?.rating??r?.stars??0)||0));
-                if(!ratingMap.has(cid))ratingMap.set(cid,[]);
-                if(val>0)ratingMap.get(cid).push(val);
-            });
+            try{
+                const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+                if(local&&typeof local==='object') feedback=feedback.concat(Object.keys(local).map(k=>({...local[k],catalog_id:k,_source:'local'})));
+            }catch(e){}
 
+            const norm=v=>String(v??'').trim().toLowerCase();
+            const modelNorm=v=>norm(v).replace(/[^a-z0-9]+/g,'');
+            const resolvedByCatalog=new Map();
+            const seenFeedback=new Set();
+            for(const r of feedback){
+                const key=String(r?.id ?? [r?.order_db_id??r?.order_id??'',r?.catalog_id??r?.card_id??r?.product_id??'',r?.created_at??'',r?.rating??r?.stars??'',r?.name??r?.user_name??''].join('|'));
+                if(seenFeedback.has(key)) continue;
+                seenFeedback.add(key);
+                const val=Math.max(0,Math.min(5,Number(r?.rating??r?.stars??0)||0));
+                if(!val) continue;
+                const direct=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
+                const matched=new Set();
+                fetched.forEach(card=>{
+                    const cid=norm(card?.id??card?.catalog_id);
+                    if(cid&&direct.includes(cid)) matched.add(cid);
+                });
+                const oid=String(r?.order_db_id??r?.order_id??'').trim();
+                const order=orderMap[oid];
+                if(order){
+                    const ot=norm(order.card_title??order.title??'');
+                    const om=modelNorm(order.card_model??order.model??'');
+                    fetched.forEach(card=>{
+                        const ct=norm(card?.name??card?.title??card?.card_name??card?.product_name??'');
+                        const cm=modelNorm(card?.model??card?.code??card?.card_model??card?.model_no??'');
+                        if(!ct||!ot)return;
+                        const titleMatch=(ot===ct)||ot.includes(ct)||ct.includes(ot);
+                        const modelMatch=!om||!cm||om===cm||om.includes(cm)||cm.includes(om);
+                        if(titleMatch&&modelMatch){ const cid=norm(card?.id??card?.catalog_id); if(cid) matched.add(cid); }
+                    });
+                }
+                matched.forEach(cid=>{
+                    if(!resolvedByCatalog.has(cid)) resolvedByCatalog.set(cid,[]);
+                    resolvedByCatalog.get(cid).push(val);
+                });
+            }
             container.innerHTML=fetched.map((c,idx)=>{
                 const name=c.name||c.title||c.card_name||c.product_name||'शादी कार्ड';
                 const model=c.model||c.code||c.card_model||c.model_no||'';
                 const o=recOriginalRate(c), sale=recSaleRate(c), off=recDiscount(c);
                 const img=c.image||c.image_url||c.card_image||c.photo||safeCardPlaceholder;
-                const vals=ratingMap.get(String(c.id??c.catalog_id??'').trim())||[];
+                const vals=resolvedByCatalog.get(String(c.id??c.catalog_id??'').trim())||[];
                 const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
                 const inStock=c.in_stock!==false;
                 const stock=inStock?'<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>':'<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>';
