@@ -416,13 +416,9 @@
                                 <input type="file" id="admCardCamera" accept="image/*" capture="environment" hidden>
                             </div>
                             <div class="form-group" style="flex: 1; min-width: 220px;">
-                                <label>कार्ड वीडियो (अधिकतम 1 मिनट):</label>
-                                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-                                    <input type="file" id="admCardVideo" accept="video/*" style="max-width:170px;">
-                                    <button type="button" onclick="openCatalogVideoRecorder()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-video"></i> वीडियो कैमरा</button>
-                                    <span id="catalogVideoStatus" style="font-size:11px;color:#64748b;">वीडियो नहीं चुना</span>
-                                </div>
-                                <small style="color:#64748b;font-size:10px;">मोबाइल से सीधे वीडियो रिकॉर्ड करके भी कैटलॉग में अपलोड कर सकते हैं। अधिकतम 1 मिनट।</small>
+                                <label>कार्ड वीडियो (15–20 सेकंड):</label>
+                                <input type="file" id="admCardVideo" accept="video/*">
+                                <small style="color:#64748b;font-size:10px;">ग्राहक कार्ड विवरण/ऑर्डर विवरण में यह वीडियो देख सकेगा।</small>
                             </div>
                         </div>
                         <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
@@ -441,7 +437,7 @@
                 </div>
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
-                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>कैटलॉग रेट</th><th>सेल रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>विवरण</th><th>वीडियो</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
+                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>कैटलॉग रेट</th><th>सेल रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>वीडियो</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
                         <tbody id="catalogTableBody"></tbody>
                     </table>
                 </div>
@@ -860,6 +856,10 @@
 
                     const sponsored = r.sponsored === true;
 
+                    const catalogLink = catalogId
+                        ? `<a href="catalog-detail.html?id=${encodeURIComponent(catalogId)}${rowId ? '&review_id='+encodeURIComponent(rowId) : ''}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:5px;background:#e8f1ff;color:#0759b5;border:1px solid #b8d3ff;border-radius:7px;padding:5px 8px;text-decoration:none;font-size:11px;font-weight:800;"><i class="fa-solid fa-link"></i> कैटलॉग खोलें</a>`
+                        : '';
+
                     const action = rowId
                         ? `<div class="btn-rating-actions">
                             <button type="button"
@@ -875,8 +875,9 @@
                                 <i class="fa-solid fa-star"></i>
                                 ${sponsored ? 'स्पॉन्सर हटाएँ' : 'स्पॉन्सर'}
                             </button>
+                            ${catalogLink}
                         </div>`
-                        : '<span style="font-size:10px;color:#94a3b8;">ID उपलब्ध नहीं</span>';
+                        : catalogLink || '<span style="font-size:10px;color:#94a3b8;">ID उपलब्ध नहीं</span>';
 
                     return `<tr>
                         <td>${r.created_at ? new Date(r.created_at).toLocaleString('hi-IN') : '-'}</td>
@@ -887,7 +888,7 @@
                             ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
                         </td>
                         <td style="text-align:left;max-width:320px;">
-                            ${esc(r.feedback || r.comment || r.message || 'रेटिंग दी गई है।')}
+                            ${catalogId ? `<a href="catalog-detail.html?id=${encodeURIComponent(catalogId)}${rowId ? '&review_id='+encodeURIComponent(rowId) : ''}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:block;" title="इस review वाले catalog को खोलें">${esc(r.feedback || r.comment || r.message || 'रेटिंग दी गई है।')}</a>` : esc(r.feedback || r.comment || r.message || 'रेटिंग दी गई है।')}
                         </td>
                         <td>
                             ${photos.length
@@ -1286,7 +1287,6 @@
                         <td><b style="color:var(--primary);font-size:14px;">₹${sale.toLocaleString('en-IN')}</b><br><button type="button" class="btn-price-edit" onclick="editCardSaleRate('${c.id}', ${sale})"><i class="fa-solid fa-pen-to-square"></i> सेल रेट</button></td>
                         <td><span class="stock-badge ${c.in_stock !== false ? 'in-stock' : 'out-stock'}">${c.in_stock !== false ? 'उपलब्ध' : 'समाप्त'}</span></td>
                         <td><button type="button" class="btn-price-edit" onclick="editCardPrice('${c.id}', ${mrp})"><i class="fa-solid fa-pen-to-square"></i> MRP</button></td>
-                        <td><button type="button" class="btn-price-edit" style="background:#0f766e;" onclick="editCardDescription('${c.id}')"><i class="fa-solid fa-file-lines"></i> विवरण</button></td>
                         <td>${hasVideo ? '<span style="color:#059669;font-weight:800;"><i class="fa-solid fa-circle-play"></i> उपलब्ध</span>' : '<span style="color:#94a3b8;">नहीं</span>'}</td>
                         <td><button class="btn-stock-toggle" style="background:${c.in_stock !== false ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${c.in_stock === false})">${c.in_stock !== false ? 'समाप्त करें' : 'उपलब्ध करें'}</button></td>
                         <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
@@ -1329,152 +1329,12 @@
         function openCatalogGallery(){const el=document.getElementById('admCardFile');if(!el)return;el.removeAttribute('capture');el.multiple=true;el.accept='image/*';el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
         function openCatalogCamera(){const el=document.getElementById('admCardCamera');if(!el)return;el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
 
-        // मोबाइल कैमरा से सीधे कैटलॉग वीडियो रिकॉर्ड करने का सिस्टम
-        let catalogVideoStream = null;
-        let catalogVideoRecorder = null;
-        let catalogVideoChunks = [];
-        let catalogVideoRecordTimer = null;
-        let catalogVideoSeconds = 0;
-
-        function getSupportedVideoMime(){
-            const types=[
-                'video/webm;codecs=vp9,opus',
-                'video/webm;codecs=vp8,opus',
-                'video/webm',
-                'video/mp4'
-            ];
-            for(const t of types){
-                try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t; }catch(e){}
-            }
-            return '';
-        }
-
-        function openCatalogVideoRecorder(){
-            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){
-                // पुराने/असमर्थित browser में direct camera fallback खोलें।
-                const input=document.getElementById('admCardVideo');
-                if(input){ input.setAttribute('capture','environment'); input.click(); }
-                return;
-            }
-            showCatalogVideoRecorderUI();
-            navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true})
-                .then(stream=>{
-                    catalogVideoStream=stream;
-                    const preview=document.getElementById('catalogVideoPreview');
-                    if(preview){preview.srcObject=stream;preview.play().catch(()=>{});}
-                    const start=document.getElementById('catalogVideoStartBtn');
-                    if(start) start.disabled=false;
-                    setCatalogVideoStatus('कैमरा तैयार है — रिकॉर्ड शुरू करें।',' #0f766e');
-                })
-                .catch(err=>{
-                    closeCatalogVideoRecorder();
-                    alert('कैमरा/माइक्रोफोन की अनुमति नहीं मिली। कृपया Camera और Microphone permission Allow करें।');
-                });
-        }
-
-        function showCatalogVideoRecorderUI(){
-            let modal=document.getElementById('catalogVideoRecorderModal');
-            if(modal){modal.style.display='flex';return;}
-            modal=document.createElement('div');
-            modal.id='catalogVideoRecorderModal';
-            modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center;padding:14px;';
-            modal.innerHTML=`<div style="width:min(520px,100%);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <b style="font-size:17px;">🎥 कैटलॉग वीडियो रिकॉर्ड करें</b>
-                    <button type="button" onclick="closeCatalogVideoRecorder()" style="border:0;background:#f1f5f9;border-radius:50%;width:34px;height:34px;font-size:18px;">×</button>
-                </div>
-                <video id="catalogVideoPreview" muted playsinline autoplay style="width:100%;max-height:58vh;background:#000;border-radius:12px;object-fit:cover;"></video>
-                <div id="catalogVideoTimer" style="text-align:center;font-size:18px;font-weight:800;margin:8px 0;color:#dc2626;">00:00 / 01:00</div>
-                <div id="catalogVideoRecorderStatus" style="text-align:center;font-size:12px;color:#64748b;margin-bottom:9px;">कैमरा शुरू हो रहा है…</div>
-                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-                    <button type="button" id="catalogVideoStartBtn" disabled onclick="startCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#dc2626;color:#fff;font-weight:800;">🔴 रिकॉर्ड शुरू</button>
-                    <button type="button" id="catalogVideoStopBtn" disabled onclick="stopCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;">⏹ रोकें</button>
-                    <button type="button" onclick="closeCatalogVideoRecorder()" style="padding:10px 18px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-weight:800;">रद्द करें</button>
-                </div>
-                <div style="font-size:11px;color:#64748b;text-align:center;margin-top:9px;">वीडियो अधिकतम 60 सेकंड का होगा। रिकॉर्डिंग के बाद वीडियो अपने-आप Catalog Video में लग जाएगा।</div>
-            </div>`;
-            document.body.appendChild(modal);
-        }
-
-        function setCatalogVideoStatus(msg,color){
-            const el=document.getElementById('catalogVideoRecorderStatus');
-            if(el){el.textContent=msg;el.style.color=color||'#64748b';}
-        }
-
-        function startCatalogVideoRecording(){
-            if(!catalogVideoStream) return;
-            const mime=getSupportedVideoMime();
-            try{catalogVideoRecorder=new MediaRecorder(catalogVideoStream,mime?{mimeType:mime}:undefined);}catch(e){alert('इस मोबाइल में वीडियो रिकॉर्डिंग शुरू नहीं हो सकी।');return;}
-            catalogVideoChunks=[]; catalogVideoSeconds=0;
-            catalogVideoRecorder.ondataavailable=e=>{if(e.data && e.data.size) catalogVideoChunks.push(e.data);};
-            catalogVideoRecorder.onstop=()=>{
-                clearInterval(catalogVideoRecordTimer);
-                const type=catalogVideoRecorder?.mimeType||mime||'video/webm';
-                const blob=new Blob(catalogVideoChunks,{type});
-                const ext=type.includes('mp4')?'mp4':'webm';
-                const file=new File([blob],`catalog_video_${Date.now()}.${ext}`,{type});
-                if(file.size>12*1024*1024){
-                    alert('रिकॉर्ड किया गया वीडियो 12 MB से बड़ा है। कृपया छोटा/कम गुणवत्ता वाला वीडियो रिकॉर्ड करें।');
-                    setCatalogVideoStatus('वीडियो बहुत बड़ा है।',' #dc2626');
-                    return;
-                }
-                const input=document.getElementById('admCardVideo');
-                if(input){try{const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;}catch(e){}}
-                const st=document.getElementById('catalogVideoStatus');
-                if(st) st.textContent=`🎥 रिकॉर्ड किया गया वीडियो (${catalogVideoSeconds} सेकंड)`;
-                setCatalogVideoStatus('वीडियो तैयार है। इसे Catalog में सुरक्षित किया जा सकता है।','#0f766e');
-                stopCatalogVideoStream();
-            };
-            catalogVideoRecorder.start(250);
-            const start=document.getElementById('catalogVideoStartBtn'),stop=document.getElementById('catalogVideoStopBtn');
-            if(start) start.disabled=true; if(stop) stop.disabled=false;
-            setCatalogVideoStatus('🔴 रिकॉर्डिंग चल रही है…','#dc2626');
-            updateCatalogVideoTimer();
-            catalogVideoRecordTimer=setInterval(()=>{
-                catalogVideoSeconds++; updateCatalogVideoTimer();
-                if(catalogVideoSeconds>=60) stopCatalogVideoRecording();
-            },1000);
-        }
-
-        function updateCatalogVideoTimer(){
-            const el=document.getElementById('catalogVideoTimer');
-            if(el) el.textContent=`00:${String(catalogVideoSeconds).padStart(2,'0')} / 01:00`;
-        }
-
-        function stopCatalogVideoRecording(){
-            clearInterval(catalogVideoRecordTimer);
-            if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();
-            const stop=document.getElementById('catalogVideoStopBtn');if(stop)stop.disabled=true;
-            const start=document.getElementById('catalogVideoStartBtn');if(start)start.disabled=true;
-        }
-
-        function stopCatalogVideoStream(){
-            if(catalogVideoStream){catalogVideoStream.getTracks().forEach(t=>t.stop());catalogVideoStream=null;}
-        }
-
-        function closeCatalogVideoRecorder(){
-            try{if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();}catch(e){}
-            clearInterval(catalogVideoRecordTimer);
-            stopCatalogVideoStream();
-            const modal=document.getElementById('catalogVideoRecorderModal');
-            if(modal) modal.remove();
-        }
-
-        document.addEventListener('change',function(e){
-            if(e.target && e.target.id==='admCardVideo' && e.target.files?.[0]){
-                const f=e.target.files[0];
-                const st=document.getElementById('catalogVideoStatus');
-                if(st) st.textContent=`🎬 ${f.name}`;
-            }
-        });
-
         async function uploadCatalogAdminFile(file, folder='catalog'){
             if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
-            // वीडियो/फोटो के लिए इस पेज पर कोई 12 MB client-side limit नहीं है।
-            // 1 मिनट तक की मोबाइल रिकॉर्डिंग सीधे Storage में अपलोड की जा सकती है।
+            if(file.size > 12*1024*1024) throw new Error('फाइल 12 MB से छोटी रखें।');
             const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'bin';
             const path=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-            const buckets=['review-images','catalog','cards']; let last=null;
+            const buckets=['catalog','cards']; let last=null;
             for(const bucket of buckets){
                 try{
                     const {error}=await supabaseClient.storage.from(bucket).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
@@ -1486,82 +1346,9 @@
             if(file.type.startsWith('image/')){
                 return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('फोटो पढ़ी नहीं जा सकी।'));r.readAsDataURL(file);});
             }
-            throw new Error('वीडियो Storage में अपलोड नहीं हो सका। Supabase Storage की upload/public policy जाँचें।'+(last?.message?` ${last.message}`:''));
+            throw new Error('वीडियो Storage में अपलोड नहीं हो सका। Supabase में catalog/cards Storage bucket की upload/public policy जाँचें।'+(last?.message?` ${last.message}`:''));
         }
         function getVideoDuration(file){return new Promise((resolve,reject)=>{const u=URL.createObjectURL(file),v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{const d=v.duration;URL.revokeObjectURL(u);resolve(d)};v.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('वीडियो की अवधि पढ़ी नहीं जा सकी।'))};v.src=u;});}
-        async function compressCatalogVideo(file){
-            // Smart browser-side compression: keep resolution up to 720p and avoid
-            // recompressing files that are already small. Target is roughly 2–3 MB
-            // for a 60-second clip; shorter clips can remain smaller/larger as needed.
-            if(!file || !file.type.startsWith('video/')) return file;
-            if(file.size <= 3*1024*1024) return file;
-            const duration=await getVideoDuration(file);
-            if(!Number.isFinite(duration) || duration<=0) return file;
-
-            const video=document.createElement('video');
-            video.muted=true; video.playsInline=true; video.preload='auto';
-            const url=URL.createObjectURL(file); video.src=url;
-            await new Promise((resolve,reject)=>{
-                video.onloadedmetadata=()=>resolve();
-                video.onerror=()=>reject(new Error('वीडियो पढ़ा नहीं जा सका।'));
-            });
-            try{ await video.play(); }catch(e){}
-
-            const maxW=1280, maxH=720;
-            const scale=Math.min(1,maxW/video.videoWidth||1,maxH/video.videoHeight||1);
-            const w=Math.max(2,Math.round((video.videoWidth||1280)*scale/2)*2);
-            const h=Math.max(2,Math.round((video.videoHeight||720)*scale/2)*2);
-            const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
-            const ctx=canvas.getContext('2d',{alpha:false});
-            const stream=canvas.captureStream(30);
-            try{
-                if(video.captureStream){
-                    const src=video.captureStream();
-                    const audioTracks=src.getAudioTracks();
-                    audioTracks.forEach(t=>stream.addTrack(t));
-                }
-            }catch(e){}
-
-            const targetBytes=3.0*1024*1024;
-            const totalKbps=Math.max(360,Math.min(1800,(targetBytes*8/1024)/duration));
-            const audioKbps=48;
-            const videoKbps=Math.max(300,Math.round(totalKbps-audioKbps));
-            const mimeCandidates=[
-                'video/webm;codecs=vp9,opus',
-                'video/webm;codecs=vp8,opus',
-                'video/webm'
-            ];
-            let mime='';
-            for(const m of mimeCandidates){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)){mime=m;break;} }
-            if(!window.MediaRecorder || !mime){ URL.revokeObjectURL(url); return file; }
-
-            const chunks=[];
-            const recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:videoKbps*1000,audioBitsPerSecond:audioKbps*1000});
-            recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-            const done=new Promise((resolve,reject)=>{
-                recorder.onerror=()=>reject(new Error('वीडियो compression शुरू नहीं हो सका।'));
-                recorder.onstop=()=>resolve();
-            });
-            recorder.start(500);
-            let stopped=false;
-            const draw=()=>{
-                if(stopped)return;
-                if(video.readyState>=2)ctx.drawImage(video,0,0,w,h);
-                requestAnimationFrame(draw);
-            };
-            requestAnimationFrame(draw);
-            await new Promise(resolve=>setTimeout(resolve,Math.min(duration*1000,60000)+150));
-            stopped=true;
-            if(recorder.state!=='inactive')recorder.stop();
-            await done;
-            stream.getTracks().forEach(t=>t.stop());
-            video.pause(); video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url);
-            const blob=new Blob(chunks,{type:mime});
-            if(!blob.size || blob.size>=file.size){ return file; }
-            const ext='webm';
-            return new File([blob],`catalog_compressed_${Date.now()}.${ext}`,{type:mime,lastModified:Date.now()});
-        }
-
 
         async function insertAdminCatalogPayload(base){
             const variants=[
@@ -1595,17 +1382,10 @@
                 if(video){
                     if(!video.type.startsWith('video/')) throw new Error('केवल वीडियो फाइल चुनें।');
                     const duration=await getVideoDuration(video);
-                    if(duration>60) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया 1 मिनट (60 सेकंड) के अंदर का वीडियो चुनें।`);
+                    if(duration<2.5 || duration>4.5) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया लगभग 15–20 सेकंड का वीडियो चुनें।`);
                 }
                 const imageUrls=[]; for(const f of photos.slice(0,10)) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
-                let videoUrl='';
-                if(video){
-                    setCatalogVideoStatus('⏳ वीडियो compress हो रहा है…','#b45309');
-                    const compressedVideo=await compressCatalogVideo(video);
-                    videoUrl=await uploadCatalogAdminFile(compressedVideo,'catalog');
-                    const st=document.getElementById('catalogVideoStatus');
-                    if(st) st.textContent=`🎬 वीडियो तैयार: ${(compressedVideo.size/1024/1024).toFixed(2)} MB`;
-                }
+                let videoUrl=''; if(video) videoUrl=await uploadCatalogAdminFile(video,'catalog');
                 const fallbackDescription=`[[GALLERY:${imageUrls.join('|')}]]${videoUrl?` [[VIDEO:${videoUrl}]]`:''}`;
                 const base={name,card_name:name,title:name,model,code:model,category,image:imageUrls[0],image_url:imageUrls[0],images:imageUrls,image_urls:JSON.stringify(imageUrls),gallery_images:JSON.stringify(imageUrls),catalog_rate:mrp,original_rate:mrp,mrp,sale_rate:sale,selling_price:sale,rate:sale,price:sale,in_stock,description:fallbackDescription,video_url:videoUrl,video_urls:videoUrl?JSON.stringify([videoUrl]):JSON.stringify([]),catalog_video:videoUrl};
                 await insertAdminCatalogPayload(base);
@@ -1621,65 +1401,35 @@
                 alert("डेटाबेस कनेक्ट नहीं है!");
                 return;
             }
-            const entered = prompt("नया कैटलॉग रेट / MRP (₹/पीस) दर्ज करें:", currentPrice);
+
+            const entered = prompt("नया रेट (₹/पीस) दर्ज करें:", currentPrice);
             if (entered === null) return;
+
             const newPrice = parseFloat(String(entered).trim());
             if (!Number.isFinite(newPrice) || newPrice < 0) {
                 alert("कृपया सही कीमत दर्ज करें।");
                 return;
             }
+
             try {
-                // MRP को उसी field में बदलना जरूरी है जिसे Index/Detail प्राथमिकता से पढ़ते हैं।
-                const payload = {
-                    catalog_rate: newPrice,
-                    original_rate: newPrice,
-                    mrp: newPrice
-                };
-                let { error } = await supabaseClient.from('catalog').update(payload).eq('id', Number(id));
-                // यदि schema में कुछ alias columns न हों तो उपलब्ध मुख्य field पर fallback करें।
+                const { error } = await supabaseClient
+                    .from('catalog')
+                    .update({ rate: newPrice })
+                    .eq('id', Number(id));
+
                 if (error) {
-                    ({ error } = await supabaseClient.from('catalog').update({catalog_rate:newPrice}).eq('id', Number(id)));
-                }
-                if (error) {
-                    alert("कैटलॉग रेट अपडेट नहीं हो पाया: " + error.message);
+                    alert("रेट अपडेट नहीं हो पाया: " + error.message);
                     return;
                 }
+
                 const card = globalCatalogCache.find(x => String(x.id) === String(id));
-                if (card) {
-                    card.catalog_rate = newPrice;
-                    card.original_rate = newPrice;
-                    card.mrp = newPrice;
-                }
-                alert("कैटलॉग रेट / MRP सफलतापूर्वक बदल दिया गया: ₹" + newPrice);
+                if (card) card.rate = newPrice;
+                alert("रेट सफलतापूर्वक बदल दिया गया: ₹" + newPrice + " / पीस");
                 const selected = document.getElementById('adminCategoryFilter');
                 filterAdminCatalog(selected ? selected.value : 'all');
             } catch (e) {
                 alert("रेट अपडेट करते समय नेटवर्क त्रुटि: " + e.message);
             }
-        }
-
-        async function editCardDescription(id) {
-            if (!supabaseClient) { alert('डेटाबेस कनेक्ट नहीं है!'); return; }
-            const card = globalCatalogCache.find(x => String(x.id) === String(id));
-            if (!card) { alert('कार्ड विवरण नहीं मिला।'); return; }
-            const raw = String(card.description || card.details || card.description_hi || card.matter || card.note || '');
-            const clean = raw
-                .replace(/\[\[GALLERY:[\s\S]*?\]\]/ig,'')
-                .replace(/\[\[VIDEO:[\s\S]*?\]\]/ig,'')
-                .trim();
-            const text = prompt('कार्ड का विवरण लिखें:', clean);
-            if (text === null) return;
-            const gallery = (raw.match(/\[\[GALLERY:[\s\S]*?\]\]/i)||[''])[0];
-            const video = (raw.match(/\[\[VIDEO:[\s\S]*?\]\]/i)||[''])[0];
-            const description = [text.trim(), gallery, video].filter(Boolean).join('\n');
-            try {
-                const {error}=await supabaseClient.from('catalog').update({description}).eq('id',Number(id));
-                if(error){ alert('विवरण अपडेट नहीं हो पाया: '+error.message); return; }
-                card.description=description;
-                alert('कार्ड का विवरण सफलतापूर्वक बदल दिया गया।');
-                const selected=document.getElementById('adminCategoryFilter');
-                filterAdminCatalog(selected ? selected.value : 'all');
-            }catch(e){ alert('विवरण अपडेट करते समय नेटवर्क त्रुटि: '+e.message); }
         }
 
         async function editCardSaleRate(id, currentPrice) {
