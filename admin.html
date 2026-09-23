@@ -441,7 +441,7 @@
                 </div>
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
-                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>कैटलॉग रेट</th><th>सेल रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>वीडियो</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
+                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>कैटलॉग रेट</th><th>सेल रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>विवरण</th><th>वीडियो</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
                         <tbody id="catalogTableBody"></tbody>
                     </table>
                 </div>
@@ -1286,6 +1286,7 @@
                         <td><b style="color:var(--primary);font-size:14px;">₹${sale.toLocaleString('en-IN')}</b><br><button type="button" class="btn-price-edit" onclick="editCardSaleRate('${c.id}', ${sale})"><i class="fa-solid fa-pen-to-square"></i> सेल रेट</button></td>
                         <td><span class="stock-badge ${c.in_stock !== false ? 'in-stock' : 'out-stock'}">${c.in_stock !== false ? 'उपलब्ध' : 'समाप्त'}</span></td>
                         <td><button type="button" class="btn-price-edit" onclick="editCardPrice('${c.id}', ${mrp})"><i class="fa-solid fa-pen-to-square"></i> MRP</button></td>
+                        <td><button type="button" class="btn-price-edit" style="background:#0f766e;" onclick="editCardDescription('${c.id}')"><i class="fa-solid fa-file-lines"></i> विवरण</button></td>
                         <td>${hasVideo ? '<span style="color:#059669;font-weight:800;"><i class="fa-solid fa-circle-play"></i> उपलब्ध</span>' : '<span style="color:#94a3b8;">नहीं</span>'}</td>
                         <td><button class="btn-stock-toggle" style="background:${c.in_stock !== false ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${c.in_stock === false})">${c.in_stock !== false ? 'समाप्त करें' : 'उपलब्ध करें'}</button></td>
                         <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
@@ -1620,35 +1621,65 @@
                 alert("डेटाबेस कनेक्ट नहीं है!");
                 return;
             }
-
-            const entered = prompt("नया रेट (₹/पीस) दर्ज करें:", currentPrice);
+            const entered = prompt("नया कैटलॉग रेट / MRP (₹/पीस) दर्ज करें:", currentPrice);
             if (entered === null) return;
-
             const newPrice = parseFloat(String(entered).trim());
             if (!Number.isFinite(newPrice) || newPrice < 0) {
                 alert("कृपया सही कीमत दर्ज करें।");
                 return;
             }
-
             try {
-                const { error } = await supabaseClient
-                    .from('catalog')
-                    .update({ rate: newPrice })
-                    .eq('id', Number(id));
-
+                // MRP को उसी field में बदलना जरूरी है जिसे Index/Detail प्राथमिकता से पढ़ते हैं।
+                const payload = {
+                    catalog_rate: newPrice,
+                    original_rate: newPrice,
+                    mrp: newPrice
+                };
+                let { error } = await supabaseClient.from('catalog').update(payload).eq('id', Number(id));
+                // यदि schema में कुछ alias columns न हों तो उपलब्ध मुख्य field पर fallback करें।
                 if (error) {
-                    alert("रेट अपडेट नहीं हो पाया: " + error.message);
+                    ({ error } = await supabaseClient.from('catalog').update({catalog_rate:newPrice}).eq('id', Number(id)));
+                }
+                if (error) {
+                    alert("कैटलॉग रेट अपडेट नहीं हो पाया: " + error.message);
                     return;
                 }
-
                 const card = globalCatalogCache.find(x => String(x.id) === String(id));
-                if (card) card.rate = newPrice;
-                alert("रेट सफलतापूर्वक बदल दिया गया: ₹" + newPrice + " / पीस");
+                if (card) {
+                    card.catalog_rate = newPrice;
+                    card.original_rate = newPrice;
+                    card.mrp = newPrice;
+                }
+                alert("कैटलॉग रेट / MRP सफलतापूर्वक बदल दिया गया: ₹" + newPrice);
                 const selected = document.getElementById('adminCategoryFilter');
                 filterAdminCatalog(selected ? selected.value : 'all');
             } catch (e) {
                 alert("रेट अपडेट करते समय नेटवर्क त्रुटि: " + e.message);
             }
+        }
+
+        async function editCardDescription(id) {
+            if (!supabaseClient) { alert('डेटाबेस कनेक्ट नहीं है!'); return; }
+            const card = globalCatalogCache.find(x => String(x.id) === String(id));
+            if (!card) { alert('कार्ड विवरण नहीं मिला।'); return; }
+            const raw = String(card.description || card.details || card.description_hi || card.matter || card.note || '');
+            const clean = raw
+                .replace(/\[\[GALLERY:[\s\S]*?\]\]/ig,'')
+                .replace(/\[\[VIDEO:[\s\S]*?\]\]/ig,'')
+                .trim();
+            const text = prompt('कार्ड का विवरण लिखें:', clean);
+            if (text === null) return;
+            const gallery = (raw.match(/\[\[GALLERY:[\s\S]*?\]\]/i)||[''])[0];
+            const video = (raw.match(/\[\[VIDEO:[\s\S]*?\]\]/i)||[''])[0];
+            const description = [text.trim(), gallery, video].filter(Boolean).join('\n');
+            try {
+                const {error}=await supabaseClient.from('catalog').update({description}).eq('id',Number(id));
+                if(error){ alert('विवरण अपडेट नहीं हो पाया: '+error.message); return; }
+                card.description=description;
+                alert('कार्ड का विवरण सफलतापूर्वक बदल दिया गया।');
+                const selected=document.getElementById('adminCategoryFilter');
+                filterAdminCatalog(selected ? selected.value : 'all');
+            }catch(e){ alert('विवरण अपडेट करते समय नेटवर्क त्रुटि: '+e.message); }
         }
 
         async function editCardSaleRate(id, currentPrice) {
