@@ -143,8 +143,8 @@ textarea{height:100px;resize:vertical}
 
 const SUPABASE_URL = 'https://qsvhtfkrlzclnqwypfdy.supabase.co';
 
-/* Supabase Publishable key */
-const SUPABASE_ANON_KEY = 'sb_publishable_UOq3tq9XZQ3cpGngx9uhbw_pDmLdCFS';
+/* आपकी दी हुई Legacy anon/public key */
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZCI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys';
 
 let sb = null;
 
@@ -215,9 +215,23 @@ function getCtx(){
     }
   }
 
-  catalogId = clean(q.get('id') || context.catalog_id);
-  orderDbId = clean(q.get('order_db_id') || context.order_db_id);
+  // My Orders से आने वाले context में database order का id अक्सर `id` में होता है।
+  // उसी order का card_title/card_model भी सीधे उपलब्ध रहता है।
+  catalogId = clean(q.get('id') || context.catalog_id || context.catalogId || context.card_catalog_id || context.catalog_item_id);
+  orderDbId = clean(q.get('order_db_id') || context.order_db_id || context.id);
   orderId = clean(q.get('order_id') || context.order_id);
+
+  // पुराने/मौजूदा My Orders data में ये fields अलग नामों से आते हैं।
+  // इन्हें normalize करके catalog matching को सही order के card तक सीमित किया जाता है।
+  if(!context.name){
+    context.name = context.card_title || context.card_name || context.product_name || context.title || '';
+  }
+  if(!context.model){
+    context.model = context.card_model || context.model_no || context.code || context.model || '';
+  }
+  if(!context.customer_name){
+    context.customer_name = context.name_customer || context.customer || '';
+  }
 }
 
 /* =========================================================
