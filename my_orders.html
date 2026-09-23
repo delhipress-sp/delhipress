@@ -817,7 +817,7 @@ function renderOrdersUI() {
                         <div class="order-card-footer">
                             <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <div class="footer-action-buttons">
-                                <button class="btn-rate-order" onclick="openOrderRating(${index})">
+                                <button type="button" class="btn-rate-order" data-rating-index="${index}" onclick="event.preventDefault(); event.stopPropagation(); window.openOrderRating(${index})">
                                     <i class="fa-solid fa-star"></i> रेटिंग दें
                                 </button>
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
@@ -839,7 +839,7 @@ function renderOrdersUI() {
         let orderRatingIndex = null;
         let orderRatingValue = 0;
 
-        function openOrderRating(index){
+        window.openOrderRating = function(index){
             const ord=fetchedOrdersList[index];
             if(!ord) return;
             orderRatingIndex=index; orderRatingValue=0;
@@ -854,8 +854,15 @@ function renderOrdersUI() {
             updateOrderRatingStars();
             document.getElementById('orderRatingModal').style.display='flex';
         }
-        function closeOrderRating(){ orderRatingIndex=null; orderRatingValue=0; const m=document.getElementById('orderRatingModal'); if(m)m.style.display='none'; }
+        window.closeOrderRating = function(){ orderRatingIndex=null; orderRatingValue=0; const m=document.getElementById('orderRatingModal'); if(m)m.style.display='none'; }
         function updateOrderRatingStars(){ document.querySelectorAll('.order-rating-star').forEach(b=>b.classList.toggle('selected',Number(b.dataset.star)<=orderRatingValue)); }
+        // Mobile-safe fallback: delegated click also opens the rating modal if inline onclick is blocked.
+        document.addEventListener('click', function(e){
+            const btn=e.target.closest && e.target.closest('.btn-rate-order');
+            if(!btn) return;
+            const idx=Number(btn.getAttribute('data-rating-index'));
+            if(Number.isInteger(idx)){ e.preventDefault(); e.stopPropagation(); window.openOrderRating(idx); }
+        }, true);
         document.addEventListener('click',e=>{const b=e.target.closest('.order-rating-star');if(b){orderRatingValue=Number(b.dataset.star)||0;updateOrderRatingStars();}});
         document.addEventListener('change',e=>{
             if(e.target.id!=='orderRatingImages') return;
