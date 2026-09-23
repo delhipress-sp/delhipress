@@ -1151,20 +1151,12 @@
 
                     r._resolved_catalog_ids = [];
 
-                    // केवल नया direct catalog_id तभी मानें जब वह किसी वास्तविक card id/catalog_id से मिले।
-                    const direct = [r?.catalog_id,r?.card_id,r?.product_id]
-                        .map(norm).filter(Boolean);
-
-                    globalCards.forEach(card => {
-                        const cid = norm(card?.id ?? card?.catalog_id);
-                        if (cid && direct.includes(cid)) {
-                            r._resolved_catalog_ids.push(cid);
-                        }
-                    });
-
-                    // पुराने records: order -> card title/model -> exact catalog card
+                    // IMPORTANT: If the review has an order link, resolve the catalog from that
+                    // order first. This prevents an old/wrong catalog_id from putting the review
+                    // on the first card (especially when two cards share model 140026).
                     const orderId = String(r?.order_db_id ?? r?.order_id ?? '').trim();
                     const order = orderMap[orderId];
+                    let resolvedFromOrder = false;
 
                     if (order) {
                         const ot = norm(order.card_title ?? order.title ?? '');
@@ -1184,7 +1176,19 @@
                                 const cid = norm(card?.id ?? card?.catalog_id);
                                 if (cid && !r._resolved_catalog_ids.includes(cid)) {
                                     r._resolved_catalog_ids.push(cid);
+                                    resolvedFromOrder = true;
                                 }
+                            }
+                        });
+                    }
+
+                    // Only use direct catalog_id when there was no usable order-based resolution.
+                    if (!resolvedFromOrder) {
+                        const direct = [r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
+                        globalCards.forEach(card => {
+                            const cid = norm(card?.id ?? card?.catalog_id);
+                            if (cid && direct.includes(cid) && !r._resolved_catalog_ids.includes(cid)) {
+                                r._resolved_catalog_ids.push(cid);
                             }
                         });
                     }
