@@ -524,6 +524,37 @@ function renderRatings(){
     images:reviewImageList(r),
     date:r?.created_at?new Date(r.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):''
   })).filter(r=>r.rating>0);
+
+  // Same rating map written by My Orders. This is an immediate fallback for the
+  // exact catalog ID even if Supabase review loading is delayed.
+  try{
+    const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+    const ids=[activeId,product?.id,product?.catalog_id,product?.card_id,product?.product_id]
+      .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='')
+      .map(v=>String(v).trim());
+
+    const fallbackRows=[];
+    ids.forEach(k=>{
+      const x=map[k];
+      if(x) fallbackRows.push({
+        rating:Number(x?.rating??x?.stars??0),
+        name:x?.name||x?.user_name||'ग्राहक',
+        text:x?.feedback||x?.comment||'',
+        images:reviewImageList(x),
+        date:x?.created_at?new Date(x.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):''
+      });
+    });
+
+    fallbackRows.filter(x=>x.rating>=1&&x.rating<=5).forEach(x=>{
+      const same=rows.some(r =>
+        r.rating===x.rating &&
+        String(r.name)===String(x.name) &&
+        String(r.date)===String(x.date)
+      );
+      if(!same) rows.push(x);
+    });
+  }catch(e){}
+
   const total=rows.reduce((a,r)=>a+r.rating,0);
   const loadedAvg=rows.length?total/rows.length:0;
   const fallback=window.__indexRatingFallback||{avg:0,count:0};
@@ -531,29 +562,37 @@ function renderRatings(){
   const displayCount=rows.length || Number(fallback.count||0);
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val};
   const ratingNumber=avg?avg.toFixed(1):'0.0';
+
   set('ratingPill',ratingNumber+(displayCount?' ('+displayCount+')':''));
   set('topStars',stars(avg));
-  set('reviewCount',rows.length+' Ratings & Reviews');
+  set('reviewCount',displayCount+' Ratings & Reviews');
   set('photoRatingStars',stars(avg));
   set('photoRatingText',ratingNumber);
   set('photoRatingCount','('+displayCount+')');
   set('bigRating',avg?avg.toFixed(1):'0.0');
   set('bigStars',stars(avg));
-  set('bigReviewCount',rows.length+' Reviews');
+  set('bigReviewCount',displayCount+' Reviews');
   set('ratingSectionCount',displayCount+' Reviews');
   set('customerReviewCount','('+displayCount+')');
+
   for(let n=1;n<=5;n++){
     const c=rows.filter(r=>Math.round(r.rating)===n).length;
     set('c'+n,c);
-    const b=document.getElementById('b'+n);if(b)b.style.width=(rows.length?c/rows.length*100:0)+'%';
+    const b=document.getElementById('b'+n);
+    if(b)b.style.width=(rows.length?c/rows.length*100:0)+'%';
   }
-  const box=document.getElementById('reviewList');if(!box)return;
+
+  const box=document.getElementById('reviewList');
+  if(!box)return;
   box.innerHTML=rows.length?rows.slice(0,50).map(r=>{
-    const imgs=r.images.length?'<div class="review-images">'+r.images.map(u=>'<button type="button" class="review-image-btn" onclick="openReviewImage(\''+esc(u).replace(/'/g,'&#039;')+'\')" aria-label="रिव्यू फोटो बड़ा देखें"><img src="'+esc(u)+'" alt="Review photo" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></button>').join('')+'</div>':'';
+    const imgs=r.images.length
+      ?'<div class="review-images">'+r.images.map(u=>'<button type="button" class="review-image-btn" onclick="openReviewImage(\''+esc(u).replace(/'/g,'&#039;')+'\')" aria-label="रिव्यू फोटो बड़ा देखें"><img src="'+esc(u)+'" alt="Review photo" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></button>').join('')+'</div>'
+      :'';
     const text=r.text||'रेटिंग दी गई है।';
     return '<div class="review-card"><div class="review-card-head"><span class="review-name">'+esc(r.name)+'</span><span class="review-date">'+esc(r.date)+'</span></div><div class="review-card-stars">'+('★'.repeat(Math.round(r.rating)))+('☆'.repeat(5-Math.round(r.rating)))+'</div><div class="review-card-text">'+esc(text)+'</div>'+imgs+'</div>';
   }).join(''):'<div class="empty">अभी कोई प्रतिक्रिया नहीं है।</div>';
 }
+
 function stars(n){let x=Math.round(Number(n)||0);return '★'.repeat(x)+'☆'.repeat(5-x)}
 function render(){
   const c=product;saveRecentlyViewed(c);images=getImages(c);if(!images.length)images=[placeholder];
