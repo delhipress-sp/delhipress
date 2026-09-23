@@ -938,6 +938,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             }
 
             let saved=false;
+            let cloudSaveError='';
             if(supabaseClient){
                 try{
                     // एक Order की एक ही current rating रखें। पहले उसी order की पुरानी
@@ -950,17 +951,52 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                         const results=await Promise.all(lookups.map(q=>q.catch(()=>null)));
                         for(const q of results){if(!q?.error&&Array.isArray(q.data)&&q.data[0]){existing=q.data[0];break;}}
                     }
+
                     if(existing?.id!=null){
                         const {error}=await supabaseClient.from('catalog_feedback').update(row).eq('id',existing.id);
                         if(!error)saved=true;
-                        else console.error('catalog_feedback update:',error);
+                        else {
+                            cloudSaveError=error.message||String(error);
+                            console.error('catalog_feedback update:',error);
+                        }
                     }
+
                     if(!saved){
                         const {error}=await supabaseClient.from('catalog_feedback').insert(row);
                         if(!error)saved=true;
-                        else console.error('catalog_feedback insert:',error);
+                        else {
+                            cloudSaveError=error.message||String(error);
+                            console.error('catalog_feedback insert:',error);
+                        }
                     }
-                }catch(e){console.error('catalog_feedback save:',e);}
+
+                    // कुछ पुराने catalog_feedback schemas में order_db_id/review_images
+                    // जैसे optional columns पर RLS/schema error आ सकता है। ऐसे में केवल
+                    // मूल rating fields के साथ दोबारा save करें।
+                    if(!saved){
+                        const minimalRow={
+                            catalog_id:catalogId||null,
+                            order_id:ord.order_id||null,
+                            rating:orderRatingValue,
+                            stars:orderRatingValue,
+                            name,
+                            user_name:name,
+                            feedback:text,
+                            comment:text,
+                            created_at:createdAt
+                        };
+                        try{
+                            const {error}=await supabaseClient.from('catalog_feedback').insert(minimalRow);
+                            if(!error){ saved=true; cloudSaveError=''; }
+                            else { cloudSaveError=error.message||String(error); console.error('catalog_feedback minimal insert:',error); }
+                        }catch(e){ cloudSaveError=e?.message||String(e); console.error('catalog_feedback minimal save:',e); }
+                    }
+                }catch(e){
+                    cloudSaveError=e?.message||String(e);
+                    console.error('catalog_feedback save:',e);
+                }
+            }else{
+                cloudSaveError='Supabase connection उपलब्ध नहीं है';
             }
             const catalogKey='catalog_feedback_'+String(catalogId||'unknown');
             let localReviews=[]; try{localReviews=JSON.parse(localStorage.getItem(catalogKey)||'[]');if(!Array.isArray(localReviews))localReviews=[];}catch(e){}
@@ -973,7 +1009,12 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             // Cloud में save हो चुका है तो उसी exact order review को तुरंत UI में भी दिखाएँ।
             fetchedOrdersList[orderRatingIndex]={...fetchedOrdersList[orderRatingIndex],...ord,rating:orderRatingValue,stars:orderRatingValue,rating_feedback:text,rating_name:name,rating_images:imageUrls,catalog_id:catalogId||ord.catalog_id};
             closeOrderRating();
-            alert(saved?'आपकी रेटिंग और रिव्यू सफलतापूर्वक सेव हो गया।':'रेटिंग इस डिवाइस में सेव हो गई।');
+            if(saved){
+                alert('आपकी रेटिंग और रिव्यू सफलतापूर्वक Database में सेव हो गया।');
+            }else{
+                alert('रेटिंग इस डिवाइस में सेव हो गई, लेकिन Database में सेव नहीं हो पाई। कृपया दोबारा Submit करें।');
+                console.error('Rating cloud save failed:', cloudSaveError);
+            }
             renderOrdersUI();
         }
 
