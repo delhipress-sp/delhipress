@@ -416,9 +416,13 @@
                                 <input type="file" id="admCardCamera" accept="image/*" capture="environment" hidden>
                             </div>
                             <div class="form-group" style="flex: 1; min-width: 220px;">
-                                <label>कार्ड वीडियो (15–20 सेकंड):</label>
-                                <input type="file" id="admCardVideo" accept="video/*">
-                                <small style="color:#64748b;font-size:10px;">ग्राहक कार्ड विवरण/ऑर्डर विवरण में यह वीडियो देख सकेगा।</small>
+                                <label>कार्ड वीडियो (अधिकतम 1 मिनट):</label>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                    <input type="file" id="admCardVideo" accept="video/*" style="max-width:170px;">
+                                    <button type="button" onclick="openCatalogVideoRecorder()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-video"></i> वीडियो कैमरा</button>
+                                    <span id="catalogVideoStatus" style="font-size:11px;color:#64748b;">वीडियो नहीं चुना</span>
+                                </div>
+                                <small style="color:#64748b;font-size:10px;">मोबाइल से सीधे वीडियो रिकॉर्ड करके भी कैटलॉग में अपलोड कर सकते हैं। अधिकतम 1 मिनट।</small>
                             </div>
                         </div>
                         <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
@@ -1323,6 +1327,145 @@
         }
         function openCatalogGallery(){const el=document.getElementById('admCardFile');if(!el)return;el.removeAttribute('capture');el.multiple=true;el.accept='image/*';el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
         function openCatalogCamera(){const el=document.getElementById('admCardCamera');if(!el)return;el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
+
+        // मोबाइल कैमरा से सीधे कैटलॉग वीडियो रिकॉर्ड करने का सिस्टम
+        let catalogVideoStream = null;
+        let catalogVideoRecorder = null;
+        let catalogVideoChunks = [];
+        let catalogVideoRecordTimer = null;
+        let catalogVideoSeconds = 0;
+
+        function getSupportedVideoMime(){
+            const types=[
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm',
+                'video/mp4'
+            ];
+            for(const t of types){
+                try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t; }catch(e){}
+            }
+            return '';
+        }
+
+        function openCatalogVideoRecorder(){
+            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){
+                // पुराने/असमर्थित browser में direct camera fallback खोलें।
+                const input=document.getElementById('admCardVideo');
+                if(input){ input.setAttribute('capture','environment'); input.click(); }
+                return;
+            }
+            showCatalogVideoRecorderUI();
+            navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true})
+                .then(stream=>{
+                    catalogVideoStream=stream;
+                    const preview=document.getElementById('catalogVideoPreview');
+                    if(preview){preview.srcObject=stream;preview.play().catch(()=>{});}
+                    const start=document.getElementById('catalogVideoStartBtn');
+                    if(start) start.disabled=false;
+                    setCatalogVideoStatus('कैमरा तैयार है — रिकॉर्ड शुरू करें।',' #0f766e');
+                })
+                .catch(err=>{
+                    closeCatalogVideoRecorder();
+                    alert('कैमरा/माइक्रोफोन की अनुमति नहीं मिली। कृपया Camera और Microphone permission Allow करें।');
+                });
+        }
+
+        function showCatalogVideoRecorderUI(){
+            let modal=document.getElementById('catalogVideoRecorderModal');
+            if(modal){modal.style.display='flex';return;}
+            modal=document.createElement('div');
+            modal.id='catalogVideoRecorderModal';
+            modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center;padding:14px;';
+            modal.innerHTML=`<div style="width:min(520px,100%);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <b style="font-size:17px;">🎥 कैटलॉग वीडियो रिकॉर्ड करें</b>
+                    <button type="button" onclick="closeCatalogVideoRecorder()" style="border:0;background:#f1f5f9;border-radius:50%;width:34px;height:34px;font-size:18px;">×</button>
+                </div>
+                <video id="catalogVideoPreview" muted playsinline autoplay style="width:100%;max-height:58vh;background:#000;border-radius:12px;object-fit:cover;"></video>
+                <div id="catalogVideoTimer" style="text-align:center;font-size:18px;font-weight:800;margin:8px 0;color:#dc2626;">00:00 / 01:00</div>
+                <div id="catalogVideoRecorderStatus" style="text-align:center;font-size:12px;color:#64748b;margin-bottom:9px;">कैमरा शुरू हो रहा है…</div>
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                    <button type="button" id="catalogVideoStartBtn" disabled onclick="startCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#dc2626;color:#fff;font-weight:800;">🔴 रिकॉर्ड शुरू</button>
+                    <button type="button" id="catalogVideoStopBtn" disabled onclick="stopCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;">⏹ रोकें</button>
+                    <button type="button" onclick="closeCatalogVideoRecorder()" style="padding:10px 18px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-weight:800;">रद्द करें</button>
+                </div>
+                <div style="font-size:11px;color:#64748b;text-align:center;margin-top:9px;">वीडियो अधिकतम 60 सेकंड का होगा। रिकॉर्डिंग के बाद वीडियो अपने-आप Catalog Video में लग जाएगा।</div>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+
+        function setCatalogVideoStatus(msg,color){
+            const el=document.getElementById('catalogVideoRecorderStatus');
+            if(el){el.textContent=msg;el.style.color=color||'#64748b';}
+        }
+
+        function startCatalogVideoRecording(){
+            if(!catalogVideoStream) return;
+            const mime=getSupportedVideoMime();
+            try{catalogVideoRecorder=new MediaRecorder(catalogVideoStream,mime?{mimeType:mime}:undefined);}catch(e){alert('इस मोबाइल में वीडियो रिकॉर्डिंग शुरू नहीं हो सकी।');return;}
+            catalogVideoChunks=[]; catalogVideoSeconds=0;
+            catalogVideoRecorder.ondataavailable=e=>{if(e.data && e.data.size) catalogVideoChunks.push(e.data);};
+            catalogVideoRecorder.onstop=()=>{
+                clearInterval(catalogVideoRecordTimer);
+                const type=catalogVideoRecorder?.mimeType||mime||'video/webm';
+                const blob=new Blob(catalogVideoChunks,{type});
+                const ext=type.includes('mp4')?'mp4':'webm';
+                const file=new File([blob],`catalog_video_${Date.now()}.${ext}`,{type});
+                if(file.size>12*1024*1024){
+                    alert('रिकॉर्ड किया गया वीडियो 12 MB से बड़ा है। कृपया छोटा/कम गुणवत्ता वाला वीडियो रिकॉर्ड करें।');
+                    setCatalogVideoStatus('वीडियो बहुत बड़ा है।',' #dc2626');
+                    return;
+                }
+                const input=document.getElementById('admCardVideo');
+                if(input){try{const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;}catch(e){}}
+                const st=document.getElementById('catalogVideoStatus');
+                if(st) st.textContent=`🎥 रिकॉर्ड किया गया वीडियो (${catalogVideoSeconds} सेकंड)`;
+                setCatalogVideoStatus('वीडियो तैयार है। इसे Catalog में सुरक्षित किया जा सकता है।','#0f766e');
+                stopCatalogVideoStream();
+            };
+            catalogVideoRecorder.start(250);
+            const start=document.getElementById('catalogVideoStartBtn'),stop=document.getElementById('catalogVideoStopBtn');
+            if(start) start.disabled=true; if(stop) stop.disabled=false;
+            setCatalogVideoStatus('🔴 रिकॉर्डिंग चल रही है…','#dc2626');
+            updateCatalogVideoTimer();
+            catalogVideoRecordTimer=setInterval(()=>{
+                catalogVideoSeconds++; updateCatalogVideoTimer();
+                if(catalogVideoSeconds>=60) stopCatalogVideoRecording();
+            },1000);
+        }
+
+        function updateCatalogVideoTimer(){
+            const el=document.getElementById('catalogVideoTimer');
+            if(el) el.textContent=`00:${String(catalogVideoSeconds).padStart(2,'0')} / 01:00`;
+        }
+
+        function stopCatalogVideoRecording(){
+            clearInterval(catalogVideoRecordTimer);
+            if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();
+            const stop=document.getElementById('catalogVideoStopBtn');if(stop)stop.disabled=true;
+            const start=document.getElementById('catalogVideoStartBtn');if(start)start.disabled=true;
+        }
+
+        function stopCatalogVideoStream(){
+            if(catalogVideoStream){catalogVideoStream.getTracks().forEach(t=>t.stop());catalogVideoStream=null;}
+        }
+
+        function closeCatalogVideoRecorder(){
+            try{if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();}catch(e){}
+            clearInterval(catalogVideoRecordTimer);
+            stopCatalogVideoStream();
+            const modal=document.getElementById('catalogVideoRecorderModal');
+            if(modal) modal.remove();
+        }
+
+        document.addEventListener('change',function(e){
+            if(e.target && e.target.id==='admCardVideo' && e.target.files?.[0]){
+                const f=e.target.files[0];
+                const st=document.getElementById('catalogVideoStatus');
+                if(st) st.textContent=`🎬 ${f.name}`;
+            }
+        });
 
         async function uploadCatalogAdminFile(file, folder='catalog'){
             if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
