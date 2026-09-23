@@ -583,71 +583,38 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         async function syncWithCloudFast() {
             let userObj = {};
             try { userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}'); } catch(e) {}
-
             const clean = v => String(v ?? '').trim();
             const phone = clean(userObj.phone || userObj.mobile || (fetchedOrdersList[0] && (fetchedOrdersList[0].mobile || fetchedOrdersList[0].phone)));
 
+            // Keep the page responsive: show local data immediately, then replace it
+            // with the cloud source of truth when Supabase responds.
             if (!supabaseClient) { renderOrdersUI(); return; }
 
             try {
-                // हमेशा cloud के असली orders लाएँ ताकि Admin द्वारा बदला गया status तुरंत My Orders में दिखे।
-                let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
-                if (phone) query = query.eq('mobile', phone);
-                let { data, error } = await query;
-                if (error && phone) {
-                    // phone column न होने पर केवल mobile से दोबारा query करें।
-                    const retry = await supabaseClient.from('orders').select('*').eq('mobile', phone).order('id', { ascending: false }).limit(100);
-                    data = retry.data; error = retry.error;
-                }
-                if (error) {
-                    // अंतिम fallback: recent cloud orders पढ़ें; इससे My Orders पूरी तरह बंद नहीं होगा।
-                    const retryAll = await supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
-                    if (retryAll.error) throw retryAll.error;
-                    data = retryAll.data || [];
+                const timeout = ms => new Promise((_, reject) => setTimeout(() => reject(new Error('orders timeout')), ms));
+                let query;
+                if (phone) {
+                    query = supabaseClient.from('orders').select('*').eq('mobile', phone).order('id',{ascending:false}).limit(100);
+                } else {
+                    // No phone: use exact local order IDs instead of downloading unrelated orders.
+                    const ids = [...new Set(fetchedOrdersList.map(o=>o?.id).filter(v=>v!==null&&v!==undefined&&String(v).trim()!==''))];
+                    if (ids.length) query = supabaseClient.from('orders').select('*').in('id',ids).order('id',{ascending:false});
+                    else { renderOrdersUI(); return; }
                 }
 
-                const cloud = Array.isArray(data) ? data : [];
-                let local = [];
-                try { local = JSON.parse(localStorage.getItem('my_orders_list') || '[]'); if(!Array.isArray(local)) local=[]; } catch(e) {}
+                let result = await Promise.race([query, timeout(6500)]);
+                if (result?.error) throw result.error;
+                const cloud = Array.isArray(result?.data) ? result.data : [];
 
-                // Cloud record को प्राथमिकता दें। Local record को केवल तभी रखें जब उसका cloud counterpart न मिला हो।
-                const merged = [];
-                const usedCloud = new Set();
-                const norm = v => clean(v).toLowerCase();
-                const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
-
-                for (const l of local) {
-                    let best = null, bestScore = -1, bestIndex = -1;
-                    for (let i=0;i<cloud.length;i++) {
-                        if (usedCloud.has(i)) continue;
-                        const c=cloud[i]; let score=0;
-                        if (l.id && c.id && String(l.id)===String(c.id)) score += 100;
-                        if (l.order_id && c.order_id && norm(l.order_id)===norm(c.order_id)) score += 90;
-                        if (norm(l.mobile||l.phone) && norm(l.mobile||l.phone)===norm(c.mobile||c.phone)) score += 35;
-                        if (norm(l.customer_name||l.name) && norm(l.customer_name||l.name)===norm(c.customer_name||c.name)) score += 20;
-                        if (norm(l.card_title||l.card_name) && norm(l.card_title||l.card_name)===norm(c.card_title||c.card_name)) score += 15;
-                        const lt=num(l.total_amount), ct=num(c.total_amount);
-                        if (lt!==null && ct!==null && Math.abs(lt-ct)<0.01) score += 15;
-                        if (l.created_at && c.created_at) {
-                            const diff=Math.abs(new Date(l.created_at).getTime()-new Date(c.created_at).getTime());
-                            if (Number.isFinite(diff) && diff <= 24*60*60*1000) score += 10;
-                        }
-                        if (score>bestScore) { bestScore=score; best=c; bestIndex=i; }
-                    }
-                    if (best && bestScore >= (l.id ? 100 : (l.order_id ? 90 : 45))) {
-                        merged.push({...l,...best}); usedCloud.add(bestIndex);
-                    } else {
-                        merged.push(l);
-                    }
-                }
-                for (let i=0;i<cloud.length;i++) if(!usedCloud.has(i)) merged.push(cloud[i]);
-
-                fetchedOrdersList = merged.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+                // CLOUD IS SOURCE OF TRUTH. If the successful query is empty, keep it empty.
+                // Do NOT resurrect Admin-deleted orders from localStorage.
+                fetchedOrdersList = cloud.sort((a,b)=>Number(b.id||0)-Number(a.id||0));
                 fetchedOrdersList = await attachCloudRatings(fetchedOrdersList);
                 localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                 renderOrdersUI();
             } catch(e) {
                 console.error('My Orders cloud sync error:', e);
+                // Only a failed/timeout cloud request may use the already visible local copy.
                 renderOrdersUI();
             }
         }
@@ -655,27 +622,27 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         async function attachCloudRatings(list){
             if(!supabaseClient || !Array.isArray(list) || !list.length) return list;
             try{
-                const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000);
+                const {data,error}=await Promise.race([
+                    supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
+                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('feedback timeout')),5000))
+                ]);
                 if(error || !Array.isArray(data)) return list;
                 const imageList = r => {
                     let v=r?.review_images??r?.images??r?.image_urls??r?.photos??r?.review_image??r?.photo??[];
-                    if(typeof v==='string'){
-                        const raw=v.trim(); if(!raw)return[];
-                        try{v=JSON.parse(raw)}catch(e){v=raw.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)}
-                    }
+                    if(typeof v==='string'){ const raw=v.trim(); if(!raw)return[]; try{v=JSON.parse(raw)}catch(e){v=raw.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)} }
                     if(!Array.isArray(v))v=[v];
                     return v.map(x=>typeof x==='string'?x.trim():String(x?.url??x?.image_url??x?.src??'').trim()).filter(x=>/^https?:\/\//i.test(x));
                 };
                 return list.map(o=>{
-                    const matches=data.filter(r=>
+                    const exact=data.filter(r =>
                         (o.id!=null && r.order_db_id!=null && String(o.id)===String(r.order_db_id)) ||
                         (o.order_id && r.order_id && String(o.order_id)===String(r.order_id))
                     );
-                    if(!matches.length) return o;
-                    const r=matches[0];
+                    if(!exact.length) return o;
+                    const r=exact[0];
                     return {...o,rating:Number(r.rating??r.stars??0)||0,stars:Number(r.stars??r.rating??0)||0,rating_feedback:r.feedback||r.comment||'',rating_name:r.name||r.user_name||'',rating_images:imageList(r),rating_created_at:r.created_at||'',rating_review_id:r.id??''};
                 });
-            }catch(e){return list;}
+            }catch(e){ return list; }
         }
 
         async function fetchCustomerOrders() {
@@ -1189,70 +1156,38 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         async function loadRecommendedCatalog() {
             const container = document.getElementById('recommendedCatalogContainer');
             if (!container) return;
-
-            const tables = ['catalog', 'cards', 'cards_catalog'];
-            let fetched = [];
-
+            container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;">कार्ड लोड हो रहे हैं...</p>`;
+            let fetched=[];
             if (supabaseClient) {
-                for (const tbl of tables) {
-                    try {
-                        const { data, error } = await supabaseClient.from(tbl).select('*').order('id', { ascending: false }).limit(8);
-                        if (!error && data && data.length > 0) {
-                            fetched = data;
-                            break;
-                        }
-                    } catch(e) {}
-                }
+                try{
+                    const {data,error}=await Promise.race([
+                        supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(12),
+                        new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),5000))
+                    ]);
+                    if(!error && Array.isArray(data)) fetched=data;
+                }catch(e){}
             }
-
-            if (fetched.length === 0) {
-                container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#94a3b8; font-size:13px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
+            if(!fetched.length){
+                try{
+                    const raw=localStorage.getItem('dp_index_catalog');
+                    const parsed=raw?JSON.parse(raw):[];
+                    if(Array.isArray(parsed)) fetched=parsed;
+                }catch(e){}
+            }
+            if(!fetched.length){
+                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
                 return;
             }
-
-            recommendedCards = fetched;
-            container.innerHTML = fetched.map((c, idx) => {
-                const name = c.name || c.title || c.card_name || c.product_name || 'शादी कार्ड';
-                const model = c.model || c.code || c.card_model || c.model_no || '';
-
-                // Catalog में अलग-अलग नाम से price save हो सकता है।
-                // 0/empty value को valid price न मानकर दूसरे price fields भी check करें।
-                const getCatalogPrice = (card) => {
-                    // Admin catalog में असली Catalog Price `catalog_rate` में है।
-                    // इसे सबसे पहले लें; `sale_rate`/`selling_price` को Catalog Price न दिखाएँ।
-                    const priceKeys = [
-                        'catalog_rate', 'catalog_price', 'original_rate', 'mrp',
-                        'rate', 'price', 'amount', 'card_price',
-                        'unit_price', 'per_piece_price', 'price_per_piece',
-                        'printing_price'
-                    ];
-                    for (const key of priceKeys) {
-                        const raw = card?.[key];
-                        if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
-                            const n = Number(String(raw).replace(/[₹,\\s]/g, ''));
-                            if (Number.isFinite(n) && n > 0) return n;
-                        }
-                    }
-                    return 0;
-                };
-                const rate = getCatalogPrice(c);
-                const img = c.image || c.image_url || c.card_image || c.photo || safeCardPlaceholder;
-
-                return `
-                    <div class="card-sample">
-                        <div class="img-box" onclick="selectRecommendedForOrder(${idx})">
-                            <img src="${img}" alt="${name}" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
-                        </div>
-                        <div class="card-info">
-                            <h4>${name}</h4>
-                            <div class="model-text">${model}</div>
-                            <div class="card-price-tag">₹${rate} / पीस</div>
-                            <button type="button" class="btn-select-card" onclick="selectRecommendedForOrder(${idx})">
-                                <i class="fa-solid fa-bolt"></i> ऑर्डर करें
-                            </button>
-                        </div>
-                    </div>
-                `;
+            // Deduplicate by real catalog ID.
+            const seen=new Set(); fetched=fetched.filter(c=>{const id=String(c?.id??'').trim();if(!id||seen.has(id))return false;seen.add(id);return true;});
+            recommendedCards=fetched;
+            container.innerHTML=fetched.map((c,idx)=>{
+                const name=c.name||c.title||c.card_name||c.product_name||'शादी कार्ड';
+                const model=c.model||c.code||c.card_model||c.model_no||'';
+                const keys=['catalog_rate','catalog_price','original_rate','mrp','sale_rate','selling_price','rate','price','amount','card_price','unit_price','per_piece_price','price_per_piece','printing_price'];
+                let rate=0; for(const key of keys){const n=Number(String(c?.[key]??'').replace(/[₹,\s]/g,''));if(Number.isFinite(n)&&n>0){rate=n;break;}}
+                const img=c.image||c.image_url||c.card_image||c.photo||safeCardPlaceholder;
+                return `<div class="card-sample"><div class="img-box" onclick="selectRecommendedForOrder(${idx})"><img src="${img}" alt="${name}" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';"></div><div class="card-info"><h4>${name}</h4><div class="model-text">${model}</div><div class="card-price-tag">₹${rate} / पीस</div><button type="button" class="btn-select-card" onclick="selectRecommendedForOrder(${idx})"><i class="fa-solid fa-bolt"></i> ऑर्डर करें</button></div></div>`;
             }).join('');
         }
 
@@ -1353,38 +1288,31 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             let ord = fetchedOrdersList[index];
             if (!ord) return;
 
-            // Order Details के लिए Review को सीधे catalog_feedback से resolve करें।
-            // प्राथमिकता: exact order_db_id → exact order_id → exact catalog_id.
-            let reviewRows = [];
-            try{
-                if(supabaseClient){
-                    const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000);
-                    if(!error && Array.isArray(data)) reviewRows=data;
-                }
-            }catch(e){}
-
-            const norm=v=>String(v??'').trim().toLowerCase();
+            // Order Details review: first read the exact review linked to THIS order.
+            // Only use catalog_id as a legacy fallback when no order-linked review exists.
+            let review = null;
             const clean=v=>String(v??'').trim();
-            const orderDbId=clean(ord.id);
-            const orderId=clean(ord.order_id);
-            const catalogIds=new Set([
-                ord.catalog_id,ord.catalogId,ord.card_id,ord.product_id,ord.card_catalog_id,ord.catalog_item_id
-            ].filter(v=>clean(v)).map(v=>norm(v)));
-
-            let review = reviewRows.find(r=>
-                (orderDbId && clean(r.order_db_id)===orderDbId) ||
-                (orderId && clean(r.order_id)===orderId)
-            ) || null;
-
-            if(!review && catalogIds.size){
-                review = reviewRows.find(r=>[r.catalog_id,r.card_id,r.product_id].some(v=>catalogIds.has(norm(v)))) || null;
-            }
-
-            if(!review){
+            const orderDbId=clean(ord.id), orderId=clean(ord.order_id);
+            const catalogIds=new Set([ord.catalog_id,ord.catalogId,ord.card_id,ord.product_id,ord.card_catalog_id,ord.catalog_item_id].filter(v=>clean(v)).map(v=>clean(v).toLowerCase()));
+            if(supabaseClient){
                 try{
-                    const local=JSON.parse(localStorage.getItem('dp_order_rating_'+String(ord.id||ord.order_id||index))||'null');
-                    if(local) review=local;
+                    if(orderDbId){
+                        const r=await Promise.race([supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',Number(orderDbId)).order('created_at',{ascending:false}).limit(1),new Promise((_,reject)=>setTimeout(()=>reject(new Error('review timeout')),4000))]);
+                        if(!r.error && Array.isArray(r.data) && r.data[0]) review=r.data[0];
+                    }
+                    if(!review && orderId){
+                        const r=await Promise.race([supabaseClient.from('catalog_feedback').select('*').eq('order_id',orderId).order('created_at',{ascending:false}).limit(1),new Promise((_,reject)=>setTimeout(()=>reject(new Error('review timeout')),4000))]);
+                        if(!r.error && Array.isArray(r.data) && r.data[0]) review=r.data[0];
+                    }
+                    // Legacy rows without order linkage.
+                    if(!review && catalogIds.size){
+                        const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000);
+                        if(!error && Array.isArray(data)) review=data.find(r=>[r.catalog_id,r.card_id,r.product_id].some(v=>catalogIds.has(clean(v).toLowerCase())))||null;
+                    }
                 }catch(e){}
+            }
+            if(!review){
+                try{ const local=JSON.parse(localStorage.getItem('dp_order_rating_'+String(ord.id||ord.order_id||index))||'null'); if(local) review=local; }catch(e){}
             }
 
             const total = parseFloat(ord.total_amount || 0);
