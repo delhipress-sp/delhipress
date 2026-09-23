@@ -417,6 +417,10 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
 
 margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer}.order-video-panel video{width:100%;max-height:70vh;border-radius:10px;background:#000}
 </style>
+
+<style id="dp-receipt-form-style">
+.form-line{font-size:12px;line-height:1.7;border-bottom:1px dashed #d6d3d1;padding:3px 0;word-break:break-word}.form-line:last-child{border-bottom:0}.matter-file-btn{display:inline-flex;align-items:center;gap:6px;background:#7f1d1d;color:#fff;text-decoration:none;padding:8px 11px;border-radius:7px;font-size:12px;font-weight:800}.matter-file-btn:hover{opacity:.9}@media(max-width:600px){#printableReceiptArea>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}#printableReceiptArea table{font-size:11px!important}}
+</style>
 </head>
 <body>
 
@@ -541,7 +545,38 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
         let recommendedCards = [];
         const safeCardPlaceholder = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23f1f5f9'/><text x='50%' y='50%' font-size='11' fill='%2394a3b8' text-anchor='middle' dominant-baseline='middle'>Card</text></svg>";
 
+        function getCurrentLoggedUser() {
+            let userObj = {};
+            try {
+                userObj = JSON.parse(
+                    localStorage.getItem('dp_current_user') ||
+                    localStorage.getItem('dp_logged_in_user') ||
+                    localStorage.getItem('user') || '{}');
+            } catch(e) {}
+            return userObj || {};
+        }
+
+        function normalizeCustomerMobile(value) {
+            const d = String(value ?? '').replace(/\D/g, '');
+            return d.length >= 10 ? d.slice(-10) : d;
+        }
+
+        function isOrderForCurrentUser(order, mobile) {
+            if (!order || !mobile) return false;
+            return normalizeCustomerMobile(order.mobile || order.phone || '') === mobile;
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
+            const user = getCurrentLoggedUser();
+            const mobile = normalizeCustomerMobile(user.mobile || user.phone || '');
+
+            // दूसरे browser में localStorage खाली होता है। इसलिए ग्राहक को उसी
+            // account से login कराकर Supabase से उसके cloud orders दिखाए जाएंगे।
+            if (!mobile) {
+                window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
+                return;
+            }
+
             loadInitialLocalOrders();
             // Never keep the whole My Orders page blocked by catalog/review requests.
             loadRecommendedCatalog();
@@ -549,14 +584,16 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
         });
 
         function loadInitialLocalOrders() {
+            const user = getCurrentLoggedUser();
+            const mobile = normalizeCustomerMobile(user.mobile || user.phone || '');
             let localList = [];
             const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
             for (const k of keys) {
                 try {
                     const data = JSON.parse(localStorage.getItem(k) || '[]');
                     if (Array.isArray(data) && data.length > 0) {
-                        localList = data;
-                        break;
+                        const mine = data.filter(o => isOrderForCurrentUser(o, mobile));
+                        if (mine.length) { localList = mine; break; }
                     }
                 } catch(e) {}
             }
@@ -564,14 +601,12 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             if (localList.length === 0) {
                 try {
                     const latest = JSON.parse(localStorage.getItem('dp_latest_confirmed_order') || 'null');
-                    if (latest) localList = [latest];
+                    if (latest && isOrderForCurrentUser(latest, mobile)) localList = [latest];
                 } catch(e) {}
             }
 
-            if (localList.length > 0) {
-                fetchedOrdersList = localList;
-                renderOrdersUI();
-            }
+            fetchedOrdersList = localList;
+            renderOrdersUI();
             updateUserGreeting();
         }
 
@@ -651,13 +686,19 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 }
             }
 
-            const phoneValues = [
-                userObj.phone, userObj.mobile,
-                ...localOrders.map(o => o && (o.mobile || o.phone))
-            ].map(normPhone).filter(v => v.length >= 10);
+            const loggedInMobile = normPhone(userObj.phone || userObj.mobile || '');
+            if (!loggedInMobile) {
+                window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
+                return;
+            }
 
-            const phoneDigits = [...new Set(phoneValues)];
-            const currentLocal = localOrders.sort((a,b) => {
+            // Cloud lookup केवल वर्तमान logged-in mobile से होगा।
+            // दूसरे customer के local cached order से mobile निकालकर query नहीं करेंगे।
+            const phoneDigits = [loggedInMobile];
+
+            // Local cache भी केवल इसी customer तक सीमित रखें।
+            const filteredLocalOrders = localOrders.filter(o => normPhone(o.mobile || o.phone || '') === loggedInMobile);
+            const currentLocal = filteredLocalOrders.sort((a,b) => {
                 const ta = new Date(a.created_at || 0).getTime() || 0;
                 const tb = new Date(b.created_at || 0).getTime() || 0;
                 return tb - ta;
@@ -1608,6 +1649,65 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             render();
         }
 
+        function parseOrderMatterForReceipt(text) {
+            const out = {events:[], rsvp:[], raw:String(text || '')};
+            const lines = out.raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+            for (const line of lines) {
+                if (/^कार्यक्रम\s*:/i.test(line)) {
+                    const v=line.replace(/^कार्यक्रम\s*:\s*/i,'');
+                    const parts=v.split(/\s*\|\s*/);
+                    const get=(label)=>{
+                        const p=parts.find(x=>new RegExp('^'+label+'\\s*:','i').test(x));
+                        return p?p.replace(new RegExp('^'+label+'\\s*:\\s*','i'),'').trim():'';
+                    };
+                    out.events.push({title:get('कार्यक्रम')||parts[0]||'',date:get('तारीख'),day:get('दिन'),part:get('समय का भाग'),time:get('समय')});
+                } else if (/^(विनीत\s*\/\s*निवेदक|दर्शनाभिलाषी|संपर्क)\s*:/i.test(line)) {
+                    out.rsvp.push(line);
+                }
+            }
+            return out;
+        }
+
+        function parseCustomerFilesForReceipt(ord) {
+            const arr=[];
+            const add=v=>{ if(!v) return; let x=v; if(typeof x==='string'){try{x=JSON.parse(x)}catch(e){return}}; if(Array.isArray(x)) x.forEach(add); else if(typeof x==='object' && x.url) arr.push(x); };
+            add(ord.customer_files);
+            // Legacy metadata may carry a direct URL.
+            if(ord.wedding_matter_file && ord.wedding_matter_file.url) add(ord.wedding_matter_file);
+            return arr;
+        }
+
+        async function saveTypedOrderEdits(index) {
+            const ord=fetchedOrdersList[index];
+            if(!ord) return;
+            const id=ord.id;
+            if(!id || !supabaseClient){ alert('Database connection उपलब्ध नहीं है।'); return; }
+            const get=id=>document.getElementById(id)?.value ?? '';
+            const payload={
+                groom_name:get('editGroomName').trim() || '-',
+                groom_father:get('editGroomFather').trim() || '-',
+                groom_address:get('editGroomAddress').trim() || '-',
+                bride_name:get('editBrideName').trim() || '-',
+                bride_father:get('editBrideFather').trim() || '-',
+                bride_address:get('editBrideAddress').trim() || '-',
+                custom_notes:get('editFullMatter')
+            };
+            try{
+                const {data,error}=await supabaseClient.from('orders').update(payload).eq('id',Number(id)).select().single();
+                if(error) throw error;
+                fetchedOrdersList[index]={...ord,...data};
+                for(const key of ['my_orders_list','dp_all_orders','user_orders','dp_my_orders']){
+                    try{
+                        let list=JSON.parse(localStorage.getItem(key)||'[]'); if(!Array.isArray(list)) list=[];
+                        list=list.map(x=>String(x.id)===String(id)?{...x,...payload}:x);
+                        localStorage.setItem(key,JSON.stringify(list));
+                    }catch(e){}
+                }
+                alert('टाइप किया हुआ ऑर्डर सफलतापूर्वक अपडेट हो गया।');
+                viewCustomerReceipt(index);
+            }catch(e){ alert('ऑर्डर अपडेट नहीं हुआ।\n\nकारण: '+(e.message||e)); }
+        }
+
         async function viewCustomerReceipt(index) {
             let ord = fetchedOrdersList[index];
             if (!ord) return;
@@ -1709,58 +1809,100 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 
             fetchedOrdersList[index]={...ord,rating,rating_feedback:reviewText,rating_name:reviewName,rating_images:reviewImages};
 
+            const matterText = String(ord.custom_notes || ord.order_notes || ord.notes || '');
+            const matter = parseOrderMatterForReceipt(matterText);
+            const matterFiles = parseCustomerFilesForReceipt(ord);
+            const safeId = escapeReceiptText(ord.order_id || ord.id || '-');
+            const eventRows = matter.events.length ? matter.events.map((e,i)=>`
+                <tr>
+                    <td>${i+1}. ${escapeReceiptText(e.title || '-')}</td>
+                    <td>${escapeReceiptText(e.date || '-')}</td>
+                    <td>${escapeReceiptText(e.day || '-')}</td>
+                    <td>${escapeReceiptText(e.time || e.part || '-')}</td>
+                </tr>`).join('') : `
+                <tr><td colspan="4" style="text-align:center;color:#64748b;">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
+            const fileRows = matterFiles.length ? matterFiles.map(f=>{
+                const isPdf=/pdf/i.test(String(f.mime||f.fileType||f.type||f.name||''));
+                return `<a href="${escapeReceiptText(f.url)}" target="_blank" rel="noopener" class="matter-file-btn"><i class="fa-solid ${isPdf?'fa-file-pdf':'fa-image'}"></i> ${escapeReceiptText(f.name||'कलम से लिखा मैटर खोलें')}</a>`;
+            }).join('') : `<span style="color:#64748b;font-size:12px;">अलग PDF/फोटो फाइल उपलब्ध नहीं है।</span>`;
+
             document.getElementById('printableReceiptArea').innerHTML = `
-                <div class="receipt-header">
-                    <h2 style="color:var(--primary); margin:0;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
-                    <p style="font-size:11px; color:#555; margin:0;">ईदगाह मोड़, करमाटांड़, जामताड़ा | मो: 9304509464</p>
-                    <h4 style="margin-top:6px; background:var(--dark); color:#fff; display:inline-block; padding:3px 12px; border-radius:3px; font-size:12px;">ग्राहक ऑर्डर रसीद</h4>
+                <div class="receipt-header" style="border-bottom:0;margin-bottom:8px;">
+                    <h2 style="color:#7f1d1d;margin:0;font-weight:900;">बिस्मिल्लाहिर्रहमानिर्रहीम</h2>
+                    <div style="font-size:20px;font-weight:900;color:#7f1d1d;margin-top:3px;">ऑर्डर मैटर रसीद / फॉर्म</div>
+                    <div style="font-size:11px;color:#64748b;margin-top:4px;"><b>रसीद नं.:</b> #${safeId} &nbsp; | &nbsp; <b>तिथि:</b> ${ord.created_at?new Date(ord.created_at).toLocaleDateString('hi-IN'):'-'}</div>
                 </div>
 
-                <div class="receipt-section-title">१. कार्ड एवं वर्तमान स्थिति</div>
-                <div class="card-preview-box">
-                    <img src="${img}" alt="Card" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
-                    <div>
-                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${escapeReceiptText(ord.card_title || 'शादी कार्ड')}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${escapeReceiptText(ord.card_model || '-')}</b></div>
-                        <div style="font-size:12px; color:#64748b; margin-top:4px;">स्थिति: <b>${escapeReceiptText(ord.status || 'Pending')}</b></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                    <div style="border:2px solid #7f1d1d;border-radius:8px;padding:10px;background:#fffdf5;">
+                        <div style="font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:7px;">1. लड़का:</div>
+                        <div class="form-line"><b>लड़का का नाम:</b> ${escapeReceiptText(ord.groom_name||'-')}</div>
+                        <div class="form-line"><b>पिता का नाम:</b> ${escapeReceiptText(ord.groom_father||'-')}</div>
+                        <div class="form-line"><b>पता:</b> ${escapeReceiptText(ord.groom_address||'-')}</div>
+                    </div>
+                    <div style="border:2px solid #7f1d1d;border-radius:8px;padding:10px;background:#fffdf5;">
+                        <div style="font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:7px;">2. लड़की:</div>
+                        <div class="form-line"><b>लड़की का नाम:</b> ${escapeReceiptText(ord.bride_name||'-')}</div>
+                        <div class="form-line"><b>पिता का नाम:</b> ${escapeReceiptText(ord.bride_father||'-')}</div>
+                        <div class="form-line"><b>पता:</b> ${escapeReceiptText(ord.bride_address||'-')}</div>
                     </div>
                 </div>
-                <div id="orderMediaShowcase" class="order-media-showcase">
-                    <div class="order-media-title"><i class="fa-solid fa-images"></i> कार्ड फोटो / वीडियो</div>
-                    <div id="orderMediaStage" class="order-media-stage"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:12px;">मीडिया लोड हो रहा है...</div></div>
-                    <div id="orderMediaNav" class="order-media-nav"></div>
-                    <div class="order-media-hint">फोटो पर टैप करें तो कार्ड 3D में घूमेगा • ← → से फोटो बदलें • वीडियो अंतिम स्लाइड में चलेगा</div>
+
+                <div style="font-weight:900;color:#7f1d1d;font-size:16px;margin:10px 0 6px;">3. कार्यक्रम</div>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
+                    <thead><tr><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">कार्यक्रम</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">तारीख</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">दिन</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">समय</th></tr></thead>
+                    <tbody>${eventRows}</tbody>
+                </table>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;">
+                        <b style="color:#7f1d1d;">R.S.V.P. / चश्मे बराह</b>
+                        <div style="margin-top:6px;white-space:pre-wrap;line-height:1.6;">${escapeReceiptText(matter.rsvp.join('\n') || '—')}</div>
+                    </div>
+                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;">
+                        <b style="color:#7f1d1d;">ऑर्डर जानकारी</b>
+                        <div style="margin-top:6px;line-height:1.7;">ग्राहक: <b>${escapeReceiptText(ord.customer_name||'-')}</b><br>मोबाइल: <b>${escapeReceiptText(ord.mobile||ord.phone||'-')}</b><br>मात्रा: <b>${escapeReceiptText(ord.quantity||100)} पीस</b></div>
+                    </div>
                 </div>
 
-                <div class="receipt-section-title">२. ऑर्डर एवं ग्राहक विवरण</div>
-                <div class="receipt-row"><span>आर्डर ID:</span> <b>#${escapeReceiptText(ord.order_id || ord.id || '-')}</b></div>
-                <div class="receipt-row"><span>ग्राहक:</span> <b>${escapeReceiptText(ord.customer_name || '-')}</b></div>
-                <div class="receipt-row"><span>मोबाइल:</span> <b>${escapeReceiptText(ord.mobile || ord.phone || '-')}</b></div>
-                <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${escapeReceiptText(ord.address || '-')}</b></div>
+                <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#fff;margin-bottom:12px;">
+                    <div style="font-weight:900;color:#7f1d1d;margin-bottom:6px;">✍️ कलम से लिखा मैटर — अलग फाइल</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">${fileRows}</div>
+                </div>
 
-                <div class="receipt-section-title">३. शादी मैटर विवरण (लड़का-लड़की)</div>
-                <div class="receipt-row"><span>लड़का:</span> <b style="color:var(--primary);">${escapeReceiptText(ord.groom_name || '-')}</b></div>
-                <div class="receipt-row"><span>लड़की:</span> <b style="color:var(--secondary);">${escapeReceiptText(ord.bride_name || '-')}</b></div>
-                <div class="receipt-row"><span>शुभ विवाह / बारात:</span> <b>${escapeReceiptText(ord.barat_date || '-')}</b></div>
+                <div style="border:2px solid #2563eb;border-radius:9px;padding:10px;background:#f8fbff;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                        <b style="color:#1d4ed8;font-size:15px;">✏️ टाइप किया हुआ ऑर्डर — Edit कर सकते हैं</b>
+                        <button type="button" onclick="toggleTypedOrderEdit(${index})" style="border:0;border-radius:8px;background:#2563eb;color:#fff;padding:7px 11px;font-weight:800;">Edit</button>
+                    </div>
+                    <div id="typedOrderEditBox_${index}" style="display:none;margin-top:10px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <input id="editGroomName" value="${escapeReceiptText(ord.groom_name||'')}" placeholder="लड़का का नाम">
+                            <input id="editGroomFather" value="${escapeReceiptText(ord.groom_father||'')}" placeholder="लड़के के पिता का नाम">
+                            <textarea id="editGroomAddress" placeholder="लड़के का पता">${escapeReceiptText(ord.groom_address||'')}</textarea>
+                            <input id="editBrideName" value="${escapeReceiptText(ord.bride_name||'')}" placeholder="लड़की का नाम">
+                            <input id="editBrideFather" value="${escapeReceiptText(ord.bride_father||'')}" placeholder="लड़की के पिता का नाम">
+                            <textarea id="editBrideAddress" placeholder="लड़की का पता">${escapeReceiptText(ord.bride_address||'')}</textarea>
+                        </div>
+                        <textarea id="editFullMatter" style="width:100%;min-height:180px;margin-top:8px;line-height:1.6;">${escapeReceiptText(matterText)}</textarea>
+                        <button type="button" onclick="saveTypedOrderEdits(${index})" style="margin-top:8px;border:0;border-radius:8px;background:#10b981;color:#fff;padding:10px 15px;font-weight:900;width:100%;">💾 बदलाव सेव करें</button>
+                    </div>
+                    <div id="typedOrderPreview_${index}" style="margin-top:8px;background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.7;">${escapeReceiptText(matterText||'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}</div>
+                </div>
 
-                <div class="receipt-section-title">४. बिल एवं भुगतान विवरण</div>
-                <div class="receipt-row"><span>प्रिंटिंग मात्रा:</span> <b>${escapeReceiptText(ord.quantity || 100)} पीस</b></div>
-                <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
-                <div class="receipt-row"><span>एडवांस जमा:</span> <b style="color:green;">₹${advance}</b></div>
-                <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
-                <div class="receipt-row"><span>UTR / Txn ID:</span> <b>${escapeReceiptText(ord.txn_id || 'उपलब्ध नहीं')}</b></div>
-
-                <div class="receipt-section-title">५. ग्राहक की रेटिंग एवं रिव्यू</div>
-                ${reviewHtml}
-
-                <div class="receipt-section-title">६. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
-                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.7;">
-                    ${escapeReceiptText(ord.custom_notes || ord.order_notes || ord.notes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}
+                <div style="margin-top:12px;font-size:12px;color:#475569;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                    <span>स्थिति: <b>${escapeReceiptText(ord.status||'Pending')}</b></span>
+                    <span>कुल: <b>₹${total}</b> | जमा: <b>₹${advance}</b> | बाकी: <b>₹${balance}</b></span>
                 </div>
             `;
 
             document.getElementById('userReceiptModal').style.display = 'flex';
             loadOrderMediaShowcase(index);
+        }
+
+        function toggleTypedOrderEdit(index){
+            const box=document.getElementById('typedOrderEditBox_'+index);
+            if(box) box.style.display=box.style.display==='none'?'block':'none';
         }
 
         function closeReceiptModal() { 
