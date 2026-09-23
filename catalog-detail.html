@@ -217,9 +217,18 @@ function original(c){let n=parseFloat(c.catalog_rate??c.original_rate??c.actual_
 function getImages(c){
  let a=[];
  const fields=['images','image_urls','gallery','photos','gallery_images','product_images','catalog_images'];
- for(const f of fields){let v=c?.[f]; if(Array.isArray(v)) a.push(...v); else if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else a.push(v)}catch(e){a.push(...v.split(/\s*,\s*\n?/).filter(Boolean))}}}
- for(const f of ['image','image_url','photo','main_image']){const v=c?.[f]; if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else a.push(v)}catch(e){a.push(v)}}}
- return [...new Set(a.filter(v=>typeof v==='string'&&v.trim()))];
+ for(const f of fields){let v=c?.[f]; if(Array.isArray(v)) a.push(...v); else if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else if(typeof j==='string') a.push(j); else a.push(v)}catch(e){a.push(...v.split(/\s*,\s*\n?/).filter(Boolean))}}}
+ for(const f of ['image','image_url','photo','main_image']){const v=c?.[f]; if(typeof v==='string'&&v.trim()){try{const j=JSON.parse(v); if(Array.isArray(j)) a.push(...j); else if(typeof j==='string') a.push(j); else a.push(v)}catch(e){a.push(v)}}}
+ // Catalog description may contain [[GALLERY:url1|url2|...]]; Index/old catalog data uses this form.
+ for(const f of ['description','details','note','custom_notes','matter']){
+   const text=String(c?.[f]||'');
+   const re=/\[\[GALLERY:([^\]]+)\]\]/ig; let m;
+   while((m=re.exec(text))){
+     const part=m[1].trim();
+     a.push(...part.split(/\|\s*|\s*,\s*\n?/).map(x=>x.trim()).filter(Boolean));
+   }
+ }
+ return [...new Set(a.map(v=>typeof v==='string'?v.trim():v?.url||v?.image_url||'').filter(v=>/^https?:\/\//i.test(v)))];
 }
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -269,7 +278,11 @@ function variantColor(c){
  const direct=String(c?.variant_color??c?.color??c?.card_color??'').trim(); if(direct)return direct;
  const d=String(c?.description??''); const m=d.match(/\[\[COLOR:([^\]]+)\]\]/i); return m?m[1].trim():'';
 }
-function cleanDescription(c){return String(c?.description??c?.details??c?.description_hi??c?.matter??c?.note??'').replace(/\n?\[\[COLOR:[^\]]+\]\]/ig,'').trim()}
+function cleanDescription(c){return String(c?.description??c?.details??c?.description_hi??c?.matter??c?.note??'')
+  .replace(/\n?\[\[COLOR:[^\]]+\]\]/ig,'')
+  .replace(/\n?\[\[GALLERY:[^\]]+\]\]/ig,'')
+  .replace(/\n?\[\[VIDEO:[^\]]+\]\]/ig,'')
+  .trim()}
 async function loadVariants(){
  const box=document.getElementById('variantSection'), list=document.getElementById('variantList'); if(!box||!list||!product)return;
  const model=String(product.model??product.code??'').trim(), category=String(product.category??'').trim();
@@ -301,127 +314,54 @@ async function selectCatalogVariant(index){
 
 async function loadFeedback(){
   feedbackRows=[];
-  const rows=[];
+  // Use the exact same catalog-feedback source/resolution principle as Index.
+  // Direct catalog_id/card_id/product_id is authoritative; legacy order matching is only fallback.
+  try{ await loadAllRatingRows(); }catch(e){}
 
-  // Supabase: load all feedback once, then also try an exact direct lookup.
-  try{
-    if(sb){
-      const {data,error}=await Promise.race([
-        sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('feedback timeout')),8000))
-      ]);
-      if(!error&&Array.isArray(data)) rows.push(...data);
-    }
-  }catch(e){}
+  const aliases=getProductAliases(product);
+  let rows=allRatingRows.filter(r=>{
+    const ids=[r?.catalog_id,r?.card_id,r?.product_id,...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])].map(cleanKey).filter(Boolean);
+    return ids.some(x=>aliases.has(x));
+  });
 
-  // Exact selected catalog ID lookup. This keeps Catalog Detail in sync with Index.
-  try{
-    if(sb){
-      const aliases=[...getProductAliases(product)].filter(Boolean);
-      for(const aid of aliases){
-        for(const field of ['catalog_id','card_id','product_id']){
-          try{
-            const {data,error}=await sb.from('catalog_feedback').select('*').eq(field,aid).limit(2000);
-            if(!error&&Array.isArray(data)) rows.push(...data);
-          }catch(e){}
+  // If the selected detail object uses a different source-table id, use the exact card from
+  // the Index cache and resolve against that card id exactly like Index does.
+  if(!rows.length){
+    try{
+      const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+      const cards=JSON.parse(raw);
+      if(Array.isArray(cards)){
+        const cur=cards.find(c=>String(c?.id??c?.catalog_id??'')===String(product?.id??activeId??''));
+        if(cur){
+          const ca=getProductAliases(cur);
+          rows=allRatingRows.filter(r=>{
+            const ids=[r?.catalog_id,r?.card_id,r?.product_id,...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])].map(cleanKey).filter(Boolean);
+            return ids.some(x=>ca.has(x));
+          });
         }
       }
-    }
-  }catch(e){}
-
-  // Local feedback cache.
-  try{
-    const localKeys=['catalog_feedback_'+(activeId||id),'catalog_feedback_'+String(product?.id??'')];
-    const seenLocal=new Set();
-    for(const k of localKeys){
-      if(!k||seenLocal.has(k))continue;
-      seenLocal.add(k);
-      const local=JSON.parse(localStorage.getItem(k)||'[]');
-      if(Array.isArray(local)) rows.push(...local);
-    }
-  }catch(e){}
-
-  const aliases=getProductAliases(product), pt=productTitle(product), pm=productModel(product);
-
-  // Direct catalog ID is authoritative. If it exists, never mix same-model cards.
-  const directRows=rows.filter(r=>[
-    r?.catalog_id,r?.card_id,r?.product_id
-  ].some(v=>aliases.has(cleanKey(v))));
-
-  let matched=directRows.slice();
-
-  // Legacy records: only if there is no direct catalog match.
-  if(!matched.length){
-    const orderIds=[...new Set(rows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
-    const orderMap={};
-    if(sb&&orderIds.length){
-      for(let i=0;i<orderIds.length;i+=100){
-        const nums=orderIds.slice(i,i+100).map(Number).filter(Number.isFinite);
-        if(!nums.length)continue;
-        try{
-          const {data,error}=await sb.from('orders')
-            .select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id')
-            .in('id',nums);
-          if(!error&&Array.isArray(data))data.forEach(o=>orderMap[String(o.id)]=o);
-        }catch(e){}
-      }
-    }
-
-    const sameTitle=(a,b)=>{
-      a=cleanKey(a); b=cleanKey(b);
-      if(!a||!b)return false;
-      return a===b || a.includes(b) || b.includes(a) || titleScore(a,b)>=0.70;
-    };
-    const sameModel=(a,b)=>{
-      a=modelKey(a); b=modelKey(b);
-      if(!a||!b)return true;
-      return a===b || a.includes(b) || b.includes(a);
-    };
-
-    rows.forEach(r=>{
-      let belongs=false;
-      const order=orderMap[String(r?.order_db_id??r?.order_id??'').trim()];
-
-      if(order){
-        const oc=cleanKey(order?.catalog_id??order?.card_id??order?.product_id??'');
-        if(oc && aliases.has(oc)) belongs=true;
-
-        if(!belongs){
-          const ot=order?.card_title??order?.card_name??order?.product_name??'';
-          const om=order?.card_model??order?.model??order?.code??'';
-          belongs=sameTitle(ot,pt) && sameModel(om,pm);
-        }
-      }
-
-      if(!belongs){
-        const rt=r?.card_title??r?.card_name??r?.product_name??r?.title??'';
-        const rm=r?.card_model??r?.model??r?.code??'';
-        belongs=sameTitle(rt,pt) && sameModel(rm,pm);
-      }
-
-      if(belongs) matched.push(r);
-    });
+    }catch(e){}
   }
 
-  // Deduplicate only exact duplicate copies.
-  // IMPORTANT: two different reviews from the SAME order must both remain visible.
+  // Legacy model/title-only rows: only use when there is no direct match.
+  if(!rows.length){
+    rows=allRatingRows.filter(r=>ratingBelongsToProductForCard(r,aliases,product));
+  }
+
   const dedup=new Map();
-  for(const r of matched){
+  for(const r of rows){
     const rid=String(r?.id??'').trim();
-    const imgs=reviewImageList(r).join(',');
-    const sig=rid
-      ? 'id:'+rid
-      : [
-          String(r?.order_db_id??r?.order_id??'').trim(),
-          cleanKey(r?.name??r?.user_name??r?.customer_name??''),
-          String(r?.rating??r?.stars??''),
-          cleanKey(r?.feedback??r?.comment??r?.review??r?.review_text??r?.text??''),
-          imgs,
-          String(r?.created_at??'')
-        ].join('|');
-    if(!dedup.has(sig)) dedup.set(sig,r);
+    const sig=rid ? 'id:'+rid : [
+      String(r?.order_db_id??r?.order_id??'').trim(),
+      cleanKey(r?.catalog_id??''),
+      cleanKey(r?.name??r?.user_name??r?.customer_name??''),
+      String(r?.rating??r?.stars??''),
+      cleanKey(r?.feedback??r?.comment??r?.review??r?.review_text??r?.text??''),
+      reviewImageList(r).join(','),
+      String(r?.created_at??'')
+    ].join('|');
+    if(!dedup.has(sig))dedup.set(sig,r);
   }
-
   feedbackRows=[...dedup.values()];
   renderRatings();
 }
