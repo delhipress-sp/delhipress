@@ -787,33 +787,85 @@ function openCatalogCard(index,boxId){const rows=boxId==='recentCatalog'?(window
 async function fetchTableRows(tbl,limit=100){if(!sb)return [];try{const query=sb.from(tbl).select('*').order('id',{ascending:false}).limit(limit);const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));const res=await Promise.race([query,timeout]);if(res?.error||!Array.isArray(res?.data))return [];return res.data.map(x=>({...x,_source_table:tbl}));}catch(e){return [];}}
 async function loadMoreUpdatedCards(){
   if(!allRatingRows.length){try{await loadAllRatingRows()}catch(e){}}
-  const box=document.getElementById('recommendedCatalog');if(!box)return;
-  let rows=[];
-  // Exact Index catalog first. This is the source for More Products.
-  try{
-    const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]');
-    if(Array.isArray(local)&&local.length) rows=local;
-  }catch(e){}
+  const box=document.getElementById('recommendedCatalog'); if(!box)return;
 
-  // If the cache is missing (for example first visit/direct URL), read Supabase.
-  if(!rows.length){
-    for(const tbl of ['catalog','cards','cards_catalog']){
-      rows=await fetchTableRows(tbl,100);
-      if(rows.length)break;
-    }
+  // More Products must use the SAME catalog dataset as Index.
+  // Never stop after the first table and never prefer an old single-card fallback.
+  let rows=[];
+  const cacheKeys=['dp_index_catalog','dp_index_catalog_cache_v3','dp_index_catalog_cache_v2'];
+
+  // 1) Prefer the live Index cache if it contains a real multi-card catalog.
+  for(const storageName of ['localStorage','sessionStorage']){
+    try{
+      const storage=window[storageName];
+      for(const key of cacheKeys){
+        const raw=storage.getItem(key);
+        if(!raw)continue;
+        const parsed=JSON.parse(raw);
+        if(Array.isArray(parsed)&&parsed.length){
+          rows=parsed.slice();
+          break;
+        }
+      }
+    }catch(e){}
+    if(rows.length)break;
   }
 
-  const cur=String(product?.id??id??'');
+  // 2) If cache is absent/stale, load ALL catalog sources in parallel,
+  // exactly like Index, then merge them without dropping newer cards.
+  if(!rows.length && sb){
+    const tables=['catalog','cards','cards_catalog'];
+    try{
+      const results=await Promise.all(tables.map(async tbl=>{
+        try{
+          const {data,error}=await Promise.race([
+            sb.from(tbl).select('*').limit(1000),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),6000))
+          ]);
+          if(error||!Array.isArray(data))return [];
+          return data.map(x=>({...x,_source_table:tbl}));
+        }catch(e){return []}
+      }));
+      rows=results.flat();
+    }catch(e){}
+  }
+
+  // 3) Remove only exact duplicates. Do NOT collapse different catalogs
+  // merely because they have the same model/title.
   const seen=new Set();
   rows=rows.filter(x=>{
-    const k=String(x.id??x.code??x.model??'');
-    if(!k||seen.has(k)||String(x.id??'')===cur)return false;
-    seen.add(k);return true;
+    const sig=[
+      String(x?.id??'').trim(),
+      String(x?.catalog_id??x?.card_id??'').trim(),
+      String(x?.name??x?.title??x?.card_name??x?.product_name??'').trim().toLowerCase(),
+      String(x?.model??x?.code??x?.card_model??x?.model_no??'').trim().toLowerCase(),
+      String(x?.image??x?.image_url??x?.card_image??x?.photo??'').trim()
+    ].join('|');
+    if(seen.has(sig))return false;
+    seen.add(sig); return true;
+  });
+
+  const cur=String(product?.id??id??'').trim();
+  // Do not show the currently-open product in More Products.
+  const currentKeys=new Set([
+    cur,
+    String(product?.catalog_id??product?.card_id??'').trim(),
+    String(product?.model??product?.code??'').trim()
+  ].filter(Boolean).map(x=>x.toLowerCase()));
+
+  rows=rows.filter(x=>{
+    const keys=[
+      String(x?.id??'').trim(),
+      String(x?.catalog_id??x?.card_id??'').trim(),
+      String(x?.model??x?.code??x?.card_model??x?.model_no??'').trim()
+    ].filter(Boolean).map(x=>x.toLowerCase());
+    return !keys.some(k=>currentKeys.has(k));
   }).slice(0,20);
+
   window._updatedRows=rows;
+  try{localStorage.setItem('dp_index_catalog_detail_rows',JSON.stringify(rows));}catch(e){}
   renderSmallCards(rows,'recommendedCatalog','अभी कोई अन्य कैटलॉग कार्ड उपलब्ध नहीं है।');
 }
-
 async function loadRecommendedCatalog(){await loadMoreUpdatedCards();}
 
 function openRecommended(rid){
