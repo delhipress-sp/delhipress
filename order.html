@@ -1880,27 +1880,22 @@
                 return;
             }
 
-            // Keep the existing order pipeline. Store only lightweight metadata
-            // in localStorage; the actual uploaded file remains in browser storage.
+            // IMPORTANT: use the normal order-building pipeline here.
+            // This preserves the catalog price, quantity, advance and balance
+            // instead of creating a partial order with total_amount = 0.
             try {
-                const temp = JSON.parse(localStorage.getItem('dp_temp_order') || '{}');
-                temp.wedding_matter_file = {
-                    name: weddingMatterData.name,
-                    type: weddingMatterData.type,
-                    originalType: weddingMatterData.originalType || '',
-                    size: weddingMatterData.size,
-                    uploadedAt: weddingMatterData.uploadedAt,
-                    storedAs: weddingMatterData.storedAs || 'localStorage'
-                };
-                temp.wedding_matter_uploaded = true;
-                temp.matter_terms_accepted = true;
-                temp.matter_terms_accepted_at = new Date().toISOString();
-                localStorage.setItem('dp_temp_order', JSON.stringify(temp));
-            } catch (e) {
-                console.warn('Temporary order metadata save warning:', e);
-            }
+                localStorage.setItem('dp_matter_terms_accepted', JSON.stringify({
+                    accepted: true,
+                    accepted_at: new Date().toISOString(),
+                    file_name: weddingMatterData.name,
+                    file_type: weddingMatterData.type,
+                    file_size: weddingMatterData.size
+                }));
+            } catch (e) {}
 
-            window.location.href = 'address.html?matter_uploaded=1&terms=accepted';
+            // processUniversalOrder(false) saves the complete dp_temp_order
+            // and then opens the normal Address -> Confirm -> Payment flow.
+            processUniversalOrder(false);
         }
 
         document.addEventListener('change', function(e) {
@@ -2025,7 +2020,17 @@
 
             let uploadedMatter = null;
             try {
-                uploadedMatter = JSON.parse(localStorage.getItem('dp_wedding_matter_upload') || 'null');
+                if (weddingMatterData) {
+                    uploadedMatter = {
+                        name: weddingMatterData.name,
+                        type: weddingMatterData.type,
+                        size: weddingMatterData.size,
+                        uploadedAt: weddingMatterData.uploadedAt,
+                        storedAs: 'IndexedDB'
+                    };
+                } else {
+                    uploadedMatter = JSON.parse(localStorage.getItem('dp_wedding_matter_upload_meta') || 'null');
+                }
             } catch (e) {}
 
             const fullPayload = {
@@ -2051,6 +2056,7 @@
                 custom_notes: orderNotes,
                 wedding_matter_file: uploadedMatter,
                 wedding_matter_uploaded: !!uploadedMatter,
+                matter_terms_accepted: !!(uploadedMatter && JSON.parse(localStorage.getItem('dp_matter_terms_accepted') || 'null')?.accepted),
                 status: 'Pending',
                 created_at: new Date().toISOString()
             };
