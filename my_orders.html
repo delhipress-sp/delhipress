@@ -249,21 +249,6 @@
         .receipt-header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 14px; }
         .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 4px; }
         .receipt-section-title { background: #f8fafc; padding: 5px 10px; font-weight: 800; color: var(--primary); margin: 12px 0 8px 0; border-left: 3px solid var(--primary); font-size: 13px; }
-        .order-media-showcase{margin:8px 0 14px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;box-shadow:0 2px 8px rgba(15,23,42,.06)}
-        .order-media-title{font-weight:800;font-size:13px;color:#0f2f70;margin-bottom:8px;display:flex;align-items:center;gap:7px}
-        .order-media-stage{position:relative;width:100%;max-width:360px;height:300px;margin:auto;perspective:1000px;overflow:hidden;border-radius:10px;background:#f8fafc}
-        .order-media-card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .65s ease;cursor:pointer}
-        .order-media-card.flipped{transform:rotateY(180deg)}
-        .order-media-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;overflow:hidden}
-        .order-media-face.back{transform:rotateY(180deg)}
-        .order-media-face img{width:100%;height:100%;object-fit:contain;display:block}
-        .order-media-face video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
-        .order-media-nav{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
-        .order-media-arrow{border:1px solid #d1d5db;background:#fff;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:15px}
-        .order-media-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;cursor:pointer;border:0;padding:0}
-        .order-media-dot.active{background:#2874f0;transform:scale(1.25)}
-        .order-media-hint{text-align:center;color:#64748b;font-size:11px;margin-top:7px}
-        .order-media-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;border:3px solid #fff;background:rgba(40,116,240,.92);color:#fff;font-size:23px;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 18px rgba(0,0,0,.25);z-index:2;cursor:pointer}
         .card-preview-box { display: flex; gap: 15px; align-items: center; background: #fafafa; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 6px; }
         .card-preview-box img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; background: #e2e8f0; flex-shrink: 0; }
 
@@ -358,6 +343,24 @@
 .voice-msg audio{width:220px;max-width:100%;height:34px;margin-top:4px;}
 @media(max-width:520px){.cust-corr-msg{max-width:90%;}.voice-msg audio{width:190px;}.cust-corr-actions{grid-template-columns:1fr!important;}}
 
+
+/* DP Chat unread blinking */
+.btn-open-correction.dp-chat-unread{background:#dc2626!important;color:#fff!important;animation:dpMyOrderChatBlink 1s infinite;box-shadow:0 0 0 0 rgba(220,38,38,.75)!important;}
+@keyframes dpMyOrderChatBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.75)!important}50%{opacity:.45;box-shadow:0 0 0 8px rgba(220,38,38,0)!important}}
+
+/* INDEX CATALOG CARD STYLE */
+.card-price-box{display:flex;align-items:center;gap:7px;margin:4px 0 3px;flex-wrap:wrap}
+.card-original-price{color:#7b8799;text-decoration:line-through;font-size:12px;font-weight:700}
+.card-sale-price{color:#e51e3b;font-size:18px;font-weight:800}
+.card-discount-badge{display:inline-block;background:#08a86a;color:#fff;border-radius:12px;padding:3px 7px;font-size:10px;font-weight:800}
+.card-price-note{display:block;color:#64748b;font-size:10px;font-weight:700;margin-bottom:6px}
+.card-rating-row{display:flex;align-items:center;gap:5px;margin:4px 0 7px;font-size:11px;line-height:1}
+.rating-stars{color:#f5a623;letter-spacing:1px;font-size:12px}
+.rating-text{font-weight:800;color:#1e3a68}
+.rating-label{color:#718096;font-weight:700}
+.stock-badge{display:inline-block;font-size:11px;padding:4px 13px;border-radius:20px;font-weight:800}
+.in-stock{background:#d7f6e8;color:#12945e}.out-stock{background:#ffdfe4;color:#d61c43}
+@media(max-width:768px){.gallery-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px}.card-sample .img-box{height:170px}.card-info{padding:9px}.card-info h4{font-size:14px}.card-sale-price{font-size:17px}}
 </style>
 
 <style>
@@ -397,8 +400,6 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
 .follow-btn{display:inline-flex;align-items:center;gap:7px;background:#2874f0;color:#fff;border:0;border-radius:3px;padding:9px 18px;font-weight:800;text-decoration:none;margin-bottom:10px;}
 .footer-logout-btn{display:block;width:100%;max-width:340px;margin:8px auto 0;background:#fff;color:#e53935;border:1px solid #e53935;border-radius:3px;padding:10px;font-weight:800;cursor:pointer;}
 @media(max-width:768px){.container{margin-top:8px!important}.user-welcome-card{border-radius:0!important;margin-left:-10px;margin-right:-10px}.order-card{border-left:0!important;border-right:0!important}.my-orders-footer{margin-left:-10px;margin-right:-10px;}}
-
-.btn-card-video{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:8px;padding:8px 10px;font-weight:800;cursor:pointer}.order-video-modal{position:fixed;inset:0;background:rgba(15,23,42,.82);display:none;align-items:center;justify-content:center;z-index:99999;padding:14px}.order-video-panel{width:min(620px,96vw);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.3)}.order-video-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-radius:50%;width:32px;height:32px;cursor:pointer}.order-video-panel video{width:100%;max-height:70vh;border-radius:10px;background:#000}
 </style>
 </head>
 <body>
@@ -526,9 +527,8 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
 
         window.addEventListener('DOMContentLoaded', () => {
             loadInitialLocalOrders();
-            // Never keep the whole My Orders page blocked by catalog/review requests.
-            loadRecommendedCatalog();
             syncWithCloudFast();
+            loadRecommendedCatalog();
         });
 
         function loadInitialLocalOrders() {
@@ -584,45 +584,71 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         async function syncWithCloudFast() {
             let userObj = {};
             try { userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}'); } catch(e) {}
+
             const clean = v => String(v ?? '').trim();
             const phone = clean(userObj.phone || userObj.mobile || (fetchedOrdersList[0] && (fetchedOrdersList[0].mobile || fetchedOrdersList[0].phone)));
 
-            // Keep the page responsive: show local data immediately, then replace it
-            // with the cloud source of truth when Supabase responds.
             if (!supabaseClient) { renderOrdersUI(); return; }
 
             try {
-                const timeout = ms => new Promise((_, reject) => setTimeout(() => reject(new Error('orders timeout')), ms));
-                let query;
-                if (phone) {
-                    query = supabaseClient.from('orders').select('*').eq('mobile', phone).order('id',{ascending:false}).limit(100);
-                } else {
-                    // No phone: use exact local order IDs instead of downloading unrelated orders.
-                    const ids = [...new Set(fetchedOrdersList.map(o=>o?.id).filter(v=>v!==null&&v!==undefined&&String(v).trim()!==''))];
-                    if (ids.length) query = supabaseClient.from('orders').select('*').in('id',ids).order('id',{ascending:false});
-                    else { renderOrdersUI(); return; }
+                // हमेशा cloud के असली orders लाएँ ताकि Admin द्वारा बदला गया status तुरंत My Orders में दिखे।
+                let query = supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
+                if (phone) query = query.eq('mobile', phone);
+                let { data, error } = await query;
+                if (error && phone) {
+                    // phone column न होने पर केवल mobile से दोबारा query करें।
+                    const retry = await supabaseClient.from('orders').select('*').eq('mobile', phone).order('id', { ascending: false }).limit(100);
+                    data = retry.data; error = retry.error;
+                }
+                if (error) {
+                    // अंतिम fallback: recent cloud orders पढ़ें; इससे My Orders पूरी तरह बंद नहीं होगा।
+                    const retryAll = await supabaseClient.from('orders').select('*').order('id', { ascending: false }).limit(100);
+                    if (retryAll.error) throw retryAll.error;
+                    data = retryAll.data || [];
                 }
 
-                let result = await Promise.race([query, timeout(6500)]);
-                if (result?.error) throw result.error;
-                const cloud = Array.isArray(result?.data) ? result.data : [];
+                const cloud = Array.isArray(data) ? data : [];
+                let local = [];
+                try { local = JSON.parse(localStorage.getItem('my_orders_list') || '[]'); if(!Array.isArray(local)) local=[]; } catch(e) {}
 
-                // CLOUD IS SOURCE OF TRUTH. If the successful query is empty, keep it empty.
-                // Do NOT resurrect Admin-deleted orders from localStorage.
-                fetchedOrdersList = cloud.sort((a,b)=>Number(b.id||0)-Number(a.id||0));
-                // Orders themselves render immediately. Ratings/reviews are background data.
+                // Cloud record को प्राथमिकता दें। Local record को केवल तभी रखें जब उसका cloud counterpart न मिला हो।
+                const merged = [];
+                const usedCloud = new Set();
+                const norm = v => clean(v).toLowerCase();
+                const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
+
+                for (const l of local) {
+                    let best = null, bestScore = -1, bestIndex = -1;
+                    for (let i=0;i<cloud.length;i++) {
+                        if (usedCloud.has(i)) continue;
+                        const c=cloud[i]; let score=0;
+                        if (l.id && c.id && String(l.id)===String(c.id)) score += 100;
+                        if (l.order_id && c.order_id && norm(l.order_id)===norm(c.order_id)) score += 90;
+                        if (norm(l.mobile||l.phone) && norm(l.mobile||l.phone)===norm(c.mobile||c.phone)) score += 35;
+                        if (norm(l.customer_name||l.name) && norm(l.customer_name||l.name)===norm(c.customer_name||c.name)) score += 20;
+                        if (norm(l.card_title||l.card_name) && norm(l.card_title||l.card_name)===norm(c.card_title||c.card_name)) score += 15;
+                        const lt=num(l.total_amount), ct=num(c.total_amount);
+                        if (lt!==null && ct!==null && Math.abs(lt-ct)<0.01) score += 15;
+                        if (l.created_at && c.created_at) {
+                            const diff=Math.abs(new Date(l.created_at).getTime()-new Date(c.created_at).getTime());
+                            if (Number.isFinite(diff) && diff <= 24*60*60*1000) score += 10;
+                        }
+                        if (score>bestScore) { bestScore=score; best=c; bestIndex=i; }
+                    }
+                    if (best && bestScore >= (l.id ? 100 : (l.order_id ? 90 : 45))) {
+                        merged.push({...l,...best}); usedCloud.add(bestIndex);
+                    } else {
+                        merged.push(l);
+                    }
+                }
+                for (let i=0;i<cloud.length;i++) if(!usedCloud.has(i)) merged.push(cloud[i]);
+
+                fetchedOrdersList = merged.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+                fetchedOrdersList = await attachCloudRatings(fetchedOrdersList);
                 localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                 renderOrdersUI();
-                attachCloudRatings(fetchedOrdersList).then(withRatings=>{
-                    if(Array.isArray(withRatings)){
-                        fetchedOrdersList=withRatings;
-                        localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
-                        renderOrdersUI();
-                    }
-                }).catch(()=>{});
             } catch(e) {
                 console.error('My Orders cloud sync error:', e);
-                // Only a failed/timeout cloud request may use the already visible local copy.
                 renderOrdersUI();
             }
         }
@@ -630,27 +656,18 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         async function attachCloudRatings(list){
             if(!supabaseClient || !Array.isArray(list) || !list.length) return list;
             try{
-                const {data,error}=await Promise.race([
-                    supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('feedback timeout')),5000))
-                ]);
+                const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(500);
                 if(error || !Array.isArray(data)) return list;
-                const imageList = r => {
-                    let v=r?.review_images??r?.images??r?.image_urls??r?.photos??r?.review_image??r?.photo??[];
-                    if(typeof v==='string'){ const raw=v.trim(); if(!raw)return[]; try{v=JSON.parse(raw)}catch(e){v=raw.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)} }
-                    if(!Array.isArray(v))v=[v];
-                    return v.map(x=>typeof x==='string'?x.trim():String(x?.url??x?.image_url??x?.src??'').trim()).filter(x=>/^https?:\/\//i.test(x));
-                };
                 return list.map(o=>{
-                    const exact=data.filter(r =>
-                        (o.id!=null && r.order_db_id!=null && String(o.id)===String(r.order_db_id)) ||
-                        (o.order_id && r.order_id && String(o.order_id)===String(r.order_id))
+                    const matches=data.filter(r=>
+                        (o.order_id && r.order_id && String(o.order_id)===String(r.order_id)) ||
+                        (o.id && r.order_db_id && String(o.id)===String(r.order_db_id))
                     );
-                    if(!exact.length) return o;
-                    const r=exact[0];
-                    return {...o,rating:Number(r.rating??r.stars??0)||0,stars:Number(r.stars??r.rating??0)||0,rating_feedback:r.feedback||r.comment||'',rating_name:r.name||r.user_name||'',rating_images:imageList(r),rating_created_at:r.created_at||'',rating_review_id:r.id??''};
+                    if(!matches.length) return o;
+                    const r=matches[0];
+                    return {...o,rating:r.rating||r.stars,rating_feedback:r.feedback||r.comment||'',rating_name:r.name||r.user_name||''};
                 });
-            }catch(e){ return list; }
+            }catch(e){return list;}
         }
 
         async function fetchCustomerOrders() {
@@ -725,8 +742,24 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             alert("आपका ऑर्डर सफलता से रद्द (Cancelled) कर दिया गया है!");
         }
 
-        function renderOrdersUI() {
-            window.__customerOrders = globalOrdersCache || orders || [];
+        function dpChatArr(v){ try { return Array.isArray(v)?v:(typeof v==='string'?JSON.parse(v||'[]'):[]); } catch(e){ return []; } }
+function dpChatLatestCustomerActivity(ord){
+  const msgs=dpChatArr(ord&&ord.customer_messages), files=dpChatArr(ord&&ord.customer_files);
+  const all=[...msgs,...files].map(x=>new Date(x&&x.at||0).getTime()).filter(Number.isFinite);
+  return all.length?Math.max(...all):0;
+}
+function isCustomerDpChatUnread(ord){
+  const latest=dpChatLatestCustomerActivity(ord); if(!latest) return false;
+  const key='dp_chat_customer_seen_'+String(ord.id||ord.order_id||'');
+  return latest>Number(localStorage.getItem(key)||0);
+}
+function markCustomerDpChatSeen(ord){
+  const latest=dpChatLatestCustomerActivity(ord); if(!latest)return;
+  const key='dp_chat_customer_seen_'+String(ord.id||ord.order_id||'');
+  localStorage.setItem(key,String(latest));
+}
+
+function renderOrdersUI() {
             const container = document.getElementById('ordersContainer');
             if (!container) return;
 
@@ -790,8 +823,8 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                         ${ord.rating || ord.stars ? `<div style="background:#fffaf0;border:1px solid #fde68a;border-radius:4px;padding:8px 10px;margin-bottom:12px;font-size:13px;"><b>आपकी रेटिंग:</b> <span style="color:#f59e0b;font-size:18px;letter-spacing:1px;">${'★'.repeat(Math.max(0,Math.min(5,parseInt(ord.rating||ord.stars||0)||0)))}${'☆'.repeat(5-Math.max(0,Math.min(5,parseInt(ord.rating||ord.stars||0)||0)))}</span>${ord.rating_feedback ? ` <span style="color:#475569;">${escapeHtml(ord.rating_feedback)}</span>` : ''}</div>` : ''}
 
                         <div style="display:flex;justify-content:flex-end;margin:0 0 14px;">
-                            <button type="button" class="btn-open-correction" onclick="openCustomerCorrectionModal(${index})">
-                                <i class="fa-solid fa-comments"></i> सुधार / बातचीत
+                            <button type="button" class="btn-open-correction ${isCustomerDpChatUnread(ord) ? 'dp-chat-unread' : ''}" onclick="openCustomerCorrectionModal(${index})" title="${isCustomerDpChatUnread(ord) ? 'नई बातचीत / नया मैटर आया है' : 'सुधार / बातचीत'}">
+                                <i class="fa-solid ${isCustomerDpChatUnread(ord) ? 'fa-comment-dots' : 'fa-comments'}"></i> ${isCustomerDpChatUnread(ord) ? 'नई बातचीत' : 'सुधार / बातचीत'}
                             </button>
                         </div>
 
@@ -801,7 +834,6 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                                 <button class="btn-rate-order" onclick="openOrderRating(${index})">
                                     <i class="fa-solid fa-star"></i> रेटिंग दें
                                 </button>
-                                <button class="btn-card-video" onclick="openOrderCardVideo(${index})"><i class="fa-solid fa-circle-play"></i> कार्ड वीडियो</button>
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
@@ -861,29 +893,97 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             if(!orderRatingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return;}
             const ord=await resolveCustomerOrder(orderRatingIndex);
             if(!ord){alert('ऑर्डर का रिकॉर्ड नहीं मिला। पहले रिफ्रेश करें।');return;}
-            const catalogId=ord.catalog_id||ord.card_id||ord.product_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'';
+            // Catalog ID को Order में मौजूद field से लें; अगर Order में ID नहीं है,
+            // तो उसी card title/model से Supabase Catalog में खोजकर असली ID निकालें।
+            let catalogId=ord.catalog_id||ord.card_id||ord.product_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'';
+
+            // पुराने orders में अलग catalog_id column नहीं है। ऐसे orders में
+            // card_model ही Catalog का unique model/ID होता है (जैसे 140026)।
+            if(!catalogId){
+                const rawModel=String(ord.card_model||ord.model||ord.card_code||ord.model_no||'').trim();
+                if(rawModel) catalogId=rawModel;
+            }
+
+            // अगर card_model भी नहीं मिला तो header/title के आखिरी "(MODEL)" से निकालें।
+            if(!catalogId){
+                const titleRaw=String(ord.card_title||ord.card_name||'').trim();
+                const m=titleRaw.match(/\\(([^()]+)\\)\\s*$/);
+                if(m && m[1]) catalogId=m[1].trim();
+            }
+
+            if(!catalogId && supabaseClient){
+                const cleanText=v=>String(v??'').trim().toLowerCase();
+                const orderTitle=cleanText(ord.card_title||ord.card_name);
+                const orderModel=cleanText(ord.card_model||ord.model||ord.card_code||ord.model_no);
+                const catalogTables=['catalog','cards','cards_catalog'];
+                for(const tbl of catalogTables){
+                    try{
+                        const {data,error}=await supabaseClient.from(tbl).select('*').limit(200);
+                        if(error||!Array.isArray(data)) continue;
+                        let match=data.find(c=>{
+                            const cm=cleanText(c.model||c.code||c.card_model||c.model_no);
+                            const ct=cleanText(c.name||c.title||c.card_name||c.product_name);
+                            if(orderModel && cm && orderModel===cm) return true;
+                            if(orderTitle && ct && orderTitle===ct) return true;
+                            return false;
+                        });
+                        if(match && match.id!==undefined && match.id!==null){
+                            catalogId=match.id;
+                            break;
+                        }
+                    }catch(e){}
+                }
+            }
+
             const name=(document.getElementById('orderRatingName').value||'').trim()||ord.customer_name||'ग्राहक';
             const text=(document.getElementById('orderRatingText').value||'').trim();
             const files=[...(document.getElementById('orderRatingImages').files||[])].slice(0,5);
             const orderId=ord.id||ord.order_id||('local_'+Date.now());
             const createdAt=new Date().toISOString();
             let imageUrls=await uploadOrderReviewImages(files,orderId);
-            // Primary review record: catalog_feedback is the same table used by Catalog Detail.
+
+            // Catalog Detail इसी table से Reviews पढ़ता है।
             const row={catalog_id:catalogId||null,order_id:ord.order_id||null,order_db_id:ord.id||null,rating:orderRatingValue,stars:orderRatingValue,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:createdAt};
+            // Shared browser rating map: Catalog Detail and Index can read the same rating
+            // immediately, even if the Supabase feedback table is unavailable.
+            if(catalogId){
+                try{
+                    const ratingMap=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+                    ratingMap[String(catalogId)]={
+                        catalog_id:String(catalogId),
+                        rating:orderRatingValue,
+                        stars:orderRatingValue,
+                        name:name,
+                        user_name:name,
+                        feedback:text,
+                        comment:text,
+                        review_images:imageUrls,
+                        created_at:createdAt
+                    };
+                    localStorage.setItem('dp_catalog_ratings',JSON.stringify(ratingMap));
+                }catch(e){}
+            }
             let saved=false;
-            if(supabaseClient){
-                // हर fallback में Order linkage बनाए रखें, ताकि My Orders → Order Details
-                // उसी review को सीधे पहचान सके।
+            let saveError='';
+
+            if(supabaseClient && catalogId){
                 const attempts=[
                     {table:'catalog_feedback',payload:row},
-                    {table:'catalog_feedback',payload:{catalog_id:catalogId||null,order_db_id:ord.id||null,order_id:ord.order_id||null,rating:orderRatingValue,stars:orderRatingValue,name,user_name:name,feedback:text,comment:text,review_images:imageUrls,created_at:createdAt}},
-                    {table:'catalog_feedback',payload:{catalog_id:catalogId||null,order_db_id:ord.id||null,order_id:ord.order_id||null,rating:orderRatingValue,stars:orderRatingValue,name,user_name:name,feedback:text,comment:text,created_at:createdAt}}
+                    {table:'catalog_feedback',payload:{catalog_id:catalogId,rating:orderRatingValue,name,feedback:text,review_images:imageUrls,created_at:createdAt}},
+                    {table:'catalog_feedback',payload:{catalog_id:catalogId,rating:orderRatingValue,name,feedback:text,created_at:createdAt}}
                 ];
                 for(const a of attempts){
-                    try{const {error}=await supabaseClient.from(a.table).insert(a.payload);if(!error){saved=true;break;}}catch(e){}
+                    try{
+                        const {error}=await supabaseClient.from(a.table).insert(a.payload);
+                        if(!error){saved=true;break;}
+                        saveError=error.message||String(error);
+                    }catch(e){ saveError=e?.message||String(e); }
                 }
+            }else if(!catalogId){
+                saveError='इस ऑर्डर का Catalog ID नहीं मिला।';
             }
-            // Always keep a local copy under the same key pattern Catalog Detail reads.
+
+            // उसी browser में fallback copy भी रखें।
             const catalogKey='catalog_feedback_'+String(catalogId||ord.card_id||ord.product_id||'unknown');
             let localReviews=[];
             try{localReviews=JSON.parse(localStorage.getItem(catalogKey)||'[]');if(!Array.isArray(localReviews))localReviews=[];}catch(e){}
@@ -896,7 +996,12 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                 lists.forEach(k=>{let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){};if(!Array.isArray(a))a=[];a=a.map(x=>(String(x.id||x.order_id)===String(ord.id||ord.order_id)?{...x,rating:orderRatingValue,stars:orderRatingValue,rating_feedback:text,rating_name:name}:x));localStorage.setItem(k,JSON.stringify(a));});
             }catch(e){}
             closeOrderRating();
-            alert(saved?'आपकी रेटिंग और रिव्यू सफलतापूर्वक सेव हो गया।':'रेटिंग इस डिवाइस में सेव हो गई।');
+            if(saved){
+                alert('आपकी रेटिंग और रिव्यू Catalog में सफलतापूर्वक सेव हो गया।');
+            }else{
+                // Local fallback रखें, लेकिन अब असली समस्या भी साफ बताएं।
+                alert('रेटिंग अभी Catalog में सेव नहीं हुई।\n\n' + (saveError || 'Supabase में रेटिंग सेव नहीं हो सकी।') + '\n\nकृपया दोबारा प्रयास करें।');
+            }
             renderOrdersUI();
         }
 
@@ -989,6 +1094,7 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         }
 
         async function openCustomerCorrectionModal(index){
+  try{ markCustomerDpChatSeen(fetchedOrdersList[index]); }catch(e){}
             const ord=await resolveCustomerOrder(index);
             if(!ord || !ord.id){
                 alert('इस ऑर्डर का Database रिकॉर्ड अभी उपलब्ध नहीं है। कृपया पहले “रिफ्रेश” दबाएँ और फिर सुधार/बातचीत खोलें।');
@@ -1160,64 +1266,87 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
         async function requestMoreCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('needs_more'); }
         async function approveCorrection(index){ await openCustomerCorrectionModal(index); if(customerCorrectionIndex===index) await setCustomerCorrectionStatus('approved'); }
 
-        /* RECOMMENDED CATALOG: EXACT SAME ADMIN SOURCE AS INDEX */
+        /* INDEX-STYLE RECOMMENDED CATALOG — वही live catalog जो Index में है */
+        function recOriginalRate(card){
+            const v=card?.catalog_rate ?? card?.original_rate ?? card?.actual_rate ?? card?.mrp ?? card?.list_price;
+            const n=parseFloat(v); return Number.isFinite(n)&&n>0?n:0;
+        }
+        function recSaleRate(card){
+            const v=card?.sale_rate ?? card?.selling_price ?? card?.selling_rate ?? card?.current_rate ?? card?.rate ?? card?.price;
+            const n=parseFloat(v); return Number.isFinite(n)&&n>0?n:0;
+        }
+        function recDiscount(card){
+            const o=recOriginalRate(card), s=recSaleRate(card);
+            return o>s&&s>=0 ? Math.round(((o-s)/o)*100) : 0;
+        }
+        function recEscape(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+
         async function loadRecommendedCatalog() {
             const container=document.getElementById('recommendedCatalogContainer');
             if(!container) return;
-
-            // Show Index's last known complete catalog immediately only when it contains
-            // multiple cards. Never show a stale one-card cache as the page's catalog.
-            let cache=[];
-            try{
-                const raw=localStorage.getItem('dp_index_catalog') || sessionStorage.getItem('dp_index_catalog_cache_v3') || '';
-                const parsed=raw?JSON.parse(raw):[];
-                if(Array.isArray(parsed) && parsed.length>1) cache=parsed;
-            }catch(e){}
-            if(cache.length){ renderRecommendedCatalogCards(cache); }
-            else container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग तैयार हो रहा है...</p>`;
-
-            // Admin's `catalog` table is the single source of truth, exactly like Index.
-            if(!supabaseClient){
-                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग उपलब्ध नहीं है।</p>`;
+            const tables=['catalog','cards','cards_catalog'];
+            const allRows=[];
+            if(supabaseClient){
+                for(const tbl of tables){
+                    try{
+                        const result=await Promise.race([
+                            supabaseClient.from(tbl).select('*'),
+                            new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),8000))
+                        ]);
+                        if(!result.error&&Array.isArray(result.data)) result.data.forEach(row=>allRows.push({...row,_source_table:tbl}));
+                    }catch(e){}
+                }
+            }
+            if(!allRows.length){
+                container.innerHTML='<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
                 return;
             }
-            try{
-                const {data,error}=await Promise.race([
-                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}),
-                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),3000))
-                ]);
-                if(error) throw error;
-                const live=Array.isArray(data)?data:[];
-                const seen=new Set();
-                const clean=live.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
-                // Successful empty result is authoritative: do not resurrect old catalog cards.
-                renderRecommendedCatalogCards(clean);
-                try{ localStorage.setItem('dp_index_catalog',JSON.stringify(clean)); }catch(e){}
-                try{ sessionStorage.setItem('dp_index_catalog_cache_v3',JSON.stringify(clean)); }catch(e){}
-            }catch(e){
-                // If live request fails, retain a complete multi-card Index cache; never a one-card stale cache.
-                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग अभी लोड नहीं हो पाया।</p>`;
+            const seenCards=new Set();
+            const fetched=allRows.filter(card=>{
+                const source=String(card._source_table||''), id=String(card.id??'');
+                const sig=[source,id,String(card.name??card.title??'').trim().toLowerCase(),String(card.model??card.code??'').trim().toLowerCase(),String(card.image??card.image_url??card.photo??'').trim()].join('|');
+                if(seenCards.has(sig)) return false; seenCards.add(sig); return true;
+            }).sort((a,b)=>{
+                const da=new Date(a.created_at||a.updated_at||0).getTime()||0, db=new Date(b.created_at||b.updated_at||0).getTime()||0;
+                if(db!==da) return db-da; return (Number(b.id)||0)-(Number(a.id)||0);
+            });
+            recommendedCards=fetched;
+
+            // Index के rating/count को यहाँ भी दिखाएँ। Direct catalog ID को प्राथमिकता, legacy order mapping केवल जरूरत पर।
+            let feedback=[]; const orderMap={};
+            try{const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');if(local&&typeof local==='object')Object.keys(local).forEach(k=>feedback.push({...local[k],catalog_id:k,_source:'local'}));}catch(e){}
+            if(supabaseClient){
+                try{const {data,error}=await supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000);if(!error&&Array.isArray(data))feedback=feedback.concat(data);}catch(e){}
+                try{const ids=[...new Set(feedback.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];if(ids.length){const {data,error}=await supabaseClient.from('orders').select('id,card_model,card_title,model,title').in('id',ids);if(!error&&Array.isArray(data))data.forEach(o=>orderMap[String(o.id)]=o);}}catch(e){}
             }
+            const norm=v=>String(v??'').trim().toLowerCase(), modelNorm=v=>norm(v).replace(/[^a-z0-9]+/g,'');
+            const ratings=new Map(), seenFeedback=new Set();
+            feedback.forEach(r=>{
+                const key=String(r?.id ?? [r?.order_db_id??r?.order_id??'',r?.catalog_id??r?.card_id??r?.product_id??'',r?.created_at??'',r?.rating??r?.stars??'',r?.name??r?.user_name??'',r?.feedback??r?.comment??''].join('|'));
+                if(seenFeedback.has(key))return; seenFeedback.add(key);
+                const val=Math.max(0,Math.min(5,Number(r?.rating??r?.stars??0)||0)); if(!val)return;
+                const direct=[r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean), matched=new Set();
+                fetched.forEach(card=>{const cid=norm(card?.id??card?.catalog_id);if(cid&&direct.includes(cid))matched.add(cid);});
+                if(!matched.size){const oid=String(r?.order_db_id??r?.order_id??'').trim(),order=orderMap[oid];if(order){const ot=norm(order.card_title??order.title??''),om=modelNorm(order.card_model??order.model??'');fetched.forEach(card=>{const ct=norm(card?.name??card?.title??card?.card_name??card?.product_name??''),cm=modelNorm(card?.model??card?.code??card?.card_model??card?.model_no??'');if(!ct||!ot)return;const titleMatch=(ot===ct)||ot.includes(ct)||ct.includes(ot),modelMatch=!om||!cm||om===cm||om.includes(cm)||cm.includes(om);if(titleMatch&&modelMatch){const cid=norm(card?.id??card?.catalog_id);if(cid)matched.add(cid);}});}}
+                matched.forEach(cid=>{if(!ratings.has(cid))ratings.set(cid,[]);ratings.get(cid).push(val);});
+            });
+
+            container.innerHTML=fetched.map((c,idx)=>{
+                const name=c.name||c.title||c.card_name||c.product_name||'शादी कार्ड', model=c.model||c.code||c.card_model||c.model_no||'';
+                const o=recOriginalRate(c),sale=recSaleRate(c),off=recDiscount(c),img=c.image||c.image_url||c.photo||c.card_image||c.main_image||safeCardPlaceholder;
+                const vals=ratings.get(norm(c.id??c.catalog_id??''))||[],avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+                let priceHtml='';
+                if(o>sale&&sale>0)priceHtml='<div class="card-price-box"><span class="card-original-price">₹'+o.toLocaleString('en-IN')+'</span><span class="card-sale-price">₹'+sale.toLocaleString('en-IN')+'</span><span class="card-discount-badge">'+off+'% OFF</span></div><span class="card-price-note">असली रेट: ₹'+o.toLocaleString('en-IN')+' • अभी: ₹'+sale.toLocaleString('en-IN')+' / पीस</span>';else priceHtml='<div class="card-price-tag">₹'+sale.toLocaleString('en-IN')+' / पीस</div>';
+                const stock=c.in_stock!==false?'<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>':'<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>';
+                return `<div class="card-sample" style="cursor:pointer" title="कैटलॉग विवरण खोलें" onclick="openRecommendedCatalogDetail(${idx})"><div class="img-box"><img src="${recEscape(img)}" alt="${recEscape(name)}" loading="${idx<4?'eager':'lazy'}" decoding="async" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';"></div><div class="card-info"><h4>${recEscape(name)}</h4><div class="model-text">${recEscape(model)}</div>${priceHtml}<div class="card-rating-row"><span class="rating-stars">★★★★★</span><span class="rating-text">${avg?avg.toFixed(1)+(vals.length?' ('+vals.length+')':''):'0.0'}</span><span class="rating-label">रेटिंग</span></div><div style="margin-bottom:6px;">${stock}</div></div></div>`;
+            }).join('');
         }
 
-        function renderRecommendedCatalogCards(fetched){
-            const container=document.getElementById('recommendedCatalogContainer');
-            if(!container)return;
-            if(!Array.isArray(fetched)||!fetched.length){
-                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
-                recommendedCards=[]; return;
-            }
-            recommendedCards=fetched;
-            container.innerHTML=fetched.map((c,idx)=>{
-                const name=c.name||c.title||c.card_name||c.product_name||'शादी कार्ड';
-                const model=c.model||c.code||c.card_model||c.model_no||'';
-                const img=c.image_url||c.image||c.photo||c.thumbnail||c.card_image||c.cover_image||safeCardPlaceholder;
-                const sale=Number(c.sale_rate??c.selling_price??c.rate??c.price??c.amount??c.card_price??0)||0;
-                const original=Number(c.catalog_rate??c.catalog_price??c.original_rate??c.mrp??0)||0;
-                const price=sale>0?sale:original;
-                const off=(original>price&&price>0)?Math.round((original-price)/original*100):0;
-                return `<article class="catalog-card" data-rec-index="${idx}">\n                    <a href="catalog-detail.html?id=${encodeURIComponent(c.id??'')}" style="text-decoration:none;color:inherit;display:block">\n                    <div class="catalog-card-image-wrap"><img src="${String(img).replace(/"/g,'&quot;')}" alt="${String(name).replace(/"/g,'&quot;')}" loading="lazy" onerror="this.src='${safeCardPlaceholder}'"></div>\n                    <div class="catalog-card-body"><h4>${escapeHtml(name)}</h4>${model?`<div class="catalog-model">${escapeHtml(model)}</div>`:''}<div class="catalog-price">₹${price.toLocaleString('en-IN')}${off?` <span class="catalog-off">${off}% OFF</span>`:''}</div><div class="catalog-rating">★★★★★ <b>0.0</b> <span>रेटिंग</span></div><div class="catalog-stock">उपलब्ध (In Stock)</div></div></a></article>`;
-            }).join('');
+        function openRecommendedCatalogDetail(idx){
+            const c=recommendedCards[idx];if(!c)return;
+            try{localStorage.setItem('dp_catalog_detail_fallback',JSON.stringify({...c,_from_index:true,_saved_at:Date.now()}));}catch(e){}
+            const id=c.id??c.catalog_id??'';
+            window.location.href=id!==''?'catalog-detail.html?id='+encodeURIComponent(id):'catalog-detail.html';
         }
 
         function selectRecommendedForOrder(idx) {
@@ -1258,161 +1387,14 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                 .replace(/'/g, '&#039;');
         }
 
-        async function getOrderCardMedia(index){
-            const ord = Array.isArray(fetchedOrdersList) ? fetchedOrdersList[index] : null;
-            if(!ord) return {images:[], video:''};
-            let images=[];
-            const addImg=v=>{ if(!v) return; const x=String(v).trim(); if(x && !images.includes(x)) images.push(x); };
-            addImg(ord.card_image);
-            for(const key of ['images','image_urls','gallery_images','gallery','photos','product_images','card_images']){
-                const raw=ord[key];
-                if(Array.isArray(raw)) raw.forEach(addImg);
-                else if(typeof raw==='string' && raw.trim()){
-                    try{ const a=JSON.parse(raw); Array.isArray(a)?a.forEach(addImg):addImg(raw); }catch(e){ raw.split('|').forEach(addImg); }
-                }
-            }
-            let video=ord.video_url||ord.video||ord.catalog_video||'';
-            if(!video && ord.video_urls){try{const a=typeof ord.video_urls==='string'?JSON.parse(ord.video_urls):ord.video_urls; video=Array.isArray(a)?a[0]:(a||'');}catch(e){video=String(ord.video_urls)}}
-            const sb = (typeof supabaseClient!=='undefined' ? supabaseClient : (window.supabaseClient||window.sb||null));
-            if(sb){
-                try{
-                    let rows=[]; const model=String(ord.card_model||ord.model||'').trim(); const name=String(ord.card_title||ord.card_name||'').trim();
-                    if(model){const r=await sb.from('catalog').select('*').eq('model',model).limit(10); if(!r.error&&Array.isArray(r.data)) rows=r.data;}
-                    if(!rows.length&&name){const r=await sb.from('catalog').select('*').eq('name',name).limit(10); if(!r.error&&Array.isArray(r.data)) rows=r.data;}
-                    const c=rows[0]||{};
-                    for(const key of ['image','image_url','photo','main_image']) addImg(c[key]);
-                    for(const key of ['images','image_urls','gallery_images','gallery','photos','product_images','catalog_images']){
-                        const raw=c[key];
-                        if(Array.isArray(raw)) raw.forEach(addImg);
-                        else if(typeof raw==='string'&&raw.trim()){try{const a=JSON.parse(raw);Array.isArray(a)?a.forEach(addImg):addImg(raw)}catch(e){raw.split('|').forEach(addImg)}}
-                    }
-                    if(!video){video=c.video_url||c.video||c.catalog_video||''; if(!video&&c.video_urls){try{const a=typeof c.video_urls==='string'?JSON.parse(c.video_urls):c.video_urls;video=Array.isArray(a)?a[0]:(a||'')}catch(e){video=String(c.video_urls)}} if(!video){const m=String(c.description||'').match(/\[\[VIDEO:([^\]]+)\]\]/i);if(m)video=m[1]}}
-                }catch(e){}
-            }
-            return {images:images.slice(0,12),video:String(video||'').trim()};
-        }
-
-        async function loadOrderMediaShowcase(index){
-            const stage=document.getElementById('orderMediaStage'), nav=document.getElementById('orderMediaNav');
-            if(!stage||!nav) return;
-            const media=await getOrderCardMedia(index);
-            const items=[...media.images.map(src=>({type:'image',src})), ...(media.video?[{type:'video',src:media.video}]:[])];
-            if(!items.length){stage.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:12px;">इस कार्ड का फोटो/वीडियो उपलब्ध नहीं है।</div>';nav.innerHTML='';return;}
-            let current=0;
-            const render=()=>{
-                const it=items[current];
-                const isVideo=it.type==='video';
-                stage.innerHTML=`<div class="order-media-card" id="orderMediaCard" title="टैप करके 3D देखें"><div class="order-media-face front">${isVideo?`<video id="orderInlineVideo" controls playsinline preload="metadata" src="${it.src}"></video><button class="order-media-play" type="button" onclick="event.stopPropagation();document.getElementById('orderInlineVideo')?.play()"><i class="fa-solid fa-play"></i></button>`:`<img src="${it.src}" alt="Card photo" onerror="this.style.display='none';">`}</div><div class="order-media-face back"><div style="padding:22px;text-align:center;color:#475569;font-size:13px;"><i class="fa-solid fa-rotate" style="font-size:28px;color:#2874f0;margin-bottom:8px;"></i><br>कार्ड का 3D व्यू<br><small>फिर से टैप करें</small></div></div></div>`;
-                const card=document.getElementById('orderMediaCard'); if(card) card.onclick=()=>card.classList.toggle('flipped');
-                nav.innerHTML=`<button class="order-media-arrow" type="button" onclick="orderMediaPrev()">‹</button>${items.map((x,i)=>`<button class="order-media-dot ${i===current?'active':''}" type="button" onclick="orderMediaGo(${i})" aria-label="Slide ${i+1}"></button>`).join('')}<button class="order-media-arrow" type="button" onclick="orderMediaNext()">›</button>`;
-                window.__orderMediaItems=items; window.__orderMediaIndex=current;
-            };
-            window.orderMediaGo=i=>{current=Math.max(0,Math.min(items.length-1,Number(i)||0));render()};
-            window.orderMediaPrev=()=>{current=(current-1+items.length)%items.length;render()};
-            window.orderMediaNext=()=>{current=(current+1)%items.length;render()};
-            render();
-        }
-
-        async function viewCustomerReceipt(index) {
-            let ord = fetchedOrdersList[index];
+        function viewCustomerReceipt(index) {
+            const ord = fetchedOrdersList[index];
             if (!ord) return;
-
-            // DIRECT ORDER REVIEW RESOLVER:
-            // My Orders -> exact order -> catalog_feedback.  Legacy reviews are resolved
-            // through the same Admin catalog source as Index, so the review cannot get lost.
-            let review = null;
-            const clean=v=>String(v??'').trim();
-            const norm=v=>clean(v).toLowerCase().replace(/[^a-z0-9]+/g,'');
-            const orderDbId=clean(ord.id), orderId=clean(ord.order_id);
-            let catalogIds=new Set([ord.catalog_id,ord.catalogId,ord.card_id,ord.product_id,ord.card_catalog_id,ord.catalog_item_id]
-              .filter(v=>clean(v)).map(v=>clean(v).toLowerCase()));
-
-            if(supabaseClient){
-              try{
-                const timeout=ms=>new Promise((_,reject)=>setTimeout(()=>reject(new Error('review timeout')),2500));
-
-                // 1) Exact order-linked review is always authoritative.
-                const linkedQueries=[];
-                if(orderDbId) linkedQueries.push(supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',Number(orderDbId)).order('created_at',{ascending:false}).limit(20));
-                if(orderId) linkedQueries.push(supabaseClient.from('catalog_feedback').select('*').eq('order_id',orderId).order('created_at',{ascending:false}).limit(20));
-                if(linkedQueries.length){
-                  const results=await Promise.race([Promise.all(linkedQueries),timeout(2500)]);
-                  for(const r of results||[]){ if(!r?.error && Array.isArray(r?.data) && r.data.length){ review=r.data[0]; break; } }
-                }
-
-                // 2) If old feedback has no order link, resolve this order to the Admin catalog
-                // using catalog ID first, then exact model/title similarity.
-                if(!review){
-                  let catalogRows=[];
-                  try{
-                    const cr=await Promise.race([
-                      supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
-                      timeout(2500)
-                    ]);
-                    if(!cr.error&&Array.isArray(cr.data)) catalogRows=cr.data;
-                  }catch(e){}
-
-                  const orderModel=norm(ord.card_model||ord.model||ord.code||'');
-                  const orderTitle=norm(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
-                  const titleMatch=(a,b)=>{
-                    a=norm(a); b=norm(b); if(!a||!b)return false;
-                    return a===b || a.includes(b) || b.includes(a);
-                  };
-                  for(const c of catalogRows){
-                    const cid=clean(c?.id);
-                    if(cid && catalogIds.has(cid.toLowerCase())) continue;
-                    const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
-                    const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
-                    const modelOk=!orderModel||!cm||cm===orderModel||cm.includes(orderModel)||orderModel.includes(cm);
-                    const titleOk=!orderTitle||!ct||titleMatch(orderTitle,ct);
-                    if(modelOk&&titleOk&&cid){ catalogIds.add(cid.toLowerCase()); break; }
-                  }
-
-                  // 3) Read feedback once and match by resolved catalog ID.
-                  try{
-                    const fr=await Promise.race([
-                      supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-                      timeout(2500)
-                    ]);
-                    if(!fr.error&&Array.isArray(fr.data)){
-                      review=fr.data.find(r=>[r?.catalog_id,r?.card_id,r?.product_id].some(v=>catalogIds.has(clean(v).toLowerCase())))||null;
-                    }
-                  }catch(e){}
-                }
-              }catch(e){ console.warn('Order review resolver:',e); }
-            }
-
-            // Local fallback for a review saved during the same session.
-            if(!review){
-              try{
-                const local=JSON.parse(localStorage.getItem('dp_order_rating_'+String(ord.id||ord.order_id||index))||'null');
-                if(local) review=local;
-              }catch(e){}
-            }
 
             const total = parseFloat(ord.total_amount || 0);
             const advance = parseFloat(ord.advance_paid || 0);
             const balance = Math.max(0, total - advance);
             const img = ord.card_image || safeCardPlaceholder;
-            const rating = Number(review?.rating ?? review?.stars ?? ord.rating ?? ord.stars ?? 0) || 0;
-            const reviewText = review?.feedback ?? review?.comment ?? ord.rating_feedback ?? '';
-            const reviewName = review?.name ?? review?.user_name ?? ord.rating_name ?? '';
-            let reviewImages = review?.review_images ?? review?.images ?? review?.image_urls ?? review?.photos ?? [];
-            if(typeof reviewImages==='string'){
-              try{reviewImages=JSON.parse(reviewImages)}catch(e){reviewImages=reviewImages.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)}
-            }
-            if(!Array.isArray(reviewImages)) reviewImages=[reviewImages];
-            reviewImages=reviewImages.map(x=>typeof x==='string'?x.trim():String(x?.url??x?.image_url??x?.src??'').trim()).filter(x=>/^https?:\/\//i.test(x));
-            const stars = rating>0 ? '★'.repeat(Math.round(rating))+'☆'.repeat(Math.max(0,5-Math.round(rating))) : '☆☆☆☆☆';
-            const reviewHtml = rating>0 ? `
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
-                    <div style="font-size:18px;letter-spacing:2px;color:#f5a623;font-weight:900;">${stars} <span style="font-size:14px;color:#1e3a68;letter-spacing:0;">${rating.toFixed(1)}/5</span></div>
-                    ${reviewName?`<div style="font-size:12px;color:#64748b;font-weight:700;margin-top:4px;">${escapeReceiptText(reviewName)}</div>`:''}
-                    <div style="font-size:13px;color:#334155;margin-top:7px;white-space:pre-wrap;word-break:break-word;">${escapeReceiptText(reviewText||'ग्राहक ने कोई लिखित समीक्षा नहीं दी।')}</div>
-                    ${reviewImages.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">${reviewImages.map((u,i)=>`<img src="${escapeReceiptText(u)}" alt="Review photo ${i+1}" onclick="window.open(this.src,'_blank')" style="width:82px;height:82px;object-fit:cover;border-radius:8px;border:1px solid #cbd5e1;cursor:zoom-in;" onerror="this.style.display='none'">`).join('')}</div>`:''}
-                </div>` : `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;color:#64748b;font-size:13px;">इस ऑर्डर की रेटिंग अभी उपलब्ध नहीं है।</div>`;
-
-            fetchedOrdersList[index]={...ord,rating,rating_feedback:reviewText,rating_name:reviewName,rating_images:reviewImages};
 
             document.getElementById('printableReceiptArea').innerHTML = `
                 <div class="receipt-header">
@@ -1425,47 +1407,36 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
                 <div class="card-preview-box">
                     <img src="${img}" alt="Card" onerror="this.onerror=null; this.src='${safeCardPlaceholder}';">
                     <div>
-                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${escapeReceiptText(ord.card_title || 'शादी कार्ड')}</div>
-                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${escapeReceiptText(ord.card_model || '-')}</b></div>
-                        <div style="font-size:12px; color:#64748b; margin-top:4px;">स्थिति: <b>${escapeReceiptText(ord.status || 'Pending')}</b></div>
+                        <div style="font-size:14px; font-weight:bold; color:var(--dark);">${ord.card_title || 'शादी कार्ड'}</div>
+                        <div style="font-size:12px; color:#64748b;">मॉडल: <b>${ord.card_model || '-'}</b></div>
+                        <div style="font-size:12px; color:#64748b; margin-top:4px;">स्थिति: <b>${ord.status || 'Pending'}</b></div>
                     </div>
-                </div>
-                <div id="orderMediaShowcase" class="order-media-showcase">
-                    <div class="order-media-title"><i class="fa-solid fa-images"></i> कार्ड फोटो / वीडियो</div>
-                    <div id="orderMediaStage" class="order-media-stage"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:12px;">मीडिया लोड हो रहा है...</div></div>
-                    <div id="orderMediaNav" class="order-media-nav"></div>
-                    <div class="order-media-hint">फोटो पर टैप करें तो कार्ड 3D में घूमेगा • ← → से फोटो बदलें • वीडियो अंतिम स्लाइड में चलेगा</div>
                 </div>
 
                 <div class="receipt-section-title">२. ऑर्डर एवं ग्राहक विवरण</div>
-                <div class="receipt-row"><span>आर्डर ID:</span> <b>#${escapeReceiptText(ord.order_id || ord.id || '-')}</b></div>
-                <div class="receipt-row"><span>ग्राहक:</span> <b>${escapeReceiptText(ord.customer_name || '-')}</b></div>
-                <div class="receipt-row"><span>मोबाइल:</span> <b>${escapeReceiptText(ord.mobile || ord.phone || '-')}</b></div>
-                <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${escapeReceiptText(ord.address || '-')}</b></div>
+                <div class="receipt-row"><span>आर्डर ID:</span> <b>#${ord.order_id || ord.id || '-'}</b></div>
+                <div class="receipt-row"><span>ग्राहक:</span> <b>${ord.customer_name || '-'}</b></div>
+                <div class="receipt-row"><span>मोबाइल:</span> <b>${ord.mobile || ord.phone || '-'}</b></div>
+                <div class="receipt-row" style="flex-direction: column;"><span>पता:</span> <b>${ord.address || '-'}</b></div>
 
                 <div class="receipt-section-title">३. शादी मैटर विवरण (लड़का-लड़की)</div>
-                <div class="receipt-row"><span>लड़का:</span> <b style="color:var(--primary);">${escapeReceiptText(ord.groom_name || '-')}</b></div>
-                <div class="receipt-row"><span>लड़की:</span> <b style="color:var(--secondary);">${escapeReceiptText(ord.bride_name || '-')}</b></div>
-                <div class="receipt-row"><span>शुभ विवाह / बारात:</span> <b>${escapeReceiptText(ord.barat_date || '-')}</b></div>
+                <div class="receipt-row"><span>लड़का:</span> <b style="color:var(--primary);">${ord.groom_name || '-'}</b></div>
+                <div class="receipt-row"><span>लड़की:</span> <b style="color:var(--secondary);">${ord.bride_name || '-'}</b></div>
+                <div class="receipt-row"><span>शुभ विवाह / बारात:</span> <b>${ord.barat_date || '-'}</b></div>
 
                 <div class="receipt-section-title">४. बिल एवं भुगतान विवरण</div>
-                <div class="receipt-row"><span>प्रिंटिंग मात्रा:</span> <b>${escapeReceiptText(ord.quantity || 100)} पीस</b></div>
+                <div class="receipt-row"><span>प्रिंटिंग मात्रा:</span> <b>${ord.quantity || 100} पीस</b></div>
                 <div class="receipt-row"><span>कुल बिल:</span> <b>₹${total}</b></div>
                 <div class="receipt-row"><span>एडवांस जमा:</span> <b style="color:green;">₹${advance}</b></div>
                 <div class="receipt-row"><span>बाकी बकाया:</span> <b style="color:red;">₹${balance}</b></div>
-                <div class="receipt-row"><span>UTR / Txn ID:</span> <b>${escapeReceiptText(ord.txn_id || 'उपलब्ध नहीं')}</b></div>
-
-                <div class="receipt-section-title">५. ग्राहक की रेटिंग एवं रिव्यू</div>
-                ${reviewHtml}
-
-                <div class="receipt-section-title">६. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
+                <div class="receipt-row"><span>UTR / Txn ID:</span> <b>${ord.txn_id || 'उपलब्ध नहीं'}</b></div>
+                <div class="receipt-section-title">५. ऑर्डर फॉर्म में भरा गया पूरा मैटर</div>
                 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.7;">
                     ${escapeReceiptText(ord.custom_notes || ord.order_notes || ord.notes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}
                 </div>
             `;
 
             document.getElementById('userReceiptModal').style.display = 'flex';
-            loadOrderMediaShowcase(index);
         }
 
         function closeReceiptModal() { 
@@ -1489,30 +1460,7 @@ body{background:#f1f3f6!important;color:#212121!important;padding-bottom:74px!im
             alert("आप सफलतापूर्वक लॉगआउट हो गए हैं!");
             window.location.replace("index.html");
         }
-    async function openOrderCardVideo(index){
- const ord=(Array.isArray(window.__customerOrders)?window.__customerOrders:[])[index];
- if(!ord){alert('ऑर्डर नहीं मिला।');return;}
- const modal=document.getElementById('orderVideoModal'), player=document.getElementById('orderVideoPlayer'), title=document.getElementById('orderVideoTitle'), status=document.getElementById('orderVideoStatus');
- if(!modal||!player)return;
- modal.style.display='flex'; title.textContent=(ord.card_title||ord.card_name||'कार्ड')+' — कार्ड वीडियो'; status.textContent='वीडियो खोजा जा रहा है...'; player.removeAttribute('src');
- try{
-   let rows=[];
-   const sb=window.supabaseClient||window.sb||null;
-   if(sb){
-     const model=String(ord.card_model||ord.model||'').trim(); const name=String(ord.card_title||ord.card_name||'').trim();
-     if(model){const r=await sb.from('catalog').select('*').eq('model',model).limit(10);if(!r.error&&Array.isArray(r.data))rows=r.data;}
-     if(!rows.length&&name){const r=await sb.from('catalog').select('*').eq('name',name).limit(10);if(!r.error&&Array.isArray(r.data))rows=r.data;}
-   }
-   const c=rows[0]||{};
-   let v=c.video_url||c.video||c.catalog_video||'';
-   if(!v&&c.video_urls){try{const a=typeof c.video_urls==='string'?JSON.parse(c.video_urls):c.video_urls;v=Array.isArray(a)?a[0]:a}catch(e){v=c.video_urls}}
-   if(!v){const d=String(c.description||'');const m=d.match(/\[\[VIDEO:([^\]]+)\]\]/i);if(m)v=m[1]}
-   if(!v){status.textContent='इस कार्ड के लिए अभी वीडियो उपलब्ध नहीं है।';return;}
-   player.src=v; player.load(); status.textContent='वीडियो तैयार है।';
- }catch(e){status.textContent='वीडियो लोड नहीं हो पाया।';}
-}
-function closeOrderCardVideo(){const m=document.getElementById('orderVideoModal'),p=document.getElementById('orderVideoPlayer');if(p){p.pause();p.removeAttribute('src');p.load()}if(m)m.style.display='none'}
-</script>
+    </script>
 
     <div class="rating-modal" id="orderRatingModal">
         <div class="rating-panel">
@@ -1540,7 +1488,5 @@ function closeOrderCardVideo(){const m=document.getElementById('orderVideoModal'
         </div>
     </div>
 
-
-<div class="order-video-modal" id="orderVideoModal" onclick="if(event.target===this)closeOrderCardVideo()"><div class="order-video-panel"><div class="order-video-head"><b id="orderVideoTitle">कार्ड वीडियो</b><button type="button" onclick="closeOrderCardVideo()">×</button></div><video id="orderVideoPlayer" controls playsinline preload="metadata"></video><div id="orderVideoStatus" style="font-size:12px;color:#64748b;margin-top:7px"></div></div></div>
 </body>
 </html>
