@@ -209,7 +209,9 @@ const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 let sb=null, product=null, images=[], imageIndex=0, selectedRating=0, feedbackRows=[];
 let allRatingRows=[];
 try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
-const id=new URLSearchParams(location.search).get('id');
+const urlParams=new URLSearchParams(location.search);
+const id=urlParams.get('id');
+const activeReviewId=urlParams.get('review_id') || '';
 let activeId=id;
 const placeholder="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><rect width='100%' height='100%' fill='%23f3f6fa'/><text x='50%' y='50%' font-size='28' fill='%2394a3b8' text-anchor='middle'>Card Image</text></svg>";
 function sale(c){let n=parseFloat(c.sale_rate??c.selling_price??c.selling_rate??c.current_rate??c.rate??c.price);return Number.isFinite(n)&&n>0?n:0}
@@ -314,44 +316,97 @@ async function selectCatalogVariant(index){
 
 async function loadFeedback(){
   feedbackRows=[];
-  // Use the exact same catalog-feedback source/resolution principle as Index.
-  // Direct catalog_id/card_id/product_id is authoritative; legacy order matching is only fallback.
-  try{ await loadAllRatingRows(); }catch(e){}
-
   const aliases=getProductAliases(product);
-  let rows=allRatingRows.filter(r=>{
-    const ids=[r?.catalog_id,r?.card_id,r?.product_id,...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])].map(cleanKey).filter(Boolean);
-    return ids.some(x=>aliases.has(x));
-  });
+  let rows=[];
 
-  // If the selected detail object uses a different source-table id, use the exact card from
-  // the Index cache and resolve against that card id exactly like Index does.
-  if(!rows.length){
+  // 1) Directly read catalog_feedback from Supabase. This is the same source used by Admin and Index.
+  // Do not depend only on a previously cached rating array.
+  if(sb){
     try{
-      const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
-      const cards=JSON.parse(raw);
-      if(Array.isArray(cards)){
-        const cur=cards.find(c=>String(c?.id??c?.catalog_id??'')===String(product?.id??activeId??''));
-        if(cur){
-          const ca=getProductAliases(cur);
-          rows=allRatingRows.filter(r=>{
-            const ids=[r?.catalog_id,r?.card_id,r?.product_id,...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])].map(cleanKey).filter(Boolean);
-            return ids.some(x=>ca.has(x));
-          });
+      const {data,error}=await Promise.race([
+        sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('feedback timeout')),8000))
+      ]);
+      if(!error && Array.isArray(data)) rows.push(...data);
+    }catch(e){}
+  }
+
+  // 2) Local copy, if any.
+  try{
+    const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+    if(local&&typeof local==='object')Object.keys(local).forEach(k=>rows.push({...local[k],catalog_id:k,_source:'local'}));
+  }catch(e){}
+
+  // 3) If Admin opened this exact review, keep that review authoritative first.
+  if(activeReviewId){
+    const exactId=rows.find(r=>String(r?.id??'').trim()===String(activeReviewId).trim());
+    if(exactId) rows=[exactId,...rows.filter(r=>String(r?.id??'').trim()!==String(activeReviewId).trim())];
+  }
+
+  // 4) Direct catalog ID is authoritative, exactly like Index.
+  let directRows=rows.filter(r=>[
+    r?.catalog_id,r?.card_id,r?.product_id,
+    ...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])
+  ].map(cleanKey).some(x=>aliases.has(x)));
+
+  if(directRows.length){
+    rows=directRows;
+  }else if(sb&&product){
+    // 5) Resolve a catalog record with the same model/title and use its exact ID(s).
+    try{
+      const pm=productModel(product), pt=productTitle(product);
+      const candidates=[];
+      for(const tbl of ['catalog','cards','cards_catalog']){
+        try{
+          const {data,error}=await sb.from(tbl).select('*').limit(1000);
+          if(!error&&Array.isArray(data))candidates.push(...data);
+        }catch(e){}
+      }
+      const canonicalIds=new Set(aliases);
+      for(const c of candidates){
+        const cm=productModel(c), ct=productTitle(c);
+        const modelOK=!pm||!cm||sameModelKey(pm,cm);
+        const titleOK=!pt||!ct||pt===ct||pt.includes(ct)||ct.includes(pt)||titleScore(pt,ct)>=0.60;
+        if(modelOK&&titleOK){
+          const cid=cleanKey(c?.id??c?.catalog_id??c?.card_id??c?.product_id??'');
+          if(cid)canonicalIds.add(cid);
         }
+      }
+      const canonicalRows=rows.filter(r=>[
+        r?.catalog_id,r?.card_id,r?.product_id
+      ].map(cleanKey).some(x=>canonicalIds.has(x)));
+      if(canonicalRows.length) rows=canonicalRows;
+    }catch(e){}
+  }
+
+  // 6) Order-linked legacy rows: only use exact matching orders when direct catalog IDs are absent.
+  if(!rows.length&&sb&&product){
+    try{
+      const pm=productModel(product), pt=productTitle(product);
+      const {data:orders,error}=await sb.from('orders').select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id').limit(2000);
+      if(!error&&Array.isArray(orders)){
+        const matching=new Set();
+        orders.forEach(o=>{
+          const oc=cleanKey(o?.catalog_id??o?.card_id??o?.product_id??'');
+          if(oc&&aliases.has(oc)){matching.add(String(o.id));return;}
+          const om=productModel(o), ot=productTitle(o);
+          if(pm&&om&&sameModelKey(pm,om)&&pt&&ot&&(pt===ot||pt.includes(ot)||ot.includes(pt)||titleScore(pt,ot)>=0.60)) matching.add(String(o.id));
+        });
+        rows=rows.filter(r=>matching.has(String(r?.order_db_id??r?.order_id??'')));
       }
     }catch(e){}
   }
 
-  // Legacy model/title-only rows: only use when there is no direct match.
+  // 7) Last legacy fallback from the already-resolved rows.
   if(!rows.length){
-    rows=allRatingRows.filter(r=>ratingBelongsToProductForCard(r,aliases,product));
+    try{await loadAllRatingRows();rows=allRatingRows.filter(r=>ratingBelongsToProductForCard(r,aliases,product));}catch(e){}
   }
 
+  // Exact duplicate copies only; two different reviews remain separate.
   const dedup=new Map();
   for(const r of rows){
     const rid=String(r?.id??'').trim();
-    const sig=rid ? 'id:'+rid : [
+    const sig=rid?'id:'+rid:[
       String(r?.order_db_id??r?.order_id??'').trim(),
       cleanKey(r?.catalog_id??''),
       cleanKey(r?.name??r?.user_name??r?.customer_name??''),
@@ -365,6 +420,11 @@ async function loadFeedback(){
   feedbackRows=[...dedup.values()];
   renderRatings();
 }
+function sameModelKey(a,b){
+  a=modelKey(a); b=modelKey(b);
+  return !a||!b||a===b||a.includes(b)||b.includes(a);
+}
+
 function cleanKey(v){return String(v??'').trim().toLowerCase().replace(/\s+/g,' ')}
 function modelKey(v){return cleanKey(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'')}
 function tokenize(v){return cleanKey(v).replace(/[^a-z0-9\u0900-\u097f]+/g,' ').split(/\s+/).filter(x=>x.length>1)}
