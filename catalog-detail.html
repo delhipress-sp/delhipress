@@ -478,15 +478,28 @@ function renderRatings(){
   })).filter(r=>r.rating>0);
 
   const total=rows.reduce((a,r)=>a+r.rating,0);
-  const avg=rows.length?total/rows.length:0;
+  let avg=rows.length?total/rows.length:0;
+  let displayCount=rows.length;
+
+  // Index में जिस exact card पर user ने click किया है, Index पहले ही
+  // catalog_feedback को resolve करके _ratingAvg/_ratingCount में रख चुका है।
+  // Detail page में उसी handoff को authoritative fallback मानें, ताकि
+  // model/code (जैसे 140026) के कारण 0.0 न दिखे।
+  const indexAvg=Number(product?._ratingAvg||0);
+  const indexCount=Number(product?._ratingCount||0);
+  if(displayCount===0 && indexCount>0 && indexAvg>0){
+    avg=indexAvg;
+    displayCount=indexCount;
+  }
+
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  set('ratingPill',(avg?avg.toFixed(1):'0.0')+(rows.length?' ('+rows.length+')':''));
+  set('ratingPill',(avg?avg.toFixed(1):'0.0')+(displayCount?' ('+displayCount+')':''));
   set('topStars',stars(avg));
-  set('reviewCount',rows.length+' Ratings & Reviews');
+  set('reviewCount',displayCount+' Ratings & Reviews');
   set('bigRating',avg?avg.toFixed(1):'0.0');
   set('bigStars',stars(avg));
-  set('bigReviewCount',rows.length+' Reviews');
-  const irs=document.getElementById('imageRatingStars'); if(irs) irs.textContent=stars(avg); const irscore=document.getElementById('imageRatingScore'); if(irscore) irscore.textContent=avg?avg.toFixed(1):'0.0'; const ircount=document.getElementById('imageRatingCount'); if(ircount) ircount.textContent=rows.length+' रेटिंग';
+  set('bigReviewCount',displayCount+' Reviews');
+  const irs=document.getElementById('imageRatingStars'); if(irs) irs.textContent=stars(avg); const irscore=document.getElementById('imageRatingScore'); if(irscore) irscore.textContent=avg?avg.toFixed(1):'0.0'; const ircount=document.getElementById('imageRatingCount'); if(ircount) ircount.textContent=displayCount+' रेटिंग';
 
   for(let n=1;n<=5;n++){
     const c=rows.filter(r=>Math.round(r.rating)===n).length;
