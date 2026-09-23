@@ -1451,6 +1451,8 @@ function renderOrdersUI() {
                 const img=c.image||c.image_url||c.card_image||c.photo||safeCardPlaceholder;
                 const vals=resolvedByCatalog.get(String(c.id??c.catalog_id??'').trim())||[];
                 const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+                c._ratingAvg=avg;
+                c._ratingCount=vals.length;
                 const inStock=c.in_stock!==false;
                 const stock=inStock?'<span class="stock-badge in-stock">उपलब्ध (In Stock)</span>':'<span class="stock-badge out-stock">स्टॉक समाप्त (Out)</span>';
                 let price='';
@@ -1520,6 +1522,36 @@ function renderOrdersUI() {
             // के बिना सेव हुआ है, तो उसी Order के exact Catalog (title + model + image) की
             // aggregate rating fallback के रूप में दिखाएँ। इससे Index पर 1 rating होने पर
             // Order Details में 0.0 नहीं रहेगा।
+            // पहले इसी My Orders पेज पर दिख रहे Index-style Recommended Catalog से
+            // उसी कार्ड की authoritative rating लें। इससे Order Details और Index/Recommended
+            // Catalog में rating/count बिल्कुल एक जैसे रहते हैं।
+            try {
+                await loadRecommendedCatalog();
+                const cleanLocal = v => String(v ?? '').trim();
+                const normLocal = v => cleanLocal(v).toLowerCase().replace(/\s+/g,' ');
+                const compactLocal = v => normLocal(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'');
+                const modelLocal = v => normLocal(v).replace(/[^a-z0-9]+/g,'');
+                const otLocal = cleanLocal(ord.card_title || ord.card_name || ord.title || ord.product_name || '');
+                const omLocal = cleanLocal(ord.card_model || ord.model || ord.card_code || ord.model_no || '');
+                let bestLocal = null, bestScoreLocal = -1;
+                (Array.isArray(recommendedCards) ? recommendedCards : []).forEach(c => {
+                    const ct=cleanLocal(c?.name || c?.title || c?.card_name || c?.product_name || '');
+                    const cm=cleanLocal(c?.model || c?.code || c?.card_model || c?.model_no || '');
+                    if(!ct || !otLocal) return;
+                    let score=0;
+                    const a=compactLocal(otLocal), b=compactLocal(ct);
+                    if(normLocal(otLocal)===normLocal(ct)) score+=1000;
+                    else if(a===b) score+=900;
+                    else if(a.includes(b)||b.includes(a)) score+=650;
+                    if(omLocal && cm && modelLocal(omLocal)===modelLocal(cm)) score+=250;
+                    if(score>bestScoreLocal){bestScoreLocal=score;bestLocal=c;}
+                });
+                if(bestLocal && Number(bestLocal._ratingAvg||0)>0){
+                    ord={...ord, rating:Number(bestLocal._ratingAvg)||0, stars:Number(bestLocal._ratingAvg)||0, rating_count:Number(bestLocal._ratingCount||0)};
+                    fetchedOrdersList[index]=ord;
+                }
+            } catch(e) { console.warn('Recommended catalog rating sync failed:',e); }
+
             if (supabaseClient) {
                 try {
                     const clean = v => String(v ?? '').trim();
