@@ -825,15 +825,19 @@
             } catch (e) {}
         }
 
+        let __indexCatalogStarted = false;
+
         function startCatalogLoading() {
             try { checkUserAuthUI(); } catch(e) {}
             try { initLocationUI(); } catch(e) {}
             try { updateCartBadges(); } catch(e) {}
-            // DOMContentLoaded/Load दोनों जगह से बुलाने पर भी loadCatalog() single-flight guard के कारण एक ही बार चलेगा।
+            // Catalog केवल एक बार load होगा। DOMContentLoaded और load दोनों से
+            // दोबारा Supabase fetch/render नहीं होगा।
+            if (__indexCatalogStarted) return;
+            __indexCatalogStarted = true;
             loadCatalog();
         }
-        window.addEventListener('DOMContentLoaded', startCatalogLoading);
-        window.addEventListener('load', startCatalogLoading);
+        window.addEventListener('DOMContentLoaded', startCatalogLoading, { once: true });
 
         function checkUserAuthUI() {
             const user = localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user');
@@ -946,30 +950,44 @@
                 return;
             }
 
-            // Admin में जिस catalog source का data है, उसी को पढ़ें।
+            // मुख्य और आधिकारिक Catalog source: `catalog` table.
+            // दूसरे tables को तभी देखें जब मुख्य table से वास्तविक error आए।
+            // तीनों tables का data मिलाने से duplicate/अलग cards आकर catalog
+            // दोबारा render होने पर कभी-कभी cards गायब/बदल सकते थे।
             const tables = ['catalog', 'cards', 'cards_catalog'];
             const allRows = [];
+            let primaryQuerySucceeded = false;
 
-            for (const tbl of tables) {
+            for (let ti = 0; ti < tables.length; ti++) {
+                const tbl = tables[ti];
                 try {
                     const result = await Promise.race([
                         supabaseClient.from(tbl).select('*'),
                         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
                     ]);
-                    if (!result.error && Array.isArray(result.data)) {
-                        result.data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
+
+                    if (!result.error) {
+                        primaryQuerySucceeded = true;
+                        if (Array.isArray(result.data)) {
+                            result.data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
+                        }
+                        // `catalog` सफल हुआ तो उसी का data authoritative है।
+                        break;
                     }
                 } catch(e) {}
+
+                // केवल error की स्थिति में अगला fallback table देखें।
             }
 
-            // अगर live query खाली/failed हो, पुराना local catalog बनाए रखें।
-            if (!allRows.length) {
+            // अगर मुख्य query सफल होकर खाली लौटी है, तो उसे valid empty result मानें।
+            // दूसरे पुराने tables से अलग/पुराना catalog नहीं मिलाएँगे।
+            if (!allRows.length && !primaryQuerySucceeded) {
                 if (hadCache && Array.isArray(globalCards) && globalCards.length) {
                     try { renderCatalogCards(globalCards); } catch(e) {}
                     return;
                 }
 
-                // आखिरी REST fallback
+                // आखिरी REST fallback — केवल तब जब Supabase JS query असफल हुई हो।
                 for (const tbl of tables) {
                     try {
                         const controller = new AbortController();
@@ -989,8 +1007,9 @@
                         clearTimeout(timer);
                         if (res.ok) {
                             const data = await res.json();
-                            if (Array.isArray(data)) {
+                            if (Array.isArray(data) && data.length) {
                                 data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
+                                break;
                             }
                         }
                     } catch(e) {}
@@ -1041,9 +1060,13 @@
         }
 
         let catalogLoadPromise = null;
+        let catalogLoadFinished = false;
         async function loadCatalog() {
+            if (catalogLoadFinished) return;
             if (catalogLoadPromise) return catalogLoadPromise;
-            catalogLoadPromise = loadCatalogOnce().finally(() => { catalogLoadPromise = null; });
+            catalogLoadPromise = loadCatalogOnce().finally(() => {
+                catalogLoadFinished = true;
+            });
             return catalogLoadPromise;
         }
 
@@ -1151,14 +1174,28 @@
 
                     r._resolved_catalog_ids = [];
 
-                    // IMPORTANT: If the review has an order link, resolve the catalog from that
-                    // order first. This prevents an old/wrong catalog_id from putting the review
-                    // on the first card (especially when two cards share model 140026).
+                    // केवल नया direct catalog_id तभी मानें जब वह किसी वास्तविक card id/catalog_id से मिले।
+                    const direct = [r?.catalog_id,r?.card_id,r?.product_id]
+                        .map(norm).filter(Boolean);
+
+                    globalCards.forEach(card => {
+                        const cid = norm(card?.id ?? card?.catalog_id);
+                        if (cid && direct.includes(cid)) {
+                            r._resolved_catalog_ids.push(cid);
+                        }
+                    });
+
+                    // अगर review में वास्तविक catalog ID (जैसे 30/29/27) मिल गई है,
+                    // तो उसे order title/model के fallback से दोबारा दूसरे card पर map नहीं करेंगे।
+                    // यही वजह थी कि Order ID 19 के एक review के साथ दूसरे card के reviews भी जुड़ रहे थे।
+                    const hasDirectCatalogMatch = r._resolved_catalog_ids.length > 0;
+
+                    // पुराने records: order -> card title/model -> exact catalog card
+                    // केवल तब चलाएँ जब direct catalog ID पुरानी/legacy value हो और किसी card से match न हुई हो।
                     const orderId = String(r?.order_db_id ?? r?.order_id ?? '').trim();
                     const order = orderMap[orderId];
-                    let resolvedFromOrder = false;
 
-                    if (order) {
+                    if (order && !hasDirectCatalogMatch) {
                         const ot = norm(order.card_title ?? order.title ?? '');
                         const om = modelNorm(order.card_model ?? order.model ?? '');
 
@@ -1176,19 +1213,7 @@
                                 const cid = norm(card?.id ?? card?.catalog_id);
                                 if (cid && !r._resolved_catalog_ids.includes(cid)) {
                                     r._resolved_catalog_ids.push(cid);
-                                    resolvedFromOrder = true;
                                 }
-                            }
-                        });
-                    }
-
-                    // Only use direct catalog_id when there was no usable order-based resolution.
-                    if (!resolvedFromOrder) {
-                        const direct = [r?.catalog_id,r?.card_id,r?.product_id].map(norm).filter(Boolean);
-                        globalCards.forEach(card => {
-                            const cid = norm(card?.id ?? card?.catalog_id);
-                            if (cid && direct.includes(cid) && !r._resolved_catalog_ids.includes(cid)) {
-                                r._resolved_catalog_ids.push(cid);
                             }
                         });
                     }
