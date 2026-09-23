@@ -288,14 +288,20 @@ async function loadFeedback(){
   const clean=v=>String(v??'').trim().toLowerCase();
   const modelKey=v=>clean(v).replace(/[^a-z0-9]+/g,'');
   const productId=clean(product?.id??activeId??'');
-  const productAliases=new Set(
-    [product?.id,product?.catalog_id,product?.card_id,product?.product_id]
-      .map(clean).filter(Boolean)
-  );
-  if(productId)productAliases.add(productId);
-
   const productTitle=clean(product?.name??product?.title??product?.card_name??product?.product_name??'');
   const productModel=modelKey(product?.model??product?.code??product?.card_model??product?.model_no??'');
+
+  // बहुत जरूरी: कई पुराने कार्ड में `id`/catalog_id में मॉडल कोड (जैसे 140026) रखा गया है।
+  // मॉडल को Catalog ID मानकर दूसरे उसी-model कार्ड की ratings नहीं मिलानी हैं।
+  const isModelLikeId=(v)=>{
+    const x=modelKey(v);
+    return !!x && !!productModel && (x===productModel || x.includes(productModel) || productModel.includes(x));
+  };
+  const productAliases=new Set(
+    [product?.id,product?.catalog_id,product?.card_id,product?.product_id]
+      .map(clean).filter(Boolean).filter(v=>!isModelLikeId(v))
+  );
+  if(productId && !isModelLikeId(productId))productAliases.add(productId);
 
   // order_db_id/order_id से पुरानी rating को उसी order के card title/model से जोड़ेंगे।
   const orderIds=[...new Set(allRows.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];
@@ -380,9 +386,10 @@ async function loadFeedback(){
 function ratingMatchForCard(card,rows,orderMap){
   const clean=v=>String(v??'').trim().toLowerCase();
   const modelKey=v=>clean(v).replace(/[^a-z0-9]+/g,'');
-  const aliases=new Set([card?.id,card?.catalog_id,card?.card_id,card?.product_id].map(clean).filter(Boolean));
   const title=clean(card?.name??card?.title??card?.card_name??card?.product_name??'');
   const model=modelKey(card?.model??card?.code??card?.card_model??card?.model_no??'');
+  const isModelLikeId=(v)=>{const x=modelKey(v);return !!x&&!!model&&(x===model||x.includes(model)||model.includes(x));};
+  const aliases=new Set([card?.id,card?.catalog_id,card?.card_id,card?.product_id].map(clean).filter(Boolean).filter(v=>!isModelLikeId(v)));
   const sameTitle=(a,b)=>{a=clean(a);b=clean(b);if(!a||!b)return false;if(a===b||a.includes(b)||b.includes(a))return true;const aa=a.replace(/[^a-z0-9\u0900-\u097f]+/g,'');const bb=b.replace(/[^a-z0-9\u0900-\u097f]+/g,'');return !!aa&&!!bb&&(aa===bb||aa.includes(bb)||bb.includes(aa));};
   const sameModel=(a,b)=>{a=modelKey(a);b=modelKey(b);if(!a||!b)return true;return a===b||a.includes(b)||b.includes(a);};
   let sum=0,count=0;
