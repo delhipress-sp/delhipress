@@ -205,6 +205,35 @@ async function findProduct(){
     }
   }
 
+  // यदि URL में model/code (जैसे 140026) आया हो, तो वास्तविक catalog row को title+model+image से resolve करें।
+  try{
+    let seed=null;
+    const raw=localStorage.getItem('dp_catalog_detail_fallback')||localStorage.getItem('dp_catalog_detail_selected')||'';
+    if(raw) seed=JSON.parse(raw);
+    const targetTitle=String(seed?.name??seed?.title??seed?.card_name??'').trim().toLowerCase();
+    const targetModel=String(seed?.model??seed?.code??seed?.card_model??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
+    const targetImage=String(seed?.image??seed?.image_url??seed?.photo??'').trim();
+    if(sb&&(targetTitle||targetModel)){
+      for(const tbl of ['catalog','cards','cards_catalog']){
+        try{
+          const {data,error}=await sb.from(tbl).select('*').limit(500);
+          if(error||!Array.isArray(data))continue;
+          let best=null,bestScore=-1;
+          for(const c of data){
+            const ct=String(c?.name??c?.title??c?.card_name??c?.product_name??'').trim().toLowerCase();
+            const cm=String(c?.model??c?.code??c?.card_model??c?.model_no??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
+            let score=0;
+            if(targetTitle&&ct&&ct===targetTitle)score+=100; else if(targetTitle&&ct&&(ct.includes(targetTitle)||targetTitle.includes(ct)))score+=60;
+            if(targetModel&&cm&&cm===targetModel)score+=50;
+            if(targetImage&&String(c?.image??c?.image_url??c?.photo??'').trim()===targetImage)score+=80;
+            if(score>bestScore){bestScore=score;best=c;}
+          }
+          if(best&&bestScore>=100)return {...best,_source_table:tbl,_resolved_from_identity:true};
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+
   // Index की live cache fallback।
   try{
     const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
@@ -302,6 +331,9 @@ async function loadFeedback(){
       .map(clean).filter(Boolean).filter(v=>!isModelLikeId(v))
   );
   if(productId && !isModelLikeId(productId))productAliases.add(productId);
+  // Real numeric catalog id मिलने के बाद title/model fallback बंद रखें।
+  // इससे एक ही model (जैसे 140026) वाले दूसरे catalog की rating कभी नहीं मिलेगी।
+  const hasCanonicalCatalogId=!!productId && !isModelLikeId(productId);
 
   // order_db_id/order_id से पुरानी rating को उसी order के card title/model से जोड़ेंगे।
   const orderIds=[...new Set(allRows.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];
@@ -363,8 +395,8 @@ async function loadFeedback(){
       }
     }
 
-    // अगर feedback row में नया title/model मौजूद है तो उसे भी match करें।
-    if(!belongs){
+    // केवल तब title/model fallback करें जब वास्तविक catalog id उपलब्ध नहीं है।
+    if(!belongs && !hasCanonicalCatalogId){
       const rt=r?.card_title??r?.card_name??r?.product_name??r?.title??'';
       const rm=r?.card_model??r?.model??r?.code??'';
       belongs=sameTitle(rt,productTitle)&&sameModel(rm,productModel);
