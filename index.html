@@ -780,7 +780,7 @@
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        const SUPABASE_ANON_KEY = "sb_publishable_UOq3tq9XZQ3cpGngx9uhbw_pDmLdCFS";
         
         let supabaseClient = null;
         try {
@@ -946,16 +946,15 @@
                 return;
             }
 
-            // Admin का मुख्य catalog source पहले पढ़ें। Cache ऊपर पहले ही render हो चुका है,
-            // इसलिए Supabase slow होने पर Index खाली/अटका नहीं रहेगा।
-            const tables = ['catalog'];
+            // Admin में जिस catalog source का data है, उसी को पढ़ें।
+            const tables = ['catalog', 'cards', 'cards_catalog'];
             const allRows = [];
 
             for (const tbl of tables) {
                 try {
                     const result = await Promise.race([
-                        supabaseClient.from(tbl).select('*').order('id',{ascending:false}).limit(1000),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('catalog timeout')), 4500))
+                        supabaseClient.from(tbl).select('*'),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
                     ]);
                     if (!result.error && Array.isArray(result.data)) {
                         result.data.forEach(row => allRows.push({ ...row, _source_table: tbl }));
@@ -1113,24 +1112,21 @@
                 const orderMap = {};
                 if (supabaseClient) {
                     try {
-                        const dbIds = [...new Set(rows.map(r=>String(r?.order_db_id??'').trim()).filter(v=>/^\d+$/.test(v)))];
-                        const orderNos = [...new Set(rows.map(r=>String(r?.order_id??'').trim()).filter(Boolean))];
+                        const ids = [...new Set(
+                            rows.flatMap(r => [r?.order_db_id, r?.order_id])
+                                .map(v=>String(v??'').trim())
+                                .filter(Boolean)
+                        )];
 
-                        if (dbIds.length) {
+                        if (ids.length) {
                             const {data,error} = await supabaseClient
                                 .from('orders')
-                                .select('id,order_id,card_model,card_title,model,title')
-                                .in('id',dbIds.map(Number));
-                            if (!error && Array.isArray(data)) data.forEach(o => { orderMap[String(o.id)] = o; if(o.order_id) orderMap[String(o.order_id)] = o; });
-                        }
-                        // पुराने feedback में order_db_id खाली हो और केवल order_id हो तो
-                        // उसे भी exact order से resolve करें।
-                        if (orderNos.length) {
-                            const {data,error} = await supabaseClient
-                                .from('orders')
-                                .select('id,order_id,card_model,card_title,model,title')
-                                .in('order_id',orderNos);
-                            if (!error && Array.isArray(data)) data.forEach(o => { orderMap[String(o.id)] = o; if(o.order_id) orderMap[String(o.order_id)] = o; });
+                                .select('id,card_model,card_title,model,title')
+                                .in('id',ids);
+
+                            if (!error && Array.isArray(data)) {
+                                data.forEach(o => { orderMap[String(o.id)] = o; });
+                            }
                         }
                     } catch(e) {}
                 }
@@ -1166,11 +1162,17 @@
                         }
                     });
 
+                    // अगर review में वास्तविक catalog ID (जैसे 30/29/27) मिल गई है,
+                    // तो उसे order title/model के fallback से दोबारा दूसरे card पर map नहीं करेंगे।
+                    // यही वजह थी कि Order ID 19 के एक review के साथ दूसरे card के reviews भी जुड़ रहे थे।
+                    const hasDirectCatalogMatch = r._resolved_catalog_ids.length > 0;
+
                     // पुराने records: order -> card title/model -> exact catalog card
+                    // केवल तब चलाएँ जब direct catalog ID पुरानी/legacy value हो और किसी card से match न हुई हो।
                     const orderId = String(r?.order_db_id ?? r?.order_id ?? '').trim();
                     const order = orderMap[orderId];
 
-                    if (order) {
+                    if (order && !hasDirectCatalogMatch) {
                         const ot = norm(order.card_title ?? order.title ?? '');
                         const om = modelNorm(order.card_model ?? order.model ?? '');
 
@@ -1274,7 +1276,7 @@
                         <h4>${name}</h4>
                         <div class="model-text">${model}</div>
                         ${priceHtml}
-                        <div class="card-rating-row" onclick="event.stopPropagation(); openStandaloneRating(${index})" style="cursor:pointer" title="रेटिंग और रिव्यू देखें / दें">
+                        <div class="card-rating-row">
                             <span class="rating-stars">★★★★★</span>
                             <span class="rating-text">${(()=>{const rr=getCardRating(card); return rr.avg ? rr.avg.toFixed(1)+(rr.count?' ('+rr.count+')':'') : '0.0';})()}</span>
                             <span class="rating-label">रेटिंग</span>
@@ -1285,19 +1287,6 @@
                 container.appendChild(cardDiv);
             });
             fastCatalogImages();
-        }
-
-        function openStandaloneRating(cardIndex){
-            const card=globalCards[cardIndex];
-            if(!card)return;
-            try{localStorage.setItem('dp_rating_catalog_context',JSON.stringify({
-                catalog_id:card.id??card.catalog_id??'',
-                name:card.name??card.title??card.card_name??'',
-                model:card.model??card.code??card.card_model??'',
-                image:card.image??card.image_url??card.photo??''
-            }));}catch(e){}
-            const cid=encodeURIComponent(card.id??card.catalog_id??'');
-            window.location.href='rating.html?id='+cid;
         }
 
         function selectCardForOrder(cardIndex) {
