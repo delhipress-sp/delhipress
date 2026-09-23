@@ -1473,7 +1473,7 @@
             // 1 मिनट तक की मोबाइल रिकॉर्डिंग सीधे Storage में अपलोड की जा सकती है।
             const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'bin';
             const path=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-            const buckets=['catalog','cards']; let last=null;
+            const buckets=['review-images','catalog','cards']; let last=null;
             for(const bucket of buckets){
                 try{
                     const {error}=await supabaseClient.storage.from(bucket).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
@@ -1485,9 +1485,82 @@
             if(file.type.startsWith('image/')){
                 return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('फोटो पढ़ी नहीं जा सकी।'));r.readAsDataURL(file);});
             }
-            throw new Error('वीडियो Storage में अपलोड नहीं हो सका। Supabase में catalog/cards Storage bucket की upload/public policy जाँचें।'+(last?.message?` ${last.message}`:''));
+            throw new Error('वीडियो Storage में अपलोड नहीं हो सका। Supabase Storage की upload/public policy जाँचें।'+(last?.message?` ${last.message}`:''));
         }
         function getVideoDuration(file){return new Promise((resolve,reject)=>{const u=URL.createObjectURL(file),v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{const d=v.duration;URL.revokeObjectURL(u);resolve(d)};v.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('वीडियो की अवधि पढ़ी नहीं जा सकी।'))};v.src=u;});}
+        async function compressCatalogVideo(file){
+            // Smart browser-side compression: keep resolution up to 720p and avoid
+            // recompressing files that are already small. Target is roughly 2–3 MB
+            // for a 60-second clip; shorter clips can remain smaller/larger as needed.
+            if(!file || !file.type.startsWith('video/')) return file;
+            if(file.size <= 3*1024*1024) return file;
+            const duration=await getVideoDuration(file);
+            if(!Number.isFinite(duration) || duration<=0) return file;
+
+            const video=document.createElement('video');
+            video.muted=true; video.playsInline=true; video.preload='auto';
+            const url=URL.createObjectURL(file); video.src=url;
+            await new Promise((resolve,reject)=>{
+                video.onloadedmetadata=()=>resolve();
+                video.onerror=()=>reject(new Error('वीडियो पढ़ा नहीं जा सका।'));
+            });
+            try{ await video.play(); }catch(e){}
+
+            const maxW=1280, maxH=720;
+            const scale=Math.min(1,maxW/video.videoWidth||1,maxH/video.videoHeight||1);
+            const w=Math.max(2,Math.round((video.videoWidth||1280)*scale/2)*2);
+            const h=Math.max(2,Math.round((video.videoHeight||720)*scale/2)*2);
+            const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+            const ctx=canvas.getContext('2d',{alpha:false});
+            const stream=canvas.captureStream(30);
+            try{
+                if(video.captureStream){
+                    const src=video.captureStream();
+                    const audioTracks=src.getAudioTracks();
+                    audioTracks.forEach(t=>stream.addTrack(t));
+                }
+            }catch(e){}
+
+            const targetBytes=3.0*1024*1024;
+            const totalKbps=Math.max(360,Math.min(1800,(targetBytes*8/1024)/duration));
+            const audioKbps=48;
+            const videoKbps=Math.max(300,Math.round(totalKbps-audioKbps));
+            const mimeCandidates=[
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm'
+            ];
+            let mime='';
+            for(const m of mimeCandidates){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)){mime=m;break;} }
+            if(!window.MediaRecorder || !mime){ URL.revokeObjectURL(url); return file; }
+
+            const chunks=[];
+            const recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:videoKbps*1000,audioBitsPerSecond:audioKbps*1000});
+            recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+            const done=new Promise((resolve,reject)=>{
+                recorder.onerror=()=>reject(new Error('वीडियो compression शुरू नहीं हो सका।'));
+                recorder.onstop=()=>resolve();
+            });
+            recorder.start(500);
+            let stopped=false;
+            const draw=()=>{
+                if(stopped)return;
+                if(video.readyState>=2)ctx.drawImage(video,0,0,w,h);
+                requestAnimationFrame(draw);
+            };
+            requestAnimationFrame(draw);
+            await new Promise(resolve=>setTimeout(resolve,Math.min(duration*1000,60000)+150));
+            stopped=true;
+            if(recorder.state!=='inactive')recorder.stop();
+            await done;
+            stream.getTracks().forEach(t=>t.stop());
+            video.pause(); video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url);
+            const blob=new Blob(chunks,{type:mime});
+            if(!blob.size || blob.size>=file.size){ return file; }
+            const ext='webm';
+            return new File([blob],`catalog_compressed_${Date.now()}.${ext}`,{type:mime,lastModified:Date.now()});
+        }
+
 
         async function insertAdminCatalogPayload(base){
             const variants=[
@@ -1524,7 +1597,14 @@
                     if(duration>60) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया 1 मिनट (60 सेकंड) के अंदर का वीडियो चुनें।`);
                 }
                 const imageUrls=[]; for(const f of photos.slice(0,10)) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
-                let videoUrl=''; if(video) videoUrl=await uploadCatalogAdminFile(video,'catalog');
+                let videoUrl='';
+                if(video){
+                    setCatalogVideoStatus('⏳ वीडियो compress हो रहा है…','#b45309');
+                    const compressedVideo=await compressCatalogVideo(video);
+                    videoUrl=await uploadCatalogAdminFile(compressedVideo,'catalog');
+                    const st=document.getElementById('catalogVideoStatus');
+                    if(st) st.textContent=`🎬 वीडियो तैयार: ${(compressedVideo.size/1024/1024).toFixed(2)} MB`;
+                }
                 const fallbackDescription=`[[GALLERY:${imageUrls.join('|')}]]${videoUrl?` [[VIDEO:${videoUrl}]]`:''}`;
                 const base={name,card_name:name,title:name,model,code:model,category,image:imageUrls[0],image_url:imageUrls[0],images:imageUrls,image_urls:JSON.stringify(imageUrls),gallery_images:JSON.stringify(imageUrls),catalog_rate:mrp,original_rate:mrp,mrp,sale_rate:sale,selling_price:sale,rate:sale,price:sale,in_stock,description:fallbackDescription,video_url:videoUrl,video_urls:videoUrl?JSON.stringify([videoUrl]):JSON.stringify([]),catalog_video:videoUrl};
                 await insertAdminCatalogPayload(base);
