@@ -843,13 +843,13 @@
                             ✍️ अगर Typing में दिक्कत है तो मैटर कागज पर कलम से लिखकर Upload करें।
                         </div>
                         <div style="color:#475569;font-size:13px;line-height:1.6;">
-                            साफ फोटो या PDF अपलोड करें। Upload होने के बाद शादी कार्ड के बाकी Wedding Columns छिप जाएंगे और Order के अगले चरण पर Terms & Conditions के साथ भेजा जाएगा।
+                            फोटो या PDF अपलोड करें — छोटी हो या बड़ी, सभी फाइल स्वीकार की जाएंगी। Upload होने के बाद शादी कार्ड के बाकी Wedding Columns छिप जाएंगे और Order के अगले चरण पर Terms & Conditions के साथ भेजा जाएगा।
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="weddingMatterFile" style="font-weight:800;">मैटर की फोटो / PDF चुनें:</label>
-                        <input id="weddingMatterFile" type="file" accept="image/*,.pdf,.doc,.docx"
+                        <input id="weddingMatterFile" type="file" accept="image/*,.pdf,.doc,.docx,.heic,.heif,.webp"
                                style="width:100%;padding:14px;border:2px dashed #93c5fd;border-radius:12px;background:#f8fafc;">
                     </div>
 
@@ -1779,47 +1779,93 @@
             if (upload) upload.scrollIntoView({behavior:'smooth', block:'start'});
         }
 
+        function fileToDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function saveMatterInIndexedDB(matter) {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('DelhiPressOrderDB', 1);
+                req.onupgradeneeded = function(e) {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('matter')) {
+                        db.createObjectStore('matter', {keyPath:'id'});
+                    }
+                };
+                req.onsuccess = function(e) {
+                    const db = e.target.result;
+                    const tx = db.transaction('matter', 'readwrite');
+                    tx.objectStore('matter').put({id:'current', matter:matter});
+                    tx.oncomplete = () => { db.close(); resolve(true); };
+                    tx.onerror = () => { db.close(); reject(tx.error); };
+                };
+                req.onerror = () => reject(req.error);
+            });
+        }
+
         async function handleWeddingMatterUpload(file) {
             if (!file) return;
 
-            const maxBytes = 4 * 1024 * 1024;
-            if (file.size > maxBytes) {
-                setMatterStatus('फाइल 4 MB से कम रखें। कृपया फोटो compress करके दोबारा Upload करें।', false);
-                document.getElementById('weddingMatterFile').value = '';
-                return;
-            }
+            // No artificial file-size rejection. JPG/PNG/PDF/etc. are accepted.
+            // Browser storage is used only to carry the file to the next order step.
+            try {
+                const dataUrl = await fileToDataURL(file);
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                weddingMatterData = {
+                const matter = {
+                    id: 'current',
                     name: file.name,
                     type: file.type || 'application/octet-stream',
                     size: file.size,
-                    dataUrl: e.target.result,
+                    dataUrl: dataUrl,
                     uploadedAt: new Date().toISOString()
                 };
+
+                // Primary storage: IndexedDB, which is much larger than localStorage.
+                await saveMatterInIndexedDB(matter);
+
+                // Only tiny metadata goes to localStorage.
+                try {
+                    localStorage.setItem('dp_wedding_matter_upload_meta', JSON.stringify({
+                        name: matter.name,
+                        type: matter.type,
+                        size: matter.size,
+                        uploadedAt: matter.uploadedAt,
+                        storedAs: 'indexedDB'
+                    }));
+                    localStorage.removeItem('dp_wedding_matter_upload');
+                } catch (e) {}
+
+                weddingMatterData = matter;
                 weddingMatterUploaded = true;
 
-                try {
-                    localStorage.setItem('dp_wedding_matter_upload', JSON.stringify(weddingMatterData));
-                } catch (err) {
-                    weddingMatterUploaded = false;
-                    weddingMatterData = null;
-                    setMatterStatus('फाइल मोबाइल में सेव नहीं हो पाई। छोटी फोटो/PDF से दोबारा कोशिश करें।', false);
-                    return;
-                }
-
-                setMatterStatus('✅ मैटर सफलतापूर्वक Upload हो गया: <b>' + file.name.replace(/</g,'&lt;') + '</b>', true);
+                const safeName = String(file.name).replace(/[<>&"]/g, '');
+                setMatterStatus(
+                    '✅ मैटर सफलतापूर्वक Upload हो गया: <b>' + safeName + '</b><br>' +
+                    '<span style="font-weight:600;">फोटो छोटी हो या बड़ी, फाइल स्वीकार की गई है।</span>',
+                    true
+                );
 
                 const terms = document.getElementById('matterTermsBox');
                 if (terms) terms.style.display = 'block';
 
                 hideWeddingColumnsAfterMatterUpload();
-            };
-            reader.onerror = function() {
-                setMatterStatus('मैटर पढ़ा नहीं जा सका। कृपया दूसरी फोटो/PDF चुनें।', false);
-            };
-            reader.readAsDataURL(file);
+            } catch (err) {
+                console.error('Matter upload storage error:', err);
+
+                // If browser storage itself fails, don't silently claim success.
+                // Tell the user exactly what to do without imposing a size limit.
+                weddingMatterUploaded = false;
+                weddingMatterData = null;
+                setMatterStatus(
+                    'फाइल इस डिवाइस में सेव नहीं हो पाई। कृपया Chrome में Storage की अनुमति दें और दोबारा Upload करें।',
+                    false
+                );
+            }
         }
 
         function continueAfterMatterUpload() {
@@ -1834,16 +1880,25 @@
                 return;
             }
 
-            // Preserve the existing order pipeline and pass the uploaded matter
-            // through the same temporary order object used by the next page.
+            // Keep the existing order pipeline. Store only lightweight metadata
+            // in localStorage; the actual uploaded file remains in browser storage.
             try {
                 const temp = JSON.parse(localStorage.getItem('dp_temp_order') || '{}');
-                temp.wedding_matter_file = weddingMatterData;
+                temp.wedding_matter_file = {
+                    name: weddingMatterData.name,
+                    type: weddingMatterData.type,
+                    originalType: weddingMatterData.originalType || '',
+                    size: weddingMatterData.size,
+                    uploadedAt: weddingMatterData.uploadedAt,
+                    storedAs: weddingMatterData.storedAs || 'localStorage'
+                };
                 temp.wedding_matter_uploaded = true;
                 temp.matter_terms_accepted = true;
                 temp.matter_terms_accepted_at = new Date().toISOString();
                 localStorage.setItem('dp_temp_order', JSON.stringify(temp));
-            } catch (e) {}
+            } catch (e) {
+                console.warn('Temporary order metadata save warning:', e);
+            }
 
             window.location.href = 'address.html?matter_uploaded=1&terms=accepted';
         }
