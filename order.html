@@ -542,6 +542,63 @@
     .event-card-premium select,.event-card-premium input[type="date"]{min-height:46px}
 }
 
+
+/* ===== Wedding paper-form layout (UI only; existing IDs/integration preserved) ===== */
+.wedding-paper-head{
+    background:linear-gradient(180deg,#fffdf2,#fff8df);
+    border:1px solid #d7b56d;
+    border-radius:14px;
+    padding:18px 16px;
+    margin-bottom:16px;
+    box-shadow:0 6px 18px rgba(120,80,20,.10);
+}
+.wedding-paper-head .paper-title{
+    text-align:center;font-weight:900;color:#5b3515;font-size:22px;margin-bottom:14px;
+}
+.wedding-paper-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;
+}
+.wedding-paper-field{
+    background:#fff;border:1px solid #d8c7a2;border-radius:9px;padding:10px 12px;
+}
+.wedding-paper-field label{color:#5b3515;font-weight:800}
+.wedding-paper-field input{border:0;border-bottom:1.5px solid #6b5b43;border-radius:0;background:transparent;padding:7px 2px 5px;font-size:15px}
+.wedding-paper-field input:focus{box-shadow:none;border-color:#b7791f}
+.wedding-event-table-head{
+    display:grid;grid-template-columns:1.25fr 1fr .8fr 1.25fr 1.15fr;
+    gap:6px;background:#f6e7bd;border:1px solid #d6bc83;border-radius:9px 9px 0 0;
+    padding:9px;font-weight:900;color:#4b3216;font-size:12px;
+}
+.wedding-event-row{
+    display:grid;grid-template-columns:1.25fr 1fr .8fr 1.25fr 1.15fr;
+    gap:6px;align-items:end;background:#fffdf8;border:1px solid #e0cfaa;border-top:0;
+    padding:9px;
+}
+.wedding-event-row select,.wedding-event-row input{min-height:42px;font-size:13px}
+.wedding-event-actions{display:flex;justify-content:flex-end;margin-top:10px}
+.wedding-event-actions .btn-add-event{border-radius:22px}
+@media(max-width:700px){
+ .wedding-paper-grid{grid-template-columns:1fr}
+ .wedding-event-table-head{display:none}
+ .wedding-event-row{grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid #e0cfaa;border-radius:10px;margin-bottom:9px}
+ .wedding-event-row .event-title-wrap{grid-column:1/-1}
+}
+</style>
+
+
+<style id="event-calendar-style">
+.calendar-picker-wrap{position:relative;display:flex;align-items:center}
+.calendar-picker-wrap .calendar-icon{position:absolute;left:14px;color:#e63946;font-size:18px;z-index:2;pointer-events:none}
+.calendar-picker-wrap .event-date{width:100%;padding-left:42px;cursor:pointer}
+</style>
+
+
+<style id="matter-upload-style">
+#matterUploadSection .form-group{margin-bottom:12px}
+#matterUploadSection input[type=file]{font-size:14px}
+.matter-success{background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:12px;padding:12px;font-weight:800}
+.matter-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:12px;padding:12px;font-weight:800}
+.matter-hidden-wedding{display:none!important}
 </style>
 
 </head>
@@ -703,55 +760,49 @@
 
                     <div class="form-block">
                         <h4><span data-i18n="sec3_title">३. प्रोग्राम/कार्यक्रम</span></h4>
-                        <div id="eventsContainer">
-                            <div class="event-box-item event-card-premium">
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label data-i18n="lbl_event_title">कार्यक्रम / रस्म चुनें:</label>
-                                        <select class="event-title">
-                                            <option value="">-- कार्यक्रम चुनें --</option>
-                                            <option value="रस्म-ए-हल्दी">रस्म-ए-हल्दी</option><option value="मिलाद उन नबी">मिलाद उन नबी</option><option value="रवानगी बारात">रवानगी बारात</option><option value="वापसी बारात">वापसी बारात</option><option value="आमद-ए-बारात">आमद-ए-बारात</option><option value="दावत-ए-वलीमा">दावत-ए-वलीमा</option><option value="दावत-ए-खाना">दावत-ए-खाना</option><option value="निकाह मसनून">निकाह मसनून</option><option value="रुखसती बारात">रुखसती बारात</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label data-i18n="lbl_event_date">दिनांक चुनें:</label>
-                                        <input type="date" class="event-date" onchange="setEventDayFromDate(this)">
-                                    </div>
-                                </div>
-                                <div class="row-2">
-                                    <div class="form-group">
-                                        <label>दिन:</label>
-                                        <select class="event-day">
-                                            <option value="">-- दिन चुनें --</option>
-                                            <option value="रविवार">रविवार</option>
-                                            <option value="सोमवार">सोमवार</option>
-                                            <option value="मंगलवार">मंगलवार</option>
-                                            <option value="बुधवार">बुधवार</option>
-                                            <option value="गुरुवार">गुरुवार</option>
-                                            <option value="शुक्रवार">शुक्रवार</option>
-                                            <option value="शनिवार">शनिवार</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>समय का भाग:</label>
-                                        <select class="event-daypart">
-                                            <option value="">-- चुनें --</option>
-                                            <option value="सुबह">सुबह</option>
-                                            <option value="दोपहर">दोपहर</option>
-                                            <option value="शाम">शाम</option>
-                                            <option value="रात">रात</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="form-group time-picker-wrap">
-                                    <label>समय चुनें (1–12 घंटे / मिनट):</label>
-                                    
-<div class="time-select-grid">
-  <div><label>घंटा</label><select class="event-hour"><option value="">--</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
-  <div><label>मिनट</label><select class="event-minute"><option value="">--</option><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select></div>
-  
-  <div><label>दिन / रात</label><select class="event-ampm"><option value="">-- चुनें --</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
+                        <div class="wedding-event-table-head">
+    <span>रस्म / कार्यक्रम</span><span>तारीख</span><span>दिन</span><span>समय</span><span>स्थान</span>
 </div>
+<div id="eventsContainer">
+                            <div class="event-box-item event-card-premium wedding-event-row">
+                                <div class="form-group event-title-wrap">
+                                    <label data-i18n="lbl_event_title">कार्यक्रम / रस्म चुनें:</label>
+                                    <select class="event-title">
+                                        <option value="">-- कार्यक्रम चुनें --</option>
+                                        <option value="रस्म-ए-हल्दी">रस्म-ए-हल्दी</option>
+                                        <option value="मिलाद उन नबी">मिलाद उन नबी</option>
+                                        <option value="रवानगी बारात">रवानगी बारात</option>
+                                        <option value="वापसी बारात">वापसी बारात</option>
+                                        <option value="आमद-ए-बारात">आमद-ए-बारात</option>
+                                        <option value="दावत-ए-वलीमा">दावत-ए-वलीमा</option>
+                                        <option value="दावत-ए-खाना">दावत-ए-खाना</option>
+                                        <option value="निकाह मसनून">निकाह मसनून</option>
+                                        <option value="रुखसती बारात">रुखसती बारात</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="lbl_event_date">दिनांक चुनें:</label>
+                                    <select class="event-date" onchange="setEventDayFromDate(this)">
+                                        <option value="">-- तारीख चुनें --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>दिन:</label>
+                                    <select class="event-day">
+                                        <option value="">-- दिन चुनें --</option>
+                                        <option value="रविवार">रविवार</option><option value="सोमवार">सोमवार</option>
+                                        <option value="मंगलवार">मंगलवार</option><option value="बुधवार">बुधवार</option>
+                                        <option value="गुरुवार">गुरुवार</option><option value="शुक्रवार">शुक्रवार</option>
+                                        <option value="शनिवार">शनिवार</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>समय:</label>
+                                    <div class="time-select-grid">
+                                        <div><label>घंटा</label><select class="event-hour"><option value="">--</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
+                                        <div><label>मिनट</label><select class="event-minute"><option value="">--</option><option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select></div>
+                                        <div><label>दिन / रात</label><select class="event-ampm"><option value="">--</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
+                                    </div>
                                 </div>
                                 <input type="hidden" class="event-time" value="">
                             </div>
@@ -777,6 +828,47 @@
                                 <input type="text" id="rsvpContact" class="transliterate-input" placeholder="मोबाइल नंबर / संपर्क व्यक्ति">
                             </div>
                         </div>
+                    </div>
+                </div>
+
+
+                <!-- Wedding Matter Upload: handwritten/uploaded matter flow -->
+                <div id="matterUploadSection" class="form-block" style="border-left-color:#0ea5e9; margin-top:16px;">
+                    <h4>
+                        <i class="fa-solid fa-file-arrow-up" style="color:#0ea5e9;"></i>
+                        मैटर / Matter Upload करें
+                    </h4>
+                    <div style="background:#eff6ff;border:1px dashed #60a5fa;border-radius:12px;padding:14px;margin-bottom:12px;">
+                        <div style="font-weight:800;color:#075985;font-size:16px;margin-bottom:6px;">
+                            ✍️ अगर Typing में दिक्कत है तो मैटर कागज पर कलम से लिखकर Upload करें।
+                        </div>
+                        <div style="color:#475569;font-size:13px;line-height:1.6;">
+                            साफ फोटो या PDF अपलोड करें। Upload होने के बाद शादी कार्ड के बाकी Wedding Columns छिप जाएंगे और Order के अगले चरण पर Terms & Conditions के साथ भेजा जाएगा।
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weddingMatterFile" style="font-weight:800;">मैटर की फोटो / PDF चुनें:</label>
+                        <input id="weddingMatterFile" type="file" accept="image/*,.pdf,.doc,.docx"
+                               style="width:100%;padding:14px;border:2px dashed #93c5fd;border-radius:12px;background:#f8fafc;">
+                    </div>
+
+                    <div id="matterUploadStatus" style="display:none;margin-top:10px;"></div>
+
+                    <div id="matterTermsBox" style="display:none;margin-top:14px;padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;">
+                        <div style="font-weight:900;color:#9a3412;margin-bottom:8px;">ऑर्डर के लिए Terms & Conditions</div>
+                        <div style="font-size:13px;color:#475569;line-height:1.65;margin-bottom:10px;">
+                            1. ग्राहक द्वारा Upload किया गया मैटर ही प्रिंटिंग के लिए उपयोग किया जाएगा।<br>
+                            2. कलम से लिखे मैटर में नाम, मोबाइल नंबर और अन्य जानकारी साफ दिखाई देनी चाहिए।<br>
+                            3. Upload करने के बाद Wedding Form के बाकी कॉलम छिपाकर Order अगले चरण में जाएगा।
+                        </div>
+                        <label style="display:flex;gap:9px;align-items:flex-start;font-weight:700;color:#334155;">
+                            <input type="checkbox" id="matterTermsAgree" style="margin-top:4px;">
+                            <span>मैंने मैटर और Terms & Conditions पढ़कर सहमति दी है।</span>
+                        </label>
+                        <button type="button" class="btn-add-event" onclick="continueAfterMatterUpload()" style="margin-top:12px;background:linear-gradient(135deg,#0ea5e9,#2563eb);width:100%;">
+                            <i class="fa-solid fa-arrow-right"></i> Order के अगले चरण पर जाएँ
+                        </button>
                     </div>
                 </div>
 
@@ -1245,6 +1337,8 @@
 
             await fetchAndFillCatalogDropdown();
 
+            document.querySelectorAll('#eventsContainer .event-date').forEach(fillEventDateSelect);
+
             let targetCard = null;
             const storedSelected = localStorage.getItem('order_selected_card');
             if (storedSelected) {
@@ -1429,15 +1523,37 @@
             }
         }
 
+        function fillEventDateSelect(selectEl) {
+            if (!selectEl) return;
+            const current = selectEl.value || '';
+            const today = new Date();
+            const startYear = today.getFullYear();
+            const endYear = startYear + 3;
+            const hindiMonths = ['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+            selectEl.innerHTML = '<option value="">-- तारीख चुनें --</option>';
+            for (let y = startYear; y <= endYear; y++) {
+                for (let m = 0; m < 12; m++) {
+                    const days = new Date(y, m + 1, 0).getDate();
+                    for (let d = 1; d <= days; d++) {
+                        const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const label = `${String(d).padStart(2,'0')} ${hindiMonths[m]} ${y}`;
+                        const opt = document.createElement('option');
+                        opt.value = iso;
+                        opt.textContent = label;
+                        selectEl.appendChild(opt);
+                    }
+                }
+            }
+            if (current) selectEl.value = current;
+        }
+
         function setEventDayFromDate(dateInput) {
             if (!dateInput || !dateInput.value) return;
             const box = dateInput.closest('.event-box-item');
             const daySelect = box ? box.querySelector('.event-day') : null;
             if (!daySelect) return;
-
-            // Parse as local date so the weekday does not shift because of timezone.
             const parts = dateInput.value.split('-').map(Number);
-            if (parts.length !== 3) return;
+            if (parts.length !== 3 || parts.some(Number.isNaN)) return;
             const dt = new Date(parts[0], parts[1] - 1, parts[2]);
             const hindiDays = ['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
             daySelect.value = hindiDays[dt.getDay()];
@@ -1445,60 +1561,50 @@
 
         function addEventRow() {
             const div = document.createElement('div');
-            div.className = 'event-box-item event-card-premium';
+            div.className = 'event-box-item event-card-premium wedding-event-row';
             div.innerHTML = `
                 <button type="button" class="btn-remove-event" onclick="this.parentElement.remove()">हटाएं</button>
-                <div class="row-2">
-                    <div class="form-group">
-                        <label>${translations[currentLang].lbl_event_title}</label>
-                        <select class="event-title">
-                            <option value="">-- कार्यक्रम चुनें --</option>
-                            <option value="रस्म-ए-हल्दी">रस्म-ए-हल्दी</option><option value="मिलाद उन नबी">मिलाद उन नबी</option><option value="रवानगी बारात">रवानगी बारात</option><option value="वापसी बारात">वापसी बारात</option><option value="आमद-ए-बारात">आमद-ए-बारात</option><option value="दावत-ए-वलीमा">दावत-ए-वलीमा</option><option value="दावत-ए-खाना">दावत-ए-खाना</option><option value="निकाह मसनून">निकाह मसनून</option><option value="रुखसती बारात">रुखसती बारात</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>${translations[currentLang].lbl_event_date}</label>
-                        <input type="date" class="event-date" onchange="setEventDayFromDate(this)">
-                    </div>
+                <div class="form-group event-title-wrap">
+                    <label>${translations[currentLang].lbl_event_title}</label>
+                    <select class="event-title">
+                        <option value="">-- कार्यक्रम चुनें --</option>
+                        <option value="रस्म-ए-हल्दी">रस्म-ए-हल्दी</option>
+                        <option value="मिलाद उन नबी">मिलाद उन नबी</option>
+                        <option value="रवानगी बारात">रवानगी बारात</option>
+                        <option value="वापसी बारात">वापसी बारात</option>
+                        <option value="आमद-ए-बारात">आमद-ए-बारात</option>
+                        <option value="दावत-ए-वलीमा">दावत-ए-वलीमा</option>
+                        <option value="दावत-ए-खाना">दावत-ए-खाना</option>
+                        <option value="निकाह मसनून">निकाह मसनून</option>
+                        <option value="रुखसती बारात">रुखसती बारात</option>
+                    </select>
                 </div>
-                <div class="row-2">
-                    <div class="form-group">
-                        <label>दिन:</label>
-                        <select class="event-day">
-                            <option value="">-- दिन चुनें --</option>
-                            <option value="रविवार">रविवार</option>
-                            <option value="सोमवार">सोमवार</option>
-                            <option value="मंगलवार">मंगलवार</option>
-                            <option value="बुधवार">बुधवार</option>
-                            <option value="गुरुवार">गुरुवार</option>
-                            <option value="शुक्रवार">शुक्रवार</option>
-                            <option value="शनिवार">शनिवार</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>समय का भाग:</label>
-                        <select class="event-daypart">
-                            <option value="">-- चुनें --</option>
-                            <option value="सुबह">सुबह</option>
-                            <option value="दोपहर">दोपहर</option>
-                            <option value="शाम">शाम</option>
-                            <option value="रात">रात</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label>${translations[currentLang].lbl_event_date}</label>
+                    <select class="event-date" onchange="setEventDayFromDate(this)"><option value="">-- तारीख चुनें --</option></select>
                 </div>
-                <div class="form-group time-picker-wrap">
-                    <label>समय चुनें (1–12 घंटे / मिनट):</label>
-                    
-<div class="time-select-grid">
-  <div><label>घंटा</label><select class="event-hour"><option value="">--</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
-  <div><label>मिनट</label><select class="event-minute"><option value="">--</option><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select></div>
-  
-  <div><label>दिन / रात</label><select class="event-ampm"><option value="">-- चुनें --</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
-</div>
+                <div class="form-group">
+                    <label>दिन:</label>
+                    <select class="event-day">
+                        <option value="">-- दिन चुनें --</option>
+                        <option value="रविवार">रविवार</option><option value="सोमवार">सोमवार</option>
+                        <option value="मंगलवार">मंगलवार</option><option value="बुधवार">बुधवार</option>
+                        <option value="गुरुवार">गुरुवार</option><option value="शुक्रवार">शुक्रवार</option>
+                        <option value="शनिवार">शनिवार</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>समय:</label>
+                    <div class="time-select-grid">
+                      <div><label>घंटा</label><select class="event-hour"><option value="">--</option>${Array.from({length:12},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('')}</select></div>
+                      <div><label>मिनट</label><select class="event-minute"><option value="">--</option>${Array.from({length:60},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select></div>
+                      <div><label>दिन/रात</label><select class="event-ampm"><option value="">--</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
+                    </div>
                 </div>
                 <input type="hidden" class="event-time" value="">
             `;
             document.getElementById('eventsContainer').appendChild(div);
+            fillEventDateSelect(div.querySelector('.event-date'));
         }
 
         function syncEventTime(box) {
@@ -1651,7 +1757,115 @@
             await convertWordBeforeSpace(el, previousValue, cursor - 1);
         }, true);
 
+
+        // ===== Handwritten Matter Upload Flow =====
+        let weddingMatterUploaded = false;
+        let weddingMatterData = null;
+
+        function setMatterStatus(message, ok) {
+            const box = document.getElementById('matterUploadStatus');
+            if (!box) return;
+            box.className = ok ? 'matter-success' : 'matter-error';
+            box.style.display = 'block';
+            box.innerHTML = message;
+        }
+
+        function hideWeddingColumnsAfterMatterUpload() {
+            const wedding = document.getElementById('sectionWeddingCard');
+            if (wedding) wedding.classList.add('matter-hidden-wedding');
+
+            // Keep customer details, upload confirmation and checkout available.
+            const upload = document.getElementById('matterUploadSection');
+            if (upload) upload.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+        async function handleWeddingMatterUpload(file) {
+            if (!file) return;
+
+            const maxBytes = 4 * 1024 * 1024;
+            if (file.size > maxBytes) {
+                setMatterStatus('फाइल 4 MB से कम रखें। कृपया फोटो compress करके दोबारा Upload करें।', false);
+                document.getElementById('weddingMatterFile').value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                weddingMatterData = {
+                    name: file.name,
+                    type: file.type || 'application/octet-stream',
+                    size: file.size,
+                    dataUrl: e.target.result,
+                    uploadedAt: new Date().toISOString()
+                };
+                weddingMatterUploaded = true;
+
+                try {
+                    localStorage.setItem('dp_wedding_matter_upload', JSON.stringify(weddingMatterData));
+                } catch (err) {
+                    weddingMatterUploaded = false;
+                    weddingMatterData = null;
+                    setMatterStatus('फाइल मोबाइल में सेव नहीं हो पाई। छोटी फोटो/PDF से दोबारा कोशिश करें।', false);
+                    return;
+                }
+
+                setMatterStatus('✅ मैटर सफलतापूर्वक Upload हो गया: <b>' + file.name.replace(/</g,'&lt;') + '</b>', true);
+
+                const terms = document.getElementById('matterTermsBox');
+                if (terms) terms.style.display = 'block';
+
+                hideWeddingColumnsAfterMatterUpload();
+            };
+            reader.onerror = function() {
+                setMatterStatus('मैटर पढ़ा नहीं जा सका। कृपया दूसरी फोटो/PDF चुनें।', false);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function continueAfterMatterUpload() {
+            if (!weddingMatterUploaded || !weddingMatterData) {
+                alert('पहले मैटर Upload करें।');
+                return;
+            }
+
+            const agree = document.getElementById('matterTermsAgree');
+            if (!agree || !agree.checked) {
+                alert('Order के अगले चरण पर जाने के लिए Terms & Conditions स्वीकार करें।');
+                return;
+            }
+
+            // Preserve the existing order pipeline and pass the uploaded matter
+            // through the same temporary order object used by the next page.
+            try {
+                const temp = JSON.parse(localStorage.getItem('dp_temp_order') || '{}');
+                temp.wedding_matter_file = weddingMatterData;
+                temp.wedding_matter_uploaded = true;
+                temp.matter_terms_accepted = true;
+                temp.matter_terms_accepted_at = new Date().toISOString();
+                localStorage.setItem('dp_temp_order', JSON.stringify(temp));
+            } catch (e) {}
+
+            window.location.href = 'address.html?matter_uploaded=1&terms=accepted';
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'weddingMatterFile') {
+                handleWeddingMatterUpload(e.target.files && e.target.files[0]);
+            }
+        });
+
         function continueToPayment() {
+            if (currentActiveCategory === 'wedding' && weddingMatterUploaded) {
+                const agree = document.getElementById('matterTermsAgree');
+                if (!agree || !agree.checked) {
+                    alert('मैटर Upload हो चुका है। Order के अगले चरण पर जाने के लिए Terms & Conditions स्वीकार करें।');
+                    const box = document.getElementById('matterTermsBox');
+                    if (box) box.scrollIntoView({behavior:'smooth', block:'center'});
+                    return;
+                }
+                continueAfterMatterUpload();
+                return;
+            }
             const form = document.getElementById('masterOrderForm');
             if (!form) return;
             if (typeof form.reportValidity === 'function' && !form.reportValidity()) return;
@@ -1754,6 +1968,11 @@
                 orderNotes = `शॉप: ${document.getElementById('visitingShopName').value}\nनाम: ${document.getElementById('visitingPersonName').value}\nसर्विसेज: ${document.getElementById('visitingServices').value}\nपता: ${document.getElementById('visitingPrintAddress').value}\nईमेल/वेब: ${document.getElementById('visitingEmailWeb').value}`;
             }
 
+            let uploadedMatter = null;
+            try {
+                uploadedMatter = JSON.parse(localStorage.getItem('dp_wedding_matter_upload') || 'null');
+            } catch (e) {}
+
             const fullPayload = {
                 id: Date.now(),
                 mobile: mobile,
@@ -1775,6 +1994,8 @@
                 bride_father: mainBrideF,
                 bride_address: mainBrideA,
                 custom_notes: orderNotes,
+                wedding_matter_file: uploadedMatter,
+                wedding_matter_uploaded: !!uploadedMatter,
                 status: 'Pending',
                 created_at: new Date().toISOString()
             };
