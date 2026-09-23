@@ -1377,7 +1377,7 @@
                 if(video){
                     if(!video.type.startsWith('video/')) throw new Error('केवल वीडियो फाइल चुनें।');
                     const duration=await getVideoDuration(video);
-                    if(duration<2.5 || duration>4.5) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया लगभग 15–20 सेकंड का वीडियो चुनें।`);
+                    if(duration>60) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया 1 मिनट (60 सेकंड) के अंदर का वीडियो चुनें।`);
                 }
                 const imageUrls=[]; for(const f of photos.slice(0,10)) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
                 let videoUrl=''; if(video) videoUrl=await uploadCatalogAdminFile(video,'catalog');
