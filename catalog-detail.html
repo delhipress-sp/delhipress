@@ -144,6 +144,11 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
       <div class="details">
         <h1 class="title" id="title">शादी कार्ड</h1>
         <div class="model" id="model"></div>
+        <div class="rating-line" aria-label="कैटलॉग रेटिंग">
+          <span class="stars" id="topStars">☆☆☆☆☆</span>
+          <span class="rating-pill" id="ratingPill">0.0</span>
+          <span class="reviews-count" id="reviewCount">0 Ratings &amp; Reviews</span>
+        </div>
         <div id="variantSection" class="variant-section" style="display:none;padding:10px;margin:0 0 12px;box-shadow:none;border:1px solid #e6eaf0;">
           <div class="variant-head"><i class="fa-solid fa-palette" style="color:#2874f0"></i> रंग / Color</div>
           <div id="variantList" class="variant-list"></div>
@@ -167,6 +172,27 @@ body{background:#f1f3f6;color:#172b4d;line-height:1.45;padding-bottom:88px;overf
           <li>स्क्रीन पर दिखने वाले रंग और वास्तविक प्रिंट के रंग में थोड़ा अंतर संभव है।</li>
           <li>डिलीवरी का समय ऑर्डर की मात्रा, डिजाइन की स्वीकृति और अन्य कार्यभार के अनुसार प्रभावित हो सकता है।</li>
         </ol>
+      </div>
+    </section>
+
+    <section class="rating-match-section" id="ratingMatchSection">
+      <div class="rating-match-head">
+        <h2>रेटिंग और रिव्यू</h2>
+        <span id="ratingSectionCount" style="color:#2874f0;font-weight:800;font-size:13px">0 Reviews</span>
+      </div>
+      <div class="rating-summary">
+        <div class="rating-score">
+          <strong id="bigRating">0.0</strong>
+          <div class="rating-stars-big" id="bigStars">☆☆☆☆☆</div>
+          <div class="rating-total" id="bigReviewCount">0 Reviews</div>
+        </div>
+        <div class="rating-bars">
+          <div class="rating-bar-row"><span>5★</span><span class="rating-bar-track"><i id="b5" class="rating-bar-fill" style="width:0%"></i></span><span id="c5">0</span></div>
+          <div class="rating-bar-row"><span>4★</span><span class="rating-bar-track"><i id="b4" class="rating-bar-fill" style="width:0%"></i></span><span id="c4">0</span></div>
+          <div class="rating-bar-row"><span>3★</span><span class="rating-bar-track"><i id="b3" class="rating-bar-fill" style="width:0%"></i></span><span id="c3">0</span></div>
+          <div class="rating-bar-row"><span>2★</span><span class="rating-bar-track"><i id="b2" class="rating-bar-fill" style="width:0%"></i></span><span id="c2">0</span></div>
+          <div class="rating-bar-row"><span>1★</span><span class="rating-bar-track"><i id="b1" class="rating-bar-fill" style="width:0%"></i></span><span id="c1">0</span></div>
+        </div>
       </div>
     </section>
 
@@ -316,107 +342,111 @@ async function selectCatalogVariant(index){
 
 async function loadFeedback(){
   feedbackRows=[];
+  if(!product){renderRatings();return;}
+
   const aliases=getProductAliases(product);
   let rows=[];
 
-  // 1) Directly read catalog_feedback from Supabase. This is the same source used by Admin and Index.
-  // Do not depend only on a previously cached rating array.
+  // Supabase is the authoritative source for ratings.
   if(sb){
     try{
       const {data,error}=await Promise.race([
         sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('feedback timeout')),8000))
       ]);
-      if(!error && Array.isArray(data)) rows.push(...data);
+      if(!error&&Array.isArray(data)) rows=data.slice();
     }catch(e){}
   }
 
-  // 2) Local copy, if any.
+  // Local fallback/cache.
   try{
     const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-    if(local&&typeof local==='object')Object.keys(local).forEach(k=>rows.push({...local[k],catalog_id:k,_source:'local'}));
+    if(local&&typeof local==='object'){
+      Object.keys(local).forEach(k=>rows.push({...local[k],catalog_id:k,_source:'local'}));
+    }
   }catch(e){}
 
-  // 3) If Admin opened this exact review, keep that review authoritative first.
+  // Admin opened an exact review: keep it available.
   if(activeReviewId){
-    const exactId=rows.find(r=>String(r?.id??'').trim()===String(activeReviewId).trim());
-    if(exactId) rows=[exactId,...rows.filter(r=>String(r?.id??'').trim()!==String(activeReviewId).trim())];
+    const exact=rows.find(r=>String(r?.id??'').trim()===String(activeReviewId).trim());
+    if(exact) rows=[exact,...rows.filter(r=>String(r?.id??'').trim()!==String(activeReviewId).trim())];
   }
 
-  // 4) Direct catalog ID is authoritative, exactly like Index.
-  let directRows=rows.filter(r=>[
-    r?.catalog_id,r?.card_id,r?.product_id,
-    ...(Array.isArray(r?._resolved_catalog_ids)?r._resolved_catalog_ids:[])
+  // IMPORTANT: a real catalog_id is authoritative. Do not remap a direct
+  // catalog review to another card merely because model/title also matches.
+  const directRows=rows.filter(r=>[
+    r?.catalog_id,r?.card_id,r?.product_id
   ].map(cleanKey).some(x=>aliases.has(x)));
 
   if(directRows.length){
     rows=directRows;
-  }else if(sb&&product){
-    // 5) Resolve a catalog record with the same model/title and use its exact ID(s).
-    try{
-      const pm=productModel(product), pt=productTitle(product);
-      const candidates=[];
-      for(const tbl of ['catalog','cards','cards_catalog']){
+  }else{
+    // Legacy rows may contain only model/code text. Resolve them through
+    // the exact order that created the review, then match that order to
+    // the currently-open catalog by title + model.
+    const orderIds=[...new Set(rows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
+    const orderMap={};
+
+    if(sb && orderIds.length){
+      const nums=orderIds.map(Number).filter(Number.isFinite);
+      for(let i=0;i<nums.length;i+=100){
+        const chunk=nums.slice(i,i+100);
         try{
-          const {data,error}=await sb.from(tbl).select('*').limit(1000);
-          if(!error&&Array.isArray(data))candidates.push(...data);
+          const {data,error}=await sb.from('orders')
+            .select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id')
+            .in('id',chunk);
+          if(!error&&Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
         }catch(e){}
       }
-      const canonicalIds=new Set(aliases);
-      for(const c of candidates){
-        const cm=productModel(c), ct=productTitle(c);
-        const modelOK=!pm||!cm||sameModelKey(pm,cm);
-        const titleOK=!pt||!ct||pt===ct||pt.includes(ct)||ct.includes(pt)||titleScore(pt,ct)>=0.60;
-        if(modelOK&&titleOK){
-          const cid=cleanKey(c?.id??c?.catalog_id??c?.card_id??c?.product_id??'');
-          if(cid)canonicalIds.add(cid);
-        }
+    }
+
+    const pm=productModel(product), pt=productTitle(product);
+    const resolved=[];
+    rows.forEach(r=>{
+      const oid=String(r?.order_db_id??r?.order_id??'').trim();
+      const o=orderMap[oid];
+
+      // If the row has a direct catalog ID but it does not match this product,
+      // never pull it in through a model/title fallback.
+      const hasRealDirect=Boolean(
+        cleanKey(r?.catalog_id) || cleanKey(r?.card_id) || cleanKey(r?.product_id)
+      );
+      if(hasRealDirect) return;
+
+      if(o){
+        const oc=cleanKey(o?.catalog_id??o?.card_id??o?.product_id??'');
+        if(oc && aliases.has(oc)){resolved.push(r);return;}
+
+        const om=productModel(o);
+        const ot=productTitle(o);
+        const modelOK=!pm||!om||sameModelKey(pm,om);
+        const titleOK=!!ot && !!pt && (
+          ot===pt || ot.includes(pt) || pt.includes(ot) || titleScore(ot,pt)>=0.60
+        );
+        if(modelOK&&titleOK) resolved.push(r);
       }
-      const canonicalRows=rows.filter(r=>[
-        r?.catalog_id,r?.card_id,r?.product_id
-      ].map(cleanKey).some(x=>canonicalIds.has(x)));
-      if(canonicalRows.length) rows=canonicalRows;
-    }catch(e){}
+    });
+
+    if(resolved.length) rows=resolved;
+    else rows=[];
   }
 
-  // 6) Order-linked legacy rows: only use exact matching orders when direct catalog IDs are absent.
-  if(!rows.length&&sb&&product){
-    try{
-      const pm=productModel(product), pt=productTitle(product);
-      const {data:orders,error}=await sb.from('orders').select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id').limit(2000);
-      if(!error&&Array.isArray(orders)){
-        const matching=new Set();
-        orders.forEach(o=>{
-          const oc=cleanKey(o?.catalog_id??o?.card_id??o?.product_id??'');
-          if(oc&&aliases.has(oc)){matching.add(String(o.id));return;}
-          const om=productModel(o), ot=productTitle(o);
-          if(pm&&om&&sameModelKey(pm,om)&&pt&&ot&&(pt===ot||pt.includes(ot)||ot.includes(pt)||titleScore(pt,ot)>=0.60)) matching.add(String(o.id));
-        });
-        rows=rows.filter(r=>matching.has(String(r?.order_db_id??r?.order_id??'')));
-      }
-    }catch(e){}
-  }
-
-  // 7) Last legacy fallback from the already-resolved rows.
-  if(!rows.length){
-    try{await loadAllRatingRows();rows=allRatingRows.filter(r=>ratingBelongsToProductForCard(r,aliases,product));}catch(e){}
-  }
-
-  // Exact duplicate copies only; two different reviews remain separate.
+  // Exact duplicate copies only; legitimate separate reviews remain separate.
   const dedup=new Map();
   for(const r of rows){
     const rid=String(r?.id??'').trim();
     const sig=rid?'id:'+rid:[
       String(r?.order_db_id??r?.order_id??'').trim(),
-      cleanKey(r?.catalog_id??''),
+      cleanKey(r?.catalog_id??r?.card_id??r?.product_id??''),
       cleanKey(r?.name??r?.user_name??r?.customer_name??''),
       String(r?.rating??r?.stars??''),
       cleanKey(r?.feedback??r?.comment??r?.review??r?.review_text??r?.text??''),
       reviewImageList(r).join(','),
       String(r?.created_at??'')
     ].join('|');
-    if(!dedup.has(sig))dedup.set(sig,r);
+    if(!dedup.has(sig)) dedup.set(sig,r);
   }
+
   feedbackRows=[...dedup.values()];
   renderRatings();
 }
@@ -849,8 +879,7 @@ async function loadMoreUpdatedCards(){
   // Do not show the currently-open product in More Products.
   const currentKeys=new Set([
     cur,
-    String(product?.catalog_id??product?.card_id??'').trim(),
-    String(product?.model??product?.code??'').trim()
+    String(product?.catalog_id??product?.card_id??'').trim()
   ].filter(Boolean).map(x=>x.toLowerCase()));
 
   rows=rows.filter(x=>{
@@ -888,6 +917,17 @@ async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(co
 async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
 (async function(){
   updateCart();
+  // Index के cached catalog को तुरंत दिखाएँ; Supabase slow होने पर भी More Products खाली/घूमता नहीं रहेगा।
+  try{
+    const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+    const cached=JSON.parse(raw);
+    if(Array.isArray(cached)&&cached.length){
+      const cur=String(id||'');
+      const immediate=cached.filter(x=>String(x?.id??x?.catalog_id??'')!==cur).slice(0,20);
+      window._updatedRows=immediate;
+      renderSmallCards(immediate,'recommendedCatalog','अभी कोई अन्य कैटलॉग कार्ड उपलब्ध नहीं है।');
+    }
+  }catch(e){}
   // Start More Products immediately from the Index cache; it must not depend on the main product query.
   loadAllRatingRows().then(()=>{loadMoreUpdatedCards().catch(()=>{});}).catch(()=>{});
   loadMoreUpdatedCards().catch(()=>{});
