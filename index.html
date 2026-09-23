@@ -907,136 +907,85 @@
             const container = document.getElementById('catalogContainer');
             if (!container) return;
 
-            // FAST START: live sources are requested in parallel. The first usable
-            // catalog source is rendered immediately; remaining sources are merged
-            // in the background so the whole interface does not wait 3-4 seconds.
-            const tables = ['catalog', 'cards', 'cards_catalog'];
-            const timeoutMs = 5000;
-            const sourceResults = new Map();
-            let renderedOnce = false;
-
-            const readTable = async (tbl) => {
-                try {
-                    const result = await Promise.race([
-                        supabaseClient?.from(tbl).select('*'),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
-                    ]);
-                    if (result && !result.error && Array.isArray(result.data)) {
-                        const rows = result.data.map(row => ({...row, _source_table: tbl}));
-                        sourceResults.set(tbl, rows);
-                        return rows;
-                    }
-                } catch(e) {}
-                sourceResults.set(tbl, []);
-                return [];
-            };
+            // ADMIN SOURCE OF TRUTH:
+            // Admin inserts/deletes catalog cards in the `catalog` table. Do not merge
+            // legacy `cards` / `cards_catalog` rows here, otherwise a card deleted from
+            // Admin can reappear from an old table/cache.
+            const timeoutMs = 6500;
+            let liveRows = [];
+            let liveSuccess = false;
 
             if (supabaseClient) {
-                // Start all requests at the same time.
-                const requests = tables.map(readTable);
-
-                // Render as soon as ANY source returns useful catalog rows.
                 try {
-                    const firstRows = await Promise.race(
-                        requests.map(p => p.then(rows => rows.length ? rows : null))
-                    );
-                    if (Array.isArray(firstRows) && firstRows.length) {
-                        const initial = mergeCatalogRows(
-                            tables.flatMap(t => sourceResults.get(t) || [])
-                        );
-                        if (initial.length) {
-                            globalCards = initial;
-                            syncIndexCatalogCache(initial);
-                            try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(initial)); } catch(e) {}
-                            try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
-                            try { renderCatalogCards(globalCards); } catch(e) {}
-                            renderedOnce = true;
+                    const result = await Promise.race([
+                        supabaseClient.from('catalog').select('*').order('id', {ascending:false}),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('catalog timeout')), timeoutMs))
+                    ]);
+                    if (result && !result.error && Array.isArray(result.data)) {
+                        liveRows = result.data.map(row => ({...row, _source_table:'catalog'}));
+                        liveSuccess = true;
+                    }
+                } catch(e) {}
+            }
+
+            // REST fallback only when the primary catalog query failed/timed out.
+            if (!liveSuccess && SUPABASE_URL && SUPABASE_ANON_KEY) {
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), timeoutMs);
+                    const url = `${SUPABASE_URL}/rest/v1/catalog?select=*&order=id.desc`;
+                    const res = await fetch(url, {
+                        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Accept':'application/json'},
+                        cache:'no-store', credentials:'omit', signal:controller.signal
+                    });
+                    clearTimeout(timer);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            liveRows = data.map(row => ({...row, _source_table:'catalog'}));
+                            liveSuccess = true;
                         }
                     }
                 } catch(e) {}
-
-                // Wait for all parallel requests, then merge the complete catalog once.
-                let completeRows = [];
-                try { completeRows = (await Promise.all(requests)).flat(); } catch(e) {}
-
-                // If one/all SDK reads failed, use REST in parallel only for missing sources.
-                if (!completeRows.length) {
-                    const restResults = await Promise.all(tables.map(async tbl => {
-                        try {
-                            const controller = new AbortController();
-                            const timer = setTimeout(() => controller.abort(), timeoutMs);
-                            const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
-                            const res = await fetch(url, {
-                                method:'GET',
-                                headers:{
-                                    'apikey': SUPABASE_ANON_KEY,
-                                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                                    'Accept':'application/json'
-                                },
-                                signal:controller.signal,
-                                cache:'no-store',
-                                credentials:'omit'
-                            });
-                            clearTimeout(timer);
-                            if (!res.ok) return [];
-                            const data = await res.json();
-                            return Array.isArray(data) ? data.map(row => ({...row, _source_table:tbl})) : [];
-                        } catch(e) { return []; }
-                    }));
-                    completeRows = restResults.flat();
-                }
-
-                if (completeRows.length) {
-                    const complete = mergeCatalogRows(completeRows);
-                    if (complete.length) {
-                        globalCards = complete;
-                        syncIndexCatalogCache(complete);
-                        try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(complete)); } catch(e) {}
-                        // Only update the DOM when the complete list is different/available;
-                        // never blank the existing catalog during the background merge.
-                        try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
-                        try { renderCatalogCards(globalCards); } catch(e) {}
-                        renderedOnce = true;
-
-                        // Ratings load independently after catalog data is already visible.
-                        loadCatalogRatings()
-                            .then(() => {
-                                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
-                                try { renderCatalogCards(globalCards); } catch(e) {}
-                            })
-                            .catch(() => {});
-                        return;
-                    }
-                }
             }
 
-            // Only use cache if live sources produced nothing. This fallback never
-            // replaces a catalog that has already been rendered.
-            if (!renderedOnce) {
-                let cachedCards = null;
-                for (const storageName of ['localStorage','sessionStorage']) {
-                    try {
-                        const storage = window[storageName];
-                        for (const key of ['dp_index_catalog','dp_index_catalog_cache_v3','dp_index_catalog_cache_v2']) {
-                            const raw = storage.getItem(key);
-                            if (!raw) continue;
-                            const parsed = JSON.parse(raw);
-                            if (Array.isArray(parsed) && parsed.length) { cachedCards = parsed; break; }
-                        }
-                    } catch(e) {}
-                    if (cachedCards) break;
-                }
-                if (cachedCards) {
-                    globalCards = cachedCards;
+            if (liveSuccess) {
+                // A successful empty catalog is valid: it means Admin currently has no cards.
+                globalCards = mergeCatalogRows(liveRows);
+                syncIndexCatalogCache(globalCards);
+                try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(globalCards)); } catch(e) {}
+                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                try { renderCatalogCards(globalCards); } catch(e) {}
+
+                // Rating is background-only and never controls catalog visibility.
+                loadCatalogRatings().then(() => {
                     try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
                     try { renderCatalogCards(globalCards); } catch(e) {}
-                    loadCatalogRatings().then(() => {
-                        try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
-                        try { renderCatalogCards(globalCards); } catch(e) {}
-                    }).catch(() => {});
-                } else if (container) {
-                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
+                }).catch(()=>{});
+                return;
+            }
+
+            // Only if the live Admin catalog could not be reached do we use cache.
+            // Cache is a temporary offline fallback, never the primary source.
+            let cachedCards = null;
+            try {
+                const raw = localStorage.getItem('dp_index_catalog') || sessionStorage.getItem('dp_index_catalog_cache_v3');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length) cachedCards = parsed;
                 }
+            } catch(e) {}
+
+            if (cachedCards) {
+                globalCards = mergeCatalogRows(cachedCards);
+                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                try { renderCatalogCards(globalCards); } catch(e) {}
+                loadCatalogRatings().then(() => {
+                    try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                    try { renderCatalogCards(globalCards); } catch(e) {}
+                }).catch(()=>{});
+            } else {
+                container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">कैटलॉग अभी उपलब्ध नहीं है।</p>';
             }
         }
 
