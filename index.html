@@ -907,124 +907,163 @@
             const container = document.getElementById('catalogContainer');
             if (!container) return;
 
-            // IMPORTANT: live Supabase catalog is the primary source.
-            // Old local/session cache is used ONLY if live loading completely fails.
-            let liveRows = [];
+            // FAST START: live sources are requested in parallel. The first usable
+            // catalog source is rendered immediately; remaining sources are merged
+            // in the background so the whole interface does not wait 3-4 seconds.
             const tables = ['catalog', 'cards', 'cards_catalog'];
+            const timeoutMs = 5000;
+            const sourceResults = new Map();
+            let renderedOnce = false;
 
-            // Read all three catalog sources. Do NOT stop after the first table,
-            // because in this project the Admin/catalog data can be split between tables.
-            for (const tbl of tables) {
+            const readTable = async (tbl) => {
                 try {
                     const result = await Promise.race([
                         supabaseClient?.from(tbl).select('*'),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
                     ]);
                     if (result && !result.error && Array.isArray(result.data)) {
-                        result.data.forEach(row => liveRows.push({ ...row, _source_table: tbl }));
+                        const rows = result.data.map(row => ({...row, _source_table: tbl}));
+                        sourceResults.set(tbl, rows);
+                        return rows;
                     }
                 } catch(e) {}
+                sourceResults.set(tbl, []);
+                return [];
+            };
+
+            if (supabaseClient) {
+                // Start all requests at the same time.
+                const requests = tables.map(readTable);
+
+                // Render as soon as ANY source returns useful catalog rows.
+                try {
+                    const firstRows = await Promise.race(
+                        requests.map(p => p.then(rows => rows.length ? rows : null))
+                    );
+                    if (Array.isArray(firstRows) && firstRows.length) {
+                        const initial = mergeCatalogRows(
+                            tables.flatMap(t => sourceResults.get(t) || [])
+                        );
+                        if (initial.length) {
+                            globalCards = initial;
+                            syncIndexCatalogCache(initial);
+                            try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(initial)); } catch(e) {}
+                            try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                            try { renderCatalogCards(globalCards); } catch(e) {}
+                            renderedOnce = true;
+                        }
+                    }
+                } catch(e) {}
+
+                // Wait for all parallel requests, then merge the complete catalog once.
+                let completeRows = [];
+                try { completeRows = (await Promise.all(requests)).flat(); } catch(e) {}
+
+                // If one/all SDK reads failed, use REST in parallel only for missing sources.
+                if (!completeRows.length) {
+                    const restResults = await Promise.all(tables.map(async tbl => {
+                        try {
+                            const controller = new AbortController();
+                            const timer = setTimeout(() => controller.abort(), timeoutMs);
+                            const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
+                            const res = await fetch(url, {
+                                method:'GET',
+                                headers:{
+                                    'apikey': SUPABASE_ANON_KEY,
+                                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                    'Accept':'application/json'
+                                },
+                                signal:controller.signal,
+                                cache:'no-store',
+                                credentials:'omit'
+                            });
+                            clearTimeout(timer);
+                            if (!res.ok) return [];
+                            const data = await res.json();
+                            return Array.isArray(data) ? data.map(row => ({...row, _source_table:tbl})) : [];
+                        } catch(e) { return []; }
+                    }));
+                    completeRows = restResults.flat();
+                }
+
+                if (completeRows.length) {
+                    const complete = mergeCatalogRows(completeRows);
+                    if (complete.length) {
+                        globalCards = complete;
+                        syncIndexCatalogCache(complete);
+                        try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(complete)); } catch(e) {}
+                        // Only update the DOM when the complete list is different/available;
+                        // never blank the existing catalog during the background merge.
+                        try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                        try { renderCatalogCards(globalCards); } catch(e) {}
+                        renderedOnce = true;
+
+                        // Ratings load independently after catalog data is already visible.
+                        loadCatalogRatings()
+                            .then(() => {
+                                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                                try { renderCatalogCards(globalCards); } catch(e) {}
+                            })
+                            .catch(() => {});
+                        return;
+                    }
+                }
             }
 
-            // REST fallback if SDK did not return any rows.
-            if (!liveRows.length && supabaseClient) {
-                for (const tbl of tables) {
+            // Only use cache if live sources produced nothing. This fallback never
+            // replaces a catalog that has already been rendered.
+            if (!renderedOnce) {
+                let cachedCards = null;
+                for (const storageName of ['localStorage','sessionStorage']) {
                     try {
-                        const controller = new AbortController();
-                        const timer = setTimeout(() => controller.abort(), 8000);
-                        const url = `${SUPABASE_URL}/rest/v1/${encodeURIComponent(tbl)}?select=*`;
-                        const res = await fetch(url, {
-                            method:'GET',
-                            headers:{
-                                'apikey': SUPABASE_ANON_KEY,
-                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                                'Accept':'application/json'
-                            },
-                            signal:controller.signal,
-                            cache:'no-store',
-                            credentials:'omit'
-                        });
-                        clearTimeout(timer);
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (Array.isArray(data)) data.forEach(row => liveRows.push({ ...row, _source_table: tbl }));
+                        const storage = window[storageName];
+                        for (const key of ['dp_index_catalog','dp_index_catalog_cache_v3','dp_index_catalog_cache_v2']) {
+                            const raw = storage.getItem(key);
+                            if (!raw) continue;
+                            const parsed = JSON.parse(raw);
+                            if (Array.isArray(parsed) && parsed.length) { cachedCards = parsed; break; }
                         }
                     } catch(e) {}
+                    if (cachedCards) break;
                 }
-            }
-
-            if (liveRows.length) {
-                // Same catalog ID appearing in more than one fallback table is one card.
-                // Prefer the first source (catalog -> cards -> cards_catalog).
-                const byId = new Map();
-                const noId = [];
-                for (const row of liveRows) {
-                    const id = String(row?.id ?? row?.catalog_id ?? '').trim();
-                    if (!id) {
-                        noId.push(row);
-                        continue;
-                    }
-                    if (!byId.has(id)) byId.set(id, row);
-                }
-
-                let fetchedData = [...byId.values(), ...noId];
-                fetchedData = fetchedData.filter(Boolean).sort((a,b) => {
-                    const da = new Date(a.created_at || a.updated_at || 0).getTime() || 0;
-                    const db = new Date(b.created_at || b.updated_at || 0).getTime() || 0;
-                    if (db !== da) return db - da;
-                    return (Number(b.id)||0) - (Number(a.id)||0);
-                });
-
-                globalCards = fetchedData;
-                syncIndexCatalogCache(fetchedData);
-                try { sessionStorage.setItem('dp_index_catalog_cache_v3', JSON.stringify(fetchedData)); } catch(e) {}
-
-                // Render the complete live catalog only after the complete list is ready.
-                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
-                try { renderCatalogCards(globalCards); } catch(e) {}
-
-                // Rating refresh changes only the card's rating display; it must not replace
-                // the catalog with an old cached list.
-                loadCatalogRatings()
-                    .then(() => {
+                if (cachedCards) {
+                    globalCards = cachedCards;
+                    try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
+                    try { renderCatalogCards(globalCards); } catch(e) {}
+                    loadCatalogRatings().then(() => {
                         try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
                         try { renderCatalogCards(globalCards); } catch(e) {}
-                    })
-                    .catch(() => {});
-                return;
+                    }).catch(() => {});
+                } else if (container) {
+                    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
+                }
             }
+        }
 
-            // Live database failed completely: use the last known cache as a fallback only.
-            let cachedCards = null;
-            for (const storageName of ['localStorage','sessionStorage']) {
-                try {
-                    const storage = window[storageName];
-                    for (const key of ['dp_index_catalog','dp_index_catalog_cache_v3','dp_index_catalog_cache_v2']) {
-                        const raw = storage.getItem(key);
-                        if (!raw) continue;
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed) && parsed.length) {
-                            cachedCards = parsed;
-                            break;
-                        }
-                    }
-                } catch(e) {}
-                if (cachedCards) break;
+        function mergeCatalogRows(rows) {
+            const byId = new Map(), noId = [];
+            for (const row of (Array.isArray(rows) ? rows : [])) {
+                if (!row) continue;
+                const id = String(row?.id ?? row?.catalog_id ?? '').trim();
+                if (!id) { noId.push(row); continue; }
+                const existing = byId.get(id);
+                if (!existing) {
+                    byId.set(id, row);
+                } else {
+                    // Prefer the richer row, but never create a second card for the same ID.
+                    const score = obj => Object.keys(obj || {}).filter(k => {
+                        const v=obj[k]; return v!==null && v!==undefined && String(v).trim()!=='';
+                    }).length;
+                    if (score(row) > score(existing)) byId.set(id, {...existing,...row});
+                }
             }
-
-            if (cachedCards) {
-                globalCards = cachedCards;
-                try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
-                try { renderCatalogCards(globalCards); } catch(e) {}
-                loadCatalogRatings()
-                    .then(() => {
-                        try { renderRealCardsFromCatalog(globalCards); } catch(e) {}
-                        try { renderCatalogCards(globalCards); } catch(e) {}
-                    })
-                    .catch(() => {});
-            } else {
-                container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#64748b">अभी कोई कैटलॉग कार्ड उपलब्ध नहीं है।</p>';
-            }
+            const result=[...byId.values(),...noId].filter(Boolean);
+            return result.sort((a,b)=>{
+                const da=new Date(a.created_at||a.updated_at||0).getTime()||0;
+                const db=new Date(b.created_at||b.updated_at||0).getTime()||0;
+                if(db!==da)return db-da;
+                return (Number(b.id)||0)-(Number(a.id)||0);
+            });
         }
 
         let catalogLoadPromise = null;
