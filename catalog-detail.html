@@ -356,17 +356,23 @@ async function selectCatalogVariant(index){
 async function loadFeedback(){
   feedbackRows=[];
   if(!product){renderRatings();return;}
+
+  const aliases=getProductAliases(product);
+  const pt=productTitle(product), pm=productModel(product);
   let rawRows=[];
+
+  // Supabase feedback is the primary source.
   if(sb){
     try{
       const {data,error}=await Promise.race([
         sb.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('feedback timeout')),5000))
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('feedback timeout')),7000))
       ]);
       if(!error&&Array.isArray(data)) rawRows=data;
     }catch(e){}
   }
-  // Local copies are only a fallback and are deduplicated against DB rows.
+
+  // Local data is only a fallback/supplement and is deduplicated below.
   try{
     const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
     if(local&&typeof local==='object') Object.keys(local).forEach(k=>rawRows.push({...local[k],catalog_id:local[k]?.catalog_id||k,_source:'local'}));
@@ -374,38 +380,60 @@ async function loadFeedback(){
     if(Array.isArray(local2)) rawRows.push(...local2.map(x=>({...x,catalog_id:x?.catalog_id||product.id,_source:'local'})));
   }catch(e){}
 
-  // Fetch only the orders referenced by feedback. This is what resolves legacy model-only rows.
+  // Load the orders referenced by reviews. This resolves old model-only feedback safely.
   const orderIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
   const orderMap={};
   if(sb&&orderIds.length){
     const nums=orderIds.map(Number).filter(Number.isFinite);
     for(let i=0;i<nums.length;i+=100){
       try{
-        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id').in('id',nums.slice(i,i+100));
+        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',nums.slice(i,i+100));
         if(!error&&Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
       }catch(e){}
     }
   }
-  const aliases=getProductAliases(product);
-  const pt=productTitle(product), pm=productModel(product);
+
   const matches=[];
   for(const r of rawRows){
     const direct=[r?.catalog_id,r?.card_id,r?.product_id].map(cleanKey).filter(Boolean);
-    // A real catalog ID is authoritative. If it points to another catalog, never borrow this review.
-    if(direct.length){
-      if(direct.some(x=>aliases.has(x))) matches.push(r);
+    const directRealIds=direct.filter(x=>/^\d+(?:\.0+)?$/.test(x));
+    const directLegacy=direct.filter(x=>/model|code|मॉडल|कोड/i.test(x));
+
+    // A real numeric catalog ID is authoritative.
+    if(directRealIds.length){
+      if(directRealIds.some(x=>aliases.has(x))) matches.push(r);
       continue;
     }
+
     const oid=String(r?.order_db_id??r?.order_id??'').trim();
     const o=orderMap[oid];
-    if(!o) continue;
-    const oc=[o?.catalog_id,o?.card_id,o?.product_id].map(cleanKey).filter(Boolean);
-    if(oc.length && oc.some(x=>aliases.has(x))){matches.push(r);continue;}
     const ot=productTitle(o), om=productModel(o);
-    const titleOK=!!(pt&&ot&&(pt===ot||pt.includes(ot)||ot.includes(pt)));
-    const modelOK=!pm||!om||pm===om;
-    if(titleOK&&modelOK) matches.push(r);
+    const oc=[o?.catalog_id,o?.card_id,o?.product_id].map(cleanKey).filter(Boolean);
+
+    // Order's real catalog ID wins when present.
+    if(oc.some(x=>aliases.has(x))){matches.push(r);continue;}
+    if(oc.some(x=>/^\d+(?:\.0+)?$/.test(x))) continue;
+
+    // Legacy "Model / Code: XXXXX" reviews: resolve by the order's exact
+    // title/model first, and only then by the product model if there is no order.
+    const titleOK=!!(pt&&ot&&(pt===ot||pt.includes(ot)||ot.includes(pt)||titleScore(pt,ot)>=0.60));
+    const modelOK=!!(pm&&om&&(pm===om||pm.includes(om)||om.includes(pm)));
+    const legacyModel=directLegacy.join(' ');
+    const legacyModelOK=!!(legacyModel&&pm&&modelKey(legacyModel).includes(pm));
+    if((titleOK&&(!pm||!om||modelOK)) || (legacyModelOK&&(!o || (titleOK||modelOK)))) matches.push(r);
   }
+
+  // If the broad query was blocked, make one direct catalog-id query as a final fallback.
+  if(!matches.length && sb){
+    for(const cid of aliases){
+      if(!/^\d+(?:\.0+)?$/.test(cid)) continue;
+      try{
+        const {data,error}=await sb.from('catalog_feedback').select('*').eq('catalog_id',cid).order('created_at',{ascending:false}).limit(200);
+        if(!error&&Array.isArray(data)) matches.push(...data);
+      }catch(e){}
+    }
+  }
+
   const dedup=new Map();
   for(const r of matches){
     const rid=String(r?.id??'').trim();
@@ -415,7 +443,6 @@ async function loadFeedback(){
   feedbackRows=[...dedup.values()];
   renderRatings();
 }
-
 function sameModelKey(a,b){
   a=modelKey(a); b=modelKey(b);
   return !a||!b||a===b||a.includes(b)||b.includes(a);
@@ -786,54 +813,49 @@ async function loadMoreUpdatedCards(){
   if(!box)return;
   const cur=String(product?.id??id??'').trim();
   let rows=[];
-  let liveSuccess=false;
 
-  // More Products हमेशा वर्तमान Admin/Index catalog से आएगा।
-  // पहले live catalog पढ़ेंगे ताकि Admin से delete किया हुआ पुराना card दोबारा cache से न आए।
-  if(sb){
+  // Index cache is the first choice because it is the same catalog list the
+  // customer came from. It also works when Supabase RLS blocks catalog reads.
+  const cacheKeys=['dp_index_catalog','dp_index_catalog_cache_v3'];
+  for(const key of cacheKeys){
     try{
-      const tables=['catalog','cards','cards_catalog'];
-      const results=await Promise.all(tables.map(async tbl=>{
-        try{
-          const {data,error}=await Promise.race([
-            sb.from(tbl).select('*').limit(1000),
-            new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
-          ]);
-          return !error&&Array.isArray(data)?data.map(x=>({...x,_source_table:tbl})):[];
-        }catch(e){return null;}
-      }));
-      const usable=results.filter(Array.isArray);
-      // At least one successful catalog source is enough to treat live data as authoritative.
-      if(usable.length){
-        const live=usable.flat();
-        rows=live;
-        liveSuccess=true;
-      }
+      const raw=localStorage.getItem(key)||sessionStorage.getItem(key)||'';
+      const parsed=raw?JSON.parse(raw):[];
+      if(Array.isArray(parsed)&&parsed.length){rows=parsed;break;}
     }catch(e){}
   }
 
-  // Only when the live catalog could not be reached at all, use the last Index cache.
-  // This is an offline fallback; it is never painted before the live result.
-  if(!liveSuccess){
+  // Add current live Admin catalog rows when available. Cache remains the
+  // visible Index source, while live rows fill in anything newly uploaded.
+  if(sb){
     try{
-      const raw=localStorage.getItem('dp_index_catalog')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'';
-      const parsed=raw?JSON.parse(raw):[];
-      if(Array.isArray(parsed)) rows=parsed;
+      const results=await Promise.all(['catalog','cards','cards_catalog'].map(async tbl=>{
+        try{
+          const {data,error}=await Promise.race([
+            sb.from(tbl).select('*').limit(1000),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),4500))
+          ]);
+          return !error&&Array.isArray(data)?data.map(x=>({...x,_source_table:tbl})):[];
+        }catch(e){return [];}
+      }));
+      const live=results.flat();
+      if(live.length) rows=[...rows,...live];
     }catch(e){}
   }
 
   const byId=new Map();
   for(const r of rows){
     const key=String(r?.id??r?.catalog_id??'').trim();
-    if(!key)continue;
+    if(!key||key===cur)continue;
     if(!byId.has(key))byId.set(key,r);
   }
-  rows=[...byId.values()];
-  rows=rows.filter(c=>String(c?.id??c?.catalog_id??'').trim()!==cur).slice(0,20);
+  rows=[...byId.values()].slice(0,20);
+
+  // Load ratings before rendering the small cards so their rating is not 0.0.
+  try{await loadAllRatingRows();}catch(e){}
   window._updatedRows=rows;
   renderSmallCards(rows,'recommendedCatalog','वर्तमान में कोई दूसरा कैटलॉग उपलब्ध नहीं है।');
 }
-
 async function loadRecommendedCatalog(){await loadMoreUpdatedCards();}
 
 function openRecommended(rid){
@@ -860,7 +882,6 @@ function orderNow(){const logged=localStorage.getItem('dp_current_user')||localS
   if(!product){document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';return;}
   render();
   saveRecentlyViewed(product);
-  loadRecentlyViewed();
   await Promise.allSettled([loadFeedback(),loadMoreUpdatedCards(),loadVariants()]);
 })();
 
