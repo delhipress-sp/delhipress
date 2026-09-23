@@ -1274,7 +1274,7 @@
                         <h4>${name}</h4>
                         <div class="model-text">${model}</div>
                         ${priceHtml}
-                        <div class="card-rating-row">
+                        <div class="card-rating-row" onclick="event.stopPropagation(); openStandaloneRating(${index})" style="cursor:pointer" title="रेटिंग और रिव्यू देखें / दें">
                             <span class="rating-stars">★★★★★</span>
                             <span class="rating-text">${(()=>{const rr=getCardRating(card); return rr.avg ? rr.avg.toFixed(1)+(rr.count?' ('+rr.count+')':'') : '0.0';})()}</span>
                             <span class="rating-label">रेटिंग</span>
@@ -1285,6 +1285,19 @@
                 container.appendChild(cardDiv);
             });
             fastCatalogImages();
+        }
+
+        function openStandaloneRating(cardIndex){
+            const card=globalCards[cardIndex];
+            if(!card)return;
+            try{localStorage.setItem('dp_rating_catalog_context',JSON.stringify({
+                catalog_id:card.id??card.catalog_id??'',
+                name:card.name??card.title??card.card_name??'',
+                model:card.model??card.code??card.card_model??'',
+                image:card.image??card.image_url??card.photo??''
+            }));}catch(e){}
+            const cid=encodeURIComponent(card.id??card.catalog_id??'');
+            window.location.href='rating.html?id='+cid;
         }
 
         function selectCardForOrder(cardIndex) {
