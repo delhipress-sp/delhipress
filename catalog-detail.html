@@ -381,14 +381,20 @@ async function loadFeedback(){
   }catch(e){}
 
   // Load the orders referenced by reviews. This resolves old model-only feedback safely.
-  const orderIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
+  const orderDbIds=[...new Set(rawRows.map(r=>String(r?.order_db_id??'').trim()).filter(v=>/^\d+$/.test(v)))];
+  const orderNos=[...new Set(rawRows.map(r=>String(r?.order_id??'').trim()).filter(Boolean))];
   const orderMap={};
-  if(sb&&orderIds.length){
-    const nums=orderIds.map(Number).filter(Number.isFinite);
-    for(let i=0;i<nums.length;i+=100){
+  if(sb){
+    for(let i=0;i<orderDbIds.length;i+=100){
       try{
-        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',nums.slice(i,i+100));
-        if(!error&&Array.isArray(data)) data.forEach(o=>orderMap[String(o.id)]=o);
+        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',orderDbIds.slice(i,i+100).map(Number));
+        if(!error&&Array.isArray(data)) data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o;});
+      }catch(e){}
+    }
+    for(let i=0;i<orderNos.length;i+=100){
+      try{
+        const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('order_id',orderNos.slice(i,i+100));
+        if(!error&&Array.isArray(data)) data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o;});
       }catch(e){}
     }
   }
@@ -465,13 +471,16 @@ async function loadAllRatingRows(){
   const rows=[];
   try{const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');if(local&&typeof local==='object')Object.keys(local).forEach(k=>rows.push({...local[k],catalog_id:k}));}catch(e){}
   if(sb){try{const {data,error}=await Promise.race([sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))]);if(!error&&Array.isArray(data))rows.push(...data)}catch(e){}}
-  const orderIds=[...new Set(rows.map(r=>String(r?.order_db_id??r?.order_id??'').trim()).filter(Boolean))];
+  const orderDbIds=[...new Set(rows.map(r=>String(r?.order_db_id??'').trim()).filter(v=>/^\d+$/.test(v)))];
+  const orderNos=[...new Set(rows.map(r=>String(r?.order_id??'').trim()).filter(Boolean))];
   const orderMap={};
-  if(sb&&orderIds.length){
-    for(let i=0;i<orderIds.length;i+=100){
-      const chunk=orderIds.slice(i,i+100), nums=chunk.map(Number).filter(Number.isFinite);
-      if(!nums.length)continue;
-      try{const {data,error}=await sb.from('orders').select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id').in('id',nums);if(!error&&Array.isArray(data))data.forEach(o=>orderMap[String(o.id)]=o)}catch(e){}
+  if(sb){
+    for(let i=0;i<orderDbIds.length;i+=100){
+      const nums=orderDbIds.slice(i,i+100).map(Number);
+      try{const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('id',nums);if(!error&&Array.isArray(data))data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o})}catch(e){}
+    }
+    for(let i=0;i<orderNos.length;i+=100){
+      try{const {data,error}=await sb.from('orders').select('id,order_id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,code').in('order_id',orderNos.slice(i,i+100));if(!error&&Array.isArray(data))data.forEach(o=>{orderMap[String(o.id)]=o;if(o.order_id)orderMap[String(o.order_id)]=o})}catch(e){}
     }
   }
   const seen=new Set();
@@ -814,8 +823,7 @@ async function loadMoreUpdatedCards(){
   const cur=String(product?.id??id??'').trim();
   let rows=[];
 
-  // Index cache is the first choice because it is the same catalog list the
-  // customer came from. It also works when Supabase RLS blocks catalog reads.
+  // पहले Index cache — More Products तुरंत दिखेंगे, Supabase की speed पर निर्भर नहीं।
   const cacheKeys=['dp_index_catalog','dp_index_catalog_cache_v3'];
   for(const key of cacheKeys){
     try{
@@ -825,36 +833,42 @@ async function loadMoreUpdatedCards(){
     }catch(e){}
   }
 
-  // Add current live Admin catalog rows when available. Cache remains the
-  // visible Index source, while live rows fill in anything newly uploaded.
+  const paint=async()=>{
+    const byId=new Map();
+    for(const r of rows){
+      const key=String(r?.id??r?.catalog_id??'').trim();
+      if(!key||key===cur)continue;
+      if(!byId.has(key))byId.set(key,r);
+    }
+    const visible=[...byId.values()].slice(0,20);
+    window._updatedRows=visible;
+    renderSmallCards(visible,'recommendedCatalog','वर्तमान में कोई दूसरा कैटलॉग उपलब्ध नहीं है।');
+  };
+
+  // Cache को तुरंत paint करें। Rating fetch इसके बाद background में होगा।
+  await paint();
+
+  // Live Admin catalog background refresh — page को block नहीं करेगा।
   if(sb){
     try{
-      const results=await Promise.all(['catalog','cards','cards_catalog'].map(async tbl=>{
-        try{
-          const {data,error}=await Promise.race([
-            sb.from(tbl).select('*').limit(1000),
-            new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),4500))
-          ]);
-          return !error&&Array.isArray(data)?data.map(x=>({...x,_source_table:tbl})):[];
-        }catch(e){return [];}
-      }));
-      const live=results.flat();
-      if(live.length) rows=[...rows,...live];
+      const {data,error}=await Promise.race([
+        sb.from('catalog').select('*').limit(1000),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500))
+      ]);
+      if(!error&&Array.isArray(data)&&data.length){
+        rows=[...rows,...data.map(x=>({...x,_source_table:'catalog'}))];
+        await paint();
+        try{localStorage.setItem('dp_index_catalog',JSON.stringify(data));}catch(e){}
+        try{sessionStorage.setItem('dp_index_catalog_cache_v3',JSON.stringify(data));}catch(e){}
+      }
     }catch(e){}
   }
 
-  const byId=new Map();
-  for(const r of rows){
-    const key=String(r?.id??r?.catalog_id??'').trim();
-    if(!key||key===cur)continue;
-    if(!byId.has(key))byId.set(key,r);
-  }
-  rows=[...byId.values()].slice(0,20);
-
-  // Load ratings before rendering the small cards so their rating is not 0.0.
-  try{await loadAllRatingRows();}catch(e){}
-  window._updatedRows=rows;
-  renderSmallCards(rows,'recommendedCatalog','वर्तमान में कोई दूसरा कैटलॉग उपलब्ध नहीं है।');
+  // Ratings को अलग background step में लगाएँ; More Products को इसके लिए रोकें नहीं।
+  try{
+    await loadAllRatingRows();
+    await paint();
+  }catch(e){}
 }
 async function loadRecommendedCatalog(){await loadMoreUpdatedCards();}
 
@@ -882,7 +896,9 @@ function orderNow(){const logged=localStorage.getItem('dp_current_user')||localS
   if(!product){document.getElementById('loading').innerHTML='कैटलॉग विवरण उपलब्ध नहीं है।';return;}
   render();
   saveRecentlyViewed(product);
-  await Promise.allSettled([loadFeedback(),loadMoreUpdatedCards(),loadVariants()]);
+  loadMoreUpdatedCards().catch(()=>{});
+  loadFeedback().catch(()=>{});
+  loadVariants().catch(()=>{});
 })();
 
 
