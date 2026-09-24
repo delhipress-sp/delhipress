@@ -413,7 +413,6 @@
                 card_title: currentData.card_title || 'शादी कार्ड',
                 card_model: currentData.card_model || '',
                 card_image: currentData.card_image || '',
-                catalog_id: currentData.catalog_id || currentData.card_id || currentData.product_id || '',
                 quantity: parseInt(currentData.quantity || 100),
                 total_amount: parseFloat(currentData.total_amount || 0),
                 advance_paid: parseFloat(currentData.advance_paid || 0),
@@ -428,6 +427,10 @@
                 // पूरा Order Form Matter: इसी field में Order Form के सभी भरे हुए
                 // wedding/event/RSVP/custom-note/banner/visiting-card विवरण सुरक्षित रहेंगे।
                 custom_notes: currentData.custom_notes || currentData.order_notes || currentData.notes || '',
+                // Order Form से आया handwritten/PDF/photo matter. इसे orders.order_matter में
+                // भी सीधे भेजा जाता है ताकि Storage upload fail होने पर भी Admin/My Orders
+                // में original uploaded file उपलब्ध रहे।
+                order_matter: '',
                 status: 'Pending',
                 txn_id: txnId,
                 payment_mode: isUpi ? 'Online (UPI)' : 'Cash on Delivery',
@@ -435,50 +438,29 @@
                 created_at: new Date().toISOString()
             };
 
-            // Handwritten/photo/PDF matter is uploaded as a separate file.
-            // The URL is saved in orders.customer_files so My Orders and Admin
-            // can open the original file independently of the typed matter.
-            let uploadedMatterFile = null;
-            if (currentData.wedding_matter_uploaded || currentData.wedding_matter_file) {
-                uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
-                if (uploadedMatterFile) {
-                    cleanOrderPayload.customer_files = [uploadedMatterFile];
-                } else {
-                    cleanOrderPayload.customer_files = [];
-                }
+            // Handwritten/photo/PDF matter: पहले Order Form के IndexedDB से असली file पढ़ें।
+            // Payment page Order Data को localStorage में save नहीं करेगा।
+            let matterForDb = null;
+            try {
+                matterForDb = await readWeddingMatterFromIndexedDB();
+            } catch (e) {}
+
+            // Fallback: Order Form metadata में file का dataUrl उपलब्ध हो तो उसे लें।
+            if (!matterForDb && currentData.wedding_matter_file && currentData.wedding_matter_file.dataUrl) {
+                matterForDb = currentData.wedding_matter_file;
             }
 
-            // 1. First save locally so My Orders can show the order immediately.
-            try {
-                const syncKeys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
+            if (matterForDb && matterForDb.dataUrl) {
+                // orders.order_matter में original data URL जाता है।
+                cleanOrderPayload.order_matter = matterForDb.dataUrl;
 
-                syncKeys.forEach(key => {
-                    try {
-                        let list = [];
-                        try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
-                        if (!Array.isArray(list)) list = [];
-
-                        const keyId = String(cleanOrderPayload.order_id || '');
-                        list = list.filter(item =>
-                            String(item.order_id || item.id || '') !== keyId
-                        );
-                        list.unshift(cleanOrderPayload);
-                        localStorage.setItem(key, JSON.stringify(list));
-                    } catch(storageErr) {
-                        // If the payment screenshot fills storage, save a lightweight
-                        // copy instead of losing the order.
-                        const lightweight = { ...cleanOrderPayload, payment_receipt: '' };
-                        try { localStorage.setItem(key, JSON.stringify([lightweight])); } catch(e) {}
-                    }
-                });
-
-                localStorage.setItem(
-                    'dp_latest_confirmed_order',
-                    JSON.stringify({ ...cleanOrderPayload, payment_receipt: '' })
-                );
-                localStorage.removeItem('dp_temp_order');
-            } catch(e) {
-                console.error('Local order backup error:', e);
+                // साथ में Storage URL भी बनाने की कोशिश करें।
+                try {
+                    const uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
+                    if (uploadedMatterFile) cleanOrderPayload.customer_files = [uploadedMatterFile];
+                } catch (e) {
+                    console.warn('Matter Storage upload failed; DB order_matter will still be used.', e);
+                }
             }
 
             // 2. Cloud DB sync.
@@ -554,15 +536,31 @@
             }
 
             if (!cloudSaved) {
-                console.warn('Order saved locally; cloud sync failed:', lastCloudError);
+                const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
+                // कोई local order fallback नहीं। Database में save न होने पर यहीं रोकें।
+                alert('ऑर्डर Database में Save नहीं हुआ। कृपया दोबारा Submit करें।' + detail);
+                submitBtn.disabled = false;
+                document.getElementById('submitBtnText').innerText = 'भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें';
+                return;
             }
 
-            if (cloudSaved) {
-                alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!');
-            } else {
-                const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
-                alert('ऑर्डर इस डिवाइस में सेव है, लेकिन Database में Save नहीं हुआ।' + detail);
-            }
+            // Cloud save सफल होने के बाद temporary browser file हटाएँ।
+            try {
+                const req = indexedDB.open('DelhiPressOrderDB', 1);
+                req.onsuccess = function(e) {
+                    try {
+                        const db=e.target.result;
+                        if(db.objectStoreNames.contains('matter')) {
+                            const tx=db.transaction('matter','readwrite');
+                            tx.objectStore('matter').delete('current');
+                        }
+                        db.close();
+                    } catch(_) {}
+                };
+            } catch(_) {}
+            try { localStorage.removeItem('dp_temp_order'); } catch(_) {}
+
+            alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!');
             window.location.replace("my_orders.html");
         }
     </script>
