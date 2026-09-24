@@ -581,6 +581,9 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             // Never keep the whole My Orders page blocked by catalog/review requests.
             loadRecommendedCatalog();
             syncWithCloudFast();
+            // Network/RLS transient issue में कुछ सेकंड बाद दोबारा cloud orders लें।
+            setTimeout(() => syncWithCloudFast(), 2500);
+            setTimeout(() => syncWithCloudFast(), 6000);
         });
 
         function loadInitialLocalOrders() {
