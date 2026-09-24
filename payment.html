@@ -104,13 +104,6 @@
         }
         .bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
 
-        .payment-stage-note {
-            margin: 14px 0; padding: 12px 14px; border-radius: 10px;
-            background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a;
-            font-size: 13px; line-height: 1.5;
-        }
-        #paymentOptionsWrap { display:none; }
-        #paymentOptionsWrap.show { display:block; }
         .payment-option-card {
             border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 16px;
             background: #ffffff; cursor: pointer; transition: all 0.25s ease;
@@ -120,6 +113,8 @@
         .payment-details-body { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #cbd5e1; display: none; }
         .payment-option-card.selected .payment-details-body { display: block; }
 
+        .qr-wrapper { background: #ffffff; border: 2px solid #fed7aa; display: inline-block; padding: 12px; border-radius: 16px; margin: 10px 0; }
+        .qr-wrapper img { width: 170px; height: 170px; display: block; margin: 0 auto; border-radius: 8px; }
 
         .form-group { margin-bottom: 14px; text-align: left; }
         label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; color: #334155; }
@@ -129,6 +124,11 @@
             width: 100%; padding: 16px; background: var(--primary-gradient); color: white;
             font-size: 17px; font-weight: 800; border: none; border-radius: 12px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 22px;
+        }
+        .btn-upi-app {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white !important;
+            padding: 9px 16px; border-radius: 20px; font-weight: bold; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 8px; text-decoration: none; margin: 6px 4px;
         }
 
         .mobile-bottom-bar {
@@ -175,36 +175,57 @@
                 </div>
             </div>
 
-            <div id="paymentOptionsWrap">
-                <div class="payment-stage-note"><b>दूसरा चरण — Payment</b><br>नीचे से ऑनलाइन Cashfree भुगतान या दुकान पर एडवांस कैश देने का विकल्प चुनें।</div>
-
-                <div class="payment-option-card" id="cardCashfree" onclick="selectPaymentMode('cashfree')">
-                    <div class="payment-option-header">
-                        <input type="radio" name="payMode" id="radioCashfree" value="cashfree" checked>
-                        <label for="radioCashfree" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-shield-halved" style="color:#16a34a;"></i> Cashfree से ऑनलाइन भुगतान</label>
-                    </div>
-                    <div class="payment-details-body">
-                        <p style="font-size:13px; color:#475569; text-align:center;">UPI, कार्ड और उपलब्ध Cashfree payment methods से सुरक्षित भुगतान करें।</p>
-                        <div id="cashfreeStatus" style="display:none; margin-top:10px; text-align:center; font-size:12px;"></div>
-                    </div>
+            <div class="payment-option-card" id="cardCashfree" onclick="selectPaymentMode('cashfree')">
+                <div class="payment-option-header">
+                    <input type="radio" name="payMode" id="radioCashfree" value="cashfree">
+                    <label for="radioCashfree" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-shield-halved" style="color:#16a34a;"></i> Cashfree से ऑनलाइन भुगतान</label>
                 </div>
+                <div class="payment-details-body">
+                    <p style="font-size:13px; color:#475569; text-align:center;">UPI, कार्ड और उपलब्ध Cashfree payment methods से सुरक्षित भुगतान करें।</p>
+                    <button type="button" id="btnCashfreePay" class="btn-upi-app" style="border:0; cursor:pointer; width:100%;" onclick="event.stopPropagation(); startCashfreePayment();">
+                        <i class="fa-solid fa-lock"></i> Cashfree Checkout खोलें
+                    </button>
+                    <div id="cashfreeStatus" style="display:none; margin-top:10px; text-align:center; font-size:12px;"></div>
+                </div>
+            </div>
 
-                <div class="payment-option-card" id="cardCod" onclick="selectPaymentMode('cod')">
-                    <div class="payment-option-header">
-                        <input type="radio" name="payMode" id="radioCod" value="cod">
-                        <label for="radioCod" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-store" style="color:var(--secondary);"></i> एडवांस कैश — दुकान पर देना है</label>
+            <div class="payment-option-card" id="cardUpi" onclick="selectPaymentMode('upi')">
+                <div class="payment-option-header">
+                    <input type="radio" name="payMode" id="radioUpi" value="upi" checked>
+                    <label for="radioUpi" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-bolt" style="color:#e63946;"></i> ऑनलाइन भुगतान (UPI QR / Apps)</label>
+                </div>
+                <div class="payment-details-body">
+                    <p style="font-size:13px; color:#475569; text-align:center;">दुकान UPI ID: <b>9304509464@okbizaxis</b></p>
+                    <div style="text-align:center;">
+                        <div class="qr-wrapper"><img id="upiQrImg" src="" alt="UPI QR"></div>
+                        <div><a href="#" id="directUpiAppBtn" class="btn-upi-app"><i class="fa-solid fa-mobile-screen"></i> सीधे UPI ऐप से पे करें</a></div>
                     </div>
-                    <div class="payment-details-body">
-                        <p style="font-size:13px; color:#475569; text-align:center;">एडवांस राशि दुकान पर नकद जमा करेंगे। ऑनलाइन भुगतान की जरूरत नहीं है।</p>
-                        <button type="button" id="cashShopCompleteBtn" class="btn-submit-order" style="background:linear-gradient(135deg,#16a34a,#15803d); margin-top:12px;" onclick="event.stopPropagation(); completeCashAtShopOrder();">
-                            <i class="fa-solid fa-circle-check"></i> एडवांस कैश दुकान पर दूँगा — ऑर्डर पूरा करें
-                        </button>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
+                        <input type="text" id="txnIdInput" placeholder="उदा: 4123XXXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label>भुगतान रसीद / स्क्रीनशॉट (वैकल्पिक):</label>
+                        <input type="file" id="paymentReceiptFile" accept="image/*" onchange="previewScreenshot(this)">
+                        <div id="screenshotPreviewWrap" style="display:none; text-align:center; margin-top:8px;">
+                            <img id="screenshotPreviewImg" src="" style="max-width:140px; border-radius:8px; border:2px solid #e63946;">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="handlePaymentStageSubmit()">
-                <i class="fa-solid fa-circle-check"></i> <span id="submitBtnText">ऑर्डर Submit करें → Payment विकल्प</span>
+            <div class="payment-option-card" id="cardCod" onclick="selectPaymentMode('cod')">
+                <div class="payment-option-header">
+                    <input type="radio" name="payMode" id="radioCod" value="cod">
+                    <label for="radioCod" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-handshake" style="color:var(--secondary);"></i> दुकान पर नकद (Cash on Delivery)</label>
+                </div>
+                <div class="payment-details-body">
+                    <p style="font-size:13px; color:#64748b;">आप दुकान पर आकर प्रिंटिंग शुरू होने से पहले नकद एडवांस जमा कर सकते हैं।</p>
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="finalizeAndSubmitOrder()">
+                <i class="fa-solid fa-circle-check"></i> <span id="submitBtnText">भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें</span>
             </button>
         </div>
     </div>
@@ -230,7 +251,6 @@
         let cashfreePaymentDone = false;
         let cashfreeOrderId = "";
         let cashfreePaymentId = "";
-        let paymentStageOpened = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             const rawTemp = localStorage.getItem('dp_temp_order');
@@ -261,62 +281,27 @@
             document.getElementById('prevCustomer').innerText = pendingOrderData.customer_name || '-';
             document.getElementById('prevMobile').innerText = pendingOrderData.mobile || '-';
 
+            const upiUrl = `upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&am=${advance}`;
+            document.getElementById('directUpiAppBtn').href = upiUrl;
+            document.getElementById('upiQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+
             // Cashfree return: server-side verification is mandatory before we treat payment as paid.
             const qs = new URLSearchParams(window.location.search);
             const returnedCashfreeOrderId = qs.get('cashfree_order_id');
             if (returnedCashfreeOrderId) {
                 cashfreeOrderId = returnedCashfreeOrderId;
-                paymentStageOpened = true;
-                document.getElementById('paymentOptionsWrap')?.classList.add('show');
                 verifyCashfreeAndSubmit(returnedCashfreeOrderId);
             }
         });
 
-        function handlePaymentStageSubmit() {
-            const wrap = document.getElementById('paymentOptionsWrap');
-            const text = document.getElementById('submitBtnText');
-
-            if (!paymentStageOpened) {
-                paymentStageOpened = true;
-                wrap.classList.add('show');
-                selectPaymentMode('cashfree');
-                text.innerText = 'Cashfree से Payment करें';
-                wrap.scrollIntoView({behavior:'smooth', block:'start'});
-                return;
-            }
-
-            const isCashfree = document.getElementById('radioCashfree').checked;
-            if (isCashfree) {
-                startCashfreePayment();
-                return;
-            }
-
-            completeCashAtShopOrder();
-        }
-
         function selectPaymentMode(mode) {
+            document.getElementById('radioUpi').checked = (mode === 'upi');
             document.getElementById('radioCod').checked = (mode === 'cod');
             document.getElementById('radioCashfree').checked = (mode === 'cashfree');
+            document.getElementById('cardUpi').classList.toggle('selected', mode === 'upi');
             document.getElementById('cardCod').classList.toggle('selected', mode === 'cod');
             document.getElementById('cardCashfree').classList.toggle('selected', mode === 'cashfree');
-            const btn = document.getElementById('btnSubmitOrder');
-            if (mode === 'cod') {
-                btn.style.display = 'none';
-            } else {
-                btn.style.display = 'flex';
-                btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span id="submitBtnText">Cashfree से Payment करें</span>';
-            }
             try { sessionStorage.setItem('dp_payment_mode', mode); } catch (e) {}
-        }
-
-        async function completeCashAtShopOrder() {
-            selectPaymentMode('cod');
-            const cashBtn = document.getElementById('cashShopCompleteBtn');
-            if (cashBtn) {
-                cashBtn.disabled = true;
-                cashBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ऑर्डर पूरा हो रहा है...';
-            }
-            await finalizeAndSubmitOrder('cash');
         }
 
         function cashfreeFunctionUrl() {
@@ -330,14 +315,12 @@
         }
 
         async function startCashfreePayment() {
-            const btn = document.getElementById('btnSubmitOrder');
+            const btn = document.getElementById('btnCashfreePay');
             const status = document.getElementById('cashfreeStatus');
             const data = pendingOrderData || {};
             const advance = Number(data.advance_paid || data.advance_amount || 0);
             const user = getLoggedUserForCashfree();
             const mobile = String(data.mobile || data.phone || user.mobile || user.phone || '').replace(/\D/g, '').slice(-10);
-            const customerName = String(data.customer_name || user.name || user.full_name || 'Customer').trim();
-            const customerEmail = String(data.email || user.email || '').trim();
 
             if (!Number.isFinite(advance) || advance < 1) {
                 alert('Cashfree के लिए Advance राशि कम-से-कम ₹1 होनी चाहिए।');
@@ -358,54 +341,53 @@
             status.innerText = 'सुरक्षित payment session बनाया जा रहा है...';
 
             try {
+                // Order Form का PDF/photo पहले Supabase Storage में डाल दें ताकि
+                // payment के बाद browser बंद होने पर भी file cloud में रहे।
+                let cloudFiles = Array.isArray(data.customer_files) ? data.customer_files : [];
                 const merchantOrderId = 'DP_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                if (!cloudFiles.length && (data.wedding_matter_uploaded || data.wedding_matter_file)) {
+                    const uploaded = await uploadWeddingMatterToCloud(merchantOrderId);
+                    if (uploaded) {
+                        cloudFiles = [uploaded];
+                        pendingOrderData.customer_files = cloudFiles;
+                    }
+                }
+
                 const returnUrl = `${window.location.origin}${window.location.pathname}?cashfree_order_id={order_id}`;
                 const notifyUrl = `${SUPABASE_URL}/functions/v1/cashfree-webhook`;
 
-                // IMPORTANT: this matches the deployed cashfree-payment Edge Function exactly.
                 const payload = {
                     action: 'create',
-                    order_id: merchantOrderId,
-                    amount: Number(advance.toFixed(2)),
-                    customer_phone: mobile,
-                    customer_name: customerName,
-                    customer_email: customerEmail,
-                    return_url: returnUrl,
-                    notify_url: notifyUrl,
-                    order_note: 'Delhi Press Order - ' + String(data.card_title || 'Wedding Card')
+                    merchant_order_id: merchantOrderId,
+                    order_data: {
+                        ...data,
+                        mobile,
+                        phone: mobile,
+                        customer_files: cloudFiles,
+                        return_url: returnUrl,
+                        notify_url: notifyUrl,
+                        payment_mode: 'Cashfree'
+                    }
                 };
 
                 const response = await fetch(cashfreeFunctionUrl(), {
                     method: 'POST',
-                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                        'apikey': SUPABASE_ANON_KEY
                     },
                     body: JSON.stringify(payload)
                 });
-
-                const raw = await response.text();
-                let result = {};
-                try { result = raw ? JSON.parse(raw) : {}; } catch (_) {}
-
-                if (!response.ok || !result.success || !result.payment_session_id || !result.order_id) {
-                    throw new Error(result.error || result.message || ('Cashfree API error (' + response.status + ')'));
+                const result = await response.json();
+                if (!response.ok || !result.ok || !result.payment_session_id || !result.order_id) {
+                    throw new Error(result.error || 'Cashfree payment session नहीं बन पाया।');
                 }
 
                 cashfreeOrderId = result.order_id;
                 try {
                     sessionStorage.setItem('dp_cashfree_order_id', result.order_id);
+                    sessionStorage.setItem('dp_cashfree_db_order_id', String(result.db_order_id || ''));
                 } catch (e) {}
-
-                // Create the pending Supabase order BEFORE opening checkout.
-                // This gives the Cashfree webhook an existing row to update after payment.
-                status.innerText = 'Order सुरक्षित किया जा रहा है...';
-                const pendingSaved = await createPendingCashfreeOrder(result.order_id, mobile);
-                if (!pendingSaved) {
-                    throw new Error('Cashfree session बन गया, लेकिन आपका Order Database में Pending रूप में Save नहीं हो पाया। Payment शुरू नहीं किया गया।');
-                }
 
                 const cashfree = Cashfree({ mode: 'sandbox' });
                 status.innerText = 'Cashfree Checkout खुल रहा है...';
@@ -418,90 +400,14 @@
                 status.innerText = '';
                 status.style.display = 'none';
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span id="submitBtnText">Cashfree से Payment करें</span>';
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> Cashfree Checkout खोलें';
                 alert('Cashfree शुरू नहीं हो पाया।\n\n' + (e?.message || e));
-            }
-        }
-
-        async function createPendingCashfreeOrder(cashfreeOrderId, mobile) {
-            if (!supabaseClient) return false;
-
-            const currentData = pendingOrderData || {};
-            let uploadedMatterFile = null;
-
-            if (currentData.wedding_matter_uploaded || currentData.wedding_matter_file) {
-                uploadedMatterFile = await uploadWeddingMatterToCloud(cashfreeOrderId);
-            }
-
-            const total = parseFloat(currentData.total_amount || 0);
-            const advance = parseFloat(currentData.advance_paid || currentData.advance_amount || 0);
-
-            const payload = {
-                customer_name: currentData.customer_name || 'ग्राहक',
-                mobile: mobile || currentData.mobile || currentData.phone || '',
-                address: currentData.address || '',
-                card_title: currentData.card_title || 'शादी कार्ड',
-                card_model: currentData.card_model || '',
-                card_image: currentData.card_image || '',
-                catalog_id: currentData.catalog_id != null ? Number(currentData.catalog_id) : null,
-                catalogId: currentData.catalogId || currentData.selected_catalog_id || null,
-                catalog_name: currentData.catalog_name || '',
-                catalog_model: currentData.catalog_model || '',
-                catalog_image: currentData.catalog_image || currentData.card_image || '',
-                quantity: parseInt(currentData.quantity || 100),
-                total_amount: total,
-                advance_paid: advance,
-                balance_amount: parseFloat(currentData.balance_amount || (total - advance)),
-                groom_name: currentData.groom_name || '-',
-                groom_father: currentData.groom_father || '-',
-                groom_address: currentData.groom_address || '-',
-                bride_name: currentData.bride_name || '-',
-                bride_father: currentData.bride_father || '-',
-                bride_address: currentData.bride_address || '-',
-                barat_date: currentData.barat_date || currentData.wedding_date || '-',
-                custom_notes: currentData.custom_notes || currentData.order_notes || currentData.notes || '',
-                status: 'Pending',
-                txn_id: cashfreeOrderId,
-                payment_mode: 'Cashfree',
-                payment_receipt: '',
-                created_at: new Date().toISOString()
-            };
-
-            if (uploadedMatterFile) payload.customer_files = [uploadedMatterFile];
-
-            try {
-                const { error } = await supabaseClient.from('orders').insert([payload]);
-                if (!error) return true;
-
-                console.error('Pending Cashfree order insert failed:', error);
-
-                // Retry with only the core columns if an optional column causes the first insert to fail.
-                const core = { ...payload };
-                delete core.catalog_id;
-                delete core.catalogId;
-                delete core.catalog_name;
-                delete core.catalog_model;
-                delete core.catalog_image;
-                delete core.custom_notes;
-                delete core.barat_date;
-                delete core.customer_files;
-                delete core.payment_receipt;
-
-                const retry = await supabaseClient.from('orders').insert([core]);
-                if (!retry.error) return true;
-
-                console.error('Pending Cashfree core insert failed:', retry.error);
-                return false;
-            } catch (e) {
-                console.error('Pending Cashfree order exception:', e);
-                return false;
             }
         }
 
         async function verifyCashfreeAndSubmit(orderId) {
             const submitBtn = document.getElementById('btnSubmitOrder');
             const status = document.getElementById('cashfreeStatus');
-
             try {
                 submitBtn.disabled = true;
                 document.getElementById('submitBtnText').innerText = 'Cashfree payment verify हो रहा है...';
@@ -510,57 +416,29 @@
 
                 const response = await fetch(cashfreeFunctionUrl(), {
                     method: 'POST',
-                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                        'apikey': SUPABASE_ANON_KEY
                     },
                     body: JSON.stringify({ action: 'verify', order_id: orderId })
                 });
+                const result = await response.json();
+                if (!response.ok || !result.ok) throw new Error(result.error || 'Cashfree verification failed');
 
-                const raw = await response.text();
-                let result = {};
-                try { result = raw ? JSON.parse(raw) : {}; } catch (_) {}
-
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || result.message || ('Cashfree verification failed (' + response.status + ')'));
-                }
-
-                const paid = String(result.order_status || '').toUpperCase() === 'PAID';
-
-                if (paid) {
+                if (result.paid) {
                     cashfreePaymentDone = true;
                     cashfreeOrderId = orderId;
-
-                    // Webhook normally updates this row. This direct update makes My Orders
-                    // show Paid immediately after the return when RLS permits UPDATE.
-                    if (supabaseClient) {
-                        const { error: updateError } = await supabaseClient
-                            .from('orders')
-                            .update({
-                                status: 'Paid',
-                                payment_mode: 'Cashfree',
-                                txn_id: orderId
-                            })
-                            .eq('txn_id', orderId);
-
-                        if (updateError) {
-                            console.warn('Direct Paid update failed; webhook will update it:', updateError);
-                        }
-                    }
-
+                    cashfreePaymentId = result.txn_id || '';
                     try { sessionStorage.removeItem('dp_cashfree_order_id'); } catch (e) {}
                     try { localStorage.removeItem('dp_temp_order'); } catch (e) {}
-
-                    alert('Cashfree payment सफल रहा। आपका ऑर्डर Database में दर्ज हो गया है।');
+                    alert('Cashfree payment सफल रहा। आपका ऑर्डर Database में दर्ज है।');
                     window.location.replace('my_orders.html');
                     return;
                 }
 
-                status.innerText = 'Payment अभी Paid नहीं है: ' + (result.order_status || 'Pending');
+                status.innerText = 'Payment अभी Paid नहीं है: ' + (result.status || 'Pending');
                 submitBtn.disabled = false;
-                document.getElementById('submitBtnText').innerText = 'Cashfree से Payment करें';
+                document.getElementById('submitBtnText').innerText = 'भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें';
                 alert('Cashfree payment अभी सफल/PAID नहीं दिख रहा है। कृपया दोबारा जांचें।');
             } catch (e) {
                 console.error('Cashfree verify error:', e);
@@ -659,23 +537,21 @@
             }
         }
 
-        function showCashOrderCompleteState() {
-            const wrap = document.getElementById('paymentOptionsWrap');
-            if (wrap) {
-                wrap.innerHTML = `
-                    <div style="background:#ecfdf5;border:2px solid #86efac;border-radius:16px;padding:22px;text-align:center;">
-                        <div style="font-size:44px;color:#16a34a;margin-bottom:8px;">✓</div>
-                        <h3 style="color:#166534;margin-bottom:6px;">ऑर्डर पूरा हो गया</h3>
-                        <p style="color:#475569;font-size:14px;">एडवांस कैश दुकान पर जमा करना है। कार्ड प्रिंट होते ही सूचना दिया जाएगा।</p>
-                    </div>`;
-            }
-        }
-
-        async function finalizeAndSubmitOrder(paymentModeOverride = 'cash') {
+        async function finalizeAndSubmitOrder() {
             const submitBtn = document.getElementById('btnSubmitOrder');
-            const isCashfree = paymentModeOverride === 'cashfree' || document.getElementById('radioCashfree')?.checked;
-            const isCashAtShop = paymentModeOverride === 'cash' || document.getElementById('radioCod')?.checked;
-            const txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : ('CASH_' + Date.now() + '_' + Math.floor(Math.random() * 10000));
+            const isUpi = document.getElementById('radioUpi').checked;
+            const isCashfree = document.getElementById('radioCashfree').checked;
+            let txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : "COD (दुकान पर नकद)";
+
+            if (isUpi && !isCashfree) {
+                const val = document.getElementById('txnIdInput').value.trim();
+                if (!val) {
+                    alert("कृपया ऑनलाइन पेमेंट का UTR / Transaction ID दर्ज करें।");
+                    document.getElementById('txnIdInput').focus();
+                    return;
+                }
+                txnId = val;
+            }
 
             submitBtn.disabled = true;
             document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
@@ -743,7 +619,7 @@
                 custom_notes: currentData.custom_notes || currentData.order_notes || currentData.notes || '',
                 status: 'Pending',
                 txn_id: txnId,
-                payment_mode: isCashfree ? 'Cashfree' : 'Advance Cash (दुकान पर देना है)',
+                payment_mode: isCashfree ? 'Cashfree' : (isUpi ? 'Online (UPI)' : 'Cash on Delivery'),
                 payment_receipt: compressedScreenshotBase64 || '',
                 created_at: new Date().toISOString()
             };
@@ -837,15 +713,14 @@
             }
 
             if (!cloudSaved) {
-                console.warn('Order cloud sync failed:', lastCloudError);
+                console.warn('Order saved locally; cloud sync failed:', lastCloudError);
             }
 
             if (cloudSaved) {
-                showCashOrderCompleteState();
-                alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है! एडवांस कैश दुकान पर देना है।');
+                alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!');
             } else {
                 const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
-                alert('ऑर्डर Database में Save नहीं हुआ।' + detail);
+                alert('ऑर्डर इस डिवाइस में सेव है, लेकिन Database में Save नहीं हुआ।' + detail);
             }
             window.location.replace("my_orders.html");
         }
