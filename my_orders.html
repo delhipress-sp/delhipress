@@ -709,7 +709,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 
             // Supabase client न हो तो local order को कभी न हटाएँ।
             if (!supabaseClient) {
-                fetchedOrdersList = currentLocal;
+                fetchedOrdersList = await enrichOrderCatalogImages(currentLocal);
                 renderOrdersUI();
                 return;
             }
@@ -791,6 +791,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 });
 
                 // यदि cloud query सफल लेकिन खाली है, local order सुरक्षित रहेगा।
+                fetchedOrdersList = await enrichOrderCatalogImages(fetchedOrdersList);
                 localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                 renderOrdersUI();
 
@@ -805,7 +806,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             } catch(e) {
                 console.error('My Orders cloud sync error:', e);
                 // Network/RLS/quota/phone mismatch में local order को बनाए रखें।
-                fetchedOrdersList = currentLocal;
+                fetchedOrdersList = await enrichOrderCatalogImages(currentLocal);
                 renderOrdersUI();
             }
         }
@@ -906,6 +907,49 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             }
 
             alert("आपका ऑर्डर सफलता से रद्द (Cancelled) कर दिया गया है!");
+        }
+
+        async function enrichOrderCatalogImages(list) {
+            if (!supabaseClient || !Array.isArray(list) || !list.length) return list;
+            try {
+                const needs = list.filter(o => {
+                    const img = String(o?.card_image || o?.image || o?.image_url || '').trim();
+                    return !img || img === safeCardPlaceholder || /^data:image\/svg/i.test(img);
+                });
+                if (!needs.length) return list;
+                const {data,error} = await Promise.race([
+                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
+                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog image timeout')),5000))
+                ]);
+                if (error || !Array.isArray(data) || !data.length) return list;
+                const clean=v=>String(v??'').trim();
+                const norm=v=>clean(v).toLowerCase().replace(/[^a-z0-9\u0900-\u097f]+/g,'');
+                return list.map(o=>{
+                    const currentImg=clean(o?.card_image || o?.image || o?.image_url || '');
+                    if (currentImg && currentImg !== safeCardPlaceholder && !/^data:image\/svg/i.test(currentImg)) return o;
+                    const oid=clean(o?.catalog_id || o?.catalogId || o?.card_id || o?.product_id || o?.card_catalog_id || o?.catalog_item_id);
+                    const om=norm(o?.card_model || o?.model || o?.code || o?.model_no || o?.card_code);
+                    const ot=norm(o?.card_title || o?.card_name || o?.product_name || o?.title);
+                    let best=null,bestScore=-1;
+                    for(const c of data){
+                        const cid=clean(c?.id ?? c?.catalog_id ?? c?.card_id);
+                        const cm=norm(c?.model ?? c?.code ?? c?.card_model ?? c?.model_no ?? c?.card_code);
+                        const ct=norm(c?.name ?? c?.title ?? c?.card_name ?? c?.product_name);
+                        let score=0;
+                        if(oid && cid && oid===cid) score+=1000;
+                        if(om && cm && om===cm) score+=500;
+                        if(ot && ct && ot===ct) score+=400;
+                        else if(ot && ct && (ot.includes(ct)||ct.includes(ot))) score+=250;
+                        if(score>bestScore){bestScore=score;best=c;}
+                    }
+                    if(!best || bestScore<=0) return o;
+                    const img=clean(best?.image_url || best?.image || best?.photo || best?.thumbnail || best?.card_image || best?.cover_image);
+                    if(!img) return o;
+                    return {...o, catalog_id:o.catalog_id || best?.id || best?.catalog_id || best?.card_id || '', card_image:img};
+                });
+            } catch(e) {
+                return list;
+            }
         }
 
         function renderOrdersUI() {
@@ -1791,7 +1835,15 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             const total = parseFloat(ord.total_amount || 0);
             const advance = parseFloat(ord.advance_paid || 0);
             const balance = Math.max(0, total - advance);
-            const img = ord.card_image || safeCardPlaceholder;
+            const img = ord.card_image || ord.image || ord.image_url || safeCardPlaceholder;
+            const selectedCardHtml = `
+                <div style="border:2px solid #7f1d1d;border-radius:10px;padding:10px;background:#fffdf5;margin-bottom:12px;">
+                    <div style="font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:8px;">🖼️ पसंद किया हुआ कार्ड</div>
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <img src="${escapeReceiptText(img)}" alt="Selected Card" style="width:110px;height:110px;object-fit:contain;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';">
+                        <div style="font-size:13px;line-height:1.7;"><b>${escapeReceiptText(ord.card_title || ord.card_name || 'शादी कार्ड')}</b><br>${ord.card_model ? 'मॉडल / कोड: '+escapeReceiptText(ord.card_model)+'<br>' : ''}<span style="color:#64748b;">ऑर्डर में चुना गया कार्ड</span></div>
+                    </div>
+                </div>`;
             const rating = Number(review?.rating ?? review?.stars ?? ord.rating ?? ord.stars ?? 0) || 0;
             const reviewText = review?.feedback ?? review?.comment ?? ord.rating_feedback ?? '';
             const reviewName = review?.name ?? review?.user_name ?? ord.rating_name ?? '';
@@ -1850,6 +1902,8 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                         <div class="form-line"><b>पता:</b> ${escapeReceiptText(ord.bride_address||'-')}</div>
                     </div>
                 </div>
+
+                ${selectedCardHtml}
 
                 <div style="font-weight:900;color:#7f1d1d;font-size:16px;margin:10px 0 6px;">3. कार्यक्रम</div>
                 <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
