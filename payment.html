@@ -480,21 +480,45 @@
                         delete x.custom_notes;
                         delete x.payment_receipt;
                         delete x.barat_date;
-                        delete x.wedding_matter_file;
+                        delete x.customer_files;
                         return x;
-                    })()
+                    })(),
+                    {
+                        customer_name: cloudBase.customer_name,
+                        mobile: cloudBase.mobile,
+                        address: cloudBase.address,
+                        card_title: cloudBase.card_title,
+                        card_model: cloudBase.card_model,
+                        card_image: cloudBase.card_image,
+                        quantity: cloudBase.quantity,
+                        total_amount: cloudBase.total_amount,
+                        advance_paid: cloudBase.advance_paid,
+                        balance_amount: cloudBase.balance_amount,
+                        groom_name: cloudBase.groom_name,
+                        groom_father: cloudBase.groom_father,
+                        groom_address: cloudBase.groom_address,
+                        bride_name: cloudBase.bride_name,
+                        bride_father: cloudBase.bride_father,
+                        bride_address: cloudBase.bride_address,
+                        status: cloudBase.status,
+                        txn_id: cloudBase.txn_id,
+                        payment_mode: cloudBase.payment_mode,
+                        created_at: cloudBase.created_at
+                    }
                 ];
 
                 for (const payload of payloadsToTry) {
                     try {
+                        // INSERT को SELECT से अलग रखा गया है। पहले code में
+                        // .select('id') की वजह से INSERT सफल होने के बाद भी
+                        // SELECT/RLS समस्या को "cloud sync failed" माना जा सकता था।
                         const result = await supabaseClient
                             .from('orders')
-                            .insert([payload])
-                            .select('id');
+                            .insert([payload]);
 
                         if (!result.error) {
                             cloudSaved = true;
-                            console.log('Order saved to Supabase successfully:', result.data);
+                            console.log('Order inserted into Supabase successfully.');
                             break;
                         }
                         lastCloudError = result.error;
@@ -512,11 +536,12 @@
                 console.warn('Order saved locally; cloud sync failed:', lastCloudError);
             }
 
-            alert(
-                cloudSaved
-                    ? 'आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!'
-                    : 'आपका ऑर्डर दर्ज हो गया है। Database sync में अस्थायी समस्या है, लेकिन ऑर्डर My Orders में सुरक्षित है।'
-            );
+            if (cloudSaved) {
+                alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!');
+            } else {
+                const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
+                alert('ऑर्डर इस डिवाइस में सेव है, लेकिन Database में Save नहीं हुआ।' + detail);
+            }
             window.location.replace("my_orders.html");
         }
     </script>
