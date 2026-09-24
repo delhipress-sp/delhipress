@@ -577,8 +577,8 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 return;
             }
 
-            loadInitialLocalOrders();
-            // Never keep the whole My Orders page blocked by catalog/review requests.
+            // Orders are CLOUD ONLY. Never load or restore order data from localStorage.
+            clearLocalOrderCaches();
             loadRecommendedCatalog();
             syncWithCloudFast();
             // Network/RLS transient issue में कुछ सेकंड बाद दोबारा cloud orders लें।
@@ -586,29 +586,14 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             setTimeout(() => syncWithCloudFast(), 6000);
         });
 
+        function clearLocalOrderCaches(){
+            // Customer login may remain in localStorage, but ORDER DATA must not.
+            const keys=['my_orders_list','dp_all_orders','user_orders','dp_my_orders','dp_latest_confirmed_order'];
+            keys.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});
+        }
+
         function loadInitialLocalOrders() {
-            const user = getCurrentLoggedUser();
-            const mobile = normalizeCustomerMobile(user.mobile || user.phone || '');
-            let localList = [];
-            const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
-            for (const k of keys) {
-                try {
-                    const data = JSON.parse(localStorage.getItem(k) || '[]');
-                    if (Array.isArray(data) && data.length > 0) {
-                        const mine = data.filter(o => isOrderForCurrentUser(o, mobile));
-                        if (mine.length) { localList = mine; break; }
-                    }
-                } catch(e) {}
-            }
-
-            if (localList.length === 0) {
-                try {
-                    const latest = JSON.parse(localStorage.getItem('dp_latest_confirmed_order') || 'null');
-                    if (latest && isOrderForCurrentUser(latest, mobile)) localList = [latest];
-                } catch(e) {}
-            }
-
-            fetchedOrdersList = localList;
+            fetchedOrdersList = [];
             renderOrdersUI();
             updateUserGreeting();
         }
@@ -651,43 +636,8 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 return d.length >= 10 ? d.slice(-10) : d;
             };
 
-            // सभी local order keys से order backup निकालें। Payment page local में
-            // order save कर चुका हो तो cloud response empty होने पर भी order गायब न हो।
+            // IMPORTANT: Orders are read only from Supabase. No local order cache is used.
             const localOrders = [];
-            const localSeen = new Set();
-            const localKeys = ['my_orders_list','dp_all_orders','user_orders','dp_my_orders','dp_latest_confirmed_order'];
-
-            for (const key of localKeys) {
-                try {
-                    const raw = localStorage.getItem(key);
-                    if (!raw) continue;
-                    const parsed = JSON.parse(raw);
-                    const arr = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === 'object' ? [parsed] : []);
-                    for (const o of arr) {
-                        if (!o || typeof o !== 'object') continue;
-                        const oid = clean(o.id || o.order_id);
-                        const signature = oid || [
-                            o.customer_name, o.mobile || o.phone, o.card_title, o.created_at
-                        ].map(clean).join('|');
-                        if (!signature || localSeen.has(signature)) continue;
-                        localSeen.add(signature);
-                        localOrders.push(o);
-                    }
-                } catch(e) {}
-            }
-
-            // पहले से दिखाई दे रहे orders भी रखें।
-            for (const o of (Array.isArray(fetchedOrdersList) ? fetchedOrdersList : [])) {
-                if (!o || typeof o !== 'object') continue;
-                const oid = clean(o.id || o.order_id);
-                const signature = oid || [
-                    o.customer_name, o.mobile || o.phone, o.card_title, o.created_at
-                ].map(clean).join('|');
-                if (signature && !localSeen.has(signature)) {
-                    localSeen.add(signature);
-                    localOrders.push(o);
-                }
-            }
 
             const loggedInMobile = normPhone(userObj.phone || userObj.mobile || '');
             if (!loggedInMobile) {
@@ -700,16 +650,10 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             const phoneDigits = [loggedInMobile];
 
             // Local cache भी केवल इसी customer तक सीमित रखें।
-            const filteredLocalOrders = localOrders.filter(o => normPhone(o.mobile || o.phone || '') === loggedInMobile);
-            const currentLocal = filteredLocalOrders.sort((a,b) => {
-                const ta = new Date(a.created_at || 0).getTime() || 0;
-                const tb = new Date(b.created_at || 0).getTime() || 0;
-                return tb - ta;
-            });
 
             // Supabase client न हो तो local order को कभी न हटाएँ।
             if (!supabaseClient) {
-                fetchedOrdersList = await enrichOrderCatalogImages(currentLocal);
+                fetchedOrdersList = [];
                 renderOrdersUI();
                 return;
             }
@@ -770,25 +714,9 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 
                 const cloud = Array.isArray(result?.data) ? result.data : [];
 
-                // Cloud में order मिलें तो cloud + अभी-अभी payment page द्वारा बनाए
-                // local unsynced orders को merge करें। Cloud empty होने पर local order
-                // को खाली करके गायब नहीं करेंगे।
-                const cloudKeys = new Set();
-                cloud.forEach(o => {
-                    const k = clean(o?.id || o?.order_id);
-                    if (k) cloudKeys.add(k);
-                });
-
-                const unsyncedLocal = currentLocal.filter(o => {
-                    // Only id-less local orders are genuinely unsynced.
-                    // If a local order already has a DB id but is absent from the
-                    // successful cloud response, Admin has deleted it (or it no longer
-                    // exists in the cloud), so do not show the stale local copy.
-                    const dbId = clean(o?.id);
-                    return !dbId;
-                });
-
-                fetchedOrdersList = [...cloud, ...unsyncedLocal].sort((a,b) => {
+                // Supabase response is the single source of truth.
+                // If Admin deletes an order, it disappears immediately from My Orders.
+                fetchedOrdersList = cloud.sort((a,b) => {
                     const ta = Number(a?.id || 0) || (new Date(a?.created_at || 0).getTime() || 0);
                     const tb = Number(b?.id || 0) || (new Date(b?.created_at || 0).getTime() || 0);
                     return tb - ta;
@@ -796,21 +724,19 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 
                 // यदि cloud query सफल लेकिन खाली है, local order सुरक्षित रहेगा।
                 fetchedOrdersList = await enrichOrderCatalogImages(fetchedOrdersList);
-                localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                 renderOrdersUI();
 
                 attachCloudRatings(fetchedOrdersList).then(withRatings => {
                     if (Array.isArray(withRatings)) {
                         fetchedOrdersList = withRatings;
-                        localStorage.setItem('my_orders_list', JSON.stringify(fetchedOrdersList));
                         renderOrdersUI();
                     }
                 }).catch(()=>{});
 
             } catch(e) {
                 console.error('My Orders cloud sync error:', e);
-                // Network/RLS/quota/phone mismatch में local order को बनाए रखें।
-                fetchedOrdersList = await enrichOrderCatalogImages(currentLocal);
+                // Cloud failed: do NOT show stale local orders.
+                fetchedOrdersList = [];
                 renderOrdersUI();
             }
         }
@@ -879,20 +805,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 renderOrdersUI();
             }
 
-            // Sync with local storage
-            const keys = ['my_orders_list', 'dp_all_orders', 'user_orders', 'dp_my_orders'];
-            keys.forEach(k => {
-                let list = [];
-                try { list = JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) {}
-                list = list.map(item => {
-                    if (String(item.id) === String(orderIdentifier) || String(item.order_id) === String(orderIdentifier)) {
-                        item.status = 'Cancelled';
-                        item.custom_notes = (item.custom_notes ? item.custom_notes + " | " : "") + `[रद्द करने का कारण: ${cleanReason}]`;
-                    }
-                    return item;
-                });
-                localStorage.setItem(k, JSON.stringify(list));
-            });
+            // Order data is not stored locally. Supabase is the only source.
 
             // Update on Supabase
             if (supabaseClient) {
@@ -1251,28 +1164,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             }
 
             // Cloud save successful होने के बाद ही shared rating cache update करें।
-            try{
-                const ratingMap=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
-                ratingMap[catalogId]=row;
-                localStorage.setItem('dp_catalog_ratings',JSON.stringify(ratingMap));
-            }catch(e){}
-
-            const catalogKey='catalog_feedback_'+catalogId;
-            let localReviews=[]; try{localReviews=JSON.parse(localStorage.getItem(catalogKey)||'[]');if(!Array.isArray(localReviews))localReviews=[];}catch(e){}
-            localReviews.unshift(row); localStorage.setItem(catalogKey,JSON.stringify(localReviews.slice(0,100)));
-            localStorage.setItem('dp_order_rating_'+String(ord.id||ord.order_id||orderRatingIndex),JSON.stringify(row));
-
-            try{
-                const lists=['my_orders_list','dp_all_orders','user_orders','dp_my_orders'];
-                lists.forEach(k=>{
-                    let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){}
-                    if(!Array.isArray(a))a=[];
-                    a=a.map(x=>(String(x.id||x.order_id)===String(ord.id||ord.order_id))
-                        ? {...x,rating:orderRatingValue,stars:orderRatingValue,rating_feedback:text,rating_name:name,rating_images:imageUrls,rating_created_at:createdAt,catalog_id:catalogId}
-                        : x);
-                    localStorage.setItem(k,JSON.stringify(a));
-                });
-            }catch(e){}
 
             fetchedOrdersList[orderRatingIndex]={
                 ...fetchedOrdersList[orderRatingIndex],
@@ -1333,7 +1224,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                     const r=await supabaseClient.from('orders').select('*').eq('id',localId).limit(1);
                     if(!r.error && r.data && r.data[0]){
                         fetchedOrdersList[index]={...ord,...r.data[0]};
-                        localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
                         return fetchedOrdersList[index];
                     }
                 }
@@ -1370,7 +1260,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 }
                 if(best && (bestScore>=15 || rows.length===1)){
                     fetchedOrdersList[index]={...ord,...best};
-                    localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
                     return fetchedOrdersList[index];
                 }
             }catch(e){ console.error('Resolve customer order error:',e); }
@@ -1511,7 +1400,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 const {data,error}=await supabaseClient.from('orders').update({customer_messages:messages,customer_files:files,correction_status:'customer_sent'}).eq('id',id).select().single();
                 if(error) throw error;
                 fetchedOrdersList[index]={...ord,...data};
-                localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
                 input.value=''; fileEl.value=''; customerVoiceBlob=null;
                 if(customerVoiceUrl){URL.revokeObjectURL(customerVoiceUrl);customerVoiceUrl=null;}
                 const vp=document.getElementById('custVoicePreview'), va=document.getElementById('custVoiceAudio'), vb=document.getElementById('custVoiceBtn');
@@ -1536,7 +1424,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 const {data,error}=await supabaseClient.from('orders').update(payload).eq('id',id).select().single();
                 if(error) throw error;
                 fetchedOrdersList[index]={...fetchedOrdersList[index],...data};
-                localStorage.setItem('my_orders_list',JSON.stringify(fetchedOrdersList));
                 document.getElementById('custCorrStatus').innerText='स्थिति: '+status;
                 renderOrdersUI();
                 openCustomerCorrectionModal(index);
@@ -1553,37 +1440,22 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
         async function loadRecommendedCatalog() {
             const container=document.getElementById('recommendedCatalogContainer');
             if(!container) return;
-
-            // सबसे पहले Index का वही cache दिखाएँ — Supabase धीमा हो तब भी catalog खाली नहीं रहेगा।
-            let cache=[];
-            try{
-                const raw=localStorage.getItem('dp_index_catalog') || sessionStorage.getItem('dp_index_catalog_cache_v3') || '';
-                const parsed=raw?JSON.parse(raw):[];
-                if(Array.isArray(parsed) && parsed.length) cache=parsed;
-            }catch(e){}
-            if(cache.length){ renderRecommendedCatalogCards(cache); }
-            else container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग लोड हो रहा है...</p>`;
-
             if(!supabaseClient){
-                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग उपलब्ध नहीं है।</p>`;
+                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">Database connection उपलब्ध नहीं है।</p>`;
                 return;
             }
             try{
-                // केवल Admin की मुख्य catalog table पढ़ें; तीन tables को एक साथ पढ़कर 3–5 सेकंड की देरी नहीं होगी।
                 const {data,error}=await Promise.race([
                     supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
-                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),4500))
+                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),7000))
                 ]);
                 if(error) throw error;
                 const live=Array.isArray(data)?data:[];
                 const seen=new Set();
-                const clean=live.filter(c=>{const id=String(c?.id??c?.catalog_id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
+                const clean=live.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
                 renderRecommendedCatalogCards(clean);
-                try{ localStorage.setItem('dp_index_catalog',JSON.stringify(clean)); }catch(e){}
-                try{ sessionStorage.setItem('dp_index_catalog_cache_v3',JSON.stringify(clean)); }catch(e){}
             }catch(e){
-                // Live slow/fail होने पर पहले से दिख रहा cache वैसा ही रहने दें।
-                if(!cache.length) container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग अभी लोड नहीं हो पाया। कृपया रिफ्रेश करें।</p>`;
+                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग Database से लोड नहीं हो पाया। Refresh करें।</p>`;
             }
         }
 
@@ -1632,7 +1504,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 })(),
                 image: c.image || c.image_url || c.card_image || c.photo || ''
             };
-            localStorage.setItem('order_selected_card', JSON.stringify(cardData));
             window.location.href = `order.html?id=${encodeURIComponent(cardData.id)}`;
         }
 
@@ -1846,14 +1717,6 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                   }catch(e){}
                 }
               }catch(e){ console.warn('Order review resolver:',e); }
-            }
-
-            // Local fallback for a review saved during the same session.
-            if(!review){
-              try{
-                const local=JSON.parse(localStorage.getItem('dp_order_rating_'+String(ord.id||ord.order_id||index))||'null');
-                if(local) review=local;
-              }catch(e){}
             }
 
             const total = parseFloat(ord.total_amount || 0);
