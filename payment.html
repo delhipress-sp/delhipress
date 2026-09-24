@@ -422,13 +422,6 @@
                 uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
                 if (uploadedMatterFile) {
                     cleanOrderPayload.customer_files = [uploadedMatterFile];
-                    cleanOrderPayload.wedding_matter_file = {
-                        name: uploadedMatterFile.name,
-                        type: uploadedMatterFile.mime,
-                        size: uploadedMatterFile.size,
-                        url: uploadedMatterFile.url,
-                        path: uploadedMatterFile.path
-                    };
                 } else {
                     cleanOrderPayload.customer_files = [];
                 }
@@ -477,6 +470,7 @@
                 const cloudBase = { ...cleanOrderPayload };
                 delete cloudBase.order_id;
                 delete cloudBase.phone;
+                delete cloudBase.wedding_matter_file;
 
                 const payloadsToTry = [
                     cloudBase,
@@ -486,6 +480,7 @@
                         delete x.custom_notes;
                         delete x.payment_receipt;
                         delete x.barat_date;
+                        delete x.wedding_matter_file;
                         return x;
                     })()
                 ];
