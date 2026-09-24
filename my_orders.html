@@ -491,7 +491,21 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
                     <i class="fa-solid fa-print"></i> प्रिंट निकालें
                 </button>
+                <button type="button" onclick="openCustomerPaymentReceipt(window.__currentReceiptOrderIndex)" style="flex:1; padding:11px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+                    <i class="fa-solid fa-credit-card"></i> Payment Receipt
+                </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Separate Payment Receipt Modal -->
+    <div class="modal-overlay" id="customerPaymentReceiptModal">
+        <div class="modal-content" style="max-width:700px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="color:#2563eb;font-size:18px;font-weight:800;">💳 Payment Receipt / भुगतान रसीद</h3>
+                <button type="button" onclick="closeCustomerPaymentReceipt()" style="border:none;background:#e2e8f0;border-radius:50%;width:30px;height:30px;cursor:pointer;font-weight:bold;">&times;</button>
+            </div>
+            <div id="customerPaymentReceiptArea"></div>
         </div>
     </div>
 
@@ -1638,209 +1652,101 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 const {data,error}=await supabaseClient.from('orders').update(payload).eq('id',Number(id)).select().single();
                 if(error) throw error;
                 fetchedOrdersList[index]={...ord,...data};
-                for(const key of ['my_orders_list','dp_all_orders','user_orders','dp_my_orders']){
-                    try{
-                        let list=JSON.parse(localStorage.getItem(key)||'[]'); if(!Array.isArray(list)) list=[];
-                        list=list.map(x=>String(x.id)===String(id)?{...x,...payload}:x);
-                        localStorage.setItem(key,JSON.stringify(list));
-                    }catch(e){}
-                }
                 alert('टाइप किया हुआ ऑर्डर सफलतापूर्वक अपडेट हो गया।');
                 viewCustomerReceipt(index);
             }catch(e){ alert('ऑर्डर अपडेट नहीं हुआ।\n\nकारण: '+(e.message||e)); }
         }
 
         async function viewCustomerReceipt(index) {
-            let ord = fetchedOrdersList[index];
+            window.__currentReceiptOrderIndex = Number(index);
+            const ord = fetchedOrdersList[index];
             if (!ord) return;
 
-            // DIRECT ORDER REVIEW RESOLVER:
-            // My Orders -> exact order -> catalog_feedback.  Legacy reviews are resolved
-            // through the same Admin catalog source as Index, so the review cannot get lost.
-            let review = null;
-            const clean=v=>String(v??'').trim();
-            const norm=v=>clean(v).toLowerCase().replace(/[^a-z0-9]+/g,'');
-            const orderDbId=clean(ord.id), orderId=clean(ord.order_id);
-            let catalogIds=new Set([ord.catalog_id,ord.catalogId,ord.card_id,ord.product_id,ord.card_catalog_id,ord.catalog_item_id]
-              .filter(v=>clean(v)).map(v=>clean(v).toLowerCase()));
-
-            if(supabaseClient){
-              try{
-                const timeout=ms=>new Promise((_,reject)=>setTimeout(()=>reject(new Error('review timeout')),2500));
-
-                // 1) Exact order-linked review is always authoritative.
-                const linkedQueries=[];
-                if(orderDbId) linkedQueries.push(supabaseClient.from('catalog_feedback').select('*').eq('order_db_id',Number(orderDbId)).order('created_at',{ascending:false}).limit(20));
-                if(orderId) linkedQueries.push(supabaseClient.from('catalog_feedback').select('*').eq('order_id',orderId).order('created_at',{ascending:false}).limit(20));
-                if(linkedQueries.length){
-                  const results=await Promise.race([Promise.all(linkedQueries),timeout(2500)]);
-                  for(const r of results||[]){ if(!r?.error && Array.isArray(r?.data) && r.data.length){ review=r.data[0]; break; } }
-                }
-
-                // 2) If old feedback has no order link, resolve this order to the Admin catalog
-                // using catalog ID first, then exact model/title similarity.
-                if(!review){
-                  let catalogRows=[];
-                  try{
-                    const cr=await Promise.race([
-                      supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
-                      timeout(2500)
-                    ]);
-                    if(!cr.error&&Array.isArray(cr.data)) catalogRows=cr.data;
-                  }catch(e){}
-
-                  const orderModel=norm(ord.card_model||ord.model||ord.code||'');
-                  const orderTitle=norm(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
-                  const titleMatch=(a,b)=>{
-                    a=norm(a); b=norm(b); if(!a||!b)return false;
-                    return a===b || a.includes(b) || b.includes(a);
-                  };
-                  for(const c of catalogRows){
-                    const cid=clean(c?.id);
-                    if(cid && catalogIds.has(cid.toLowerCase())) continue;
-                    const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
-                    const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
-                    const modelOk=!orderModel||!cm||cm===orderModel||cm.includes(orderModel)||orderModel.includes(cm);
-                    const titleOk=!orderTitle||!ct||titleMatch(orderTitle,ct);
-                    if(modelOk&&titleOk&&cid){ catalogIds.add(cid.toLowerCase()); break; }
-                  }
-
-                  // 3) Read feedback once and match by resolved catalog ID.
-                  try{
-                    const fr=await Promise.race([
-                      supabaseClient.from('catalog_feedback').select('*').order('created_at',{ascending:false}).limit(2000),
-                      timeout(2500)
-                    ]);
-                    if(!fr.error&&Array.isArray(fr.data)){
-                      review=fr.data.find(r=>[r?.catalog_id,r?.card_id,r?.product_id].some(v=>catalogIds.has(clean(v).toLowerCase())))||null;
-                    }
-                  }catch(e){}
-                }
-              }catch(e){ console.warn('Order review resolver:',e); }
-            }
-
             const total = parseFloat(ord.total_amount || 0);
-            const advance = parseFloat(ord.advance_paid || 0);
+            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0);
             const balance = Math.max(0, total - advance);
-            const img = ord.card_image || ord.image || ord.image_url || safeCardPlaceholder;
-            const selectedCardHtml = `
-                <div style="border:2px solid #7f1d1d;border-radius:10px;padding:10px;background:#fffdf5;margin-bottom:12px;">
-                    <div style="font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:8px;">🖼️ पसंद किया हुआ कार्ड</div>
-                    <div style="display:flex;gap:12px;align-items:center;">
-                        <img src="${escapeReceiptText(img)}" alt="Selected Card" style="width:110px;height:110px;object-fit:contain;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';">
-                        <div style="font-size:13px;line-height:1.7;"><b>${escapeReceiptText(ord.card_title || ord.card_name || 'शादी कार्ड')}</b><br>${ord.card_model ? 'मॉडल / कोड: '+escapeReceiptText(ord.card_model)+'<br>' : ''}<span style="color:#64748b;">ऑर्डर में चुना गया कार्ड</span></div>
-                    </div>
-                </div>`;
-            const rating = Number(review?.rating ?? review?.stars ?? ord.rating ?? ord.stars ?? 0) || 0;
-            const reviewText = review?.feedback ?? review?.comment ?? ord.rating_feedback ?? '';
-            const reviewName = review?.name ?? review?.user_name ?? ord.rating_name ?? '';
-            let reviewImages = review?.review_images ?? review?.images ?? review?.image_urls ?? review?.photos ?? [];
-            if(typeof reviewImages==='string'){
-              try{reviewImages=JSON.parse(reviewImages)}catch(e){reviewImages=reviewImages.split(/\s*,\s*|\s*\n\s*/).filter(Boolean)}
-            }
-            if(!Array.isArray(reviewImages)) reviewImages=[reviewImages];
-            reviewImages=reviewImages.map(x=>typeof x==='string'?x.trim():String(x?.url??x?.image_url??x?.src??'').trim()).filter(x=>/^https?:\/\//i.test(x));
-            const stars = rating>0 ? '★'.repeat(Math.round(rating))+'☆'.repeat(Math.max(0,5-Math.round(rating))) : '☆☆☆☆☆';
-            const reviewHtml = rating>0 ? `
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
-                    <div style="font-size:18px;letter-spacing:2px;color:#f5a623;font-weight:900;">${stars} <span style="font-size:14px;color:#1e3a68;letter-spacing:0;">${rating.toFixed(1)}/5</span></div>
-                    ${reviewName?`<div style="font-size:12px;color:#64748b;font-weight:700;margin-top:4px;">${escapeReceiptText(reviewName)}</div>`:''}
-                    <div style="font-size:13px;color:#334155;margin-top:7px;white-space:pre-wrap;word-break:break-word;">${escapeReceiptText(reviewText||'ग्राहक ने कोई लिखित समीक्षा नहीं दी।')}</div>
-                    ${reviewImages.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">${reviewImages.map((u,i)=>`<img src="${escapeReceiptText(u)}" alt="Review photo ${i+1}" onclick="window.open(this.src,'_blank')" style="width:82px;height:82px;object-fit:cover;border-radius:8px;border:1px solid #cbd5e1;cursor:zoom-in;" onerror="this.style.display='none'">`).join('')}</div>`:''}
-                </div>` : `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;color:#64748b;font-size:13px;">इस ऑर्डर की रेटिंग अभी उपलब्ध नहीं है।</div>`;
-
-            fetchedOrdersList[index]={...ord,rating,rating_feedback:reviewText,rating_name:reviewName,rating_images:reviewImages};
-
+            const safeId = escapeReceiptText(ord.order_id || ord.id || '-');
             const matterText = String(ord.custom_notes || ord.order_notes || ord.notes || '');
             const matter = parseOrderMatterForReceipt(matterText);
+            const img = ord.card_image || ord.catalog_image || ord.image || ord.image_url || safeCardPlaceholder;
+
+            // Uploaded PDF/photo: Payment अब orders.order_matter में original data URL
+            // और customer_files में Storage URL रखता है। दोनों को यहाँ support करें।
             const matterFiles = parseCustomerFilesForReceipt(ord);
-            const safeId = escapeReceiptText(ord.order_id || ord.id || '-');
-            const eventRows = matter.events.length ? matter.events.map((e,i)=>`
-                <tr>
-                    <td>${i+1}. ${escapeReceiptText(e.title || '-')}</td>
-                    <td>${escapeReceiptText(e.date || '-')}</td>
-                    <td>${escapeReceiptText(e.day || '-')}</td>
-                    <td>${escapeReceiptText(e.time || e.part || '-')}</td>
-                </tr>`).join('') : `
-                <tr><td colspan="4" style="text-align:center;color:#64748b;">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
-            const fileRows = matterFiles.length ? matterFiles.map(f=>{
+            const directMatter = String(ord.order_matter || '').trim();
+            if (directMatter && /^data:(image\/|application\/pdf)/i.test(directMatter)) {
+                matterFiles.unshift({
+                    url: directMatter,
+                    name: 'Order Form से अपलोड की गई फाइल',
+                    mime: /^data:application\/pdf/i.test(directMatter) ? 'application/pdf' : 'image/*'
+                });
+            }
+            const uniqueFiles=[];
+            matterFiles.forEach(f=>{ if(f && f.url && !uniqueFiles.some(x=>x.url===f.url)) uniqueFiles.push(f); });
+            const fileRows = uniqueFiles.length ? uniqueFiles.map((f,i)=>{
                 const isPdf=/pdf/i.test(String(f.mime||f.fileType||f.type||f.name||''));
-                return `<a href="${escapeReceiptText(f.url)}" target="_blank" rel="noopener" class="matter-file-btn"><i class="fa-solid ${isPdf?'fa-file-pdf':'fa-image'}"></i> ${escapeReceiptText(f.name||'कलम से लिखा मैटर खोलें')}</a>`;
-            }).join('') : `<span style="color:#64748b;font-size:12px;">अलग PDF/फोटो फाइल उपलब्ध नहीं है।</span>`;
+                return `<a href="${escapeReceiptText(f.url)}" target="_blank" rel="noopener" class="matter-file-btn"><i class="fa-solid ${isPdf?'fa-file-pdf':'fa-image'}"></i> ${escapeReceiptText(f.name||('फाइल '+(i+1)))} — खोलें</a>`;
+            }).join('') : `<span style="color:#64748b;font-size:12px;">Order Form से कोई PDF/फोटो अपलोड नहीं किया गया है।</span>`;
+
+            const eventRows = matter.events.length ? matter.events.map((e,i)=>`
+                <tr><td>${i+1}. ${escapeReceiptText(e.title || '-')}</td><td>${escapeReceiptText(e.date || '-')}</td><td>${escapeReceiptText(e.day || '-')}</td><td>${escapeReceiptText(e.time || e.part || '-')}</td></tr>`).join('') :
+                `<tr><td colspan="4" style="text-align:center;color:#64748b;">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
+
+            const paymentButton = `<button type="button" onclick="openCustomerPaymentReceipt(${index})" style="border:0;border-radius:8px;background:#2563eb;color:#fff;padding:10px 15px;font-weight:900;cursor:pointer;">💳 Payment Receipt देखें</button>`;
 
             document.getElementById('printableReceiptArea').innerHTML = `
                 <div class="receipt-header" style="border-bottom:0;margin-bottom:8px;">
-                    <h2 style="color:#7f1d1d;margin:0;font-weight:900;">बिस्मिल्लाहिर्रहमानिर्रहीम</h2>
-                    <div style="font-size:20px;font-weight:900;color:#7f1d1d;margin-top:3px;">ऑर्डर मैटर रसीद / फॉर्म</div>
-                    <div style="font-size:11px;color:#64748b;margin-top:4px;"><b>रसीद नं.:</b> #${safeId} &nbsp; | &nbsp; <b>तिथि:</b> ${ord.created_at?new Date(ord.created_at).toLocaleDateString('hi-IN'):'-'}</div>
+                    <h2 style="color:#e63946;margin:0;font-weight:900;">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</h2>
+                    <div style="font-size:12px;color:#475569;">शादी कार्ड, विजिटिंग कार्ड, फ्लेक्स बैनर एवं ऑनलाइन प्रिंटिंग सेवा</div>
+                    <div style="font-size:11px;color:#64748b;margin-top:4px;"><b>ऑर्डर क्रमांक:</b> #${safeId} &nbsp; | &nbsp; <b>दिनांक:</b> ${ord.created_at?new Date(ord.created_at).toLocaleDateString('hi-IN'):'-'}</div>
                 </div>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-                    <div style="border:2px solid #7f1d1d;border-radius:8px;padding:10px;background:#fffdf5;">
-                        <div style="font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:7px;">1. लड़का:</div>
-                        <div class="form-line"><b>लड़का का नाम:</b> ${escapeReceiptText(ord.groom_name||'-')}</div>
-                        <div class="form-line"><b>पिता का नाम:</b> ${escapeReceiptText(ord.groom_father||'-')}</div>
-                        <div class="form-line"><b>पता:</b> ${escapeReceiptText(ord.groom_address||'-')}</div>
-                    </div>
-                    <div style="border:2px solid #7f1d1d;border-radius:8px;padding:10px;background:#fffdf5;">
-                        <div style="font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:7px;">2. लड़की:</div>
-                        <div class="form-line"><b>लड़की का नाम:</b> ${escapeReceiptText(ord.bride_name||'-')}</div>
-                        <div class="form-line"><b>पिता का नाम:</b> ${escapeReceiptText(ord.bride_father||'-')}</div>
-                        <div class="form-line"><b>पता:</b> ${escapeReceiptText(ord.bride_address||'-')}</div>
+                <div class="receipt-section-title">ग्राहक व ऑर्डर विवरण</div>
+                <div class="receipt-row"><span>ग्राहक का नाम:</span> <b>${escapeReceiptText(ord.customer_name||'-')}</b></div>
+                <div class="receipt-row"><span>मोबाइल नंबर:</span> <b>${escapeReceiptText(ord.mobile||ord.phone||'-')}</b></div>
+                <div class="receipt-row"><span>ईमेल आईडी:</span> <b>${escapeReceiptText(ord.email||ord.customer_email||'-')}</b></div>
+                <div class="receipt-row"><span>कार्ड मॉडल / नाम:</span> <b>${escapeReceiptText(ord.card_title||ord.card_name||'शादी कार्ड')}</b></div>
+                <div class="receipt-row"><span>कार्ड संख्या:</span> <b>${escapeReceiptText(ord.quantity||100)} पीस</b></div>
+
+                <div style="border:2px solid #7f1d1d;border-radius:10px;padding:10px;background:#fffdf5;margin:12px 0;">
+                    <div style="font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:8px;">🖼️ ऑर्डर में चुना गया कार्ड</div>
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <img src="${escapeReceiptText(img)}" alt="Selected Card" style="width:110px;height:110px;object-fit:contain;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;" onerror="this.onerror=null;this.src='${safeCardPlaceholder}';">
+                        <div style="font-size:13px;line-height:1.7;"><b>${escapeReceiptText(ord.card_title||ord.card_name||'शादी कार्ड')}</b><br>${ord.card_model?'मॉडल / कोड: <b>'+escapeReceiptText(ord.card_model)+'</b><br>':''}<span style="color:#64748b;">ऑर्डर में चुना गया कार्ड</span></div>
                     </div>
                 </div>
 
-                ${selectedCardHtml}
+                <div class="receipt-section-title">वैवाहिक विवरण (शुभ विवाह)</div>
+                <div class="receipt-row"><span>वर (लड़का):</span> <b>${escapeReceiptText(ord.groom_name||'-')}</b></div>
+                <div class="receipt-row"><span>वधू (लड़की):</span> <b>${escapeReceiptText(ord.bride_name||'-')}</b></div>
 
                 <div style="font-weight:900;color:#7f1d1d;font-size:16px;margin:10px 0 6px;">3. कार्यक्रम</div>
-                <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
-                    <thead><tr><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">कार्यक्रम</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">तारीख</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">दिन</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">समय</th></tr></thead>
-                    <tbody>${eventRows}</tbody>
-                </table>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;"><thead><tr><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">कार्यक्रम</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">तारीख</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">दिन</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">समय</th></tr></thead><tbody>${eventRows}</tbody></table>
 
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;">
-                        <b style="color:#7f1d1d;">R.S.V.P. / चश्मे बराह</b>
-                        <div style="margin-top:6px;white-space:pre-wrap;line-height:1.6;">${escapeReceiptText(matter.rsvp.join('\n') || '—')}</div>
-                    </div>
-                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;">
-                        <b style="color:#7f1d1d;">ऑर्डर जानकारी</b>
-                        <div style="margin-top:6px;line-height:1.7;">ग्राहक: <b>${escapeReceiptText(ord.customer_name||'-')}</b><br>मोबाइल: <b>${escapeReceiptText(ord.mobile||ord.phone||'-')}</b><br>मात्रा: <b>${escapeReceiptText(ord.quantity||100)} पीस</b></div>
-                    </div>
+                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;"><b style="color:#7f1d1d;">R.S.V.P. / चश्मे बराह</b><div style="margin-top:6px;white-space:pre-wrap;line-height:1.6;">${escapeReceiptText(matter.rsvp.join('\n')||'—')}</div></div>
+                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;"><b style="color:#7f1d1d;">ऑर्डर जानकारी</b><div style="margin-top:6px;line-height:1.7;">ग्राहक: <b>${escapeReceiptText(ord.customer_name||'-')}</b><br>मोबाइल: <b>${escapeReceiptText(ord.mobile||ord.phone||'-')}</b><br>मात्रा: <b>${escapeReceiptText(ord.quantity||100)} पीस</b></div></div>
                 </div>
 
                 <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#fff;margin-bottom:12px;">
-                    <div style="font-weight:900;color:#7f1d1d;margin-bottom:6px;">✍️ कलम से लिखा मैटर — अलग फाइल</div>
+                    <div style="font-weight:900;color:#7f1d1d;margin-bottom:6px;">✍️ Order Form से अपलोड किया हुआ PDF / फोटो</div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">${fileRows}</div>
                 </div>
 
-                <div style="border:2px solid #2563eb;border-radius:9px;padding:10px;background:#f8fbff;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                        <b style="color:#1d4ed8;font-size:15px;">✏️ टाइप किया हुआ ऑर्डर — Edit कर सकते हैं</b>
-                        <button type="button" onclick="toggleTypedOrderEdit(${index})" style="border:0;border-radius:8px;background:#2563eb;color:#fff;padding:7px 11px;font-weight:800;">Edit</button>
-                    </div>
-                    <div id="typedOrderEditBox_${index}" style="display:none;margin-top:10px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                            <input id="editGroomName" value="${escapeReceiptText(ord.groom_name||'')}" placeholder="लड़का का नाम">
-                            <input id="editGroomFather" value="${escapeReceiptText(ord.groom_father||'')}" placeholder="लड़के के पिता का नाम">
-                            <textarea id="editGroomAddress" placeholder="लड़के का पता">${escapeReceiptText(ord.groom_address||'')}</textarea>
-                            <input id="editBrideName" value="${escapeReceiptText(ord.bride_name||'')}" placeholder="लड़की का नाम">
-                            <input id="editBrideFather" value="${escapeReceiptText(ord.bride_father||'')}" placeholder="लड़की के पिता का नाम">
-                            <textarea id="editBrideAddress" placeholder="लड़की का पता">${escapeReceiptText(ord.bride_address||'')}</textarea>
-                        </div>
-                        <textarea id="editFullMatter" style="width:100%;min-height:180px;margin-top:8px;line-height:1.6;">${escapeReceiptText(matterText)}</textarea>
-                        <button type="button" onclick="saveTypedOrderEdits(${index})" style="margin-top:8px;border:0;border-radius:8px;background:#10b981;color:#fff;padding:10px 15px;font-weight:900;width:100%;">💾 बदलाव सेव करें</button>
-                    </div>
-                    <div id="typedOrderPreview_${index}" style="margin-top:8px;background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.7;">${escapeReceiptText(matterText||'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}</div>
+                <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#fff;margin-bottom:12px;">
+                    <div style="font-weight:900;color:#7f1d1d;margin-bottom:6px;">✏️ टाइप किया हुआ ऑर्डर</div>
+                    <div style="white-space:pre-wrap;word-break:break-word;line-height:1.7;">${escapeReceiptText(matterText||'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}</div>
                 </div>
 
-                <div style="margin-top:12px;font-size:12px;color:#475569;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                    <span>स्थिति: <b>${escapeReceiptText(ord.status||'Pending')}</b></span>
-                    <span>कुल: <b>₹${total}</b> | जमा: <b>₹${advance}</b> | बाकी: <b>₹${balance}</b></span>
-                </div>
+                <div class="receipt-section-title">बिल एवं भुगतान स्थिति</div>
+                <div class="receipt-row"><span>कुल राशि:</span> <b>₹${total}</b></div>
+                <div class="receipt-row"><span>अग्रिम जमा (एडवांस):</span> <b style="color:var(--green);">₹${advance}</b></div>
+                <div class="receipt-row"><span>शेष बकाया:</span> <b style="color:#e63946;">₹${balance}</b></div>
+                <div class="receipt-row"><span>ऑर्डर स्टेटस:</span> <b>${escapeReceiptText(ord.status||'Pending')}</b></div>
+                <div style="margin-top:12px;text-align:center;">${paymentButton}</div>
             `;
 
-            document.getElementById('userReceiptModal').style.display = 'flex';
+            document.getElementById('userReceiptModal').style.display='flex';
             loadOrderMediaShowcase(index);
         }
 
@@ -1851,6 +1757,31 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 
         function closeReceiptModal() { 
             document.getElementById('userReceiptModal').style.display = 'none'; 
+        }
+
+        function openCustomerPaymentReceipt(index){
+            const ord = Array.isArray(fetchedOrdersList) ? fetchedOrdersList[index] : null;
+            if(!ord) return;
+            const src = ord.payment_receipt || ord.screenshot || '';
+            const utr = ord.utr_number || ord.txn_id || '';
+            const mode = ord.payment_mode || '-';
+            const amount = ord.advance_paid || ord.advance_amount || 0;
+            const box = document.getElementById('customerPaymentReceiptArea');
+            if(!box) return;
+            box.innerHTML = `
+                <div style="font-size:19px;font-weight:900;color:#1d4ed8;margin-bottom:10px;">💳 Payment Receipt / भुगतान रसीद</div>
+                <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:12px;">
+                    <b>ऑर्डर #${escapeReceiptText(ord.id || ord.order_id || '-')}</b> &nbsp; | &nbsp; राशि: <b>₹${escapeReceiptText(amount)}</b><br>
+                    Payment Mode: <b>${escapeReceiptText(mode)}</b><br>
+                    UTR / Transaction ID: <b>${escapeReceiptText(utr || 'उपलब्ध नहीं')}</b>
+                </div>
+                ${src ? `<a href="${escapeReceiptText(src)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;color:#2563eb;font-weight:800;"><img src="${escapeReceiptText(src)}" alt="Payment Receipt" style="max-width:100%;max-height:65vh;object-fit:contain;border:1px solid #cbd5e1;border-radius:8px;display:block;margin:0 auto 8px;background:#fff;"><span style="display:inline-block;background:#2563eb;color:#fff;padding:8px 12px;border-radius:7px;">📷 Payment Receipt खोलें</span></a>` : '<div style="padding:18px;text-align:center;color:#64748b;background:#f8fafc;border-radius:8px;">Payment receipt / screenshot उपलब्ध नहीं है।</div>'}
+            `;
+            document.getElementById('customerPaymentReceiptModal').style.display='flex';
+        }
+        function closeCustomerPaymentReceipt(){
+            const m=document.getElementById('customerPaymentReceiptModal');
+            if(m) m.style.display='none';
         }
 
         function downloadReceiptPDF() {
