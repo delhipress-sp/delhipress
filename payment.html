@@ -104,6 +104,13 @@
         }
         .bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
 
+        .payment-stage-note {
+            margin: 14px 0; padding: 12px 14px; border-radius: 10px;
+            background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a;
+            font-size: 13px; line-height: 1.5;
+        }
+        #paymentOptionsWrap { display:none; }
+        #paymentOptionsWrap.show { display:block; }
         .payment-option-card {
             border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 16px;
             background: #ffffff; cursor: pointer; transition: all 0.25s ease;
@@ -113,8 +120,6 @@
         .payment-details-body { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #cbd5e1; display: none; }
         .payment-option-card.selected .payment-details-body { display: block; }
 
-        .qr-wrapper { background: #ffffff; border: 2px solid #fed7aa; display: inline-block; padding: 12px; border-radius: 16px; margin: 10px 0; }
-        .qr-wrapper img { width: 170px; height: 170px; display: block; margin: 0 auto; border-radius: 8px; }
 
         .form-group { margin-bottom: 14px; text-align: left; }
         label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; color: #334155; }
@@ -125,11 +130,6 @@
             font-size: 17px; font-weight: 800; border: none; border-radius: 12px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 22px;
         }
-        .btn-upi-app {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white !important;
-            padding: 9px 16px; border-radius: 20px; font-weight: bold; font-size: 13px;
-            display: inline-flex; align-items: center; gap: 8px; text-decoration: none; margin: 6px 4px;
-        }
 
         .mobile-bottom-bar {
             position: fixed !important; bottom: 10px !important; left: 10px !important; right: 10px !important; height: 60px !important;
@@ -138,19 +138,98 @@
         }
         .bar-item { text-decoration: none !important; color: #94a3b8 !important; font-size: 11px !important; font-weight: 700 !important; display: flex !important; flex-direction: column !important; align-items: center !important; }
         .bar-item i { font-size: 18px !important; color: #facc15 !important; }
+    
+
+        /* ===== PAYMENT SCREEN — SCREENSHOT MATCHED UI ===== */
+        body { background:#f3f6fb !important; color:#111827 !important; padding-bottom:30px !important; }
+        .top-bar { display:none !important; }
+        .navbar { position:relative !important; top:auto !important; background:#fff !important; color:#0f172a !important; padding:10px 56px !important; min-height:94px; box-shadow:0 1px 0 #e5e7eb !important; border-bottom:1px solid #e5e7eb !important; }
+        .nav-brand { gap:0 !important; }
+        .nav-logo-box { display:none !important; }
+        .nav-brand-text h2 { color:#dc1f26 !important; font-family:'Poppins','Mukta',sans-serif !important; font-size:34px !important; font-weight:800 !important; line-height:1 !important; }
+        .nav-brand-text p { color:#111 !important; font-size:21px !important; font-weight:800 !important; margin-top:2px !important; }
+        .navbar:after { content:'⌂   Home          ▱   Catalog          ▣   My Orders          👤  Hello, Sajad  ⌄'; white-space:pre; color:#111827; font-family:'Mukta','Poppins',sans-serif; font-size:18px; font-weight:700; position:absolute; right:50px; top:30px; }
+        .container { max-width:1500px !important; margin:0 auto !important; padding:0 26px 35px !important; }
+        .payment-wrapper { background:transparent !important; border:0 !important; box-shadow:none !important; backdrop-filter:none !important; padding:0 !important; border-radius:0 !important; }
+        .section-header { display:none !important; }
+        .payment-layout { display:grid; grid-template-columns: 1fr 1.34fr; gap:24px; align-items:start; margin-top:28px; }
+        .info-card, .gateway-card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 2px 10px rgba(15,23,42,.06); overflow:hidden; }
+        .info-section { padding:20px 28px 14px; }
+        .info-section + .info-section { border-top:1px solid #e5e7eb; }
+        .info-title { display:flex; align-items:center; gap:12px; color:#071a32; font-size:25px; font-weight:800; padding-bottom:12px; border-bottom:1px solid #e5e7eb; }
+        .title-icon { width:42px; height:42px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; background:#1769e0; font-size:20px; }
+        .title-icon.purple { background:#a51cf3; }
+        .detail-row { display:grid; grid-template-columns:42px 135px 1fr; align-items:center; min-height:58px; border-bottom:1px solid #e5e7eb; font-size:18px; }
+        .detail-row:last-child { border-bottom:0; }
+        .detail-row .ico { color:#1649b8; font-size:20px; text-align:center; }
+        .detail-row .label { color:#111827; font-weight:500; margin:0; font-size:18px; }
+        .detail-row .value { color:#1f2937; font-weight:500; }
+        .gateway-title { background:linear-gradient(135deg,#eef6ff,#f4f8ff); padding:22px 28px 18px; color:#071a32; font-size:27px; font-weight:800; line-height:1.05; }
+        .gateway-title small { display:block; font-size:22px; font-weight:500; color:#071a32; margin-top:2px; }
+        #paymentOptionsWrap { display:block !important; }
+        .payment-stage-note { display:none !important; }
+        .payment-option-card { margin:0 24px 18px !important; padding:18px 20px !important; border:1.5px solid #cbd5e1 !important; border-radius:13px !important; background:#fff !important; }
+        .payment-option-card:first-of-type { margin-top:20px !important; }
+        .payment-option-card.selected { border-color:#1976d2 !important; background:#fff !important; box-shadow:none !important; }
+        .payment-option-card#cardCod { border-color:#f1d36b !important; background:#fffdf4 !important; }
+        .payment-option-header { font-size:20px !important; gap:16px !important; }
+        .payment-option-header label { font-size:20px !important; color:#111827 !important; }
+        .payment-option-header input[type=radio] { width:26px; height:26px; accent-color:#1976d2; }
+        #cardCod .payment-option-header input[type=radio] { accent-color:#6b7280; }
+        .payment-option-card .payment-details-body { display:block !important; border-top:0 !important; margin:4px 0 0 52px !important; padding:0 !important; }
+        .payment-option-card .payment-details-body p { text-align:left !important; font-size:17px !important; color:#374151 !important; margin:0 !important; }
+        #cardCashfree .payment-option-header:after { content:'Recommended'; margin-left:auto; background:#16a34a; color:#fff; padding:5px 15px; border-radius:20px; font-size:15px; font-weight:800; }
+        #cardCashfree .payment-option-header:before { content:'▰'; color:#7965d7; font-size:32px; margin-left:38px; order:1; }
+        #cardCashfree .payment-option-header input { order:0; }
+        #cardCashfree .payment-option-header label { order:2; }
+        #cardCashfree .payment-option-header:after { order:3; }
+        #cardCod .payment-option-header:before { content:'▰'; color:#1672df; font-size:32px; margin-left:38px; order:1; }
+        #cardCod .payment-option-header label { order:2; }
+        .bill-summary-box { margin:20px 24px 18px !important; background:#f0fff5 !important; border:1px solid #d7f1df !important; border-radius:12px !important; padding:0 !important; overflow:hidden; }
+        .bill-summary-box:before { content:'▣  ऑर्डर सारांश (Order Summary)'; display:block; background:#ecfff2; color:#071a32; padding:16px 24px; font-size:25px; font-weight:800; }
+        .bill-row { margin:0 !important; padding:9px 24px; border-bottom:1px solid #e5e7eb; font-size:17px; font-weight:500; }
+        .bill-row:last-child { border-bottom:0 !important; }
+        .bill-row:nth-child(1), .bill-row:nth-child(2), .bill-row:nth-child(3) { display:flex; }
+        #lblTotal { color:#1769e0 !important; font-size:24px; }
+        #lblAdvance { color:#16a34a !important; font-size:18px; }
+        #lblBalance { color:#e63946 !important; font-size:18px; }
+        #btnSubmitOrder { background:linear-gradient(135deg,#16a34a,#0f9b45) !important; border-radius:12px !important; margin:0 24px 24px !important; width:calc(100% - 48px) !important; padding:16px !important; font-size:22px !important; }
+        #cashShopCompleteBtn { background:linear-gradient(135deg,#16a34a,#15803d) !important; border-radius:12px !important; font-size:19px !important; }
+        .order-preview-card { display:none !important; }
+        .mobile-bottom-bar { display:none !important; }
+        .info-card .order-preview-hidden { display:none; }
+        .gateway-card .cash-complete-note { padding:0 24px 18px; color:#374151; font-size:15px; }
+        @media (max-width: 900px) {
+            .navbar { padding:10px 16px !important; min-height:76px; }
+            .nav-brand-text h2 { font-size:25px !important; }
+            .nav-brand-text p { font-size:15px !important; }
+            .navbar:after { content:'⌂  Home   ▱  Catalog   ▣  My Orders   👤'; right:14px; top:26px; font-size:13px; }
+            .container { padding:0 10px 20px !important; }
+            .payment-layout { grid-template-columns:1fr; gap:14px; margin-top:12px; }
+            .info-section { padding:16px; }
+            .info-title { font-size:20px; }
+            .detail-row { grid-template-columns:32px 105px 1fr; font-size:15px; min-height:50px; }
+            .detail-row .label { font-size:15px; }
+            .gateway-title { padding:17px 16px; font-size:22px; }
+            .gateway-title small { font-size:18px; }
+            .payment-option-card { margin-left:12px !important; margin-right:12px !important; padding:14px !important; }
+            .payment-option-header { font-size:17px !important; }
+            .payment-option-header label { font-size:17px !important; }
+            .payment-option-card .payment-details-body { margin-left:43px !important; }
+            .bill-summary-box { margin-left:12px !important; margin-right:12px !important; }
+            .bill-row { padding:9px 14px; font-size:14px; }
+            #btnSubmitOrder { margin-left:12px !important; margin-right:12px !important; width:calc(100% - 24px) !important; font-size:18px !important; }
+            #cardCashfree .payment-option-header:before, #cardCod .payment-option-header:before { margin-left:0; }
+        }
+
     </style>
 </head>
 <body>
-
-    <div class="top-bar">
-        <span><i class="fa-solid fa-phone"></i> 9304509464 | mdsajadans@gmail.com</span>
-        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i> <span>कॉल करें</span></a>
-    </div>
-
+    <div class="top-bar"></div>
     <nav class="navbar">
         <a class="nav-brand" href="index.html">
             <div class="nav-logo-box"><img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img"></div>
-            <div class="nav-brand-text"><h2>दिल्ली प्रेस</h2><p>सज्जाद प्रिंटर्स</p></div>
+            <div class="nav-brand-text"><h2>Delhi Press</h2><p>Sajjad Printer'S</p></div>
         </a>
     </nav>
 
@@ -158,75 +237,70 @@
         <div class="payment-wrapper">
             <div class="section-header">ऑर्डर भुगतान एवं कन्फर्मेशन</div>
 
-            <div class="order-preview-card">
-                <img id="prevCardImg" src="https://via.placeholder.com/75?text=Card" alt="Card">
-                <div class="order-preview-details">
-                    <b id="prevCardTitle">शादी कार्ड</b> (<span id="prevCardQty">100</span> पीस)<br>
-                    <span>वर: <b id="prevGroom">-</b> | वधू: <b id="prevBride">-</b></span><br>
-                    <span style="font-size:11px; color:#64748b;">ग्राहक: <span id="prevCustomer">-</span> (<span id="prevMobile">-</span>)</span>
-                </div>
-            </div>
-
-            <div class="bill-summary-box">
-                <div class="bill-row"><span>कुल बिल राशि:</span> <b id="lblTotal">₹0</b></div>
-                <div class="bill-row"><span>एडवांस जमा राशि:</span> <b style="color:var(--green);" id="lblAdvance">₹0</b></div>
-                <div class="bill-row" style="border-top:1px dashed #fcd34d; padding-top:8px; margin-top:8px;">
-                    <span>बाकी बकाया राशि:</span> <b style="color:#e63946;" id="lblBalance">₹0</b>
-                </div>
-            </div>
-
-            <div class="payment-option-card" id="cardCashfree" onclick="selectPaymentMode('cashfree')">
-                <div class="payment-option-header">
-                    <input type="radio" name="payMode" id="radioCashfree" value="cashfree">
-                    <label for="radioCashfree" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-shield-halved" style="color:#16a34a;"></i> Cashfree से ऑनलाइन भुगतान</label>
-                </div>
-                <div class="payment-details-body">
-                    <p style="font-size:13px; color:#475569; text-align:center;">UPI, कार्ड और उपलब्ध Cashfree payment methods से सुरक्षित भुगतान करें।</p>
-                    <button type="button" id="btnCashfreePay" class="btn-upi-app" style="border:0; cursor:pointer; width:100%;" onclick="event.stopPropagation(); startCashfreePayment();">
-                        <i class="fa-solid fa-lock"></i> Cashfree Checkout खोलें
-                    </button>
-                    <div id="cashfreeStatus" style="display:none; margin-top:10px; text-align:center; font-size:12px;"></div>
-                </div>
-            </div>
-
-            <div class="payment-option-card" id="cardUpi" onclick="selectPaymentMode('upi')">
-                <div class="payment-option-header">
-                    <input type="radio" name="payMode" id="radioUpi" value="upi" checked>
-                    <label for="radioUpi" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-bolt" style="color:#e63946;"></i> ऑनलाइन भुगतान (UPI QR / Apps)</label>
-                </div>
-                <div class="payment-details-body">
-                    <p style="font-size:13px; color:#475569; text-align:center;">दुकान UPI ID: <b>9304509464@okbizaxis</b></p>
-                    <div style="text-align:center;">
-                        <div class="qr-wrapper"><img id="upiQrImg" src="" alt="UPI QR"></div>
-                        <div><a href="#" id="directUpiAppBtn" class="btn-upi-app"><i class="fa-solid fa-mobile-screen"></i> सीधे UPI ऐप से पे करें</a></div>
+            <div class="payment-layout">
+                <div class="info-card">
+                    <div class="info-section">
+                        <div class="info-title"><span class="title-icon"><i class="fa-solid fa-user-group"></i></span> ग्राहक विवरण (Customer Details)</div>
+                        <div class="detail-row"><span class="ico"><i class="fa-solid fa-user"></i></span><span class="label">नाम :</span><span class="value" id="infoCustomer">-</span></div>
+                        <div class="detail-row"><span class="ico"><i class="fa-solid fa-phone"></i></span><span class="label">मोबाइल :</span><span class="value" id="infoMobile">-</span></div>
+                        <div class="detail-row"><span class="ico"><i class="fa-solid fa-location-dot"></i></span><span class="label">पता :</span><span class="value" id="infoAddress">-</span></div>
+                        <div class="detail-row"><span class="ico"><i class="fa-solid fa-note-sticky"></i></span><span class="label">नोट :</span><span class="value" id="infoNote">Shadi Card Design</span></div>
                     </div>
-                    <div class="form-group" style="margin-top:16px;">
-                        <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
-                        <input type="text" id="txnIdInput" placeholder="उदा: 4123XXXXXXXX">
+                    <div class="info-section">
+                        <div class="info-title"><span class="title-icon purple"><i class="fa-solid fa-people-roof"></i></span> ऑर्डर विवरण (Order Details)</div>
+                        <div class="detail-row"><span class="ico"><i class="fa-regular fa-file-lines"></i></span><span class="label">उत्पाद :</span><span class="value" id="infoProduct">शादी कार्ड</span></div>
+                        <div class="detail-row"><span class="ico"><i class="fa-solid fa-palette"></i></span><span class="label">क्वांटिटी :</span><span class="value" id="infoQty">100 पीस</span></div>
+                        <div class="detail-row"><span class="ico"><i class="fa-solid fa-indian-rupee-sign"></i></span><span class="label">कुल राशि :</span><span class="value" id="infoAmount" style="color:#1769e0;font-size:25px;font-weight:800;">₹0.00</span></div>
+                        <div class="detail-row"><span class="ico"><i class="fa-regular fa-calendar-days"></i></span><span class="label">ऑर्डर दिनांक :</span><span class="value" id="infoDate">-</span></div>
                     </div>
-                    <div class="form-group">
-                        <label>भुगतान रसीद / स्क्रीनशॉट (वैकल्पिक):</label>
-                        <input type="file" id="paymentReceiptFile" accept="image/*" onchange="previewScreenshot(this)">
-                        <div id="screenshotPreviewWrap" style="display:none; text-align:center; margin-top:8px;">
-                            <img id="screenshotPreviewImg" src="" style="max-width:140px; border-radius:8px; border:2px solid #e63946;">
+                </div>
+
+                <div class="gateway-card">
+                    <div class="gateway-title"><i class="fa-regular fa-credit-card"></i> भुगतान का तरीका चुनें <small>(Choose Payment Method)</small></div>
+
+                    <div id="paymentOptionsWrap">
+                        <div class="payment-stage-note"><b>दूसरा चरण — Payment</b><br>नीचे से ऑनलाइन Cashfree भुगतान या दुकान पर एडवांस कैश देने का विकल्प चुनें।</div>
+
+                        <div class="payment-option-card selected" id="cardCashfree" onclick="selectPaymentMode('cashfree')">
+                            <div class="payment-option-header">
+                                <input type="radio" name="payMode" id="radioCashfree" value="cashfree" checked>
+                                <label for="radioCashfree" style="cursor:pointer; margin-bottom:0;">ऑनलाइन भुगतान (Online Payment)</label>
+                            </div>
+                            <div class="payment-details-body">
+                                <p>Cashfree के माध्यम से सुरक्षित भुगतान करें</p>
+                                <div id="cashfreeStatus" style="display:none; margin-top:10px; text-align:center; font-size:12px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="payment-option-card" id="cardCod" onclick="selectPaymentMode('cod')">
+                            <div class="payment-option-header">
+                                <input type="radio" name="payMode" id="radioCod" value="cod">
+                                <label for="radioCod" style="cursor:pointer; margin-bottom:0;">एडवांस कैश (दुकान पर देना है)</label>
+                            </div>
+                            <div class="payment-details-body">
+                                <p>एडवांस राशि कैश में हमारी दुकान पर देंगे, इसके बाद ऑर्डर पूरा हो जाएगा।</p>
+                                <button type="button" id="cashShopCompleteBtn" class="btn-submit-order" style="background:linear-gradient(135deg,#16a34a,#15803d); margin-top:12px;" onclick="event.stopPropagation(); completeCashAtShopOrder();">
+                                    <i class="fa-solid fa-circle-check"></i> ऑर्डर पूरा करें (Complete Order)
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="bill-summary-box">
+                        <div class="bill-row"><span>उत्पाद का नाम :</span> <b id="lblProductSummary">-</b></div>
+                        <div class="bill-row"><span>कुल मात्रा :</span> <b id="lblQtySummary">0 पीस</b></div>
+                        <div class="bill-row"><span>कुल राशि :</span> <b id="lblTotal">₹0</b></div>
+                        <div class="bill-row"><span>चुना गया भुगतान तरीका :</span> <b id="lblPaymentSummary" style="color:#e63946;">एडवांस कैश (दुकान पर देना है)</b></div>
+                        <div class="bill-row" style="display:none;"><span>एडवांस जमा राशि:</span> <b style="color:var(--green);" id="lblAdvance">₹0</b></div>
+                        <div class="bill-row" style="display:none;"><span>बाकी बकाया राशि:</span> <b style="color:#e63946;" id="lblBalance">₹0</b></div>
+                    </div>
+
+                    <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="handlePaymentStageSubmit()">
+                        <i class="fa-solid fa-circle-check"></i> <span id="submitBtnText">ऑर्डर पूरा करें (Complete Order)</span>
+                    </button>
+                    <div class="cash-complete-note"><i class="fa-solid fa-circle-info"></i> आपका ऑर्डर सफलतापूर्वक दर्ज कर दिया जाएगा। एडवांस कैश हमारी दुकान पर जमा करें।</div>
                 </div>
             </div>
-
-            <div class="payment-option-card" id="cardCod" onclick="selectPaymentMode('cod')">
-                <div class="payment-option-header">
-                    <input type="radio" name="payMode" id="radioCod" value="cod">
-                    <label for="radioCod" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-handshake" style="color:var(--secondary);"></i> दुकान पर नकद (Cash on Delivery)</label>
-                </div>
-                <div class="payment-details-body">
-                    <p style="font-size:13px; color:#64748b;">आप दुकान पर आकर प्रिंटिंग शुरू होने से पहले नकद एडवांस जमा कर सकते हैं।</p>
-                </div>
-            </div>
-
-            <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="finalizeAndSubmitOrder()">
-                <i class="fa-solid fa-circle-check"></i> <span id="submitBtnText">भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें</span>
-            </button>
         </div>
     </div>
 
@@ -234,8 +308,7 @@
         <a href="index.html" class="bar-item"><i class="fa-solid fa-house"></i><span>होम</span></a>
         <a href="my_orders.html" class="bar-item"><i class="fa-solid fa-receipt"></i><span>रसीद</span></a>
     </nav>
-
-    <script>
+<script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
@@ -251,6 +324,7 @@
         let cashfreePaymentDone = false;
         let cashfreeOrderId = "";
         let cashfreePaymentId = "";
+        let paymentStageOpened = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             const rawTemp = localStorage.getItem('dp_temp_order');
@@ -280,32 +354,80 @@
             document.getElementById('prevBride').innerText = pendingOrderData.bride_name || '-';
             document.getElementById('prevCustomer').innerText = pendingOrderData.customer_name || '-';
             document.getElementById('prevMobile').innerText = pendingOrderData.mobile || '-';
+            document.getElementById('infoCustomer').innerText = pendingOrderData.customer_name || '-';
+            document.getElementById('infoMobile').innerText = pendingOrderData.mobile || pendingOrderData.phone || '-';
+            document.getElementById('infoAddress').innerText = pendingOrderData.address || pendingOrderData.delivery_address || '-';
+            document.getElementById('infoProduct').innerText = pendingOrderData.card_title || 'शादी कार्ड';
+            document.getElementById('infoQty').innerText = (pendingOrderData.quantity || 0) + ' पीस';
+            document.getElementById('infoAmount').innerText = `₹${Number(total).toFixed(2)}`;
+            document.getElementById('infoDate').innerText = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+            document.getElementById('lblProductSummary').innerText = pendingOrderData.card_title || 'शादी कार्ड';
+            document.getElementById('lblQtySummary').innerText = (pendingOrderData.quantity || 0) + ' पीस';
+            document.getElementById('lblPaymentSummary').innerText = document.getElementById('radioCod')?.checked ? 'एडवांस कैश (दुकान पर देना है)' : 'ऑनलाइन भुगतान (Cashfree)';
 
-            const upiUrl = `upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&am=${advance}`;
-            document.getElementById('directUpiAppBtn').href = upiUrl;
-            document.getElementById('upiQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
 
             // Cashfree return: server-side verification is mandatory before we treat payment as paid.
             const qs = new URLSearchParams(window.location.search);
             const returnedCashfreeOrderId = qs.get('cashfree_order_id');
             if (returnedCashfreeOrderId) {
                 cashfreeOrderId = returnedCashfreeOrderId;
+                paymentStageOpened = true;
+                document.getElementById('paymentOptionsWrap')?.classList.add('show');
                 verifyCashfreeAndSubmit(returnedCashfreeOrderId);
             }
         });
 
+        function handlePaymentStageSubmit() {
+            const wrap = document.getElementById('paymentOptionsWrap');
+            const text = document.getElementById('submitBtnText');
+
+            if (!paymentStageOpened) {
+                paymentStageOpened = true;
+                wrap.classList.add('show');
+                selectPaymentMode('cashfree');
+                text.innerText = 'Cashfree से Payment करें';
+                wrap.scrollIntoView({behavior:'smooth', block:'start'});
+                return;
+            }
+
+            const isCashfree = document.getElementById('radioCashfree').checked;
+            if (isCashfree) {
+                startCashfreePayment();
+                return;
+            }
+
+            completeCashAtShopOrder();
+        }
+
         function selectPaymentMode(mode) {
-            document.getElementById('radioUpi').checked = (mode === 'upi');
             document.getElementById('radioCod').checked = (mode === 'cod');
             document.getElementById('radioCashfree').checked = (mode === 'cashfree');
-            document.getElementById('cardUpi').classList.toggle('selected', mode === 'upi');
             document.getElementById('cardCod').classList.toggle('selected', mode === 'cod');
             document.getElementById('cardCashfree').classList.toggle('selected', mode === 'cashfree');
+            const btn = document.getElementById('btnSubmitOrder');
+            if (mode === 'cod') {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = 'flex';
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span id="submitBtnText">Cashfree से Payment करें</span>';
+            }
             try { sessionStorage.setItem('dp_payment_mode', mode); } catch (e) {}
+            const ps = document.getElementById('lblPaymentSummary');
+            if (ps) ps.innerText = mode === 'cod' ? 'एडवांस कैश (दुकान पर देना है)' : 'ऑनलाइन भुगतान (Cashfree)';
+        }
+
+        async function completeCashAtShopOrder() {
+            selectPaymentMode('cod');
+            const cashBtn = document.getElementById('cashShopCompleteBtn');
+            if (cashBtn) {
+                cashBtn.disabled = true;
+                cashBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ऑर्डर पूरा हो रहा है...';
+            }
+            await finalizeAndSubmitOrder('cash');
         }
 
         function cashfreeFunctionUrl() {
-            return `${SUPABASE_URL}/functions/v1/cashfree-payment`;
+            return `${SUPABASE_URL}/functions/v1/cashfree-payement`;
         }
 
         function getLoggedUserForCashfree() {
@@ -315,12 +437,14 @@
         }
 
         async function startCashfreePayment() {
-            const btn = document.getElementById('btnCashfreePay');
+            const btn = document.getElementById('btnSubmitOrder');
             const status = document.getElementById('cashfreeStatus');
             const data = pendingOrderData || {};
             const advance = Number(data.advance_paid || data.advance_amount || 0);
             const user = getLoggedUserForCashfree();
             const mobile = String(data.mobile || data.phone || user.mobile || user.phone || '').replace(/\D/g, '').slice(-10);
+            const customerName = String(data.customer_name || user.name || user.full_name || 'Customer').trim();
+            const customerEmail = String(data.email || user.email || '').trim();
 
             if (!Number.isFinite(advance) || advance < 1) {
                 alert('Cashfree के लिए Advance राशि कम-से-कम ₹1 होनी चाहिए।');
@@ -341,55 +465,47 @@
             status.innerText = 'सुरक्षित payment session बनाया जा रहा है...';
 
             try {
-                // Order Form का PDF/photo पहले Supabase Storage में डाल दें ताकि
-                // payment के बाद browser बंद होने पर भी file cloud में रहे।
-                let cloudFiles = Array.isArray(data.customer_files) ? data.customer_files : [];
                 const merchantOrderId = 'DP_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                if (!cloudFiles.length && (data.wedding_matter_uploaded || data.wedding_matter_file)) {
-                    const uploaded = await uploadWeddingMatterToCloud(merchantOrderId);
-                    if (uploaded) {
-                        cloudFiles = [uploaded];
-                        pendingOrderData.customer_files = cloudFiles;
-                    }
-                }
-
                 const returnUrl = `${window.location.origin}${window.location.pathname}?cashfree_order_id={order_id}`;
                 const notifyUrl = `${SUPABASE_URL}/functions/v1/cashfree-webhook`;
 
+                // Cashfree Edge Function के वर्तमान API के अनुसार सीधे fields भेजें।
                 const payload = {
                     action: 'create',
-                    merchant_order_id: merchantOrderId,
-                    order_data: {
-                        ...data,
-                        mobile,
-                        phone: mobile,
-                        customer_files: cloudFiles,
-                        return_url: returnUrl,
-                        notify_url: notifyUrl,
-                        payment_mode: 'Cashfree'
-                    }
+                    order_id: merchantOrderId,
+                    amount: Number(advance.toFixed(2)),
+                    customer_phone: mobile,
+                    customer_name: customerName,
+                    customer_email: customerEmail,
+                    return_url: returnUrl,
+                    notify_url: notifyUrl,
+                    order_note: 'Delhi Press Order - ' + String(data.card_title || 'Wedding Card')
                 };
 
                 const response = await fetch(cashfreeFunctionUrl(), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
                     },
                     body: JSON.stringify(payload)
                 });
-                const result = await response.json();
-                if (!response.ok || !result.ok || !result.payment_session_id || !result.order_id) {
-                    throw new Error(result.error || 'Cashfree payment session नहीं बन पाया।');
+
+                const raw = await response.text();
+                let result = {};
+                try { result = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+                if (!response.ok || !result.success || !result.payment_session_id || !result.order_id) {
+                    throw new Error(result.error || result.message || ('Cashfree API error (' + response.status + ')'));
                 }
 
                 cashfreeOrderId = result.order_id;
                 try {
                     sessionStorage.setItem('dp_cashfree_order_id', result.order_id);
-                    sessionStorage.setItem('dp_cashfree_db_order_id', String(result.db_order_id || ''));
                 } catch (e) {}
 
-                const cashfree = Cashfree({ mode: 'sandbox' });
+                const cashfree = Cashfree({ mode: 'production' });
                 status.innerText = 'Cashfree Checkout खुल रहा है...';
                 await cashfree.checkout({
                     paymentSessionId: result.payment_session_id,
@@ -400,7 +516,7 @@
                 status.innerText = '';
                 status.style.display = 'none';
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-lock"></i> Cashfree Checkout खोलें';
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span id="submitBtnText">Cashfree से Payment करें</span>';
                 alert('Cashfree शुरू नहीं हो पाया।\n\n' + (e?.message || e));
             }
         }
@@ -418,17 +534,23 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
                     },
                     body: JSON.stringify({ action: 'verify', order_id: orderId })
                 });
-                const result = await response.json();
-                if (!response.ok || !result.ok) throw new Error(result.error || 'Cashfree verification failed');
+                const raw = await response.text();
+                let result = {};
+                try { result = raw ? JSON.parse(raw) : {}; } catch (_) {}
 
-                if (result.paid) {
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || result.message || ('Cashfree verification failed (' + response.status + ')'));
+                }
+
+                const paid = String(result.order_status || '').toUpperCase() === 'PAID';
+                if (paid) {
                     cashfreePaymentDone = true;
                     cashfreeOrderId = orderId;
-                    cashfreePaymentId = result.txn_id || '';
                     try { sessionStorage.removeItem('dp_cashfree_order_id'); } catch (e) {}
                     try { localStorage.removeItem('dp_temp_order'); } catch (e) {}
                     alert('Cashfree payment सफल रहा। आपका ऑर्डर Database में दर्ज है।');
@@ -436,9 +558,9 @@
                     return;
                 }
 
-                status.innerText = 'Payment अभी Paid नहीं है: ' + (result.status || 'Pending');
+                status.innerText = 'Payment अभी Paid नहीं है: ' + (result.order_status || 'Pending');
                 submitBtn.disabled = false;
-                document.getElementById('submitBtnText').innerText = 'भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें';
+                document.getElementById('submitBtnText').innerText = 'Cashfree से Payment करें';
                 alert('Cashfree payment अभी सफल/PAID नहीं दिख रहा है। कृपया दोबारा जांचें।');
             } catch (e) {
                 console.error('Cashfree verify error:', e);
@@ -537,21 +659,23 @@
             }
         }
 
-        async function finalizeAndSubmitOrder() {
-            const submitBtn = document.getElementById('btnSubmitOrder');
-            const isUpi = document.getElementById('radioUpi').checked;
-            const isCashfree = document.getElementById('radioCashfree').checked;
-            let txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : "COD (दुकान पर नकद)";
-
-            if (isUpi && !isCashfree) {
-                const val = document.getElementById('txnIdInput').value.trim();
-                if (!val) {
-                    alert("कृपया ऑनलाइन पेमेंट का UTR / Transaction ID दर्ज करें।");
-                    document.getElementById('txnIdInput').focus();
-                    return;
-                }
-                txnId = val;
+        function showCashOrderCompleteState() {
+            const wrap = document.getElementById('paymentOptionsWrap');
+            if (wrap) {
+                wrap.innerHTML = `
+                    <div style="background:#ecfdf5;border:2px solid #86efac;border-radius:16px;padding:22px;text-align:center;">
+                        <div style="font-size:44px;color:#16a34a;margin-bottom:8px;">✓</div>
+                        <h3 style="color:#166534;margin-bottom:6px;">ऑर्डर पूरा हो गया</h3>
+                        <p style="color:#475569;font-size:14px;">एडवांस कैश दुकान पर जमा करना है। कार्ड प्रिंट होते ही सूचना दिया जाएगा।</p>
+                    </div>`;
             }
+        }
+
+        async function finalizeAndSubmitOrder(paymentModeOverride = 'cash') {
+            const submitBtn = document.getElementById('btnSubmitOrder');
+            const isCashfree = paymentModeOverride === 'cashfree' || document.getElementById('radioCashfree')?.checked;
+            const isCashAtShop = paymentModeOverride === 'cash' || document.getElementById('radioCod')?.checked;
+            const txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : 'ADVANCE CASH - दुकान पर';
 
             submitBtn.disabled = true;
             document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
@@ -619,7 +743,7 @@
                 custom_notes: currentData.custom_notes || currentData.order_notes || currentData.notes || '',
                 status: 'Pending',
                 txn_id: txnId,
-                payment_mode: isCashfree ? 'Cashfree' : (isUpi ? 'Online (UPI)' : 'Cash on Delivery'),
+                payment_mode: isCashfree ? 'Cashfree' : 'Advance Cash (दुकान पर देना है)',
                 payment_receipt: compressedScreenshotBase64 || '',
                 created_at: new Date().toISOString()
             };
@@ -713,14 +837,15 @@
             }
 
             if (!cloudSaved) {
-                console.warn('Order saved locally; cloud sync failed:', lastCloudError);
+                console.warn('Order cloud sync failed:', lastCloudError);
             }
 
             if (cloudSaved) {
-                alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!');
+                showCashOrderCompleteState();
+                alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है! एडवांस कैश दुकान पर देना है।');
             } else {
                 const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
-                alert('ऑर्डर इस डिवाइस में सेव है, लेकिन Database में Save नहीं हुआ।' + detail);
+                alert('ऑर्डर Database में Save नहीं हुआ।' + detail);
             }
             window.location.replace("my_orders.html");
         }
