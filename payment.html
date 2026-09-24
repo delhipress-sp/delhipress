@@ -1,224 +1,620 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>भुगतान (Payment) - दिल्ली प्रेस</title>
+    <title>एडमिन पैनल - दिल्ली प्रेस</title>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
             --primary: #e63946;
             --primary-gradient: linear-gradient(135deg, #e63946 0%, #d62828 100%);
             --secondary: #f77f00;
-            --dark: #071a32;
+            --dark: #0f172a;
             --light: #fdfbf7;
             --green: #10b981;
             --blue: #2563eb;
-            --glass-bg: rgba(255, 255, 255, 0.96);
-            --glass-border: rgba(255, 255, 255, 0.75);
-            --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            --glass-bg: rgba(255, 255, 255, 0.94);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 25px rgba(230, 57, 70, 0.05);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', 'Poppins', sans-serif; }
         
         body {
-            background-color: #071a32;
+            background-color: #0d1322;
             background-image: 
-                radial-gradient(circle at 0% 0%, rgba(230, 57, 70, 0.25) 0px, transparent 40%),
-                radial-gradient(circle at 100% 10%, rgba(37, 99, 235, 0.25) 0px, transparent 40%),
-                radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.18) 0px, transparent 42%),
-                radial-gradient(circle at 80% 50%, rgba(247, 127, 0, 0.15) 0px, transparent 38%);
+                radial-gradient(at 0% 0%, rgba(230, 57, 70, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.18) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(247, 127, 0, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
             background-attachment: fixed;
             color: #1e293b;
             line-height: 1.5;
-            padding-bottom: 110px;
+            padding: 15px;
+            padding-bottom: 60px;
             min-height: 100vh;
         }
 
-        .top-bar {
-            background: rgba(5, 24, 48, 0.98);
-            color: #cbd5e1;
-            padding: 8px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .top-bar a { color: #facc15; text-decoration: none; font-weight: 800; }
-
-        .navbar {
-            background: rgba(5, 24, 48, 0.94);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-            position: sticky; top: 0; z-index: 1000;
+        .top-nav-bar {
+            max-width: 1250px; margin: 0 auto 16px auto;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 18px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(14px);
+            padding: 12px 18px; border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .nav-logo-box {
-            width: 44px; height: 44px; border-radius: 50%;
-            border: 3px solid #fff; display: flex;
-            align-items: center; justify-content: center; overflow: hidden;
-            background: linear-gradient(135deg, #e63946, #d62828);
-            flex-shrink: 0;
-        }
-        .nav-logo-img { width: 100%; height: 100%; object-fit: cover; }
-        .nav-brand-text h2 { color: #ffffff; font-size: 19px; font-weight: 800; margin: 0; line-height: 1.1; }
-        .nav-brand-text p { color: #94a3b8; font-size: 11px; margin: 0; }
+        .top-nav-bar a { text-decoration: none; color: #ffffff; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
 
-        .container { max-width: 720px; margin: 20px auto; padding: 0 14px; }
-
-        .payment-wrapper {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+        .admin-card {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            max-width: 1250px; margin: 0 auto; border-radius: 16px;
+            box-shadow: var(--card-shadow); padding: 22px;
             border: 1px solid var(--glass-border);
-            padding: 22px; border-radius: 20px;
-            box-shadow: var(--card-shadow);
-        }
-        .section-header {
-            color: var(--dark); font-size: 23px; text-align: center;
-            margin-bottom: 18px; font-weight: 800;
-            background: linear-gradient(135deg, #071a32, #e63946);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
         }
 
-        .order-preview-card {
-            display: flex; gap: 14px; background: #ffffff; border: 1.5px solid #fee2e2;
-            padding: 12px 14px; border-radius: 14px; margin-bottom: 16px; align-items: center;
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 4px; color: #334155; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
+
+        .admin-table-wrapper { width: 100%; overflow-x: auto; margin-top: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; min-width: 1050px; }
+        .admin-table th, .admin-table td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: center; vertical-align: middle; }
+        .admin-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 13px; }
+
+        .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-rating-actions { display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:wrap; }
+        .btn-rating-delete { background:#ef4444; color:#fff; border:none; padding:6px 9px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:800; }
+        .btn-rating-sponsor { background:#f59e0b; color:#fff; border:none; padding:6px 9px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:800; }
+        .btn-rating-delete:hover, .btn-rating-sponsor:hover { filter:brightness(1.05); transform:translateY(-1px); }
+
+        .btn-open-dp-chat {
+            display:inline-flex; align-items:center; justify-content:center; gap:6px;
+            background:linear-gradient(135deg,#075e54,#128c7e); color:#fff !important;
+            border:0; padding:7px 12px; border-radius:20px; cursor:pointer;
+            font-size:11px; font-weight:800; text-decoration:none; white-space:nowrap;
+            box-shadow:0 5px 14px rgba(7,94,84,.20);
         }
-        .order-preview-card img { width: 75px; height: 75px; object-fit: cover; border-radius: 10px; border: 1.5px solid #fed7aa; }
-        .order-preview-details { font-size: 13px; color: #334155; line-height: 1.5; }
-        .order-preview-details b { color: #0f172a; }
-
-        .bill-summary-box {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border: 1px solid #fde68a; padding: 16px; border-radius: 16px; margin-bottom: 20px; font-size: 15px;
+        .btn-open-dp-chat:hover { transform:translateY(-1px); filter:brightness(1.05); }
+        .btn-open-dp-chat.dp-chat-unread {
+            background: #dc2626 !important;
+            box-shadow: 0 0 0 0 rgba(220,38,38,.75);
+            animation: dpChatBlink 1s infinite;
         }
-        .bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
-
-        .payment-option-card {
-            border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 16px;
-            background: #ffffff; cursor: pointer; transition: all 0.25s ease;
-        }
-        .payment-option-card.selected { border-color: #e63946; background: #fff5f5; }
-        .payment-option-header { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 15px; }
-        .payment-details-body { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #cbd5e1; display: none; }
-        .payment-option-card.selected .payment-details-body { display: block; }
-
-        .qr-wrapper { background: #ffffff; border: 2px solid #fed7aa; display: inline-block; padding: 12px; border-radius: 16px; margin: 10px 0; }
-        .qr-wrapper img { width: 170px; height: 170px; display: block; margin: 0 auto; border-radius: 8px; }
-
-        .form-group { margin-bottom: 14px; text-align: left; }
-        label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; color: #334155; }
-        input[type="text"], input[type="file"] { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; outline: none; background: #ffffff; }
-
-        .btn-submit-order {
-            width: 100%; padding: 16px; background: var(--primary-gradient); color: white;
-            font-size: 17px; font-weight: 800; border: none; border-radius: 12px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 22px;
-        }
-        .btn-upi-app {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white !important;
-            padding: 9px 16px; border-radius: 20px; font-weight: bold; font-size: 13px;
-            display: inline-flex; align-items: center; gap: 8px; text-decoration: none; margin: 6px 4px;
+        @keyframes dpChatBlink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(220,38,38,.75); }
+            50% { opacity: .45; box-shadow: 0 0 0 8px rgba(220,38,38,0); }
         }
 
-        .mobile-bottom-bar {
-            position: fixed !important; bottom: 10px !important; left: 10px !important; right: 10px !important; height: 60px !important;
-            background: rgba(5, 24, 48, 0.98) !important; border-radius: 20px !important; display: flex !important;
-            justify-content: space-around !important; align-items: center !important; z-index: 999999 !important;
+        .btn-view { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-notice { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+
+        .stock-badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: bold; }
+        .in-stock { background: #dcfce7; color: #15803d; }
+        .out-stock { background: #fee2e2; color: #b91c1c; }
+
+        .btn-stock-toggle { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
+        .btn-price-edit { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-price-edit:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn {
+            flex: 1; min-width: 140px; padding: 12px 14px; background: #e2e8f0;
+            color: #334155; border: none; border-radius: 10px; font-weight: 800;
+            cursor: pointer; font-size: 13px;
         }
-        .bar-item { text-decoration: none !important; color: #94a3b8 !important; font-size: 11px !important; font-weight: 700 !important; display: flex !important; flex-direction: column !important; align-items: center !important; }
-        .bar-item i { font-size: 18px !important; color: #facc15 !important; }
-    </style>
+        .tab-btn.active { background: var(--primary-gradient); color: white; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
+            display: none; justify-content: center; align-items: center; z-index: 9999; padding: 15px;
+        }
+        .modal-content {
+            background: white; width: 100%; max-width: 700px; max-height: 92vh;
+            border-radius: 14px; overflow-y: auto; padding: 22px; position: relative;
+        }
+        .receipt-container { border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; background: #fff; }
+        .receipt-header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 14px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 4px; }
+        .receipt-section-title { background: #f8fafc; padding: 5px 10px; font-weight: 800; color: var(--primary); margin: 12px 0 8px 0; border-left: 3px solid var(--primary); font-size: 13px; }
+
+        @keyframes alarm3DGlow {
+            0% {
+                transform: perspective(600px) translateZ(0px) scale(1);
+                box-shadow: 0 4px 6px rgba(220, 38, 38, 0.4), 0 0 10px #ff3838, inset 0 1px 1px rgba(255,255,255,0.6);
+            }
+            50% {
+                transform: perspective(600px) translateZ(8px) scale(1.06);
+                box-shadow: 0 8px 20px rgba(239, 68, 68, 0.9), 0 0 25px #ff0000, 0 0 40px #ff7878, inset 0 2px 4px #ffffff;
+                background: linear-gradient(135deg, #ff0000 0%, #b91c1c 100%);
+            }
+            100% {
+                transform: perspective(600px) translateZ(0px) scale(1);
+                box-shadow: 0 4px 6px rgba(220, 38, 38, 0.4), 0 0 10px #ff3838, inset 0 1px 1px rgba(255,255,255,0.6);
+            }
+        }
+
+        .btn-alarm-3d {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: #ffffff !important;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            animation: alarm3DGlow 1.2s infinite ease-in-out;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-alarm-3d:hover {
+            transform: scale(1.08) translateY(-2px);
+        }
+
+        .btn-approved-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-reviewed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            text-align: center;
+        }
+        .stat-card h5 { font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; }
+        .stat-card h3 { font-size: 24px; color: var(--primary); font-weight: 800; margin-top: 4px; }
+        .chart-wrapper {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            max-height: 380px;
+        }
+
+        /* ===== UPGRADED DELHI PRESS ADMIN UI ===== */
+        body {
+            padding: 12px;
+            background:
+                radial-gradient(circle at 0% 0%, rgba(230,57,70,.18), transparent 32%),
+                radial-gradient(circle at 100% 10%, rgba(37,99,235,.22), transparent 34%),
+                radial-gradient(circle at 50% 100%, rgba(16,185,129,.14), transparent 38%),
+                #071a32;
+        }
+        .top-nav-bar {
+            max-width: 1250px;
+            margin: 0 auto 12px;
+            min-height: 64px;
+            border-radius: 18px;
+            background: rgba(5, 24, 48, .92);
+            box-shadow: 0 12px 30px rgba(0,0,0,.25);
+        }
+        .top-nav-bar a:first-child {
+            gap: 10px;
+        }
+        .top-nav-bar a:first-child::before {
+            content: "DP";
+            width: 40px; height: 40px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#e63946,#d62828);
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 3px rgba(230,57,70,.25);
+            font-size: 13px;
+            font-weight: 900;
+        }
+        .admin-card {
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 20px 55px rgba(0,0,0,.20);
+        }
+        .nav-tabs { gap: 8px; }
+        .tab-btn {
+            border-radius: 12px;
+            min-height: 46px;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .tab-btn:hover { transform: translateY(-1px); }
+        .tab-btn.active { box-shadow: 0 8px 20px rgba(230,57,70,.25); }
+        .admin-table-wrapper {
+            border-radius: 14px;
+            box-shadow: 0 5px 18px rgba(15,23,42,.05);
+        }
+        .admin-table th {
+            position: sticky; top: 0; z-index: 1;
+            background: linear-gradient(#f8fafc,#eef2f7);
+        }
+        .catalog-filter-bar {
+            display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+            background:#f8fafc; border:1px solid #dbe3ee;
+            padding:12px; border-radius:12px; margin:0 0 12px;
+        }
+        .catalog-filter-bar label { margin:0; display:flex; align-items:center; gap:6px; }
+        .catalog-filter-bar select {
+            width:auto; min-width:230px; padding:8px 10px;
+        }
+        .category-pill {
+            display:inline-block; padding:3px 8px; border-radius:999px;
+            font-size:10px; font-weight:800; white-space:nowrap;
+        }
+        .cat-muslim { background:#dcfce7; color:#166534; }
+        .cat-hindu { background:#ffedd5; color:#9a3412; }
+        .cat-banner { background:#dbeafe; color:#1d4ed8; }
+        .cat-other { background:#f1f5f9; color:#475569; }
+        .mini-admin-stats {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
+        }
+        .mini-admin-stat {
+            padding:12px 14px; border-radius:13px; background:linear-gradient(135deg,#fff,#f8fafc);
+            border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;
+        }
+        .mini-admin-stat b { font-size:20px; color:#0f172a; }
+        .mini-admin-stat span { font-size:11px; color:#64748b; font-weight:700; }
+        .admin-mobile-bar {
+            display:none; position:fixed; left:10px; right:10px; bottom:10px; z-index:9998;
+            background:rgba(5,24,48,.96); border:1px solid rgba(255,255,255,.15);
+            border-radius:20px; padding:8px; box-shadow:0 15px 35px rgba(0,0,0,.35);
+            justify-content:space-around;
+        }
+        .admin-mobile-bar button {
+            border:0; background:transparent; color:#fff; font-size:10px; font-weight:700;
+            display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 9px;
+        }
+        .admin-mobile-bar i { font-size:17px; color:#facc15; }
+        @media(max-width:768px) {
+            body { padding:8px; padding-bottom:78px; }
+            .admin-card { padding:13px; border-radius:18px; }
+            .top-nav-bar { border-radius:15px; padding:9px 12px; }
+            .top-nav-bar a:first-child { font-size:14px !important; }
+            .mini-admin-stats { grid-template-columns:1fr 1fr 1fr; gap:6px; }
+            .mini-admin-stat { padding:9px 7px; flex-direction:column; text-align:center; gap:2px; }
+            .mini-admin-stat b { font-size:17px; }
+            .mini-admin-stat span { font-size:9px; }
+            .catalog-filter-bar select { width:100%; min-width:0; }
+            .admin-mobile-bar { display:flex; }
+        }
+
+    
+        /* ===== My Orders जैसा पूर्ण Receipt Layout ===== */
+        .dp-full-receipt-head{border-bottom:0!important;margin-bottom:8px!important;text-align:center}
+        .dp-full-receipt-head h2{color:#7f1d1d!important;margin:0;font-weight:900;font-size:20px!important}
+        .dp-receipt-title{font-size:20px;font-weight:900;color:#7f1d1d;margin-top:3px}
+        .dp-receipt-meta{font-size:11px;color:#64748b;margin-top:4px}
+        .dp-two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+        .dp-person-box{border:2px solid #7f1d1d;border-radius:8px;padding:10px;background:#fffdf5}
+        .dp-box-title{font-weight:900;color:#7f1d1d;font-size:15px;margin-bottom:7px}
+        .dp-section-heading{font-weight:900;color:#7f1d1d;font-size:16px;margin:10px 0 6px}
+        .dp-event-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+        .dp-event-table th,.dp-event-table td{border:1px solid #7f1d1d;padding:7px}
+        .dp-event-table th{background:#fff7d6}
+        .dp-info-box{border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc}
+        .dp-info-title{color:#7f1d1d}
+        .dp-info-body{margin-top:6px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+        .dp-file-box,.dp-typed-box,.dp-selected-card-box,.dp-payment-box{border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#fff;margin-bottom:12px}
+        .dp-file-list{display:flex;gap:8px;flex-wrap:wrap}
+        .admin-matter-file-btn{display:inline-flex;align-items:center;gap:6px;background:#7f1d1d;color:#fff!important;text-decoration:none;padding:8px 11px;border-radius:7px;font-size:12px;font-weight:800}
+        .admin-matter-file-btn:hover{opacity:.9}
+        .dp-typed-preview{background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.7}
+        .dp-selected-card-row{display:flex;gap:12px;align-items:center;font-size:13px;line-height:1.7}
+        .dp-selected-card-row img{width:110px;height:110px;object-fit:contain;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc}
+        .dp-selected-card-row span{color:#64748b}
+        .dp-payment-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dotted #e2e8f0;font-size:13px}
+        .dp-payment-row:last-child{border-bottom:0}
+        .dp-green{color:#10b981}.dp-red{color:#dc2626}
+        .dp-payment-receipt-title{font-size:19px;font-weight:900;color:#1d4ed8;margin-bottom:10px}
+        .dp-payment-receipt-info{background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:12px}
+        .dp-payment-image-link{display:block;text-align:center;text-decoration:none;color:#2563eb;font-weight:800}
+        .dp-payment-image-link img{max-width:100%;max-height:65vh;object-fit:contain;border:1px solid #cbd5e1;border-radius:8px;display:block;margin:0 auto 8px;background:#fff}
+        .dp-payment-image-link span{display:inline-block;background:#2563eb;color:#fff;padding:8px 12px;border-radius:7px}
+        .dp-no-payment{padding:18px;text-align:center;color:#64748b;background:#f8fafc;border-radius:8px}
+        @media(max-width:600px){.dp-two-col{grid-template-columns:1fr!important}.dp-event-table{font-size:11px!important}.dp-receipt-title{font-size:18px}.dp-selected-card-row{align-items:flex-start}}
+</style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <span><i class="fa-solid fa-phone"></i> 9304509464 | mdsajadans@gmail.com</span>
-        <a href="tel:9304509464"><i class="fa-solid fa-phone"></i> <span>कॉल करें</span></a>
-    </div>
-
-    <nav class="navbar">
-        <a class="nav-brand" href="index.html">
-            <div class="nav-logo-box"><img src="https://kommodo.ai/i/AjEZMpWkUkG0POxk0HVQ" alt="Logo" class="nav-logo-img"></div>
-            <div class="nav-brand-text"><h2>दिल्ली प्रेस</h2><p>सज्जाद प्रिंटर्स</p></div>
-        </a>
-    </nav>
-
-    <div class="container">
-        <div class="payment-wrapper">
-            <div class="section-header">ऑर्डर भुगतान एवं कन्फर्मेशन</div>
-
-            <div class="order-preview-card">
-                <img id="prevCardImg" src="https://via.placeholder.com/75?text=Card" alt="Card">
-                <div class="order-preview-details">
-                    <b id="prevCardTitle">शादी कार्ड</b> (<span id="prevCardQty">100</span> पीस)<br>
-                    <span>वर: <b id="prevGroom">-</b> | वधू: <b id="prevBride">-</b></span><br>
-                    <span style="font-size:11px; color:#64748b;">ग्राहक: <span id="prevCustomer">-</span> (<span id="prevMobile">-</span>)</span>
-                </div>
-            </div>
-
-            <div class="bill-summary-box">
-                <div class="bill-row"><span>कुल बिल राशि:</span> <b id="lblTotal">₹0</b></div>
-                <div class="bill-row"><span>एडवांस जमा राशि:</span> <b style="color:var(--green);" id="lblAdvance">₹0</b></div>
-                <div class="bill-row" style="border-top:1px dashed #fcd34d; padding-top:8px; margin-top:8px;">
-                    <span>बाकी बकाया राशि:</span> <b style="color:#e63946;" id="lblBalance">₹0</b>
-                </div>
-            </div>
-
-            <div class="payment-option-card selected" id="cardUpi" onclick="selectPaymentMode('upi')">
-                <div class="payment-option-header">
-                    <input type="radio" name="payMode" id="radioUpi" value="upi" checked>
-                    <label for="radioUpi" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-bolt" style="color:#e63946;"></i> ऑनलाइन भुगतान (UPI QR / Apps)</label>
-                </div>
-                <div class="payment-details-body">
-                    <p style="font-size:13px; color:#475569; text-align:center;">दुकान UPI ID: <b>9304509464@okbizaxis</b></p>
-                    <div style="text-align:center;">
-                        <div class="qr-wrapper"><img id="upiQrImg" src="" alt="UPI QR"></div>
-                        <div><a href="#" id="directUpiAppBtn" class="btn-upi-app"><i class="fa-solid fa-mobile-screen"></i> सीधे UPI ऐप से पे करें</a></div>
-                    </div>
-                    <div class="form-group" style="margin-top:16px;">
-                        <label>भुगतान संदर्भ संख्या (UTR / Transaction ID):</label>
-                        <input type="text" id="txnIdInput" placeholder="उदा: 4123XXXXXXXX">
-                    </div>
-                    <div class="form-group">
-                        <label>भुगतान रसीद / स्क्रीनशॉट (वैकल्पिक):</label>
-                        <input type="file" id="paymentReceiptFile" accept="image/*" onchange="previewScreenshot(this)">
-                        <div id="screenshotPreviewWrap" style="display:none; text-align:center; margin-top:8px;">
-                            <img id="screenshotPreviewImg" src="" style="max-width:140px; border-radius:8px; border:2px solid #e63946;">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="payment-option-card" id="cardCod" onclick="selectPaymentMode('cod')">
-                <div class="payment-option-header">
-                    <input type="radio" name="payMode" id="radioCod" value="cod">
-                    <label for="radioCod" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-handshake" style="color:var(--secondary);"></i> दुकान पर नकद (Cash on Delivery)</label>
-                </div>
-                <div class="payment-details-body">
-                    <p style="font-size:13px; color:#64748b;">आप दुकान पर आकर प्रिंटिंग शुरू होने से पहले नकद एडवांस जमा कर सकते हैं।</p>
-                </div>
-            </div>
-
-            <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="finalizeAndSubmitOrder()">
-                <i class="fa-solid fa-circle-check"></i> <span id="submitBtnText">भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें</span>
-            </button>
+    <div class="top-nav-bar">
+        <a href="index.html" style="font-size: 16px; color: #fff; font-weight:800;"><i class="fa-solid fa-print" style="color:var(--primary);"></i> <b>दिल्ली प्रेस एडमिन</b></a>
+        <div style="display: flex; gap: 8px;">
+            <a href="index.html" style="color:#fff;"><i class="fa-solid fa-house"></i> होम पेज</a>
         </div>
     </div>
 
-    <nav class="mobile-bottom-bar">
-        <a href="index.html" class="bar-item"><i class="fa-solid fa-house"></i><span>होम</span></a>
-        <a href="my_orders.html" class="bar-item"><i class="fa-solid fa-receipt"></i><span>रसीद</span></a>
-    </nav>
+    <div class="admin-card">
+        <div id="adminPinSection" style="max-width: 380px; margin: 50px auto; text-align: center;">
+            <div style="font-size: 46px; color: var(--primary); margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i></div>
+            <h3 style="color: var(--dark); margin-bottom: 16px; font-weight:800;">दिल्ली प्रेस - एडमिन लॉगिन</h3>
+            <div class="form-group" style="text-align: left;">
+                <label>सुरक्षा पिन:</label>
+                <input type="password" id="adminPin" placeholder="पिन दर्ज करें">
+            </div>
+            <button type="button" onclick="verifyAdminPin()" style="width: 100%; padding: 12px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">प्रवेश करें</button>
+        </div>
+
+        <div id="adminDashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 16px;">
+                <h2 style="color: var(--primary); font-size: 22px; font-weight:800;">एडमिन डैशबोर्ड</h2>
+                <button type="button" onclick="handleAdminLogout()" style="background: #e2e8f0; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">लॉगआउट</button>
+            </div>
+
+            <div class="nav-tabs">
+                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)</button>
+                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
+                <button type="button" class="tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i> ग्राहक ग्राफ़ व लिस्ट</button>
+                <button type="button" class="tab-btn" id="tabBtnRatings" onclick="switchAdminTab('ratings')"><i class="fa-solid fa-star"></i> ग्राहक रेटिंग</button>
+            </div>
+
+            <!-- TAB 1: ORDERS -->
+            <div id="tabOrdersSection">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4 style="font-weight:800;">डेटाबेस से प्राप्त ग्राहक ऑर्डर्स</h4>
+                    <button onclick="loadAdminOrders()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID / दिनांक</th>
+                                <th>कार्ड विवरण</th>
+                                <th>ग्राहक</th>
+                                <th>वर-वधू</th>
+                                <th>बिल / एडवांस</th>
+                                <th>स्टेटस बदलें</th>
+                                <th>मैटर अपलोड</th>
+                                <th>ग्राहक स्थिति</th>
+                                <th>सूचना / देरी कारण</th>
+                                <th>रसीद</th>
+                                <th>हटाएं</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: CATALOG -->
+            <div id="tabCatalogSection" style="display: none;">
+                <div style="background: #fdfaf6; border: 1px solid #fed7aa; padding: 16px; border-radius: 10px; margin-bottom: 18px;">
+                    <h4 style="color: var(--secondary); margin-bottom: 12px; font-weight:800;">+ नया कार्ड जोड़ें</h4>
+                    <form id="newCardForm" onsubmit="handleAddNewCatalogCard(event)">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>नाम:</label><input type="text" id="admCardName" required></div>
+                            <div class="form-group" style="flex: 1; min-width: 150px;"><label>मॉडल:</label><input type="text" id="admCardModel" required></div>
+                            <div class="form-group" style="width: 110px;"><label>कैटलॉग रेट / MRP (₹):</label><input type="number" id="admCardRate" min="0" step="0.5" required></div>
+                            <div class="form-group" style="width: 110px;"><label>सेल रेट (₹):</label><input type="number" id="admCardSaleRate" min="0" step="0.5" placeholder="Sale Rate"></div>
+                            <div class="form-group" style="width: 140px;">
+                                <label>स्टॉक:</label>
+                                <select id="admCardStock"><option value="true">उपलब्ध</option><option value="false">समाप्त</option></select>
+                            </div>
+                            <div class="form-group" style="width: 190px;">
+                                <label>श्रेणी:</label>
+                                <select id="admCardCategory">
+                                    <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
+                                    <option value="hindu">🪔 हिंदू शादी कार्ड</option>
+                                    <option value="banner">🖼️ फ्लेक्स व बैनर</option>
+                                    <option value="other">📦 अन्य</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 250px;">
+                                <label>फोटो — Gallery से कई फोटो चुनें:</label>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <button type="button" onclick="openCatalogGallery()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-images"></i> Gallery</button>
+                                    <button type="button" onclick="openCatalogCamera()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-camera"></i> Camera</button>
+                                    <span id="catalogPhotoCount" style="font-size:11px;color:#64748b;align-self:center;">कोई फोटो नहीं</span>
+                                </div>
+                                <input type="file" id="admCardFile" accept="image/*" multiple hidden>
+                                <input type="file" id="admCardCamera" accept="image/*" capture="environment" hidden>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 220px;">
+                                <label>कार्ड वीडियो (अधिकतम 1 मिनट):</label>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                    <input type="file" id="admCardVideo" accept="video/*" style="max-width:170px;">
+                                    <button type="button" onclick="openCatalogVideoRecorder()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-video"></i> वीडियो कैमरा</button>
+                                    <span id="catalogVideoStatus" style="font-size:11px;color:#64748b;">वीडियो नहीं चुना</span>
+                                </div>
+                                <small style="color:#64748b;font-size:10px;">मोबाइल से सीधे वीडियो रिकॉर्ड करके भी कैटलॉग में अपलोड कर सकते हैं। अधिकतम 1 मिनट।</small>
+                            </div>
+                        </div>
+                        <button type="submit" id="addCardSubmitBtn" style="padding: 10px 24px; background: var(--green); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">+ सुरक्षित करें</button>
+                        <span style="display:inline-block; margin-left:10px; font-size:11px; color:#64748b;">श्रेणी चुनने से Index में वही फ़िल्टर सही कार्ड दिखाएगा।</span>
+                    </form>
+                </div>
+                <div class="catalog-filter-bar">
+                    <label for="adminCategoryFilter"><i class="fa-solid fa-filter" style="color:var(--primary);"></i> श्रेणी चुनें:</label>
+                    <select id="adminCategoryFilter" onchange="filterAdminCatalog(this.value)">
+                        <option value="all">🌟 सभी कार्ड्स (All Cards)</option>
+                        <option value="muslim">🌙 मुस्लिम शादी कार्ड</option>
+                        <option value="hindu">🪔 हिंदू शादी कार्ड</option>
+                        <option value="banner">🖼️ फ्लेक्स व बैनर</option>
+                        <option value="other">📦 अन्य</option>
+                    </select>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead><tr><th>फोटो</th><th>नाम</th><th>मॉडल</th><th>श्रेणी</th><th>कैटलॉग रेट</th><th>सेल रेट</th><th>स्टॉक</th><th>रेट एडिट</th><th>विवरण</th><th>वीडियो</th><th>स्टॉक कार्रवाई</th><th>हटाएं</th></tr></thead>
+                        <tbody id="catalogTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: CUSTOMER RATINGS -->
+            <div id="tabRatingsSection" style="display: none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h4 style="font-weight:800;"><i class="fa-solid fa-star" style="color:#f59e0b;"></i> ग्राहक द्वारा दी गई रेटिंग और रिव्यू</h4>
+                    <button onclick="loadAdminRatings()" style="background:#f1f5f9;border:1px solid #cbd5e1;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश</button>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table" style="min-width:900px;">
+                        <thead><tr><th>तारीख</th><th>ग्राहक</th><th>ऑर्डर ID</th><th>कैटलॉग ID</th><th>रेटिंग</th><th>रिव्यू</th><th>फोटो</th><th>कार्रवाई</th></tr></thead>
+                        <tbody id="ratingsTableBody"><tr><td colspan="8">रेटिंग लोड हो रही है...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 4: CUSTOMER ANALYTICS & GRAPH -->
+            <div id="tabAnalyticsSection" style="display: none;">
+                <div class="analytics-grid">
+                    <div class="stat-card">
+                        <h5>कुल विशिष्ट ग्राहक</h5>
+                        <h3 id="statTotalCustomers">0</h3>
+                    </div>
+                    <div class="stat-card">
+                        <h5>ईमेल पंजीकृत</h5>
+                        <h3 id="statTotalEmails" style="color: var(--blue);">0</h3>
+                    </div>
+                    <div class="stat-card">
+                        <h5>कुल प्राप्त ऑर्डर्स</h5>
+                        <h3 id="statTotalOrders" style="color: var(--green);">0</h3>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <h4 style="font-weight: 800; margin-bottom: 12px; color: #334155;"><i class="fa-solid fa-chart-column" style="color:var(--primary);"></i> पिछले 7 दिनों का नया ग्राहक व ऑर्डर ग्राफ़</h4>
+                    <div style="position: relative; height: 280px; width: 100%;">
+                        <canvas id="customerChart"></canvas>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;">
+                    <h4 style="font-weight: 800;"><i class="fa-solid fa-users" style="color:var(--blue);"></i> पंजीकृत एवं ऑर्डर करने वाले सभी ग्राहकों की लिस्ट</h4>
+                    <button onclick="buildCustomerAnalytics(globalOrdersCache)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-arrows-rotate"></i> रीफ़्रेश लिस्ट</button>
+                </div>
+
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>ग्राहक का नाम</th>
+                                <th>ईमेल / संपर्क विवरण</th>
+                                <th>फ़ोन नंबर</th>
+                                <th>कुल ऑर्डर्स</th>
+                                <th>कुल व्यापार (₹)</th>
+                                <th>प्रथम आगमन तिथि</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="color:var(--primary); font-size:18px; font-weight:800;">ऑर्डर एवं सम्पूर्ण शादी मैटर रसीद</h3>
+                <button type="button" onclick="closeOrderModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
+            </div>
+            <div id="printableReceiptArea" class="receipt-container"></div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button type="button" onclick="downloadReceiptPDF()" style="flex:1; padding:11px; background:var(--green); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;">PDF डाउनलोड</button>
+                <button type="button" onclick="window.print()" style="flex:1; padding:11px; background:var(--dark); color:white; border: none; border-radius:6px; font-weight:bold; cursor:pointer;">प्रिंट</button>
+                <button type="button" onclick="openAdminPaymentReceipt(window.__adminReceiptOrderId || '')" style="flex:1; padding:11px; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-credit-card"></i> Payment Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Correction Modal -->
+    <div class="modal-overlay" id="correctionModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">
+                <h3 style="color:#b91c1c; font-size:17px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> ग्राहक का सुधार / स्थिति विवरण</h3>
+                <button type="button" onclick="closeCorrectionModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
+            </div>
+            <div id="correctionModalBody" style="font-size: 13px; color:#1e293b; line-height: 1.6;"></div>
+            <div style="margin-top: 18px; display: flex; gap: 10px;">
+                <button type="button" id="btnMarkReviewed" style="flex:1; padding: 10px; background: var(--green); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">✓ मैंने देख लिया (अलार्म बंद करें)</button>
+                <button type="button" onclick="closeCorrectionModal()" style="padding: 10px 16px; background: #94a3b8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">बंद करें</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- प्रेस समस्या / सूचना भेजने का मॉडल -->
+    <div class="modal-overlay" id="noticeModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 2px solid #fed7aa; padding-bottom: 8px;">
+                <h3 style="color:#c2410c; font-size:17px; font-weight:800;"><i class="fa-solid fa-bullhorn"></i> ग्राहक को स्थिति / देरी का कारण बताएं</h3>
+                <button type="button" onclick="closeNoticeModal()" style="border:none; background:#e2e8f0; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">&times;</button>
+            </div>
+
+            <p style="font-size:12px; color:#64748b; margin-bottom:10px;">
+                त्वरित कारण चुनें या नीचे अपनी समस्या लिखकर ग्राहक को भेजें:
+            </p>
+
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                <button type="button" onclick="setQuickNotice('बिजली न रहने के कारण मैटर टाइपिंग में 1 से 2 दिन का समय लग सकता है।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">⚡ बिजली समस्या</button>
+                <button type="button" onclick="setQuickNotice('अत्यधिक ऑर्डर्स की व्यस्तता के कारण आपके कार्ड मैटर में 1 से 2 दिन का समय लग सकता है।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">📦 अत्यधिक ऑर्डर्स</button>
+                <button type="button" onclick="setQuickNotice('इंटरनेट/मशीन में तकनीकी खराबी के कारण काम में थोड़ा विलंब हो रहा है। जल्द तैयार होगा।')" style="font-size:11px; background:#fff7ed; border:1px solid #fdba74; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; color:#c2410c;">🛠️ तकनीकी समस्या</button>
+            </div>
+
+            <textarea id="adminNoticeInput" rows="3" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; outline:none;" placeholder="यहाँ अपना कारण विस्तार से लिखें..."></textarea>
+
+            <div style="margin-top: 14px; display: flex; gap: 10px;">
+                <button type="button" id="btnSendAdminNotice" style="flex:1; padding: 10px; background: var(--secondary); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                    <i class="fa-solid fa-paper-plane"></i> ग्राहक को सूचना भेजें
+                </button>
+                <button type="button" onclick="closeNoticeModal()" style="padding: 10px 16px; background: #94a3b8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">रद्द करें</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Separate Payment Receipt Modal -->
+    <div class="modal-overlay" id="paymentReceiptModal">
+        <div class="modal-content" style="max-width:700px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="color:#2563eb;font-size:18px;font-weight:800;">💳 Payment Receipt / भुगतान रसीद</h3>
+                <button type="button" onclick="closeAdminPaymentReceipt()" style="border:none;background:#e2e8f0;border-radius:50%;width:30px;height:30px;cursor:pointer;font-weight:bold;">&times;</button>
+            </div>
+            <div id="paymentReceiptArea"></div>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
@@ -226,342 +622,1340 @@
         
         let supabaseClient = null;
         try {
-            if (window.supabase && typeof window.supabase.createClient === 'function') {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
+            if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) {}
 
-        let pendingOrderData = null;
-        let compressedScreenshotBase64 = "";
+        let globalOrdersCache = [];
+        let customerChartInstance = null;
+        let currentNoticeOrderId = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            const rawTemp = localStorage.getItem('dp_temp_order');
-            if (rawTemp) {
-                try { pendingOrderData = JSON.parse(rawTemp); } catch(e) {}
-            }
-
-            if (!pendingOrderData) {
-                pendingOrderData = {
-                    total_amount: 1500, advance_paid: 500, balance_amount: 1000,
-                    card_title: "शादी कार्ड", quantity: 100, groom_name: "वर", bride_name: "वधू", customer_name: "ग्राहक", mobile: "9304509464"
-                };
-            }
-
-            const total = pendingOrderData.total_amount || 0;
-            const advance = pendingOrderData.advance_paid || pendingOrderData.advance_amount || 0;
-            const balance = pendingOrderData.balance_amount || (total - advance);
-
-            document.getElementById('lblTotal').innerText = `₹${total}`;
-            document.getElementById('lblAdvance').innerText = `₹${advance}`;
-            document.getElementById('lblBalance').innerText = `₹${balance}`;
-
-            if (pendingOrderData.card_image) document.getElementById('prevCardImg').src = pendingOrderData.card_image;
-            document.getElementById('prevCardTitle').innerText = pendingOrderData.card_title || 'शादी कार्ड';
-            document.getElementById('prevCardQty').innerText = pendingOrderData.quantity || 100;
-            document.getElementById('prevGroom').innerText = pendingOrderData.groom_name || '-';
-            document.getElementById('prevBride').innerText = pendingOrderData.bride_name || '-';
-            document.getElementById('prevCustomer').innerText = pendingOrderData.customer_name || '-';
-            document.getElementById('prevMobile').innerText = pendingOrderData.mobile || '-';
-
-            const upiUrl = `upi://pay?pa=9304509464@okbizaxis&pn=DelhiPress&am=${advance}`;
-            document.getElementById('directUpiAppBtn').href = upiUrl;
-            document.getElementById('upiQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+            if (sessionStorage.getItem('dp_admin_auth') === 'true') showDashboard();
         });
 
-        function selectPaymentMode(mode) {
-            document.getElementById('radioUpi').checked = (mode === 'upi');
-            document.getElementById('radioCod').checked = (mode === 'cod');
-            document.getElementById('cardUpi').classList.toggle('selected', mode === 'upi');
-            document.getElementById('cardCod').classList.toggle('selected', mode === 'cod');
-        }
-
-        // Fast & Safe mobile screenshot compression
-        function previewScreenshot(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const maxDim = 400; // Small size to prevent browser memory freeze
-                        let w = img.width;
-                        let h = img.height;
-                        if (w > h) {
-                            if (w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
-                        } else {
-                            if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
-                        }
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        compressedScreenshotBase64 = canvas.toDataURL('image/jpeg', 0.5);
-                        document.getElementById('screenshotPreviewImg').src = compressedScreenshotBase64;
-                        document.getElementById('screenshotPreviewWrap').style.display = 'block';
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function readWeddingMatterFromIndexedDB() {
-            return new Promise((resolve) => {
-                try {
-                    const req = indexedDB.open('DelhiPressOrderDB', 1);
-                    req.onsuccess = function(e) {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('matter')) { db.close(); resolve(null); return; }
-                        const tx = db.transaction('matter', 'readonly');
-                        const get = tx.objectStore('matter').get('current');
-                        get.onsuccess = () => { const v = get.result?.matter || null; db.close(); resolve(v); };
-                        get.onerror = () => { db.close(); resolve(null); };
-                    };
-                    req.onerror = () => resolve(null);
-                } catch (e) { resolve(null); }
-            });
-        }
-
-        async function uploadWeddingMatterToCloud(orderId) {
-            try {
-                const matter = await readWeddingMatterFromIndexedDB();
-                if (!matter || !matter.dataUrl || !supabaseClient) return null;
-
-                const safeName = String(matter.name || 'matter').replace(/[^a-zA-Z0-9._-]/g, '_');
-                const path = `customer-matter/${String(orderId || Date.now())}_${Date.now()}_${safeName}`;
-                const blob = await fetch(matter.dataUrl).then(r => r.blob());
-
-                const { error: uploadError } = await supabaseClient.storage
-                    .from('order-corrections')
-                    .upload(path, blob, {
-                        contentType: matter.type || blob.type || 'application/octet-stream',
-                        upsert: false
-                    });
-                if (uploadError) throw uploadError;
-
-                const { data: publicData } = supabaseClient.storage
-                    .from('order-corrections')
-                    .getPublicUrl(path);
-                const url = publicData?.publicUrl || '';
-                if (!url) throw new Error('Uploaded file URL नहीं मिला।');
-
-                return {
-                    kind: 'matter',
-                    name: matter.name || safeName,
-                    mime: matter.type || blob.type || '',
-                    fileType: matter.type || blob.type || '',
-                    size: matter.size || blob.size || 0,
-                    url,
-                    path,
-                    from: 'customer',
-                    at: new Date().toISOString()
-                };
-            } catch (e) {
-                console.warn('Handwritten matter cloud upload failed:', e);
-                return null;
-            }
-        }
-
-        async function finalizeAndSubmitOrder() {
-            const submitBtn = document.getElementById('btnSubmitOrder');
-            const isUpi = document.getElementById('radioUpi').checked;
-            let txnId = "COD (दुकान पर नकद)";
-
-            if (isUpi) {
-                const val = document.getElementById('txnIdInput').value.trim();
-                if (!val) {
-                    alert("कृपया ऑनलाइन पेमेंट का UTR / Transaction ID दर्ज करें।");
-                    document.getElementById('txnIdInput').focus();
-                    return;
-                }
-                txnId = val;
-            }
-
-            submitBtn.disabled = true;
-            document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
-
-            const currentData = pendingOrderData || {};
-
-            // हमेशा logged-in customer का mobile प्राथमिक पहचान रखें।
-            // Order form में mobile खाली/अलग format होने पर भी My Orders में
-            // वही account का order वापस मिल सकेगा।
-            let loggedUser = {};
-            try {
-                loggedUser = JSON.parse(
-                    localStorage.getItem('dp_current_user') ||
-                    localStorage.getItem('dp_logged_in_user') ||
-                    localStorage.getItem('user') || '{}');
-            } catch(e) {}
-            const normalizeMobile = v => {
-                const d = String(v ?? '').replace(/\D/g, '');
-                return d.length >= 10 ? d.slice(-10) : d;
-            };
-            const orderMobile = normalizeMobile(
-                currentData.mobile || currentData.phone ||
-                loggedUser.mobile || loggedUser.phone || ''
-            );
-
-            const uniqueOrderId = 'DP-' + Math.floor(100000 + Math.random() * 900000);
-
-            const cleanOrderPayload = {
-                order_id: uniqueOrderId,
-                customer_name: currentData.customer_name || 'ग्राहक',
-                mobile: orderMobile || currentData.mobile || currentData.phone || '',
-                phone: orderMobile || currentData.mobile || currentData.phone || '',
-                address: currentData.address || '',
-                card_title: currentData.card_title || 'शादी कार्ड',
-                card_model: currentData.card_model || '',
-                card_image: currentData.card_image || '',
-                quantity: parseInt(currentData.quantity || 100),
-                total_amount: parseFloat(currentData.total_amount || 0),
-                advance_paid: parseFloat(currentData.advance_paid || 0),
-                balance_amount: parseFloat(currentData.balance_amount || (parseFloat(currentData.total_amount || 0) - parseFloat(currentData.advance_paid || 0))),
-                groom_name: currentData.groom_name || '-',
-                groom_father: currentData.groom_father || '-',
-                groom_address: currentData.groom_address || '-',
-                bride_name: currentData.bride_name || '-',
-                bride_father: currentData.bride_father || '-',
-                bride_address: currentData.bride_address || '-',
-                barat_date: currentData.barat_date || currentData.wedding_date || '-',
-                // पूरा Order Form Matter: इसी field में Order Form के सभी भरे हुए
-                // wedding/event/RSVP/custom-note/banner/visiting-card विवरण सुरक्षित रहेंगे।
-                custom_notes: currentData.custom_notes || currentData.order_notes || currentData.notes || '',
-                // Order Form से आया handwritten/PDF/photo matter. इसे orders.order_matter में
-                // भी सीधे भेजा जाता है ताकि Storage upload fail होने पर भी Admin/My Orders
-                // में original uploaded file उपलब्ध रहे।
-                order_matter: '',
-                status: 'Pending',
-                txn_id: txnId,
-                payment_mode: isUpi ? 'Online (UPI)' : 'Cash on Delivery',
-                payment_receipt: compressedScreenshotBase64 || '',
-                created_at: new Date().toISOString()
-            };
-
-            // Handwritten/photo/PDF matter: पहले Order Form के IndexedDB से असली file पढ़ें।
-            // Payment page Order Data को localStorage में save नहीं करेगा।
-            let matterForDb = null;
-            try {
-                matterForDb = await readWeddingMatterFromIndexedDB();
-            } catch (e) {}
-
-            // Fallback: Order Form metadata में file का dataUrl उपलब्ध हो तो उसे लें।
-            if (!matterForDb && currentData.wedding_matter_file && currentData.wedding_matter_file.dataUrl) {
-                matterForDb = currentData.wedding_matter_file;
-            }
-
-            if (matterForDb && matterForDb.dataUrl) {
-                // orders.order_matter में original data URL जाता है।
-                cleanOrderPayload.order_matter = matterForDb.dataUrl;
-
-                // साथ में Storage URL भी बनाने की कोशिश करें।
-                try {
-                    const uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
-                    if (uploadedMatterFile) cleanOrderPayload.customer_files = [uploadedMatterFile];
-                } catch (e) {
-                    console.warn('Matter Storage upload failed; DB order_matter will still be used.', e);
-                }
-            }
-
-            // 2. Cloud DB sync.
-            // orders table का वास्तविक primary key "id" है; order_id और phone
-            // केवल local/display के लिए हैं, इसलिए Supabase payload से हटाए जाते हैं।
-            let cloudSaved = false;
-            let lastCloudError = null;
-
-            if (supabaseClient) {
-                const cloudBase = { ...cleanOrderPayload };
-                delete cloudBase.order_id;
-                delete cloudBase.phone;
-                delete cloudBase.wedding_matter_file;
-
-                const payloadsToTry = [
-                    cloudBase,
-                    { ...cloudBase, payment_receipt: '' },
-                    (() => {
-                        const x = { ...cloudBase };
-                        delete x.custom_notes;
-                        delete x.payment_receipt;
-                        delete x.barat_date;
-                        delete x.customer_files;
-                        return x;
-                    })(),
-                    {
-                        customer_name: cloudBase.customer_name,
-                        mobile: cloudBase.mobile,
-                        address: cloudBase.address,
-                        card_title: cloudBase.card_title,
-                        card_model: cloudBase.card_model,
-                        card_image: cloudBase.card_image,
-                        quantity: cloudBase.quantity,
-                        total_amount: cloudBase.total_amount,
-                        advance_paid: cloudBase.advance_paid,
-                        balance_amount: cloudBase.balance_amount,
-                        groom_name: cloudBase.groom_name,
-                        groom_father: cloudBase.groom_father,
-                        groom_address: cloudBase.groom_address,
-                        bride_name: cloudBase.bride_name,
-                        bride_father: cloudBase.bride_father,
-                        bride_address: cloudBase.bride_address,
-                        status: cloudBase.status,
-                        txn_id: cloudBase.txn_id,
-                        payment_mode: cloudBase.payment_mode,
-                        created_at: cloudBase.created_at
-                    }
-                ];
-
-                for (const payload of payloadsToTry) {
-                    try {
-                        // INSERT को SELECT से अलग रखा गया है। पहले code में
-                        // .select('id') की वजह से INSERT सफल होने के बाद भी
-                        // SELECT/RLS समस्या को "cloud sync failed" माना जा सकता था।
-                        const result = await supabaseClient
-                            .from('orders')
-                            .insert([payload]);
-
-                        if (!result.error) {
-                            cloudSaved = true;
-                            console.log('Order inserted into Supabase successfully.');
-                            break;
-                        }
-                        lastCloudError = result.error;
-                        console.error('Order cloud insert error:', result.error);
-                    } catch (e) {
-                        lastCloudError = e;
-                        console.error('Cloud DB sync exception:', e);
-                    }
-                }
+        function verifyAdminPin() {
+            const entered = document.getElementById('adminPin').value.trim();
+            if (["1234", "9304", "815352"].includes(entered)) {
+                sessionStorage.setItem('dp_admin_auth', 'true');
+                sessionStorage.setItem('dp_admin_chat_access', 'true');
+                showDashboard();
             } else {
-                lastCloudError = new Error('Supabase client उपलब्ध नहीं है।');
+                alert("गलत पिन!");
             }
+        }
 
-            if (!cloudSaved) {
-                const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
-                // कोई local order fallback नहीं। Database में save न होने पर यहीं रोकें।
-                alert('ऑर्डर Database में Save नहीं हुआ। कृपया दोबारा Submit करें।' + detail);
-                submitBtn.disabled = false;
-                document.getElementById('submitBtnText').innerText = 'भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें';
+        // नई ग्राहक बातचीत/मैटर आने पर DP Chat बटन को बिना पेज रिफ्रेश किए अपडेट करें।
+        setInterval(() => {
+            if (document.getElementById('adminDashboard')?.style.display !== 'none') {
+                loadAdminOrders();
+            }
+        }, 10000);
+
+        function handleAdminLogout() {
+            sessionStorage.removeItem('dp_admin_auth');
+            sessionStorage.removeItem('dp_admin_chat_access');
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById('adminPinSection').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            loadAdminOrders();
+            loadCatalogStock();
+        }
+
+        function switchAdminTab(tab) {
+            document.getElementById('tabOrdersSection').style.display = (tab === 'orders') ? 'block' : 'none';
+            document.getElementById('tabCatalogSection').style.display = (tab === 'catalog') ? 'block' : 'none';
+            document.getElementById('tabRatingsSection').style.display = (tab === 'ratings') ? 'block' : 'none';
+            document.getElementById('tabAnalyticsSection').style.display = (tab === 'analytics') ? 'block' : 'none';
+
+            document.getElementById('tabBtnOrders').classList.toggle('active', tab === 'orders');
+            document.getElementById('tabBtnCatalog').classList.toggle('active', tab === 'catalog');
+            document.getElementById('tabBtnRatings').classList.toggle('active', tab === 'ratings');
+            document.getElementById('tabBtnAnalytics').classList.toggle('active', tab === 'analytics');
+
+            if (tab === 'ratings') loadAdminRatings();
+            if (tab === 'analytics') buildCustomerAnalytics(globalOrdersCache);
+        }
+
+        function dpChatLatestCustomerActivity(order) {
+            const messages = Array.isArray(order.customer_messages) ? order.customer_messages : [];
+            const files = Array.isArray(order.customer_files) ? order.customer_files : [];
+            const all = messages.concat(files);
+            if (!all.length) return 0;
+            return Math.max(...all.map(x => {
+                const t = new Date(x && x.at ? x.at : 0).getTime();
+                return Number.isFinite(t) ? t : 0;
+            }));
+        }
+
+        function isAdminDpChatUnread(order) {
+            const latest = dpChatLatestCustomerActivity(order);
+            if (!latest) return false;
+            const seenKey = 'dp_chat_admin_seen_' + String(order.id);
+            const seen = Number(localStorage.getItem(seenKey) || 0);
+            return latest > seen;
+        }
+
+        async function loadAdminOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '<tr><td colspan="11">डेटाबेस से ऑर्डर्स लोड हो रहे हैं...</td></tr>';
+
+            if (!supabaseClient) {
+                tbody.innerHTML = '<tr><td colspan="11" style="color:red;">डेटाबेस कनेक्ट नहीं है!</td></tr>';
                 return;
             }
 
-            // Cloud save सफल होने के बाद temporary browser file हटाएँ।
             try {
-                const req = indexedDB.open('DelhiPressOrderDB', 1);
-                req.onsuccess = function(e) {
-                    try {
-                        const db=e.target.result;
-                        if(db.objectStoreNames.contains('matter')) {
-                            const tx=db.transaction('matter','readwrite');
-                            tx.objectStore('matter').delete('current');
-                        }
-                        db.close();
-                    } catch(_) {}
-                };
-            } catch(_) {}
-            try { localStorage.removeItem('dp_temp_order'); } catch(_) {}
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .select('*')
+                    .order('id', { ascending: false });
 
-            alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है!');
-            window.location.replace("my_orders.html");
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                globalOrdersCache = data || [];
+                const miniOrders = document.getElementById('miniOrdersCount');
+                if (miniOrders) miniOrders.innerText = globalOrdersCache.length;
+
+                if (globalOrdersCache.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="11">डेटाबेस में कोई ऑर्डर नहीं मिला।</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = globalOrdersCache.map(o => {
+                    const unread = isAdminDpChatUnread(o);
+                    let correctionBtn = `
+                        <a class="btn-open-dp-chat ${unread ? 'dp-chat-unread' : ''}" href="dpchat.html?order_id=${encodeURIComponent(o.id)}&role=admin" title="${unread ? 'नई ग्राहक बातचीत / मैटर आया है' : 'DP Chat'}">
+                            <i class="fa-solid ${unread ? 'fa-comment-dots' : 'fa-comments'}"></i> ${unread ? 'नई बातचीत' : 'DP Chat'}
+                        </a>
+                    `;
+                    
+
+                    return `
+                    <tr>
+                        <td>#${o.id}<br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : ''}</small></td>
+                        <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
+                        <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}<br><small style="color:#2563eb;">${o.email || o.customer_email || ''}</small></td>
+                        <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
+                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || o.advance_amount || 0}</td>
+                        <td>
+                            <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
+                                <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Received" ${o.status === 'Received' ? 'selected' : ''}>Received</option>
+                                <option value="Matter Typing" ${o.status === 'Matter Typing' ? 'selected' : ''}>Matter Typing</option>
+                                <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label style="background:var(--blue); color:white; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; display:inline-block;">
+                                अपलोड मैटर <input type="file" onchange="uploadOrderMatter('${o.id}', this)" accept="image/*,.pdf" style="display:none;">
+                            </label>
+                            ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" style="color:var(--green); font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-down"></i> मैटर देखें</b></a>` : ''}
+                        </td>
+                        <td>${correctionBtn}</td>
+                        <td>
+                            <button class="btn-notice" onclick="openNoticeModal('${o.id}')">
+                                <i class="fa-solid fa-message"></i> कारण बताएं
+                            </button>
+                        </td>
+                        <td><button class="btn-view" onclick="openOrderReceiptModal('${o.id}')">रसीद</button></td>
+                        <td><button class="btn-del" onclick="deleteAdminOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="11" style="color:red;">नेटवर्क त्रुटि: ${err.message}</td></tr>`;
+            }
+        }
+
+        /* कारण व सूचना मोडल फंक्शन्स */
+        function openNoticeModal(orderId) {
+            currentNoticeOrderId = orderId;
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            
+            let existingNotice = '';
+            if (o && o.custom_notes && o.custom_notes.includes('[ADMIN_NOTICE]')) {
+                const parts = o.custom_notes.split('[ADMIN_NOTICE]');
+                existingNotice = parts[1] ? parts[1].trim() : '';
+            }
+
+            document.getElementById('adminNoticeInput').value = existingNotice;
+            document.getElementById('btnSendAdminNotice').onclick = () => saveAdminNotice(orderId);
+            document.getElementById('noticeModal').style.display = 'flex';
+        }
+
+        function closeNoticeModal() {
+            document.getElementById('noticeModal').style.display = 'none';
+        }
+
+        function setQuickNotice(msg) {
+            document.getElementById('adminNoticeInput').value = msg;
+        }
+
+        async function saveAdminNotice(orderId) {
+            const noticeText = document.getElementById('adminNoticeInput').value.trim();
+            if (!noticeText) {
+                alert("कृपया कोई कारण या सूचना लिखें!");
+                return;
+            }
+
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o || !supabaseClient) return;
+
+            const btn = document.getElementById('btnSendAdminNotice');
+            btn.disabled = true;
+            btn.innerText = "भेजा जा रहा है...";
+
+            try {
+                let baseNotes = o.custom_notes || '';
+                if (baseNotes.includes('[ADMIN_NOTICE]')) {
+                    baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
+                }
+
+                const finalNotes = (baseNotes ? baseNotes + "\n\n" : "") + "[ADMIN_NOTICE] " + noticeText;
+
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ custom_notes: finalNotes })
+                    .eq('id', Number(orderId));
+
+                if (error) throw error;
+
+                o.custom_notes = finalNotes;
+                alert("ग्राहक को सूचना सफलतापूर्वक भेज दी गई है!");
+                closeNoticeModal();
+            } catch (err) {
+                alert("सूचना भेजने में त्रुटि: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ग्राहक को सूचना भेजें';
+            }
+        }
+
+        // ===== CUSTOMER RATING ADMIN CONTROLS =====
+        // केवल catalog_feedback को ही rating source माना गया है।
+        // Index HTML को इस file में कोई बदलाव नहीं किया गया है।
+
+        async function loadAdminRatings() {
+            const tbody = document.getElementById('ratingsTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="8">रेटिंग लोड हो रही है...</td></tr>';
+
+            if (!supabaseClient) {
+                tbody.innerHTML = '<tr><td colspan="8" style="color:red;">Supabase कनेक्ट नहीं है।</td></tr>';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog_feedback')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(500);
+
+                if (error) throw error;
+
+                const rows = Array.isArray(data) ? data : [];
+
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="8">अभी कोई रेटिंग / रिव्यू नहीं मिला।</td></tr>';
+                    return;
+                }
+
+                const esc = (v) => String(v ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+
+                const imgs = (v) => {
+                    try {
+                        const a = typeof v === 'string' ? JSON.parse(v || '[]') : v;
+                        return Array.isArray(a) ? a : [];
+                    } catch (e) {
+                        return [];
+                    }
+                };
+
+                tbody.innerHTML = rows.map(r => {
+                    const rating = Math.max(
+                        0,
+                        Math.min(5, parseInt(r.rating ?? r.stars ?? 0, 10) || 0)
+                    );
+
+                    const photos = imgs(
+                        r.review_images ?? r.images ?? r.image_urls ?? r.photos
+                    );
+
+                    const rowId = r.id != null ? String(r.id) : '';
+                    const orderId = r.order_id != null
+                        ? String(r.order_id)
+                        : (r.order_db_id != null ? String(r.order_db_id) : '');
+
+                    const catalogId = r.catalog_id != null
+                        ? String(r.catalog_id)
+                        : '';
+
+                    const sponsored = r.sponsored === true;
+
+                    const action = rowId
+                        ? `<div class="btn-rating-actions">
+                            <button type="button"
+                                class="btn-rating-delete"
+                                data-rating-id="${esc(rowId)}"
+                                onclick="deleteAdminRating('${esc(rowId)}')">
+                                <i class="fa-solid fa-trash"></i> डिलीट
+                            </button>
+                            <button type="button"
+                                class="btn-rating-sponsor"
+                                data-rating-id="${esc(rowId)}"
+                                onclick="sponsorAdminRating('${esc(rowId)}', ${sponsored ? 'false' : 'true'})">
+                                <i class="fa-solid fa-star"></i>
+                                ${sponsored ? 'स्पॉन्सर हटाएँ' : 'स्पॉन्सर'}
+                            </button>
+                        </div>`
+                        : '<span style="font-size:10px;color:#94a3b8;">ID उपलब्ध नहीं</span>';
+
+                    return `<tr>
+                        <td>${r.created_at ? new Date(r.created_at).toLocaleString('hi-IN') : '-'}</td>
+                        <td><b>${esc(r.name || r.user_name || 'ग्राहक')}</b></td>
+                        <td>#${esc(orderId || '-')}</td>
+                        <td>${esc(catalogId || '-')}</td>
+                        <td style="color:#f59e0b;font-size:17px;font-weight:800;">
+                            ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
+                        </td>
+                        <td style="text-align:left;max-width:320px;">
+                            ${esc(r.feedback || r.comment || r.message || 'रेटिंग दी गई है।')}
+                        </td>
+                        <td>
+                            ${photos.length
+                                ? photos.map(u => `
+                                    <a href="${esc(u)}" target="_blank" rel="noopener">
+                                        <img src="${esc(u)}"
+                                             style="width:42px;height:42px;object-fit:cover;border-radius:5px;margin:2px;">
+                                    </a>`).join('')
+                                : '-'}
+                        </td>
+                        <td>${action}</td>
+                    </tr>`;
+                }).join('');
+
+            } catch (e) {
+                console.error('loadAdminRatings error:', e);
+                tbody.innerHTML =
+                    `<tr><td colspan="8" style="color:red;">
+                        रेटिंग लोड करने में त्रुटि: ${String(e.message || e)}
+                    </td></tr>`;
+            }
+        }
+
+        async function deleteAdminRating(rowId) {
+            if (!rowId || !supabaseClient) {
+                alert('रेटिंग ID या Supabase उपलब्ध नहीं है।');
+                return;
+            }
+
+            if (!confirm('क्या आप इस रेटिंग / रिव्यू को डिलीट करना चाहते हैं? यह कार्रवाई वापस नहीं होगी।')) {
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog_feedback')
+                    .delete()
+                    .eq('id', rowId)
+                    .select('id');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    throw new Error(
+                        'डिलीट अनुरोध चला, लेकिन कोई रिकॉर्ड डिलीट नहीं हुआ। Supabase RLS DELETE policy जाँचें।'
+                    );
+                }
+
+                alert('रेटिंग / रिव्यू सफलतापूर्वक डिलीट कर दिया गया है।');
+                await loadAdminRatings();
+
+            } catch (err) {
+                console.error('deleteAdminRating error:', err);
+                alert('रेटिंग डिलीट नहीं हुई:\n' + String(err.message || err));
+            }
+        }
+
+        async function sponsorAdminRating(rowId, makeSponsored) {
+            if (!rowId || !supabaseClient) {
+                alert('रेटिंग ID या Supabase उपलब्ध नहीं है।');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog_feedback')
+                    .update({ sponsored: !!makeSponsored })
+                    .eq('id', rowId)
+                    .select('id, sponsored');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    throw new Error(
+                        'स्पॉन्सर अपडेट हुआ नहीं। Supabase RLS UPDATE policy जाँचें।'
+                    );
+                }
+
+                alert(
+                    makeSponsored
+                        ? 'रेटिंग को स्पॉन्सर कर दिया गया है।'
+                        : 'स्पॉन्सर हटाया गया है।'
+                );
+
+                await loadAdminRatings();
+
+            } catch (err) {
+                console.error('sponsorAdminRating error:', err);
+                alert('स्पॉन्सर सेट करने में त्रुटि:\n' + String(err.message || err));
+            }
+        }
+
+        function buildCustomerAnalytics(orders) {
+            const customerMap = {};
+            let totalEmails = 0;
+
+            orders.forEach(o => {
+                const phone = (o.mobile || o.customer_phone || '').trim();
+                const email = (o.email || o.customer_email || '').trim();
+                const name = (o.customer_name || 'अज्ञात ग्राहक').trim();
+                const key = email ? email.toLowerCase() : (phone || `cust_${o.id}`);
+
+                if (!customerMap[key]) {
+                    customerMap[key] = {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        ordersCount: 0,
+                        totalSpent: 0,
+                        firstDate: o.created_at ? new Date(o.created_at) : new Date()
+                    };
+                    if (email) totalEmails++;
+                }
+
+                customerMap[key].ordersCount += 1;
+                customerMap[key].totalSpent += parseFloat(o.total_amount || 0);
+
+                if (o.created_at) {
+                    const d = new Date(o.created_at);
+                    if (d < customerMap[key].firstDate) customerMap[key].firstDate = d;
+                }
+            });
+
+            const customersList = Object.values(customerMap);
+
+            document.getElementById('statTotalCustomers').innerText = customersList.length;
+            document.getElementById('statTotalEmails').innerText = totalEmails;
+            document.getElementById('statTotalOrders').innerText = orders.length;
+            const miniCustomers = document.getElementById('miniCustomersCount');
+            if (miniCustomers) miniCustomers.innerText = customersList.length;
+
+            const tbody = document.getElementById('customerTableBody');
+            if (customersList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">कोई ग्राहक डेटा उपलब्ध नहीं है।</td></tr>';
+            } else {
+                tbody.innerHTML = customersList.map((c, i) => `
+                    <tr>
+                        <td><b>${i + 1}</b></td>
+                        <td><b>${c.name}</b></td>
+                        <td>${c.email ? `<span style="color:#2563eb; font-weight:600;"><i class="fa-regular fa-envelope"></i> ${c.email}</span>` : '<span style="color:#94a3b8;">-</span>'}</td>
+                        <td>${c.phone ? `📞 ${c.phone}` : '-'}</td>
+                        <td><span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:12px; font-weight:bold;">${c.ordersCount} ऑर्डर्स</span></td>
+                        <td><b>₹${c.totalSpent}</b></td>
+                        <td>${c.firstDate.toLocaleDateString('hi-IN')}</td>
+                    </tr>
+                `).join('');
+            }
+
+            renderCustomerGraph(orders);
+        }
+
+        function renderCustomerGraph(orders) {
+            const ctx = document.getElementById('customerChart').getContext('2d');
+            
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                last7Days.push(d.toISOString().split('T')[0]);
+            }
+
+            const ordersPerDay = {};
+            const customersPerDay = {};
+            last7Days.forEach(day => {
+                ordersPerDay[day] = 0;
+                customersPerDay[day] = new Set();
+            });
+
+            orders.forEach(o => {
+                if (o.created_at) {
+                    const day = o.created_at.split('T')[0];
+                    if (ordersPerDay[day] !== undefined) {
+                        ordersPerDay[day] += 1;
+                        const identifier = o.email || o.mobile || o.customer_phone || o.id;
+                        customersPerDay[day].add(identifier);
+                    }
+                }
+            });
+
+            const labels = last7Days.map(d => {
+                const parts = d.split('-');
+                return `${parts[2]}/${parts[1]}`;
+            });
+            const ordersData = last7Days.map(d => ordersPerDay[d]);
+            const customersData = last7Days.map(d => customersPerDay[d].size);
+
+            if (customerChartInstance) {
+                customerChartInstance.destroy();
+            }
+
+            customerChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'नए ग्राहक (Customer Activity)',
+                            data: customersData,
+                            backgroundColor: 'rgba(37, 99, 235, 0.75)',
+                            borderColor: '#1d4ed8',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'ऑर्डर्स की संख्या (Orders)',
+                            data: ordersData,
+                            backgroundColor: 'rgba(230, 57, 70, 0.75)',
+                            borderColor: '#b91c1c',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { family: 'Poppins', weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function openCorrectionModal(orderId) {
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o) return;
+
+            let displayText = o.customer_correction || '(कोई विवरण नहीं)';
+            if (typeof displayText === 'string' && displayText.startsWith('[REVIEWED]')) {
+                displayText = displayText.replace('[REVIEWED]', '').trim();
+            }
+
+            const modalBody = document.getElementById('correctionModalBody');
+            modalBody.innerHTML = `
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; margin-bottom:12px;">
+                    <div style="margin-bottom:6px;"><strong>ऑर्डर ID:</strong> #${o.id} | <strong>ग्राहक:</strong> ${o.customer_name || '-'} (📞 ${o.mobile || o.customer_phone || '-'})</div>
+                    <div style="margin-bottom:6px;"><strong>ग्राहक संदेश / स्थिति विवरण:</strong></div>
+                    <div style="background:white; padding:10px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#b91c1c; white-space:pre-wrap;">${displayText}</div>
+                </div>
+                ${o.customer_correction_file ? `
+                    <div style="margin-bottom:14px; text-align:center;">
+                        <a href="${o.customer_correction_file}" target="_blank" download style="display:inline-block; background:var(--blue); color:white; padding:8px 16px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:12px;">
+                            <i class="fa-solid fa-file-arrow-down"></i> संलग्न सुधार फ़ाइल / फोटो देखें
+                        </a>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('btnMarkReviewed').onclick = () => markCorrectionReviewed(o.id);
+            document.getElementById('correctionModal').style.display = 'flex';
+        }
+
+        function closeCorrectionModal() {
+            document.getElementById('correctionModal').style.display = 'none';
+        }
+
+        async function markCorrectionReviewed(orderId) {
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o || !supabaseClient) return;
+
+            try {
+                let currentText = o.customer_correction || 'सुधार देखा गया';
+                if (!currentText.startsWith('[REVIEWED]')) {
+                    currentText = '[REVIEWED] ' + currentText;
+                }
+
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ customer_correction: currentText })
+                    .eq('id', Number(orderId));
+
+                if (error) {
+                    alert("अपडेट नहीं हो पाया: " + error.message);
+                } else {
+                    alert("समीक्षा पूर्ण! अलार्म बंद कर दिया गया है।");
+                    closeCorrectionModal();
+                    loadAdminOrders();
+                }
+            } catch (e) {
+                alert("नेटवर्क त्रुटि: " + e.message);
+            }
+        }
+
+        async function uploadOrderMatter(orderId, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64File = reader.result;
+
+                if (supabaseClient) {
+                    const { error } = await supabaseClient
+                        .from('orders')
+                        .update({ order_matter: base64File })
+                        .eq('id', Number(orderId));
+
+                    if (error) {
+                        alert("मैटर अपलोड नहीं हो पाया: " + error.message);
+                    } else {
+                        alert("मैटर सफलतापूर्वक अपलोड हो गया!");
+                        loadAdminOrders();
+                    }
+                }
+            };
+        }
+
+        async function updateOrderStatus(id, newStatus) {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ status: newStatus })
+                    .eq('id', Number(id));
+
+                if (error) alert("स्टेटस अपडेट नहीं हो सका: " + error.message);
+            } catch (e) {
+                alert("नेटवर्क त्रुटि!");
+            }
+        }
+
+        async function deleteAdminOrder(id) {
+            if (!confirm("क्या आप वाकई इस ऑर्डर को डेटाबेस से हटाना चाहते हैं?")) return;
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .delete()
+                    .eq('id', Number(id));
+
+                if (error) {
+                    alert("हटाया नहीं जा सका: " + error.message);
+                } else {
+                    alert("ऑर्डर हटा दिया गया!");
+                    loadAdminOrders();
+                }
+            } catch (e) {
+                alert("नेटवर्क त्रुटि: " + e.message);
+            }
+        }
+
+        /* CATALOG FUNCTIONS (USING 'catalog' TABLE) */
+        let globalCatalogCache = [];
+
+        function categoryLabel(cat) {
+            const v = String(cat || '').toLowerCase();
+            if (v === 'muslim' || v.includes('muslim') || v.includes('मुस्लिम') || v.includes('nikah') || v.includes('निकाह')) return ['🌙 मुस्लिम', 'cat-muslim'];
+            if (v === 'hindu' || v.includes('hindu') || v.includes('हिंदू') || v.includes('विवाह')) return ['🪔 हिंदू', 'cat-hindu'];
+            if (v === 'banner' || v === 'flex' || v.includes('बैनर') || v.includes('फ्लेक्स')) return ['🖼️ बैनर / फ्लेक्स', 'cat-banner'];
+            return ['📦 अन्य', 'cat-other'];
+        }
+
+        function filterAdminCatalog(category) {
+            const cards = category === 'all' ? globalCatalogCache : globalCatalogCache.filter(c => {
+                const raw = String(c.category || '').toLowerCase();
+                const name = `${c.name || ''} ${c.card_name || ''} ${c.model || ''}`.toLowerCase();
+                if (category === 'muslim') return raw === 'muslim' || name.includes('muslim') || name.includes('मुस्लिम') || name.includes('nikah') || name.includes('निकाह');
+                if (category === 'hindu') return raw === 'hindu' || name.includes('hindu') || name.includes('हिंदू') || name.includes('विवाह');
+                if (category === 'banner') return raw === 'banner' || name.includes('banner') || name.includes('flex') || name.includes('बैनर') || name.includes('फ्लेक्स');
+                if (category === 'other') return !['muslim','hindu','banner'].includes(raw);
+                return true;
+            });
+            renderCatalogAdminTable(cards);
+        }
+
+        function renderCatalogAdminTable(data) {
+            const tbody = document.getElementById('catalogTableBody');
+            if (!tbody) return;
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11">इस श्रेणी में कोई कार्ड उपलब्ध नहीं है।</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(c => {
+                const [catText, catClass] = categoryLabel(c.category);
+                const mrp = Number(c.catalog_rate ?? c.original_rate ?? c.mrp ?? c.rate ?? c.price ?? 0) || 0;
+                const sale = Number(c.sale_rate ?? c.selling_price ?? c.selling_rate ?? c.rate ?? c.price ?? mrp) || 0;
+                const hasVideo = !!(c.video_url || c.video || c.video_urls || c.catalog_video);
+                const imgs = (()=>{ try { const v=c.gallery_images||c.images||c.image_urls; return Array.isArray(v)?v:(typeof v==='string'?JSON.parse(v):[]); } catch(e){return [];} })();
+                return `
+                    <tr>
+                        <td><div style="display:flex;gap:3px;justify-content:center;align-items:center;flex-wrap:wrap;max-width:120px;">${[c.image||c.image_url,...imgs].filter(Boolean).slice(0,5).map(u=>`<img src="${String(u).replace(/"/g,'&quot;')}" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;" onerror="this.style.display='none'">`).join('')}</div></td>
+                        <td><b>${c.name || c.card_name || c.title || '-'}</b></td>
+                        <td>${c.model || c.code || '-'}</td>
+                        <td><span class="category-pill ${catClass}">${catText}</span></td>
+                        <td><b style="color:#64748b;text-decoration:${sale<mrp?'line-through':'none'};">₹${mrp.toLocaleString('en-IN')}</b></td>
+                        <td><b style="color:var(--primary);font-size:14px;">₹${sale.toLocaleString('en-IN')}</b><br><button type="button" class="btn-price-edit" onclick="editCardSaleRate('${c.id}', ${sale})"><i class="fa-solid fa-pen-to-square"></i> सेल रेट</button></td>
+                        <td><span class="stock-badge ${c.in_stock !== false ? 'in-stock' : 'out-stock'}">${c.in_stock !== false ? 'उपलब्ध' : 'समाप्त'}</span></td>
+                        <td><button type="button" class="btn-price-edit" onclick="editCardPrice('${c.id}', ${mrp})"><i class="fa-solid fa-pen-to-square"></i> MRP</button></td>
+                        <td><button type="button" class="btn-price-edit" style="background:#0f766e;" onclick="editCardDescription('${c.id}')"><i class="fa-solid fa-file-lines"></i> विवरण</button></td>
+                        <td>${hasVideo ? '<span style="color:#059669;font-weight:800;"><i class="fa-solid fa-circle-play"></i> उपलब्ध</span>' : '<span style="color:#94a3b8;">नहीं</span>'}</td>
+                        <td><button class="btn-stock-toggle" style="background:${c.in_stock !== false ? '#f59e0b' : '#10b981'}" onclick="toggleCardStock('${c.id}', ${c.in_stock === false})">${c.in_stock !== false ? 'समाप्त करें' : 'उपलब्ध करें'}</button></td>
+                        <td><button class="btn-del" onclick="deleteCatalogCard('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>`;
+            }).join('');
+            const count = document.getElementById('miniCatalogCount');
+            if (count) count.innerText = globalCatalogCache.length;
+        }
+
+        async function loadCatalogStock() {
+            const tbody = document.getElementById('catalogTableBody');
+            if (!tbody || !supabaseClient) return;
+            tbody.innerHTML = '<tr><td colspan="11">कैटलॉग लोड हो रहा है...</td></tr>';
+            try {
+                const { data, error } = await supabaseClient
+                    .from('catalog')
+                    .select('*')
+                    .order('id', { ascending: false });
+
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    return;
+                }
+                globalCatalogCache = data || [];
+                renderCatalogAdminTable(globalCatalogCache);
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
+            }
+        }
+
+        let selectedCatalogPhotos = [];
+        function mergeCatalogFiles(list){
+            const incoming=Array.from(list||[]).filter(f=>f && f.type && f.type.startsWith('image/'));
+            const seen=new Set(selectedCatalogPhotos.map(f=>f.name+'_'+f.size));
+            incoming.forEach(f=>{const k=f.name+'_'+f.size;if(!seen.has(k)){selectedCatalogPhotos.push(f);seen.add(k);}});
+            const count=document.getElementById('catalogPhotoCount'); if(count) count.textContent=selectedCatalogPhotos.length ? `${selectedCatalogPhotos.length} फोटो चुनी गईं` : 'कोई फोटो नहीं';
+            const input=document.getElementById('admCardFile');
+            if(input){try{const dt=new DataTransfer();selectedCatalogPhotos.forEach(f=>dt.items.add(f));input.files=dt.files;}catch(e){}}
+        }
+        function openCatalogGallery(){const el=document.getElementById('admCardFile');if(!el)return;el.removeAttribute('capture');el.multiple=true;el.accept='image/*';el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
+        function openCatalogCamera(){const el=document.getElementById('admCardCamera');if(!el)return;el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
+
+        // मोबाइल कैमरा से सीधे कैटलॉग वीडियो रिकॉर्ड करने का सिस्टम
+        let catalogVideoStream = null;
+        let catalogVideoRecorder = null;
+        let catalogVideoChunks = [];
+        let catalogVideoRecordTimer = null;
+        let catalogVideoSeconds = 0;
+
+        function getSupportedVideoMime(){
+            const types=[
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm',
+                'video/mp4'
+            ];
+            for(const t of types){
+                try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t; }catch(e){}
+            }
+            return '';
+        }
+
+        function openCatalogVideoRecorder(){
+            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){
+                // पुराने/असमर्थित browser में direct camera fallback खोलें।
+                const input=document.getElementById('admCardVideo');
+                if(input){ input.setAttribute('capture','environment'); input.click(); }
+                return;
+            }
+            showCatalogVideoRecorderUI();
+            navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true})
+                .then(stream=>{
+                    catalogVideoStream=stream;
+                    const preview=document.getElementById('catalogVideoPreview');
+                    if(preview){preview.srcObject=stream;preview.play().catch(()=>{});}
+                    const start=document.getElementById('catalogVideoStartBtn');
+                    if(start) start.disabled=false;
+                    setCatalogVideoStatus('कैमरा तैयार है — रिकॉर्ड शुरू करें।',' #0f766e');
+                })
+                .catch(err=>{
+                    closeCatalogVideoRecorder();
+                    alert('कैमरा/माइक्रोफोन की अनुमति नहीं मिली। कृपया Camera और Microphone permission Allow करें।');
+                });
+        }
+
+        function showCatalogVideoRecorderUI(){
+            let modal=document.getElementById('catalogVideoRecorderModal');
+            if(modal){modal.style.display='flex';return;}
+            modal=document.createElement('div');
+            modal.id='catalogVideoRecorderModal';
+            modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center;padding:14px;';
+            modal.innerHTML=`<div style="width:min(520px,100%);background:#fff;border-radius:16px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <b style="font-size:17px;">🎥 कैटलॉग वीडियो रिकॉर्ड करें</b>
+                    <button type="button" onclick="closeCatalogVideoRecorder()" style="border:0;background:#f1f5f9;border-radius:50%;width:34px;height:34px;font-size:18px;">×</button>
+                </div>
+                <video id="catalogVideoPreview" muted playsinline autoplay style="width:100%;max-height:58vh;background:#000;border-radius:12px;object-fit:cover;"></video>
+                <div id="catalogVideoTimer" style="text-align:center;font-size:18px;font-weight:800;margin:8px 0;color:#dc2626;">00:00 / 01:00</div>
+                <div id="catalogVideoRecorderStatus" style="text-align:center;font-size:12px;color:#64748b;margin-bottom:9px;">कैमरा शुरू हो रहा है…</div>
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                    <button type="button" id="catalogVideoStartBtn" disabled onclick="startCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#dc2626;color:#fff;font-weight:800;">🔴 रिकॉर्ड शुरू</button>
+                    <button type="button" id="catalogVideoStopBtn" disabled onclick="stopCatalogVideoRecording()" style="padding:10px 18px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;">⏹ रोकें</button>
+                    <button type="button" onclick="closeCatalogVideoRecorder()" style="padding:10px 18px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-weight:800;">रद्द करें</button>
+                </div>
+                <div style="font-size:11px;color:#64748b;text-align:center;margin-top:9px;">वीडियो अधिकतम 60 सेकंड का होगा। रिकॉर्डिंग के बाद वीडियो अपने-आप Catalog Video में लग जाएगा।</div>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+
+        function setCatalogVideoStatus(msg,color){
+            const el=document.getElementById('catalogVideoRecorderStatus');
+            if(el){el.textContent=msg;el.style.color=color||'#64748b';}
+        }
+
+        function startCatalogVideoRecording(){
+            if(!catalogVideoStream) return;
+            const mime=getSupportedVideoMime();
+            try{catalogVideoRecorder=new MediaRecorder(catalogVideoStream,mime?{mimeType:mime}:undefined);}catch(e){alert('इस मोबाइल में वीडियो रिकॉर्डिंग शुरू नहीं हो सकी।');return;}
+            catalogVideoChunks=[]; catalogVideoSeconds=0;
+            catalogVideoRecorder.ondataavailable=e=>{if(e.data && e.data.size) catalogVideoChunks.push(e.data);};
+            catalogVideoRecorder.onstop=()=>{
+                clearInterval(catalogVideoRecordTimer);
+                const type=catalogVideoRecorder?.mimeType||mime||'video/webm';
+                const blob=new Blob(catalogVideoChunks,{type});
+                const ext=type.includes('mp4')?'mp4':'webm';
+                const file=new File([blob],`catalog_video_${Date.now()}.${ext}`,{type});
+                if(file.size>12*1024*1024){
+                    alert('रिकॉर्ड किया गया वीडियो 12 MB से बड़ा है। कृपया छोटा/कम गुणवत्ता वाला वीडियो रिकॉर्ड करें।');
+                    setCatalogVideoStatus('वीडियो बहुत बड़ा है।',' #dc2626');
+                    return;
+                }
+                const input=document.getElementById('admCardVideo');
+                if(input){try{const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;}catch(e){}}
+                const st=document.getElementById('catalogVideoStatus');
+                if(st) st.textContent=`🎥 रिकॉर्ड किया गया वीडियो (${catalogVideoSeconds} सेकंड)`;
+                setCatalogVideoStatus('वीडियो तैयार है। इसे Catalog में सुरक्षित किया जा सकता है।','#0f766e');
+                stopCatalogVideoStream();
+            };
+            catalogVideoRecorder.start(250);
+            const start=document.getElementById('catalogVideoStartBtn'),stop=document.getElementById('catalogVideoStopBtn');
+            if(start) start.disabled=true; if(stop) stop.disabled=false;
+            setCatalogVideoStatus('🔴 रिकॉर्डिंग चल रही है…','#dc2626');
+            updateCatalogVideoTimer();
+            catalogVideoRecordTimer=setInterval(()=>{
+                catalogVideoSeconds++; updateCatalogVideoTimer();
+                if(catalogVideoSeconds>=60) stopCatalogVideoRecording();
+            },1000);
+        }
+
+        function updateCatalogVideoTimer(){
+            const el=document.getElementById('catalogVideoTimer');
+            if(el) el.textContent=`00:${String(catalogVideoSeconds).padStart(2,'0')} / 01:00`;
+        }
+
+        function stopCatalogVideoRecording(){
+            clearInterval(catalogVideoRecordTimer);
+            if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();
+            const stop=document.getElementById('catalogVideoStopBtn');if(stop)stop.disabled=true;
+            const start=document.getElementById('catalogVideoStartBtn');if(start)start.disabled=true;
+        }
+
+        function stopCatalogVideoStream(){
+            if(catalogVideoStream){catalogVideoStream.getTracks().forEach(t=>t.stop());catalogVideoStream=null;}
+        }
+
+        function closeCatalogVideoRecorder(){
+            try{if(catalogVideoRecorder && catalogVideoRecorder.state!=='inactive') catalogVideoRecorder.stop();}catch(e){}
+            clearInterval(catalogVideoRecordTimer);
+            stopCatalogVideoStream();
+            const modal=document.getElementById('catalogVideoRecorderModal');
+            if(modal) modal.remove();
+        }
+
+        document.addEventListener('change',function(e){
+            if(e.target && e.target.id==='admCardVideo' && e.target.files?.[0]){
+                const f=e.target.files[0];
+                const st=document.getElementById('catalogVideoStatus');
+                if(st) st.textContent=`🎬 ${f.name}`;
+            }
+        });
+
+        async function uploadCatalogAdminFile(file, folder='catalog'){
+            if(!supabaseClient) throw new Error('Database connection उपलब्ध नहीं है।');
+            // वीडियो/फोटो के लिए इस पेज पर कोई 12 MB client-side limit नहीं है।
+            // 1 मिनट तक की मोबाइल रिकॉर्डिंग सीधे Storage में अपलोड की जा सकती है।
+            const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase() || 'bin';
+            const path=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+            const buckets=['review-images','catalog','cards']; let last=null;
+            for(const bucket of buckets){
+                try{
+                    const {error}=await supabaseClient.storage.from(bucket).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+                    if(!error){const {data}=supabaseClient.storage.from(bucket).getPublicUrl(path);if(data?.publicUrl)return data.publicUrl;}
+                    last=error;
+                }catch(e){last=e;}
+            }
+            // Image fallback only; video should not be silently converted into a huge DB field.
+            if(file.type.startsWith('image/')){
+                return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('फोटो पढ़ी नहीं जा सकी।'));r.readAsDataURL(file);});
+            }
+            throw new Error('वीडियो Storage में अपलोड नहीं हो सका। Supabase Storage की upload/public policy जाँचें।'+(last?.message?` ${last.message}`:''));
+        }
+        function getVideoDuration(file){return new Promise((resolve,reject)=>{const u=URL.createObjectURL(file),v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{const d=v.duration;URL.revokeObjectURL(u);resolve(d)};v.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('वीडियो की अवधि पढ़ी नहीं जा सकी।'))};v.src=u;});}
+        async function compressCatalogVideo(file){
+            // Smart browser-side compression: keep resolution up to 720p and avoid
+            // recompressing files that are already small. Target is roughly 2–3 MB
+            // for a 60-second clip; shorter clips can remain smaller/larger as needed.
+            if(!file || !file.type.startsWith('video/')) return file;
+            if(file.size <= 3*1024*1024) return file;
+            const duration=await getVideoDuration(file);
+            if(!Number.isFinite(duration) || duration<=0) return file;
+
+            const video=document.createElement('video');
+            video.muted=true; video.playsInline=true; video.preload='auto';
+            const url=URL.createObjectURL(file); video.src=url;
+            await new Promise((resolve,reject)=>{
+                video.onloadedmetadata=()=>resolve();
+                video.onerror=()=>reject(new Error('वीडियो पढ़ा नहीं जा सका।'));
+            });
+            try{ await video.play(); }catch(e){}
+
+            const maxW=1280, maxH=720;
+            const scale=Math.min(1,maxW/video.videoWidth||1,maxH/video.videoHeight||1);
+            const w=Math.max(2,Math.round((video.videoWidth||1280)*scale/2)*2);
+            const h=Math.max(2,Math.round((video.videoHeight||720)*scale/2)*2);
+            const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+            const ctx=canvas.getContext('2d',{alpha:false});
+            const stream=canvas.captureStream(30);
+            try{
+                if(video.captureStream){
+                    const src=video.captureStream();
+                    const audioTracks=src.getAudioTracks();
+                    audioTracks.forEach(t=>stream.addTrack(t));
+                }
+            }catch(e){}
+
+            const targetBytes=3.0*1024*1024;
+            const totalKbps=Math.max(360,Math.min(1800,(targetBytes*8/1024)/duration));
+            const audioKbps=48;
+            const videoKbps=Math.max(300,Math.round(totalKbps-audioKbps));
+            const mimeCandidates=[
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm'
+            ];
+            let mime='';
+            for(const m of mimeCandidates){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)){mime=m;break;} }
+            if(!window.MediaRecorder || !mime){ URL.revokeObjectURL(url); return file; }
+
+            const chunks=[];
+            const recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:videoKbps*1000,audioBitsPerSecond:audioKbps*1000});
+            recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+            const done=new Promise((resolve,reject)=>{
+                recorder.onerror=()=>reject(new Error('वीडियो compression शुरू नहीं हो सका।'));
+                recorder.onstop=()=>resolve();
+            });
+            recorder.start(500);
+            let stopped=false;
+            const draw=()=>{
+                if(stopped)return;
+                if(video.readyState>=2)ctx.drawImage(video,0,0,w,h);
+                requestAnimationFrame(draw);
+            };
+            requestAnimationFrame(draw);
+            await new Promise(resolve=>setTimeout(resolve,Math.min(duration*1000,60000)+150));
+            stopped=true;
+            if(recorder.state!=='inactive')recorder.stop();
+            await done;
+            stream.getTracks().forEach(t=>t.stop());
+            video.pause(); video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url);
+            const blob=new Blob(chunks,{type:mime});
+            if(!blob.size || blob.size>=file.size){ return file; }
+            const ext='webm';
+            return new File([blob],`catalog_compressed_${Date.now()}.${ext}`,{type:mime,lastModified:Date.now()});
+        }
+
+
+        async function insertAdminCatalogPayload(base){
+            const variants=[
+                {...base},
+                (()=>{const x={...base};delete x.gallery_images;delete x.video_urls;delete x.video_url;delete x.catalog_video;delete x.images;delete x.image_urls;return x;})(),
+                (()=>{const x={name:base.name,card_name:base.card_name,model:base.model,rate:base.rate,price:base.price,image:base.image,image_url:base.image_url,in_stock:base.in_stock,category:base.category,description:base.description};return x;})(),
+                (()=>{const x={name:base.name,model:base.model,rate:base.rate,price:base.price,image:base.image,image_url:base.image_url,in_stock:base.in_stock};return x;})()
+            ];
+            let last=null;
+            for(const payload of variants){try{const {error}=await supabaseClient.from('catalog').insert([payload]);if(!error)return;last=error;}catch(e){last=e;}}
+            throw last||new Error('Catalog insert failed');
+        }
+
+        async function handleAddNewCatalogCard(e) {
+            e.preventDefault();
+            const btn=document.getElementById('addCardSubmitBtn'); btn.disabled=true; btn.innerText='सुरक्षित हो रहा है...';
+            try{
+                const name=document.getElementById('admCardName').value.trim();
+                const model=document.getElementById('admCardModel').value.trim();
+                const mrp=parseFloat(document.getElementById('admCardRate').value);
+                const saleInput=parseFloat(document.getElementById('admCardSaleRate')?.value);
+                const sale=Number.isFinite(saleInput)?saleInput:mrp;
+                const in_stock=document.getElementById('admCardStock').value==='true';
+                const category=document.getElementById('admCardCategory').value;
+                const photos=selectedCatalogPhotos.length?selectedCatalogPhotos:Array.from(document.getElementById('admCardFile')?.files||[]);
+                const video=document.getElementById('admCardVideo')?.files?.[0]||null;
+                if(!photos.length) throw new Error('कृपया Gallery/Camera से कम से कम 1 फोटो चुनें।');
+                if(!name) throw new Error('कार्ड का नाम दर्ज करें।');
+                if(!Number.isFinite(mrp)||mrp<0) throw new Error('मान्य कैटलॉग रेट डालें।');
+                if(!Number.isFinite(sale)||sale<0) throw new Error('मान्य सेल रेट डालें।');
+                if(video){
+                    if(!video.type.startsWith('video/')) throw new Error('केवल वीडियो फाइल चुनें।');
+                    const duration=await getVideoDuration(video);
+                    if(duration>60) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया 1 मिनट (60 सेकंड) के अंदर का वीडियो चुनें।`);
+                }
+                const imageUrls=[]; for(const f of photos.slice(0,10)) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
+                let videoUrl='';
+                if(video){
+                    setCatalogVideoStatus('⏳ वीडियो compress हो रहा है…','#b45309');
+                    const compressedVideo=await compressCatalogVideo(video);
+                    videoUrl=await uploadCatalogAdminFile(compressedVideo,'catalog');
+                    const st=document.getElementById('catalogVideoStatus');
+                    if(st) st.textContent=`🎬 वीडियो तैयार: ${(compressedVideo.size/1024/1024).toFixed(2)} MB`;
+                }
+                const fallbackDescription=`[[GALLERY:${imageUrls.join('|')}]]${videoUrl?` [[VIDEO:${videoUrl}]]`:''}`;
+                const base={name,card_name:name,title:name,model,code:model,category,image:imageUrls[0],image_url:imageUrls[0],images:imageUrls,image_urls:JSON.stringify(imageUrls),gallery_images:JSON.stringify(imageUrls),catalog_rate:mrp,original_rate:mrp,mrp,sale_rate:sale,selling_price:sale,rate:sale,price:sale,in_stock,description:fallbackDescription,video_url:videoUrl,video_urls:videoUrl?JSON.stringify([videoUrl]):JSON.stringify([]),catalog_video:videoUrl};
+                await insertAdminCatalogPayload(base);
+                alert(`नया कार्ड सफलतापूर्वक जोड़ा गया।\n${imageUrls.length} फोटो${videoUrl?' और 1 वीडियो':''} सेव किया गया।`);
+                document.getElementById('newCardForm').reset(); selectedCatalogPhotos=[]; const cnt=document.getElementById('catalogPhotoCount');if(cnt)cnt.textContent='कोई फोटो नहीं'; loadCatalogStock();
+            }catch(err){alert('कार्ड जोड़ने में त्रुटि: '+(err.message||err));}
+            finally{btn.disabled=false;btn.innerText='+ सुरक्षित करें';}
+        }
+
+        // कैटलॉग कार्ड का रेट/Price एडिट करें
+        async function editCardPrice(id, currentPrice) {
+            if (!supabaseClient) {
+                alert("डेटाबेस कनेक्ट नहीं है!");
+                return;
+            }
+            const entered = prompt("नया कैटलॉग रेट / MRP (₹/पीस) दर्ज करें:", currentPrice);
+            if (entered === null) return;
+            const newPrice = parseFloat(String(entered).trim());
+            if (!Number.isFinite(newPrice) || newPrice < 0) {
+                alert("कृपया सही कीमत दर्ज करें।");
+                return;
+            }
+            try {
+                // MRP को उसी field में बदलना जरूरी है जिसे Index/Detail प्राथमिकता से पढ़ते हैं।
+                const payload = {
+                    catalog_rate: newPrice,
+                    original_rate: newPrice,
+                    mrp: newPrice
+                };
+                let { error } = await supabaseClient.from('catalog').update(payload).eq('id', Number(id));
+                // यदि schema में कुछ alias columns न हों तो उपलब्ध मुख्य field पर fallback करें।
+                if (error) {
+                    ({ error } = await supabaseClient.from('catalog').update({catalog_rate:newPrice}).eq('id', Number(id)));
+                }
+                if (error) {
+                    alert("कैटलॉग रेट अपडेट नहीं हो पाया: " + error.message);
+                    return;
+                }
+                const card = globalCatalogCache.find(x => String(x.id) === String(id));
+                if (card) {
+                    card.catalog_rate = newPrice;
+                    card.original_rate = newPrice;
+                    card.mrp = newPrice;
+                }
+                alert("कैटलॉग रेट / MRP सफलतापूर्वक बदल दिया गया: ₹" + newPrice);
+                const selected = document.getElementById('adminCategoryFilter');
+                filterAdminCatalog(selected ? selected.value : 'all');
+            } catch (e) {
+                alert("रेट अपडेट करते समय नेटवर्क त्रुटि: " + e.message);
+            }
+        }
+
+        async function editCardDescription(id) {
+            if (!supabaseClient) { alert('डेटाबेस कनेक्ट नहीं है!'); return; }
+            const card = globalCatalogCache.find(x => String(x.id) === String(id));
+            if (!card) { alert('कार्ड विवरण नहीं मिला।'); return; }
+            const raw = String(card.description || card.details || card.description_hi || card.matter || card.note || '');
+            const clean = raw
+                .replace(/\[\[GALLERY:[\s\S]*?\]\]/ig,'')
+                .replace(/\[\[VIDEO:[\s\S]*?\]\]/ig,'')
+                .trim();
+            const text = prompt('कार्ड का विवरण लिखें:', clean);
+            if (text === null) return;
+            const gallery = (raw.match(/\[\[GALLERY:[\s\S]*?\]\]/i)||[''])[0];
+            const video = (raw.match(/\[\[VIDEO:[\s\S]*?\]\]/i)||[''])[0];
+            const description = [text.trim(), gallery, video].filter(Boolean).join('\n');
+            try {
+                const {error}=await supabaseClient.from('catalog').update({description}).eq('id',Number(id));
+                if(error){ alert('विवरण अपडेट नहीं हो पाया: '+error.message); return; }
+                card.description=description;
+                alert('कार्ड का विवरण सफलतापूर्वक बदल दिया गया।');
+                const selected=document.getElementById('adminCategoryFilter');
+                filterAdminCatalog(selected ? selected.value : 'all');
+            }catch(e){ alert('विवरण अपडेट करते समय नेटवर्क त्रुटि: '+e.message); }
+        }
+
+        async function editCardSaleRate(id, currentPrice) {
+            if (!supabaseClient) { alert('डेटाबेस कनेक्ट नहीं है!'); return; }
+            const entered=prompt('नया सेल रेट (₹/पीस) दर्ज करें:', currentPrice);
+            if(entered===null)return; const n=parseFloat(String(entered).trim());
+            if(!Number.isFinite(n)||n<0){alert('कृपया सही सेल रेट दर्ज करें।');return;}
+            try{
+                const payload={sale_rate:n,selling_price:n,rate:n,price:n};
+                let {error}=await supabaseClient.from('catalog').update(payload).eq('id',Number(id));
+                if(error){
+                    // पुराने schema में sale_rate/selling_price न हों तो कम-से-कम rate/price अपडेट करें।
+                    const r=await supabaseClient.from('catalog').update({rate:n,price:n}).eq('id',Number(id)); error=r.error;
+                }
+                if(error)throw error; alert('सेल रेट सफलतापूर्वक बदल दिया गया: ₹'+n+' / पीस'); loadCatalogStock();
+            }catch(e){alert('सेल रेट अपडेट नहीं हो पाया: '+(e.message||e));}
+        }
+
+        async function toggleCardStock(id, newStatus) {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('catalog')
+                    .update({ in_stock: newStatus })
+                    .eq('id', Number(id));
+
+                if (error) alert("स्टॉक स्थिति नहीं बदली: " + error.message);
+                else loadCatalogStock();
+            } catch (e) {
+                alert("नेटवर्क त्रुटि!");
+            }
+        }
+
+        async function deleteCatalogCard(id) {
+            if (!confirm("क्या आप वाकई इस कार्ड को कैटलॉग से हटाना चाहते हैं?")) return;
+            if (!supabaseClient) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('catalog')
+                    .delete()
+                    .eq('id', Number(id));
+
+                if (error) alert("हटाया नहीं जा सका: " + error.message);
+                else loadCatalogStock();
+            } catch (e) {
+                alert("नेटवर्क त्रुटि!");
+            }
+        }
+
+        function escapeAdminReceiptText(value) {
+            return String(value ?? '')
+                .replace(/&/g,'&amp;')
+                .replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;')
+                .replace(/'/g,'&#039;');
+        }
+
+        /* RECEIPT MODAL FUNCTIONS — My Orders के समान पूर्ण रसीद */
+        function parseAdminOrderMatterForReceipt(text) {
+            const out = {events:[], rsvp:[], raw:String(text || '')};
+            const lines = out.raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+            for (const line of lines) {
+                if (/^कार्यक्रम\s*:/i.test(line)) {
+                    const v=line.replace(/^कार्यक्रम\s*:\s*/i,'');
+                    const parts=v.split(/\s*\|\s*/);
+                    const get=(label)=>{
+                        const p=parts.find(x=>new RegExp('^'+label+'\\s*:','i').test(x));
+                        return p?p.replace(new RegExp('^'+label+'\\s*:\\s*','i'),'').trim():'';
+                    };
+                    out.events.push({title:get('कार्यक्रम')||parts[0]||'',date:get('तारीख'),day:get('दिन'),part:get('समय का भाग'),time:get('समय')});
+                } else if (/^(विनीत\s*\/\s*निवेदक|दर्शनाभिलाषी|संपर्क)\s*:/i.test(line)) {
+                    out.rsvp.push(line);
+                }
+            }
+            return out;
+        }
+
+        function parseAdminCustomerFilesForReceipt(o) {
+            const arr=[];
+            const add=v=>{
+                if(!v) return;
+                let x=v;
+                if(typeof x==='string'){
+                    try{x=JSON.parse(x)}catch(e){return;}
+                }
+                if(Array.isArray(x)) x.forEach(add);
+                else if(typeof x==='object' && x.url) arr.push(x);
+            };
+            add(o.customer_files);
+            if(o.wedding_matter_file) add(o.wedding_matter_file);
+            return arr;
+        }
+
+        function openOrderReceiptModal(orderId) {
+            window.__adminReceiptOrderId = String(orderId);
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o) return;
+
+            let baseNotes = String(o.custom_notes || o.order_notes || o.notes || '');
+            if (baseNotes.includes('[ADMIN_NOTICE]')) baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
+
+            const total = parseFloat(o.total_amount || 0) || 0;
+            const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
+            const balance = Math.max(0, total - advance);
+            const matter = parseAdminOrderMatterForReceipt(baseNotes);
+            const files = parseAdminCustomerFilesForReceipt(o);
+            const cardImg = o.card_image || o.image || o.card_photo || '';
+            const safeId = escapeAdminReceiptText(o.id || '-');
+            const safe = escapeAdminReceiptText;
+
+            const eventRows = matter.events.length ? matter.events.map((e,i)=>`
+                <tr>
+                    <td>${i+1}. ${safe(e.title || '-')}</td>
+                    <td>${safe(e.date || '-')}</td>
+                    <td>${safe(e.day || '-')}</td>
+                    <td>${safe(e.time || e.part || '-')}</td>
+                </tr>`).join('') : `
+                <tr><td colspan="4" style="text-align:center;color:#64748b;">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
+
+            const fileRows = files.length ? files.map(f=>{
+                const url = String(f.url || '').trim();
+                const isPdf=/pdf/i.test(String(f.mime||f.fileType||f.type||f.name||url));
+                return `<a href="${safe(url)}" target="_blank" rel="noopener" class="admin-matter-file-btn">
+                    <i class="fa-solid ${isPdf?'fa-file-pdf':'fa-image'}"></i> ${safe(f.name || (isPdf?'PDF फाइल खोलें':'फोटो खोलें'))}
+                </a>`;
+            }).join('') : `<span style="color:#64748b;font-size:12px;">अलग PDF/फोटो फाइल उपलब्ध नहीं है।</span>`;
+
+            area = document.getElementById('printableReceiptArea');
+            area.innerHTML = `
+                <div class="receipt-header dp-full-receipt-head">
+                    <h2>बिस्मिल्लाहिर्रहमानिर्रहीम</h2>
+                    <div class="dp-receipt-title">ऑर्डर मैटर रसीद / फॉर्म</div>
+                    <div class="dp-receipt-meta"><b>रसीद नं.:</b> #${safeId} &nbsp; | &nbsp; <b>तिथि:</b> ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</div>
+                </div>
+
+                <div class="dp-two-col">
+                    <div class="dp-person-box">
+                        <div class="dp-box-title">1. लड़का:</div>
+                        <div class="form-line"><b>लड़का का नाम:</b> ${safe(o.groom_name||'-')}</div>
+                        <div class="form-line"><b>पिता का नाम:</b> ${safe(o.groom_father||'-')}</div>
+                        <div class="form-line"><b>पता:</b> ${safe(o.groom_address||'-')}</div>
+                    </div>
+                    <div class="dp-person-box">
+                        <div class="dp-box-title">2. लड़की:</div>
+                        <div class="form-line"><b>लड़की का नाम:</b> ${safe(o.bride_name||'-')}</div>
+                        <div class="form-line"><b>पिता का नाम:</b> ${safe(o.bride_father||'-')}</div>
+                        <div class="form-line"><b>पता:</b> ${safe(o.bride_address||'-')}</div>
+                    </div>
+                </div>
+
+                <div class="dp-section-heading">3. कार्यक्रम</div>
+                <table class="dp-event-table">
+                    <thead><tr><th>कार्यक्रम</th><th>तारीख</th><th>दिन</th><th>समय</th></tr></thead>
+                    <tbody>${eventRows}</tbody>
+                </table>
+
+                <div class="dp-two-col">
+                    <div class="dp-info-box">
+                        <b class="dp-info-title">R.S.V.P. / चश्मे बराह</b>
+                        <div class="dp-info-body">${safe(matter.rsvp.join('\n') || '—')}</div>
+                    </div>
+                    <div class="dp-info-box">
+                        <b class="dp-info-title">ऑर्डर जानकारी</b>
+                        <div class="dp-info-body">ग्राहक: <b>${safe(o.customer_name||'-')}</b><br>मोबाइल: <b>${safe(o.mobile||o.phone||'-')}</b><br>मात्रा: <b>${safe(o.quantity||100)} पीस</b><br>कार्ड: <b>${safe(o.card_title||o.card_name||'शादी कार्ड')}</b>${o.card_model?`<br>मॉडल / कोड: <b>${safe(o.card_model)}</b>`:''}</div>
+                    </div>
+                </div>
+
+                <div class="dp-file-box">
+                    <div class="dp-box-title">✍️ ऑर्डर फॉर्म से अपलोड किया हुआ PDF / फोटो — देखने के लिए</div>
+                    <div class="dp-file-list">${fileRows}</div>
+                </div>
+
+                <div class="dp-typed-box">
+                    <div class="dp-box-title">✏️ टाइप किया हुआ ऑर्डर</div>
+                    <div class="dp-typed-preview">${safe(baseNotes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}</div>
+                </div>
+
+                <div class="dp-selected-card-box">
+                    <div class="dp-box-title">🖼️ ऑर्डर में चुना गया कार्ड</div>
+                    <div class="dp-selected-card-row">
+                        ${cardImg ? `<img src="${safe(cardImg)}" alt="Selected Card" onerror="this.style.display='none';">` : ''}
+                        <div><b>${safe(o.card_title||o.card_name||'शादी कार्ड')}</b><br>${o.card_model?`मॉडल / कोड: <b>${safe(o.card_model)}</b><br>`:''}<span>ऑर्डर में चुना गया कार्ड</span></div>
+                    </div>
+                </div>
+
+                <div class="dp-payment-box">
+                    <div class="dp-box-title">💰 बिल एवं भुगतान स्थिति</div>
+                    <div class="dp-payment-row"><span>कुल राशि:</span><b>₹${total}</b></div>
+                    <div class="dp-payment-row"><span>अग्रिम जमा:</span><b class="dp-green">₹${advance}</b></div>
+                    <div class="dp-payment-row"><span>शेष बकाया:</span><b class="dp-red">₹${balance}</b></div>
+                    <div class="dp-payment-row"><span>ऑर्डर स्टेटस:</span><b>${safe(o.status||'Pending')}</b></div>
+                </div>
+            `;
+
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function openAdminPaymentReceipt(orderId) {
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o) return;
+            const src = o.payment_receipt || o.screenshot || '';
+            const utr = o.utr_number || o.txn_id || '';
+            const mode = o.payment_mode || '-';
+            const amount = o.advance_paid || o.advance_amount || 0;
+            const box = document.getElementById('paymentReceiptArea');
+            if (!box) return;
+            box.innerHTML = `
+                <div class="dp-payment-receipt-title">💳 Payment Receipt / भुगतान रसीद</div>
+                <div class="dp-payment-receipt-info"><b>ऑर्डर #${escapeAdminReceiptText(o.id)}</b> &nbsp; | &nbsp; राशि: <b>₹${escapeAdminReceiptText(amount)}</b><br>Payment Mode: <b>${escapeAdminReceiptText(mode)}</b><br>UTR / Transaction ID: <b>${escapeAdminReceiptText(utr || 'उपलब्ध नहीं')}</b></div>
+                ${src ? `<a href="${escapeAdminReceiptText(src)}" target="_blank" rel="noopener" class="dp-payment-image-link"><img src="${escapeAdminReceiptText(src)}" alt="Payment Receipt"><span>📷 Payment Receipt खोलें</span></a>` : '<div class="dp-no-payment">Payment receipt / screenshot उपलब्ध नहीं है।</div>'}
+            `;
+            document.getElementById('paymentReceiptModal').style.display='flex';
+        }
+        function closeAdminPaymentReceipt(){ const m=document.getElementById('paymentReceiptModal'); if(m) m.style.display='none'; }
+
+        function downloadReceiptPDF() {
+            const element = document.getElementById('printableReceiptArea');
+            const opt = {
+                margin: 6,
+                filename: `DelhiPress_Receipt_${Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
