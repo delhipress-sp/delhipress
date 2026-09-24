@@ -1045,6 +1045,8 @@
         let currentActiveCategory = 'wedding';
         let isGroomFirst = true;
         let globalCatalogCards = [];
+        let currentSelectedCatalogId = null;
+        let currentSelectedCatalogCard = null;
         let calculatedGrandTotal = 0;
         let currentLang = 'hi';
         let coupleCount = 1;
@@ -1355,6 +1357,14 @@
                 if (found) targetCard = found;
             }
 
+            // अगर URL/selected-card नहीं है तो आखिरी exact catalog id से कार्ड खोजें।
+            if (!targetCard) {
+                const rememberedId = localStorage.getItem('dp_selected_catalog_id');
+                if (rememberedId && globalCatalogCards.length > 0) {
+                    targetCard = globalCatalogCards.find(c => String(c.id) === String(rememberedId)) || null;
+                }
+            }
+
             if (targetCard) {
                 applyCardDetails(targetCard);
                 if (targetCard.id) document.getElementById('directCardSelect').value = targetCard.id;
@@ -1416,6 +1426,14 @@
         }
 
         function applyCardDetails(card) {
+            // IMPORTANT: हमेशा उसी Catalog record को याद रखें जिसे ग्राहक ने चुना है।
+            // इससे बाद में My Orders/Order Detail में दूसरा कार्ड नहीं आएगा।
+            currentSelectedCatalogId = (card && card.id != null) ? String(card.id) : null;
+            currentSelectedCatalogCard = card || null;
+            try {
+                localStorage.setItem('dp_selected_catalog_id', currentSelectedCatalogId || '');
+            } catch (e) {}
+
             const imgUrl = card.image || card.image_url || card.photo || '';
             const name = card.name || card.title || 'शादी कार्ड';
             const model = card.model || card.code || '';
@@ -1880,22 +1898,15 @@
                 return;
             }
 
-            // IMPORTANT: use the normal order-building pipeline here.
-            // This preserves the catalog price, quantity, advance and balance
-            // instead of creating a partial order with total_amount = 0.
+            // IMPORTANT: पहले पूरे typed order को dp_temp_order में बनाएं।
+            // इससे handwritten upload करने पर भी लड़का/लड़की, कार्यक्रम, RSVP
+            // और बाकी typing अगले Address/Payment चरण में नहीं खोएगी।
             try {
-                localStorage.setItem('dp_matter_terms_accepted', JSON.stringify({
-                    accepted: true,
-                    accepted_at: new Date().toISOString(),
-                    file_name: weddingMatterData.name,
-                    file_type: weddingMatterData.type,
-                    file_size: weddingMatterData.size
-                }));
-            } catch (e) {}
-
-            // processUniversalOrder(false) saves the complete dp_temp_order
-            // and then opens the normal Address -> Confirm -> Payment flow.
-            processUniversalOrder(false);
+                processUniversalOrder(false);
+            } catch (e) {
+                console.error('Matter order save error:', e);
+                alert('ऑर्डर फॉर्म सेव नहीं हो पाया। कृपया दोबारा कोशिश करें।');
+            }
         }
 
         document.addEventListener('change', function(e) {
@@ -2018,15 +2029,17 @@
                 orderNotes = `शॉप: ${document.getElementById('visitingShopName').value}\nनाम: ${document.getElementById('visitingPersonName').value}\nसर्विसेज: ${document.getElementById('visitingServices').value}\nपता: ${document.getElementById('visitingPrintAddress').value}\nईमेल/वेब: ${document.getElementById('visitingEmailWeb').value}`;
             }
 
+            // Handwritten file metadata is kept small here. The real file remains
+            // in IndexedDB until Payment uploads it to Supabase Storage.
             let uploadedMatter = null;
             try {
                 if (weddingMatterData) {
                     uploadedMatter = {
                         name: weddingMatterData.name,
-                        type: weddingMatterData.type,
-                        size: weddingMatterData.size,
-                        uploadedAt: weddingMatterData.uploadedAt,
-                        storedAs: 'IndexedDB'
+                        type: weddingMatterData.type || 'application/octet-stream',
+                        size: weddingMatterData.size || 0,
+                        uploadedAt: weddingMatterData.uploadedAt || new Date().toISOString(),
+                        storedAs: 'indexedDB'
                     };
                 } else {
                     uploadedMatter = JSON.parse(localStorage.getItem('dp_wedding_matter_upload_meta') || 'null');
@@ -2043,6 +2056,13 @@
                 card_title: orderTitle,
                 card_model: orderModel,
                 card_image: cardImg,
+                // Exact catalog identity — name/model/image से अनुमान नहीं लगाया जाएगा।
+                catalog_id: currentSelectedCatalogId ? Number(currentSelectedCatalogId) : null,
+                catalogId: currentSelectedCatalogId || null,
+                selected_catalog_id: currentSelectedCatalogId || null,
+                catalog_name: currentSelectedCatalogCard?.name || currentSelectedCatalogCard?.title || '',
+                catalog_model: currentSelectedCatalogCard?.model || currentSelectedCatalogCard?.code || '',
+                catalog_image: currentSelectedCatalogCard?.image || currentSelectedCatalogCard?.image_url || currentSelectedCatalogCard?.photo || cardImg,
                 quantity: finalQty,
                 total_amount: calculatedGrandTotal,
                 advance_paid: advance,
@@ -2056,7 +2076,6 @@
                 custom_notes: orderNotes,
                 wedding_matter_file: uploadedMatter,
                 wedding_matter_uploaded: !!uploadedMatter,
-                matter_terms_accepted: !!(uploadedMatter && JSON.parse(localStorage.getItem('dp_matter_terms_accepted') || 'null')?.accepted),
                 status: 'Pending',
                 created_at: new Date().toISOString()
             };
