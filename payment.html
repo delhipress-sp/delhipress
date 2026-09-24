@@ -382,13 +382,33 @@
             document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
 
             const currentData = pendingOrderData || {};
+
+            // हमेशा logged-in customer का mobile प्राथमिक पहचान रखें।
+            // Order form में mobile खाली/अलग format होने पर भी My Orders में
+            // वही account का order वापस मिल सकेगा।
+            let loggedUser = {};
+            try {
+                loggedUser = JSON.parse(
+                    localStorage.getItem('dp_current_user') ||
+                    localStorage.getItem('dp_logged_in_user') ||
+                    localStorage.getItem('user') || '{}');
+            } catch(e) {}
+            const normalizeMobile = v => {
+                const d = String(v ?? '').replace(/\D/g, '');
+                return d.length >= 10 ? d.slice(-10) : d;
+            };
+            const orderMobile = normalizeMobile(
+                currentData.mobile || currentData.phone ||
+                loggedUser.mobile || loggedUser.phone || ''
+            );
+
             const uniqueOrderId = 'DP-' + Math.floor(100000 + Math.random() * 900000);
 
             const cleanOrderPayload = {
                 order_id: uniqueOrderId,
                 customer_name: currentData.customer_name || 'ग्राहक',
-                mobile: currentData.mobile || '',
-                phone: currentData.mobile || '',
+                mobile: orderMobile || currentData.mobile || currentData.phone || '',
+                phone: orderMobile || currentData.mobile || currentData.phone || '',
                 address: currentData.address || '',
                 card_title: currentData.card_title || 'शादी कार्ड',
                 card_model: currentData.card_model || '',
