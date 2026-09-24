@@ -104,6 +104,13 @@
         }
         .bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
 
+        .payment-stage-note {
+            margin: 14px 0; padding: 12px 14px; border-radius: 10px;
+            background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a;
+            font-size: 13px; line-height: 1.5;
+        }
+        #paymentOptionsWrap { display:none; }
+        #paymentOptionsWrap.show { display:block; }
         .payment-option-card {
             border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 16px;
             background: #ffffff; cursor: pointer; transition: all 0.25s ease;
@@ -175,23 +182,26 @@
                 </div>
             </div>
 
+            <div id="paymentOptionsWrap">
+                <div class="payment-stage-note"><b>दूसरा चरण — Payment</b><br>ऑर्डर Submit होने के बाद नीचे से Cashfree/UPI/Cash में भुगतान का विकल्प चुनें।</div>
+
             <div class="payment-option-card" id="cardCashfree" onclick="selectPaymentMode('cashfree')">
                 <div class="payment-option-header">
-                    <input type="radio" name="payMode" id="radioCashfree" value="cashfree">
+                    <input type="radio" name="payMode" id="radioCashfree" value="cashfree" checked>
                     <label for="radioCashfree" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-shield-halved" style="color:#16a34a;"></i> Cashfree से ऑनलाइन भुगतान</label>
                 </div>
                 <div class="payment-details-body">
                     <p style="font-size:13px; color:#475569; text-align:center;">UPI, कार्ड और उपलब्ध Cashfree payment methods से सुरक्षित भुगतान करें।</p>
-                    <button type="button" id="btnCashfreePay" class="btn-upi-app" style="border:0; cursor:pointer; width:100%;" onclick="event.stopPropagation(); startCashfreePayment();">
-                        <i class="fa-solid fa-lock"></i> Cashfree Checkout खोलें
-                    </button>
+                    <div style="font-size:12px; color:#475569; text-align:center; margin-top:8px;">
+                        Cashfree चुनकर नीचे <b>Payment करें</b> दबाएँ।
+                    </div>
                     <div id="cashfreeStatus" style="display:none; margin-top:10px; text-align:center; font-size:12px;"></div>
                 </div>
             </div>
 
             <div class="payment-option-card" id="cardUpi" onclick="selectPaymentMode('upi')">
                 <div class="payment-option-header">
-                    <input type="radio" name="payMode" id="radioUpi" value="upi" checked>
+                    <input type="radio" name="payMode" id="radioUpi" value="upi">
                     <label for="radioUpi" style="cursor:pointer; margin-bottom:0;"><i class="fa-solid fa-bolt" style="color:#e63946;"></i> ऑनलाइन भुगतान (UPI QR / Apps)</label>
                 </div>
                 <div class="payment-details-body">
@@ -224,8 +234,10 @@
                 </div>
             </div>
 
-            <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="finalizeAndSubmitOrder()">
-                <i class="fa-solid fa-circle-check"></i> <span id="submitBtnText">भुगतान कन्फर्म करें एवं ऑर्डर सबमिट करें</span>
+            </div>
+
+            <button type="button" class="btn-submit-order" id="btnSubmitOrder" onclick="handlePaymentStageSubmit()">
+                <i class="fa-solid fa-circle-check"></i> <span id="submitBtnText">ऑर्डर Submit करें → Payment विकल्प</span>
             </button>
         </div>
     </div>
@@ -251,6 +263,7 @@
         let cashfreePaymentDone = false;
         let cashfreeOrderId = "";
         let cashfreePaymentId = "";
+        let paymentStageOpened = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             const rawTemp = localStorage.getItem('dp_temp_order');
@@ -290,9 +303,33 @@
             const returnedCashfreeOrderId = qs.get('cashfree_order_id');
             if (returnedCashfreeOrderId) {
                 cashfreeOrderId = returnedCashfreeOrderId;
+                paymentStageOpened = true;
+                document.getElementById('paymentOptionsWrap')?.classList.add('show');
                 verifyCashfreeAndSubmit(returnedCashfreeOrderId);
             }
         });
+
+        function handlePaymentStageSubmit() {
+            const wrap = document.getElementById('paymentOptionsWrap');
+            const btn = document.getElementById('btnSubmitOrder');
+            const text = document.getElementById('submitBtnText');
+
+            if (!paymentStageOpened) {
+                paymentStageOpened = true;
+                wrap.classList.add('show');
+                selectPaymentMode('cashfree');
+                text.innerText = 'Cashfree से Payment करें';
+                wrap.scrollIntoView({behavior:'smooth', block:'start'});
+                return;
+            }
+
+            const isCashfree = document.getElementById('radioCashfree').checked;
+            if (isCashfree) {
+                startCashfreePayment();
+                return;
+            }
+            finalizeAndSubmitOrder();
+        }
 
         function selectPaymentMode(mode) {
             document.getElementById('radioUpi').checked = (mode === 'upi');
@@ -315,7 +352,7 @@
         }
 
         async function startCashfreePayment() {
-            const btn = document.getElementById('btnCashfreePay');
+            const btn = document.getElementById('btnSubmitOrder');
             const status = document.getElementById('cashfreeStatus');
             const data = pendingOrderData || {};
             const advance = Number(data.advance_paid || data.advance_amount || 0);
@@ -400,7 +437,7 @@
                 status.innerText = '';
                 status.style.display = 'none';
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-lock"></i> Cashfree Checkout खोलें';
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> Cashfree से Payment करें';
                 alert('Cashfree शुरू नहीं हो पाया।\n\n' + (e?.message || e));
             }
         }
