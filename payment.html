@@ -362,7 +362,7 @@
                 const returnUrl = `${window.location.origin}${window.location.pathname}?cashfree_order_id={order_id}`;
                 const notifyUrl = `${SUPABASE_URL}/functions/v1/cashfree-webhook`;
 
-                // Cashfree Edge Function के वर्तमान API के अनुसार सीधे fields भेजें।
+                // IMPORTANT: this matches the deployed cashfree-payment Edge Function exactly.
                 const payload = {
                     action: 'create',
                     order_id: merchantOrderId,
@@ -377,6 +377,7 @@
 
                 const response = await fetch(cashfreeFunctionUrl(), {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_ANON_KEY,
@@ -398,6 +399,14 @@
                     sessionStorage.setItem('dp_cashfree_order_id', result.order_id);
                 } catch (e) {}
 
+                // Create the pending Supabase order BEFORE opening checkout.
+                // This gives the Cashfree webhook an existing row to update after payment.
+                status.innerText = 'Order सुरक्षित किया जा रहा है...';
+                const pendingSaved = await createPendingCashfreeOrder(result.order_id, mobile);
+                if (!pendingSaved) {
+                    throw new Error('Cashfree session बन गया, लेकिन आपका Order Database में Pending रूप में Save नहीं हो पाया। Payment शुरू नहीं किया गया।');
+                }
+
                 const cashfree = Cashfree({ mode: 'sandbox' });
                 status.innerText = 'Cashfree Checkout खुल रहा है...';
                 await cashfree.checkout({
@@ -414,9 +423,85 @@
             }
         }
 
+        async function createPendingCashfreeOrder(cashfreeOrderId, mobile) {
+            if (!supabaseClient) return false;
+
+            const currentData = pendingOrderData || {};
+            let uploadedMatterFile = null;
+
+            if (currentData.wedding_matter_uploaded || currentData.wedding_matter_file) {
+                uploadedMatterFile = await uploadWeddingMatterToCloud(cashfreeOrderId);
+            }
+
+            const total = parseFloat(currentData.total_amount || 0);
+            const advance = parseFloat(currentData.advance_paid || currentData.advance_amount || 0);
+
+            const payload = {
+                customer_name: currentData.customer_name || 'ग्राहक',
+                mobile: mobile || currentData.mobile || currentData.phone || '',
+                address: currentData.address || '',
+                card_title: currentData.card_title || 'शादी कार्ड',
+                card_model: currentData.card_model || '',
+                card_image: currentData.card_image || '',
+                catalog_id: currentData.catalog_id != null ? Number(currentData.catalog_id) : null,
+                catalogId: currentData.catalogId || currentData.selected_catalog_id || null,
+                catalog_name: currentData.catalog_name || '',
+                catalog_model: currentData.catalog_model || '',
+                catalog_image: currentData.catalog_image || currentData.card_image || '',
+                quantity: parseInt(currentData.quantity || 100),
+                total_amount: total,
+                advance_paid: advance,
+                balance_amount: parseFloat(currentData.balance_amount || (total - advance)),
+                groom_name: currentData.groom_name || '-',
+                groom_father: currentData.groom_father || '-',
+                groom_address: currentData.groom_address || '-',
+                bride_name: currentData.bride_name || '-',
+                bride_father: currentData.bride_father || '-',
+                bride_address: currentData.bride_address || '-',
+                barat_date: currentData.barat_date || currentData.wedding_date || '-',
+                custom_notes: currentData.custom_notes || currentData.order_notes || currentData.notes || '',
+                status: 'Pending',
+                txn_id: cashfreeOrderId,
+                payment_mode: 'Cashfree',
+                payment_receipt: '',
+                created_at: new Date().toISOString()
+            };
+
+            if (uploadedMatterFile) payload.customer_files = [uploadedMatterFile];
+
+            try {
+                const { error } = await supabaseClient.from('orders').insert([payload]);
+                if (!error) return true;
+
+                console.error('Pending Cashfree order insert failed:', error);
+
+                // Retry with only the core columns if an optional column causes the first insert to fail.
+                const core = { ...payload };
+                delete core.catalog_id;
+                delete core.catalogId;
+                delete core.catalog_name;
+                delete core.catalog_model;
+                delete core.catalog_image;
+                delete core.custom_notes;
+                delete core.barat_date;
+                delete core.customer_files;
+                delete core.payment_receipt;
+
+                const retry = await supabaseClient.from('orders').insert([core]);
+                if (!retry.error) return true;
+
+                console.error('Pending Cashfree core insert failed:', retry.error);
+                return false;
+            } catch (e) {
+                console.error('Pending Cashfree order exception:', e);
+                return false;
+            }
+        }
+
         async function verifyCashfreeAndSubmit(orderId) {
             const submitBtn = document.getElementById('btnSubmitOrder');
             const status = document.getElementById('cashfreeStatus');
+
             try {
                 submitBtn.disabled = true;
                 document.getElementById('submitBtnText').innerText = 'Cashfree payment verify हो रहा है...';
@@ -425,6 +510,7 @@
 
                 const response = await fetch(cashfreeFunctionUrl(), {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_ANON_KEY,
@@ -432,6 +518,7 @@
                     },
                     body: JSON.stringify({ action: 'verify', order_id: orderId })
                 });
+
                 const raw = await response.text();
                 let result = {};
                 try { result = raw ? JSON.parse(raw) : {}; } catch (_) {}
@@ -441,12 +528,32 @@
                 }
 
                 const paid = String(result.order_status || '').toUpperCase() === 'PAID';
+
                 if (paid) {
                     cashfreePaymentDone = true;
                     cashfreeOrderId = orderId;
+
+                    // Webhook normally updates this row. This direct update makes My Orders
+                    // show Paid immediately after the return when RLS permits UPDATE.
+                    if (supabaseClient) {
+                        const { error: updateError } = await supabaseClient
+                            .from('orders')
+                            .update({
+                                status: 'Paid',
+                                payment_mode: 'Cashfree',
+                                txn_id: orderId
+                            })
+                            .eq('txn_id', orderId);
+
+                        if (updateError) {
+                            console.warn('Direct Paid update failed; webhook will update it:', updateError);
+                        }
+                    }
+
                     try { sessionStorage.removeItem('dp_cashfree_order_id'); } catch (e) {}
                     try { localStorage.removeItem('dp_temp_order'); } catch (e) {}
-                    alert('Cashfree payment सफल रहा। आपका ऑर्डर Database में दर्ज है।');
+
+                    alert('Cashfree payment सफल रहा। आपका ऑर्डर Database में दर्ज हो गया है।');
                     window.location.replace('my_orders.html');
                     return;
                 }
@@ -568,7 +675,7 @@
             const submitBtn = document.getElementById('btnSubmitOrder');
             const isCashfree = paymentModeOverride === 'cashfree' || document.getElementById('radioCashfree')?.checked;
             const isCashAtShop = paymentModeOverride === 'cash' || document.getElementById('radioCod')?.checked;
-            const txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : 'ADVANCE CASH - दुकान पर';
+            const txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : ('CASH_' + Date.now() + '_' + Math.floor(Math.random() * 10000));
 
             submitBtn.disabled = true;
             document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
