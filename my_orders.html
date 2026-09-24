@@ -719,53 +719,53 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                     setTimeout(() => reject(new Error('orders timeout')), ms)
                 );
 
-                let query;
+                // पहले exact 10-digit mobile पर query करें। फिर 91/+91 variants
+                // और अंत में mobile column के last-10-digit match को try करें।
+                // इससे login number और order में stored format अलग होने पर भी order मिलेगा।
+                let result = null;
+                let lastQueryError = null;
+                const variants = [...new Set([
+                    loggedInMobile,
+                    '91' + loggedInMobile,
+                    '+91' + loggedInMobile
+                ])];
 
-                if (phoneDigits.length) {
-                    // Exact phone variants + last-10-digit partial match. इससे +91,
-                    // 91XXXXXXXXXX और 10-digit mobile formatting के कारण order नहीं छूटेगा।
-                    const exactVariants = new Set();
-                    phoneDigits.forEach(d => {
-                        exactVariants.add(d);
-                        exactVariants.add('91' + d);
-                        exactVariants.add('+91' + d);
-                    });
-
-                    const orParts = [];
-                    [...exactVariants].forEach(v => {
-                        orParts.push(`mobile.eq.${v}`);
-                    });
-                    phoneDigits.forEach(d => {
-                        orParts.push(`mobile.ilike.%${d}`);
-                    });
-
-                    query = supabaseClient
-                        .from('orders')
-                        .select('*')
-                        .or(orParts.join(','))
-                        .order('id',{ascending:false})
-                        .limit(100);
-                } else {
-                    // Login/phone उपलब्ध न हो तो local DB IDs से exact orders खोजें।
-                    const ids = [...new Set(currentLocal
-                        .map(o => o?.id)
-                        .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
-                    )];
-
-                    if (ids.length) {
-                        query = supabaseClient
+                for (const v of variants) {
+                    try {
+                        const q = supabaseClient
                             .from('orders')
                             .select('*')
-                            .in('id', ids)
-                            .order('id',{ascending:false});
-                    } else {
-                        fetchedOrdersList = currentLocal;
-                        renderOrdersUI();
-                        return;
-                    }
+                            .eq('mobile', v)
+                            .order('id',{ascending:false})
+                            .limit(100);
+                        const r = await Promise.race([q, timeout(5000)]);
+                        if (!r?.error && Array.isArray(r?.data) && r.data.length) {
+                            result = r;
+                            break;
+                        }
+                        if (r?.error) lastQueryError = r.error;
+                        else if (!result) result = r;
+                    } catch(e) { lastQueryError = e; }
                 }
 
-                const result = await Promise.race([query, timeout(8000)]);
+                // अगर exact variants में कुछ नहीं मिला, ilike से last-10 digits देखें।
+                if (!result || !Array.isArray(result.data) || result.data.length === 0) {
+                    try {
+                        const q = supabaseClient
+                            .from('orders')
+                            .select('*')
+                            .ilike('mobile', '%' + loggedInMobile)
+                            .order('id',{ascending:false})
+                            .limit(100);
+                        const r = await Promise.race([q, timeout(5000)]);
+                        if (!r?.error) result = r;
+                        else lastQueryError = r.error;
+                    } catch(e) { lastQueryError = e; }
+                }
+
+                if (lastQueryError && (!result || result.error)) throw lastQueryError;
+
+                if (!result) result = {data:[], error:null};
                 if (result?.error) throw result.error;
 
                 const cloud = Array.isArray(result?.data) ? result.data : [];
