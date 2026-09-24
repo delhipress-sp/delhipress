@@ -780,8 +780,12 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                 });
 
                 const unsyncedLocal = currentLocal.filter(o => {
-                    const k = clean(o?.id || o?.order_id);
-                    return k && !cloudKeys.has(k);
+                    // Only id-less local orders are genuinely unsynced.
+                    // If a local order already has a DB id but is absent from the
+                    // successful cloud response, Admin has deleted it (or it no longer
+                    // exists in the cloud), so do not show the stale local copy.
+                    const dbId = clean(o?.id);
+                    return !dbId;
                 });
 
                 fetchedOrdersList = [...cloud, ...unsyncedLocal].sort((a,b) => {
@@ -1644,9 +1648,13 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
         async function getOrderCardMedia(index){
             const ord = Array.isArray(fetchedOrdersList) ? fetchedOrdersList[index] : null;
             if(!ord) return {images:[], video:''};
+
+            // The image saved with the order is authoritative. Never replace it with
+            // another catalog card selected by model/title similarity.
             let images=[];
             const addImg=v=>{ if(!v) return; const x=String(v).trim(); if(x && !images.includes(x)) images.push(x); };
-            addImg(ord.card_image);
+            const storedPrimaryImage=String(ord.card_image||ord.image||ord.image_url||'').trim();
+            addImg(storedPrimaryImage);
             for(const key of ['images','image_urls','gallery_images','gallery','photos','product_images','card_images']){
                 const raw=ord[key];
                 if(Array.isArray(raw)) raw.forEach(addImg);
@@ -1654,22 +1662,38 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
                     try{ const a=JSON.parse(raw); Array.isArray(a)?a.forEach(addImg):addImg(raw); }catch(e){ raw.split('|').forEach(addImg); }
                 }
             }
+
             let video=ord.video_url||ord.video||ord.catalog_video||'';
             if(!video && ord.video_urls){try{const a=typeof ord.video_urls==='string'?JSON.parse(ord.video_urls):ord.video_urls; video=Array.isArray(a)?a[0]:(a||'');}catch(e){video=String(ord.video_urls)}}
+
             const sb = (typeof supabaseClient!=='undefined' ? supabaseClient : (window.supabaseClient||window.sb||null));
             if(sb){
                 try{
-                    let rows=[]; const model=String(ord.card_model||ord.model||'').trim(); const name=String(ord.card_title||ord.card_name||'').trim();
-                    if(model){const r=await sb.from('catalog').select('*').eq('model',model).limit(10); if(!r.error&&Array.isArray(r.data)) rows=r.data;}
-                    if(!rows.length&&name){const r=await sb.from('catalog').select('*').eq('name',name).limit(10); if(!r.error&&Array.isArray(r.data)) rows=r.data;}
-                    const c=rows[0]||{};
-                    for(const key of ['image','image_url','photo','main_image']) addImg(c[key]);
-                    for(const key of ['images','image_urls','gallery_images','gallery','photos','product_images','catalog_images']){
-                        const raw=c[key];
-                        if(Array.isArray(raw)) raw.forEach(addImg);
-                        else if(typeof raw==='string'&&raw.trim()){try{const a=JSON.parse(raw);Array.isArray(a)?a.forEach(addImg):addImg(raw)}catch(e){raw.split('|').forEach(addImg)}}
+                    const exactId=String(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'').trim();
+                    let c=null;
+                    if(exactId){
+                        const r=await sb.from('catalog').select('*').eq('id',exactId).limit(1);
+                        if(!r.error&&Array.isArray(r.data)&&r.data[0]) c=r.data[0];
                     }
-                    if(!video){video=c.video_url||c.video||c.catalog_video||''; if(!video&&c.video_urls){try{const a=typeof c.video_urls==='string'?JSON.parse(c.video_urls):c.video_urls;video=Array.isArray(a)?a[0]:(a||'')}catch(e){video=String(c.video_urls)}} if(!video){const m=String(c.description||'').match(/\[\[VIDEO:([^\]]+)\]\]/i);if(m)video=m[1]}}
+                    // Without an exact catalog ID, do not query by model/title: multiple
+                    // cards can share those values. Keep the exact image saved in the order.
+                    if(c){
+                        if(!storedPrimaryImage){
+                            for(const key of ['image','image_url','photo','main_image']) addImg(c[key]);
+                        }
+                        for(const key of ['images','image_urls','gallery_images','gallery','photos','product_images','catalog_images']){
+                            const raw=c[key];
+                            if(Array.isArray(raw)) raw.forEach(addImg);
+                            else if(typeof raw==='string'&&raw.trim()){
+                                try{const a=JSON.parse(raw);Array.isArray(a)?a.forEach(addImg):addImg(raw)}catch(e){raw.split('|').forEach(addImg)}
+                            }
+                        }
+                        if(!video){
+                            video=c.video_url||c.video||c.catalog_video||'';
+                            if(!video&&c.video_urls){try{const a=typeof c.video_urls==='string'?JSON.parse(c.video_urls):c.video_urls;video=Array.isArray(a)?a[0]:(a||'')}catch(e){video=String(c.video_urls)}}
+                            if(!video){const m=String(c.description||'').match(/\[\[VIDEO:([^\]]+)\]\]/i);if(m)video=m[1]}
+                        }
+                    }
                 }catch(e){}
             }
             return {images:images.slice(0,12),video:String(video||'').trim()};
