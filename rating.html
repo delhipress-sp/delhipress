@@ -89,6 +89,7 @@ try{if(window.supabase)supabaseClient=window.supabase.createClient(SUPABASE_URL,
 
 let order=null;
 let ratingValue=0;
+let orderDelivered=false;
 
 function clean(v){return String(v??'').trim()}
 function norm(v){return clean(v).toLowerCase().replace(/\s+/g,' ').trim()}
@@ -175,6 +176,7 @@ async function uploadImages(files,orderId){
 
 async function submitRating(){
   if(!order){setStatus('ऑर्डर की जानकारी नहीं मिली। My Orders से फिर Rating खोलें।','err');return}
+  if(!orderDelivered){setStatus('यह ऑर्डर अभी Delivered नहीं हुआ है। Delivery के बाद ही Rating दी जा सकती है।','err');return}
   if(!ratingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return}
 
   const btn=document.getElementById('submitBtn');
@@ -272,7 +274,7 @@ async function submitRating(){
   }
 }
 
-function loadOrder(){
+async function loadOrder(){
   try{order=JSON.parse(localStorage.getItem('dp_rating_order_context')||'null')}catch(e){order=null}
   if(!order){
     document.getElementById('orderTitle').textContent='ऑर्डर नहीं मिला';
@@ -285,6 +287,28 @@ function loadOrder(){
   let u={};try{u=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}')}catch(e){}
   document.getElementById('ratingName').value=u.name||order.customer_name||'';
   updateStars();
+
+  // Security/accuracy check: Rating page itself also verifies that this order is Delivered.
+  orderDelivered=false;
+  if(supabaseClient){
+    try{
+      let q=null;
+      if(order.order_db_id){
+        q=await supabaseClient.from('orders').select('status').eq('id',Number(order.order_db_id)).maybeSingle();
+      }
+      if((!q || q.error || !q.data) && order.order_id){
+        q=await supabaseClient.from('orders').select('status').eq('order_id',String(order.order_id)).limit(1);
+        if(!q.error) q={data:Array.isArray(q.data)?q.data[0]:q.data,error:null};
+      }
+      const liveStatus=String(q?.data?.status||'').trim().toLowerCase();
+      orderDelivered=(liveStatus==='delivered');
+    }catch(e){orderDelivered=false;}
+  }
+  if(!orderDelivered){
+    document.getElementById('orderMeta').textContent='ऑर्डर #'+(order.order_id||order.id||'-')+' • अभी Delivered नहीं हुआ';
+    document.getElementById('submitBtn').disabled=true;
+    setStatus('Delivery के बाद ही Rating दी जा सकती है।','err');
+  }
 }
 document.addEventListener('DOMContentLoaded',loadOrder);
 </script>
