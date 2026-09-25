@@ -110,6 +110,9 @@
             cursor: pointer; font-size: 13px;
         }
         .tab-btn.active { background: var(--primary-gradient); color: white; }
+        .dp-tab-alert { display:none; margin-left:6px; min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:#dc2626; color:#fff; font-size:10px; font-weight:900; align-items:center; justify-content:center; vertical-align:middle; animation:dpTabBlink 1s infinite; box-shadow:0 0 0 0 rgba(220,38,38,.75); }
+        .dp-tab-alert.show { display:inline-flex; }
+        @keyframes dpTabBlink { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.7)} 50%{opacity:.35;box-shadow:0 0 0 7px rgba(220,38,38,0)} }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -382,8 +385,8 @@
             </div>
 
             <div class="nav-tabs">
-                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)</button>
-                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
+                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)<span id="tabAlertOrders" class="dp-tab-alert">NEW</span></button>
+                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक<span id="tabAlertCatalog" class="dp-tab-alert">!</span></button>
                 <button type="button" class="tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i> ग्राहक ग्राफ़ व लिस्ट</button>
                 <button type="button" class="tab-btn" id="tabBtnRatings" onclick="switchAdminTab('ratings')"><i class="fa-solid fa-star"></i> ग्राहक रेटिंग</button>
             </div>
@@ -668,6 +671,7 @@
             document.getElementById('adminDashboard').style.display = 'block';
             loadAdminOrders();
             loadCatalogStock();
+            startAdminTabAlerts();
         }
 
         function switchAdminTab(tab) {
@@ -680,6 +684,13 @@
             document.getElementById('tabBtnCatalog').classList.toggle('active', tab === 'catalog');
             document.getElementById('tabBtnRatings').classList.toggle('active', tab === 'ratings');
             document.getElementById('tabBtnAnalytics').classList.toggle('active', tab === 'analytics');
+
+            const alertMap = {orders:'tabAlertOrders', catalog:'tabAlertCatalog'};
+            if (alertMap[tab]) {
+                const a = document.getElementById(alertMap[tab]);
+                if (a) a.classList.remove('show');
+                try { localStorage.setItem('dp_admin_alert_seen_' + tab, String(Date.now())); } catch(e) {}
+            }
 
             if (tab === 'ratings') loadAdminRatings();
             if (tab === 'analytics') buildCustomerAnalytics(globalOrdersCache);
@@ -702,6 +713,65 @@
             const seenKey = 'dp_chat_admin_seen_' + String(order.id);
             const seen = Number(localStorage.getItem(seenKey) || 0);
             return latest > seen;
+        }
+
+        // ===== ADMIN TAB ALERTS (NO LAYOUT CHANGE) =====
+        let dpAlertPrimed = false;
+        let dpLastOrderId = 0;
+        let dpLastOrderChatStamp = 0;
+        let dpLastCatalogSignature = '';
+        let dpLastRatingId = 0;
+
+        function dpShowTabAlert(tab, text='NEW') {
+            const id = tab==='orders' ? 'tabAlertOrders' : 'tabAlertCatalog';
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = text;
+            el.classList.add('show');
+        }
+
+        function dpOrderChatStamp(o) {
+            const all = [];
+            try { all.push(...(Array.isArray(o.customer_messages) ? o.customer_messages : JSON.parse(o.customer_messages || '[]'))); } catch(e) {}
+            try { all.push(...(Array.isArray(o.customer_files) ? o.customer_files : JSON.parse(o.customer_files || '[]'))); } catch(e) {}
+            return all.reduce((m,x)=>Math.max(m, Date.parse(x?.at || '') || 0),0);
+        }
+
+        async function checkAdminTabAlerts() {
+            if (!supabaseClient || sessionStorage.getItem('dp_admin_auth') !== 'true') return;
+            try {
+                const {data: orders, error: oe} = await supabaseClient
+                    .from('orders').select('id,created_at,customer_messages,customer_files').order('id',{ascending:false}).limit(100);
+                if (oe) return;
+                const list = orders || [];
+                const newestId = Number(list[0]?.id || 0);
+                const newestChat = list.reduce((m,o)=>Math.max(m,dpOrderChatStamp(o)),0);
+                if (!dpAlertPrimed) {
+                    dpLastOrderId = newestId;
+                    dpLastOrderChatStamp = newestChat;
+                } else {
+                    if (newestId > dpLastOrderId) dpShowTabAlert('orders','NEW');
+                    if (newestChat > dpLastOrderChatStamp) dpShowTabAlert('orders','CHAT');
+                    dpLastOrderId = Math.max(dpLastOrderId,newestId);
+                    dpLastOrderChatStamp = Math.max(dpLastOrderChatStamp,newestChat);
+                }
+
+                const {data: cats, error: ce} = await supabaseClient
+                    .from('catalog').select('id,rate,price,sale_rate,selling_price,in_stock,updated_at,image,image_url,image_urls,gallery_images,images,video_url,video_urls,catalog_video').order('id',{ascending:false});
+                if (!ce) {
+                    const sig = (cats||[]).map(c=>[c.id,c.rate,c.price,c.sale_rate,c.selling_price,c.in_stock,c.updated_at,c.image,c.image_url,c.image_urls,c.gallery_images,c.images,c.video_url,c.video_urls,c.catalog_video].join(':')).join('|');
+                    if (!dpAlertPrimed) dpLastCatalogSignature = sig;
+                    else if (sig !== dpLastCatalogSignature) dpShowTabAlert('catalog','!');
+                    dpLastCatalogSignature = sig;
+                }
+
+                dpAlertPrimed = true;
+            } catch(e) {}
+        }
+
+        async function startAdminTabAlerts() {
+            await checkAdminTabAlerts();
+            setInterval(checkAdminTabAlerts, 8000);
         }
 
         async function loadAdminOrders() {
