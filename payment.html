@@ -614,20 +614,15 @@ await finalizeAndSubmitOrder('cash');
             const isCashAtShop = paymentModeOverride === 'cash' || document.getElementById('radioCod')?.checked;
             const txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : 'ADVANCE CASH - दुकान पर';
 
-            submitBtn.disabled = true;
-            document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
+            if (submitBtn) submitBtn.disabled = true;
+            const submitBtnTextEl = document.getElementById('submitBtnText');
+            if (submitBtnTextEl) submitBtnTextEl.innerText = "ऑर्डर दर्ज हो रहा है...";
 
             const currentData = pendingOrderData || {};
 
-            // Cashfree flow में Edge Function ने order को Supabase में पहले ही बनाया
-            // और successful payment के बाद verify करके उसी row को Paid किया है।
-            // इसलिए browser local order cache में दोबारा INSERT नहीं करते।
-            if (isCashfree && cashfreePaymentDone) {
-                try { localStorage.removeItem('dp_temp_order'); } catch (e) {}
-                alert('आपका Cashfree payment और order सफलतापूर्वक पूरा हो गया है।');
-                window.location.replace('my_orders.html');
-                return;
-            }
+            // Cashfree payment verify होने के बाद भी इस customer order को
+            // orders table में INSERT करना जरूरी है, ताकि My Orders और Admin
+            // दोनों में Online/Cashfree order दिखाई दे। यहाँ अब early-return नहीं है।
 
             // हमेशा logged-in customer का mobile प्राथमिक पहचान रखें.
             // Order form में mobile खाली/अलग format होने पर भी My Orders में
