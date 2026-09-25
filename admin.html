@@ -644,12 +644,9 @@
             }
         }
 
-        // नई ग्राहक बातचीत/मैटर आने पर DP Chat बटन को बिना पेज रिफ्रेश किए अपडेट करें।
-        setInterval(() => {
-            if (document.getElementById('adminDashboard')?.style.display !== 'none') {
-                loadAdminOrders();
-            }
-        }, 10000);
+        // ऑटो-रिफ्रेश बंद रखा गया है ताकि एडमिन पैनल हर 10 सेकंड में
+        // दोबारा ऑर्डर लोड करके स्क्रीन को रीफ्रेश जैसा न दिखाए।
+        // ऑर्डर अब केवल पेज खुलने पर और मैनुअल "रिफ्रेश" बटन से लोड होंगे।
 
         function handleAdminLogout() {
             sessionStorage.removeItem('dp_admin_auth');
