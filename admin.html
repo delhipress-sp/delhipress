@@ -448,13 +448,11 @@
                                 </div>
                                 <input type="file" id="admCardFile" accept="image/*" multiple hidden>
                                 <input type="file" id="admCardCamera" accept="image/*" capture="environment" hidden>
-                                <script>document.getElementById("admCardFile")?.addEventListener("change",e=>dpHandleCatalogPhotoFiles(e.target.files)); document.getElementById("admCardCamera")?.addEventListener("change",e=>dpHandleCatalogPhotoFiles(e.target.files));</script>
                             </div>
                             <div class="form-group" style="flex: 1; min-width: 220px;">
                                 <label>कार्ड वीडियो (अधिकतम 1 मिनट):</label>
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                                     <input type="file" id="admCardVideo" accept="video/*" style="max-width:170px;">
-                                    <script>document.getElementById("admCardVideo")?.addEventListener("change",e=>dpHandleCatalogVideoFile(e.target.files));</script>
                                     <button type="button" onclick="openCatalogVideoRecorder()" style="padding:8px 11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;cursor:pointer;font-weight:700;"><i class="fa-solid fa-video"></i> वीडियो कैमरा</button>
                                     <span id="catalogVideoStatus" style="font-size:11px;color:#64748b;">वीडियो नहीं चुना</span>
                                 </div>
@@ -630,55 +628,24 @@
         let globalOrdersCache = [];
         let customerChartInstance = null;
         let currentNoticeOrderId = null;
-        let dpCatalogMediaAdditions = { photos: [], videos: [] };
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Mobile camera apps can cause the browser/WebView to recreate this page.
+            // Keep the admin login alive only for this active admin session.
+            if (sessionStorage.getItem('dp_admin_auth') !== 'true' && localStorage.getItem('dp_admin_camera_session') === 'true') {
+                sessionStorage.setItem('dp_admin_auth', 'true');
+                sessionStorage.setItem('dp_admin_chat_access', 'true');
+                localStorage.setItem('dp_admin_camera_session', 'true');
+            }
             if (sessionStorage.getItem('dp_admin_auth') === 'true') showDashboard();
         });
-
-
-        function dpHandleCatalogPhotoFiles(fileList) {
-            try {
-                const files = Array.from(fileList || []).filter(f => f && f.type && f.type.startsWith('image/'));
-                dpCatalogMediaAdditions.photos = files;
-                const el = document.getElementById('catalogPhotoCount');
-                if (el) el.textContent = files.length ? `${files.length} फोटो चुने गए` : 'कोई फोटो नहीं';
-            } catch(e) {
-                console.error('Catalog photo picker:', e);
-            }
-        }
-
-        function dpHandleCatalogVideoFile(fileList) {
-            try {
-                const files = Array.from(fileList || []).filter(f => f && f.type && f.type.startsWith('video/'));
-                const el = document.getElementById('catalogVideoStatus');
-                if (el) el.textContent = files.length ? `वीडियो चुना गया: ${files[0].name}` : 'वीडियो नहीं चुना';
-                dpCatalogMediaAdditions.videos = files.slice(0,1);
-            } catch(e) {
-                console.error('Catalog video picker:', e);
-            }
-        }
-
-        function openCatalogGallery() {
-            const el = document.getElementById('admCardFile');
-            if (el) el.click();
-        }
-
-        function openCatalogCamera() {
-            const el = document.getElementById('admCardCamera');
-            if (el) el.click();
-        }
-
-        function openCatalogVideoRecorder() {
-            const el = document.getElementById('admCardVideo');
-            if (el) el.click();
-        }
 
         function verifyAdminPin() {
             const entered = document.getElementById('adminPin').value.trim();
             if (["1234", "9304", "815352"].includes(entered)) {
                 sessionStorage.setItem('dp_admin_auth', 'true');
                 sessionStorage.setItem('dp_admin_chat_access', 'true');
+                localStorage.setItem('dp_admin_camera_session', 'true');
                 showDashboard();
             } else {
                 alert("गलत पिन!");
@@ -692,6 +659,7 @@
         function handleAdminLogout() {
             sessionStorage.removeItem('dp_admin_auth');
             sessionStorage.removeItem('dp_admin_chat_access');
+            localStorage.removeItem('dp_admin_camera_session');
             location.reload();
         }
 
@@ -1421,16 +1389,71 @@
         }
 
         let selectedCatalogPhotos = [];
+
+        // Gallery/Camera से आई फोटो को एक ही list में रखें।
+        // Camera input में multiple/capture सभी मोबाइल browsers पर सही तरह काम नहीं करता,
+        // इसलिए हर camera shot के बाद उसी Camera button से अगली फोटो जोड़ी जाती है।
         function mergeCatalogFiles(list){
-            const incoming=Array.from(list||[]).filter(f=>f && f.type && f.type.startsWith('image/'));
-            const seen=new Set(selectedCatalogPhotos.map(f=>f.name+'_'+f.size));
-            incoming.forEach(f=>{const k=f.name+'_'+f.size;if(!seen.has(k)){selectedCatalogPhotos.push(f);seen.add(k);}});
-            const count=document.getElementById('catalogPhotoCount'); if(count) count.textContent=selectedCatalogPhotos.length ? `${selectedCatalogPhotos.length} फोटो चुनी गईं` : 'कोई फोटो नहीं';
-            const input=document.getElementById('admCardFile');
-            if(input){try{const dt=new DataTransfer();selectedCatalogPhotos.forEach(f=>dt.items.add(f));input.files=dt.files;}catch(e){}}
+            const incoming = Array.from(list || []).filter(f => f && f.type && f.type.startsWith('image/'));
+            const seen = new Set(selectedCatalogPhotos.map(f => f.name + '_' + f.size));
+            incoming.forEach(f => {
+                const k = f.name + '_' + f.size;
+                if(!seen.has(k)){
+                    selectedCatalogPhotos.push(f);
+                    seen.add(k);
+                }
+            });
+
+            const count = document.getElementById('catalogPhotoCount');
+            if(count) count.textContent = selectedCatalogPhotos.length
+                ? `${selectedCatalogPhotos.length} फोटो चुनी गईं`
+                : 'कोई फोटो नहीं';
+
+            const input = document.getElementById('admCardFile');
+            if(input){
+                try{
+                    const dt = new DataTransfer();
+                    selectedCatalogPhotos.forEach(f => dt.items.add(f));
+                    input.files = dt.files;
+                }catch(e){}
+            }
         }
-        function openCatalogGallery(){const el=document.getElementById('admCardFile');if(!el)return;el.removeAttribute('capture');el.multiple=true;el.accept='image/*';el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
-        function openCatalogCamera(){const el=document.getElementById('admCardCamera');if(!el)return;el.onchange=()=>mergeCatalogFiles(el.files);el.click();}
+
+        function openCatalogGallery(){
+            const el = document.getElementById('admCardFile');
+            if(!el) return;
+            el.removeAttribute('capture');
+            el.multiple = true;
+            el.accept = 'image/*';
+            el.onchange = () => {
+                mergeCatalogFiles(el.files);
+                el.value = '';
+            };
+            el.click();
+        }
+
+        function openCatalogCamera(){
+            const el = document.getElementById('admCardCamera');
+            if(!el) return;
+
+            // Camera में multiple हटाया गया है। इससे Android पर
+            // "3 फोटो चुनें" जैसी selection बाध्यता नहीं आएगी।
+            el.removeAttribute('multiple');
+            el.setAttribute('capture','environment');
+            el.accept = 'image/*';
+
+            el.onchange = () => {
+                mergeCatalogFiles(el.files);
+                el.value = '';
+
+                const count = document.getElementById('catalogPhotoCount');
+                if(count && selectedCatalogPhotos.length){
+                    count.textContent =
+                        `${selectedCatalogPhotos.length} फोटो चुनी गईं — और फोटो के लिए Camera दबाएँ`;
+                }
+            };
+            el.click();
+        }
 
         // मोबाइल कैमरा से सीधे कैटलॉग वीडियो रिकॉर्ड करने का सिस्टम
         let catalogVideoStream = null;
@@ -1700,7 +1723,7 @@
                     const duration=await getVideoDuration(video);
                     if(duration>60) throw new Error(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया 1 मिनट (60 सेकंड) के अंदर का वीडियो चुनें।`);
                 }
-                const imageUrls=[]; for(const f of photos.slice(0,10)) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
+                const imageUrls=[]; for(const f of photos) imageUrls.push(await uploadCatalogAdminFile(f,'catalog'));
                 let videoUrl='';
                 if(video){
                     setCatalogVideoStatus('⏳ वीडियो compress हो रहा है…','#b45309');
@@ -2031,15 +2054,5 @@
             html2pdf().set(opt).from(element).save();
         }
     </script>
-
-<script>
-(function dpPreventMediaInputSubmit(){
-  document.addEventListener('change', function(e){
-    if (e.target && (e.target.id === 'admCardFile' || e.target.id === 'admCardCamera' || e.target.id === 'admCardVideo')) {
-      e.stopPropagation();
-    }
-  }, true);
-})();
-</script>
 </body>
 </html>
