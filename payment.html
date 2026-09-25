@@ -453,26 +453,12 @@ await finalizeAndSubmitOrder('cash');
             }
         }
 
-        function setCashfreeSubmitText(text) {
-            const btn = document.getElementById('btnSubmitOrder');
-            if (!btn) return;
-            const textEl = document.getElementById('submitBtnText');
-            if (textEl) {
-                textEl.innerText = text;
-            } else {
-                // Return URL से page दोबारा खुलने पर button के अंदर span मौजूद नहीं होता।
-                btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span id="submitBtnText"></span>';
-                const newTextEl = document.getElementById('submitBtnText');
-                if (newTextEl) newTextEl.innerText = text;
-            }
-        }
-
         async function verifyCashfreeAndSubmit(orderId) {
             const submitBtn = document.getElementById('btnSubmitOrder');
             const status = document.getElementById('cashfreeStatus');
             try {
                 submitBtn.disabled = true;
-                setCashfreeSubmitText('Cashfree payment verify हो रहा है...');
+                const submitBtnTextEl = document.getElementById('submitBtnText'); if (submitBtnTextEl) submitBtnTextEl.innerText = 'Cashfree payment verify हो रहा है...';
                 status.style.display = 'block';
                 status.innerText = 'Payment की server-side पुष्टि की जा रही है...';
 
@@ -497,16 +483,21 @@ await finalizeAndSubmitOrder('cash');
                 if (paid) {
                     cashfreePaymentDone = true;
                     cashfreeOrderId = orderId;
+                    cashfreePaymentId = result.cf_payment_id || result.payment_id || result.transaction_id || result.txn_id || '';
                     try { sessionStorage.removeItem('dp_cashfree_order_id'); } catch (e) {}
-                    try { localStorage.removeItem('dp_temp_order'); } catch (e) {}
-                    alert('Cashfree payment सफल रहा। आपका ऑर्डर Database में दर्ज है।');
-                    window.location.replace('my_orders.html');
+
+                    // IMPORTANT: Cashfree payment verify होने के बाद भी customer order
+                    // को orders table में save करना जरूरी है। पहले code यहाँ सीधे
+                    // my_orders.html पर चला जाता था, इसलिए online-paid order न My Orders
+                    // में आता था न Admin panel में। अब वही सामान्य Supabase save flow
+                    // चलाकर payment_mode = Cashfree और transaction id भी save होगी।
+                    await finalizeAndSubmitOrder('cashfree');
                     return;
                 }
 
                 status.innerText = 'Payment अभी Paid नहीं है: ' + (result.order_status || 'Pending');
                 submitBtn.disabled = false;
-                setCashfreeSubmitText('Cashfree से Payment करें');
+                const submitBtnTextEl2 = document.getElementById('submitBtnText'); if (submitBtnTextEl2) submitBtnTextEl2.innerText = 'Cashfree से Payment करें';
                 alert('Cashfree payment अभी सफल/PAID नहीं दिख रहा है। कृपया दोबारा जांचें।');
             } catch (e) {
                 console.error('Cashfree verify error:', e);
@@ -624,12 +615,7 @@ await finalizeAndSubmitOrder('cash');
             const txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : 'ADVANCE CASH - दुकान पर';
 
             submitBtn.disabled = true;
-            const submitBtnText = document.getElementById('submitBtnText');
-            if (submitBtnText) {
-                submitBtnText.innerText = "ऑर्डर दर्ज हो रहा है...";
-            } else {
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ऑर्डर दर्ज हो रहा है...';
-            }
+            document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
 
             const currentData = pendingOrderData || {};
 
