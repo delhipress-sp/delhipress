@@ -769,15 +769,10 @@ html, body{
                 return d.length >= 10 ? d.slice(-10) : d;
             };
 
-            // ORDER DATA IS CLOUD ONLY.
-            // LocalStorage is used only for the logged-in customer's identity.
             const loggedInMobile = normPhone(userObj.phone || userObj.mobile || '');
-
             if (!loggedInMobile) {
                 if (location.protocol !== 'file:') {
-                    window.location.replace(
-                        'login.html?redirect=' + encodeURIComponent('my_orders.html')
-                    );
+                    window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
                     return;
                 }
                 fetchedOrdersList = [];
@@ -797,14 +792,9 @@ html, body{
                     setTimeout(() => reject(new Error('orders timeout')), ms)
                 );
 
-                /*
-                 * IMPORTANT FIX:
-                 * The payment/order files have used both `mobile` and `phone`
-                 * over different versions. My Orders previously searched ONLY
-                 * `mobile`, so a valid Supabase order could be invisible.
-                 *
-                 * We now check BOTH columns and all common Indian mobile formats.
-                 */
+                // Supabase orders are the ONLY source. Use simple column queries
+                // instead of one complex .or() filter so PostgREST/RLS differences
+                // cannot make a valid order look like a database failure.
                 const variants = [...new Set([
                     loggedInMobile,
                     '91' + loggedInMobile,
@@ -813,72 +803,75 @@ html, body{
 
                 let cloud = [];
                 let lastQueryError = null;
-                let successfulEmptyResult = false;
+                let querySucceeded = false;
 
-                // 1) Exact match against BOTH mobile and phone columns.
+                // 1) Check mobile column in all common formats.
                 for (const v of variants) {
                     try {
-                        const filter = `mobile.eq.${v},phone.eq.${v}`;
                         const q = supabaseClient
                             .from('orders')
                             .select('*')
-                            .or(filter)
+                            .eq('mobile', v)
                             .order('id', {ascending:false})
                             .limit(100);
-
                         const r = await Promise.race([q, timeout(7000)]);
-
-                        if (r?.error) {
-                            lastQueryError = r.error;
-                            continue;
-                        }
-
+                        if (r?.error) { lastQueryError = r.error; continue; }
+                        querySucceeded = true;
                         if (Array.isArray(r?.data) && r.data.length) {
                             cloud = r.data;
                             break;
                         }
-
-                        successfulEmptyResult = true;
-                    } catch(e) {
-                        lastQueryError = e;
-                    }
+                    } catch(e) { lastQueryError = e; }
                 }
 
-                // 2) Last-10-digit match in either column.
+                // 2) Some older orders were stored in phone instead of mobile.
                 if (!cloud.length) {
-                    try {
-                        const q = supabaseClient
-                            .from('orders')
-                            .select('*')
-                            .or(
-                                `mobile.ilike.%${loggedInMobile},phone.ilike.%${loggedInMobile}`
-                            )
-                            .order('id', {ascending:false})
-                            .limit(100);
-
-                        const r = await Promise.race([q, timeout(7000)]);
-
-                        if (r?.error) {
-                            lastQueryError = r.error;
-                        } else if (Array.isArray(r?.data)) {
-                            cloud = r.data;
-                            successfulEmptyResult = true;
-                        }
-                    } catch(e) {
-                        lastQueryError = e;
+                    for (const v of variants) {
+                        try {
+                            const q = supabaseClient
+                                .from('orders')
+                                .select('*')
+                                .eq('phone', v)
+                                .order('id', {ascending:false})
+                                .limit(100);
+                            const r = await Promise.race([q, timeout(7000)]);
+                            if (r?.error) { lastQueryError = r.error; continue; }
+                            querySucceeded = true;
+                            if (Array.isArray(r?.data) && r.data.length) {
+                                cloud = r.data;
+                                break;
+                            }
+                        } catch(e) { lastQueryError = e; }
                     }
                 }
 
-                /*
-                 * If every SELECT is rejected, do not silently pretend there
-                 * are no orders. Keep the page usable and expose the real
-                 * problem in the console for diagnosis.
-                 */
-                if (lastQueryError && !cloud.length && !successfulEmptyResult) {
+                // 3) Last fallback: suffix match on each existing column separately.
+                if (!cloud.length) {
+                    for (const column of ['mobile','phone']) {
+                        try {
+                            const q = supabaseClient
+                                .from('orders')
+                                .select('*')
+                                .ilike(column, '%' + loggedInMobile)
+                                .order('id', {ascending:false})
+                                .limit(100);
+                            const r = await Promise.race([q, timeout(7000)]);
+                            if (r?.error) { lastQueryError = r.error; continue; }
+                            querySucceeded = true;
+                            if (Array.isArray(r?.data) && r.data.length) {
+                                cloud = r.data;
+                                break;
+                            }
+                        } catch(e) { lastQueryError = e; }
+                    }
+                }
+
+                // If the database query itself succeeded but returned zero rows,
+                // that means this login currently has no cloud orders — not a DB error.
+                if (!querySucceeded && lastQueryError) {
                     console.error('My Orders SELECT failed:', lastQueryError);
                     fetchedOrdersList = [];
                     renderOrdersUI();
-
                     const box = document.getElementById('ordersContainer');
                     if (box) {
                         box.innerHTML = `
@@ -891,17 +884,19 @@ html, body{
                     return;
                 }
 
-                // Supabase is the ONLY source of order data.
-                // Admin-deleted orders therefore disappear here automatically.
-                fetchedOrdersList = cloud.sort((a,b) => {
-                    const ta = Number(a?.id || 0) ||
-                        (new Date(a?.created_at || 0).getTime() || 0);
-                    const tb = Number(b?.id || 0) ||
-                        (new Date(b?.created_at || 0).getTime() || 0);
+                fetchedOrdersList = (Array.isArray(cloud) ? cloud : []).sort((a,b) => {
+                    const ta = Number(a?.id || 0) || (new Date(a?.created_at || 0).getTime() || 0);
+                    const tb = Number(b?.id || 0) || (new Date(b?.created_at || 0).getTime() || 0);
                     return tb - ta;
                 });
 
-                fetchedOrdersList = await enrichOrderCatalogImages(fetchedOrdersList);
+                // Catalog-image enrichment must NEVER hide a valid order.
+                try {
+                    fetchedOrdersList = await enrichOrderCatalogImages(fetchedOrdersList);
+                } catch(e) {
+                    console.warn('Catalog image enrichment skipped:', e);
+                }
+
                 renderOrdersUI();
                 updateUserGreeting();
 
@@ -918,7 +913,6 @@ html, body{
                 console.error('My Orders cloud sync error:', e);
                 fetchedOrdersList = [];
                 renderOrdersUI();
-
                 const box = document.getElementById('ordersContainer');
                 if (box) {
                     box.innerHTML = `
