@@ -2,1113 +2,1241 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>रेटिंग और रिव्यू — दिल्ली प्रेस</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>रेटिंग और रिव्यू - दिल्ली प्रेस</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f3f5f8;color:#172b4d;font-family:Arial,"Noto Sans Devanagari",sans-serif}
-.top{background:#087cf0;color:#fff;padding:16px 14px;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px #0002}
-.top-in{max-width:760px;margin:auto;display:flex;align-items:center;gap:12px}
-.back{border:0;background:#ffffff22;color:#fff;border-radius:22px;width:42px;height:42px;font-size:18px;cursor:pointer}
-.top h1{font-size:20px;margin:0}
-.wrap{max-width:760px;margin:14px auto;padding:0 10px}
-.product{background:#fff;border-radius:12px;padding:13px;box-shadow:0 2px 8px #0001;display:flex;gap:12px;align-items:center}
-.product img{width:92px;height:92px;object-fit:contain;border:1px solid #e5eaf0;border-radius:8px;background:#f8fafc}
-.product h2{margin:0 0 5px;font-size:17px}
-.model{font-size:12px;color:#718096}
-.summary,.form,.reviews{background:#fff;border-radius:12px;padding:15px;margin-top:12px;box-shadow:0 2px 8px #0001}
-.summary h3,.form h3,.reviews h3{margin:0 0 12px;font-size:18px}
-.summary-grid{display:grid;grid-template-columns:130px 1fr;gap:18px;align-items:center}
-.score{text-align:center;border-right:1px solid #e8edf3}
-.score strong{font-size:42px;display:block}
-.stars{color:#f5a623;letter-spacing:2px;font-size:21px}
-.count{font-size:12px;color:#718096}
-.bars{display:flex;flex-direction:column;gap:7px}
-.barrow{display:grid;grid-template-columns:30px 1fr 30px;gap:7px;align-items:center;font-size:12px}
-.track{height:7px;background:#edf1f5;border-radius:10px;overflow:hidden}
-.fill{height:100%;background:#f5a623}
-.rating-select{display:flex;justify-content:center;gap:5px;margin:4px 0 13px}
-.rating-select button{border:0;background:transparent;color:#cbd5e1;font-size:40px;line-height:1;cursor:pointer;padding:3px}
-.rating-select button.on{color:#f59e0b}
-input,textarea{width:100%;border:1px solid #d5dce5;border-radius:8px;padding:11px;font-size:14px;margin-bottom:9px;outline:none}
-textarea{height:100px;resize:vertical}
-.upload{display:block;border:1px dashed #8eb5eb;background:#f5f9ff;color:#1769d3;text-align:center;border-radius:8px;padding:11px;font-weight:800;cursor:pointer}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif}
+body{min-height:100vh;background:#f1f3f6;color:#212121;padding-bottom:30px}
+.nav{height:58px;background:#2874f0;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;box-shadow:0 2px 7px rgba(0,0,0,.18)}
+.back{border:0;background:rgba(255,255,255,.15);color:#fff;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer}
+.nav h2{font-size:19px;font-weight:800}
+.wrap{max-width:620px;margin:18px auto;padding:0 12px}
+.panel{background:#fff;border:1px solid #e0e0e0;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:18px}
+.order-info{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-bottom:15px}
+.order-info b{display:block;color:#0f2f70;font-size:15px;margin-bottom:3px}
+.order-info span{font-size:12px;color:#64748b;font-weight:600}
+.title{text-align:center;color:#0f2f70;font-size:21px;font-weight:800;margin-bottom:4px}
+.sub{text-align:center;color:#64748b;font-size:12px;margin-bottom:10px}
+.stars{display:flex;justify-content:center;gap:7px;margin:12px 0 18px}
+.star{border:0;background:transparent;color:#cbd5e1;font-size:44px;line-height:1;cursor:pointer;padding:0 2px}
+.star.selected{color:#f59e0b}
+.rating-label{text-align:center;font-size:13px;font-weight:800;color:#f59e0b;min-height:20px}
+input,textarea{width:100%;border:1px solid #d5dce5;border-radius:8px;padding:11px;margin-bottom:11px;outline:none;font-size:14px}
+textarea{min-height:105px;resize:vertical}
+.upload{display:flex;align-items:center;justify-content:center;gap:7px;border:1px dashed #94a3b8;border-radius:9px;padding:12px;margin-bottom:9px;color:#2563eb;font-weight:800;background:#f8fbff;cursor:pointer}
 .upload input{display:none}
-.previews{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}
-.previews img{width:64px;height:64px;object-fit:cover;border-radius:7px;border:1px solid #ddd}
-.submit{width:100%;border:0;background:#087cf0;color:#fff;border-radius:8px;padding:13px;font-weight:900;font-size:16px;cursor:pointer;margin-top:5px}
-.submit:disabled{opacity:.6}
-.note{font-size:11px;color:#718096;margin:8px 0}
-.status{display:none;margin:10px 0;padding:10px;border-radius:8px;font-size:13px;font-weight:700}
-.status.show{display:block}
-.status.ok{background:#eaf8ef;color:#087443}
-.status.err{background:#fff0f0;color:#b42318}
-.review{padding:11px 0;border-bottom:1px solid #edf0f4}
-.review:last-child{border-bottom:0}
-.review-head{display:flex;justify-content:space-between;gap:10px}
-.review-name{font-weight:800}
-.date{font-size:11px;color:#8a95a5}
-.review-stars{color:#f59e0b;margin:3px 0}
-.review-text{font-size:13px;color:#4b5a70;line-height:1.5}
-.review-imgs{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
-.review-imgs img{width:70px;height:70px;object-fit:cover;border-radius:6px}
-.empty{text-align:center;color:#94a3b8;padding:20px}
-@media(max-width:520px){
-.summary-grid{grid-template-columns:105px 1fr;gap:10px}
-.score strong{font-size:34px}
-.product img{width:78px;height:78px}
-.product h2{font-size:15px}
-.rating-select button{font-size:34px}
-}
+.preview{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.preview img{width:68px;height:68px;object-fit:cover;border-radius:7px;border:1px solid #e2e8f0}
+.note{font-size:11px;color:#64748b;background:#f8fafc;padding:8px;border-radius:7px;margin-bottom:12px}
+.submit{width:100%;border:0;border-radius:8px;padding:13px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.submit:disabled{opacity:.65;cursor:wait}
+.status{display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:12px;font-weight:700}
+.status.ok{display:block;background:#dcfce7;color:#166534;border:1px solid #86efac}
+.status.err{display:block;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+@media(max-width:520px){.wrap{margin:10px auto;padding:0}.panel{border-left:0;border-right:0;border-radius:0;padding:16px}.star{font-size:40px}}
 </style>
 </head>
 <body>
-
-<header class="top">
-<div class="top-in">
-<button class="back" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></button>
-<h1>⭐ रेटिंग और रिव्यू</h1>
-</div>
-</header>
-
-<main class="wrap">
-
-<section class="product">
-<img id="productImage" alt="Catalog">
-<div>
-<h2 id="productName">कैटलॉग</h2>
-<div class="model" id="productModel"></div>
-</div>
-</section>
-
-<section class="summary">
-<h3>इस कार्ड की रेटिंग</h3>
-<div class="summary-grid">
-<div class="score">
-<strong id="avg">0.0</strong>
-<div class="stars" id="avgStars">☆☆☆☆☆</div>
-<div class="count" id="total">0 Reviews</div>
-</div>
-<div class="bars" id="bars"></div>
-</div>
-</section>
-
-<section class="form">
-<h3>अपनी रेटिंग दें</h3>
-
-<div class="rating-select" id="ratingSelect">
-<button data-v="1">★</button>
-<button data-v="2">★</button>
-<button data-v="3">★</button>
-<button data-v="4">★</button>
-<button data-v="5">★</button>
+<div class="nav">
+  <button class="back" type="button" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></button>
+  <h2>रेटिंग और रिव्यू</h2>
 </div>
 
-<input id="name" placeholder="आपका नाम">
-<textarea id="text" placeholder="अपने अनुभव के बारे में लिखें..."></textarea>
+<div class="wrap">
+  <div class="panel">
+    <div class="title"><i class="fa-solid fa-star" style="color:#f59e0b"></i> अपनी रेटिंग दें</div>
+    <div class="sub">आपके ऑर्डर के कार्ड का अनुभव बताइए</div>
 
-<label class="upload">
-<i class="fa-solid fa-camera"></i> फोटो अपलोड करें (अधिकतम 5)
-<input id="images" type="file" accept="image/*" multiple>
-</label>
+    <div class="order-info">
+      <b id="orderTitle">ऑर्डर लोड हो रहा है...</b>
+      <span id="orderMeta"></span>
+    </div>
 
-<div class="previews" id="previews"></div>
+    <div class="stars" id="stars">
+      <button class="star" type="button" data-star="1">★</button>
+      <button class="star" type="button" data-star="2">★</button>
+      <button class="star" type="button" data-star="3">★</button>
+      <button class="star" type="button" data-star="4">★</button>
+      <button class="star" type="button" data-star="5">★</button>
+    </div>
+    <div class="rating-label" id="ratingLabel">रेटिंग चुनें</div>
 
-<div class="note">
-यदि यह पेज My Orders से खोला गया है, तो आपकी रेटिंग उसी Order से जोड़ी जाएगी।
+    <input id="ratingName" type="text" placeholder="आपका नाम">
+    <textarea id="ratingText" placeholder="अपने अनुभव के बारे में लिखें..."></textarea>
+
+    <label class="upload">
+      <i class="fa-solid fa-camera"></i> फोटो अपलोड करें (अधिकतम 5)
+      <input id="ratingImages" type="file" accept="image/*" multiple>
+    </label>
+    <div class="preview" id="preview"></div>
+
+    <div class="note">फोटो लगाना वैकल्पिक है। आपकी रेटिंग इस ऑर्डर और इसी कैटलॉग कार्ड से जोड़ी जाएगी।</div>
+    <button class="submit" id="submitBtn" type="button" onclick="submitRating()">
+      <i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें
+    </button>
+    <div id="status" class="status"></div>
+  </div>
 </div>
-
-<div class="status" id="status"></div>
-
-<button class="submit" id="submit" onclick="saveRating()">
-<i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें
-</button>
-</section>
-
-<section class="reviews">
-<h3>ग्राहकों के रिव्यू <span id="reviewCount" style="color:#2874f0;font-size:13px">(0)</span></h3>
-<div id="reviewList">
-<div class="empty">रिव्यू लोड हो रहे हैं...</div>
-</div>
-</section>
-
-</main>
 
 <script>
-/* =========================================================
-   SUPABASE CONFIG
-   ========================================================= */
+const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+let supabaseClient=null;
+try{if(window.supabase)supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
 
-const SUPABASE_URL = 'https://qsvhtfkrlzclnqwypfdy.supabase.co';
+let order=null;
+let ratingValue=0;
 
-/* आपकी दी हुई Legacy anon/public key */
-const SUPABASE_ANON_KEY = 'sb_publishable_UOq3tq9XZQ3cpGngx9uhbw_pDmLdCFS';
-
-let sb = null;
-
-try {
-  if (window.supabase && typeof window.supabase.createClient === 'function') {
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-} catch (e) {
-  console.error('Supabase init error:', e);
-}
-
-/* =========================================================
-   GLOBAL VARIABLES
-   ========================================================= */
-
-let ratingValue = 0;
-let catalogId = '';
-let orderDbId = '';
-let orderId = '';
-let context = {};
-let product = null;
-let rows = [];
-
-const q = new URLSearchParams(location.search);
-
-const clean = v => String(v ?? '').trim();
-const norm = v => clean(v).toLowerCase().replace(/\s+/g, '');
-
-/* HTML safe */
-const esc = v => String(v ?? '')
-.replace(/&/g,'&amp;')
-.replace(/</g,'&lt;')
-.replace(/>/g,'&gt;')
-.replace(/"/g,'&quot;')
-.replace(/'/g,'&#039;');
+function clean(v){return String(v??'').trim()}
+function norm(v){return clean(v).toLowerCase().replace(/\s+/g,' ').trim()}
+function compact(v){return norm(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'')}
+function stripModel(v){return norm(v).replace(/\s*\([^()]*\)\s*$/,'').trim()}
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
 
 function goBack(){
-  if(history.length > 1) history.back();
-  else location.href = 'index.html';
+  if(document.referrer && document.referrer.includes('my_orders')) history.back();
+  else location.href='my_orders.html';
 }
 
-function stars(n){
-  const x = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
-  return '★'.repeat(x) + '☆'.repeat(5-x);
+function setStatus(msg,type){
+  const el=document.getElementById('status'); if(!el)return;
+  el.className='status '+type; el.textContent=msg; el.style.display='block';
 }
 
-/* =========================================================
-   CONTEXT
-   ========================================================= */
+function updateStars(){
+  document.querySelectorAll('.star').forEach(b=>b.classList.toggle('selected',Number(b.dataset.star)<=ratingValue));
+  const labels=['','बहुत खराब','खराब','ठीक-ठाक','अच्छा','बहुत अच्छा'];
+  document.getElementById('ratingLabel').textContent=labels[ratingValue]||'रेटिंग चुनें';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.star');
+  if(!b)return;
+  ratingValue=Number(b.dataset.star)||0; updateStars();
+});
 
-function getCtx(){
+document.getElementById('ratingImages').addEventListener('change',function(){
+  const files=[...this.files].filter(f=>f.type.startsWith('image/')).slice(0,5);
+  const box=document.getElementById('preview'); box.innerHTML='';
+  files.forEach(f=>{const img=document.createElement('img');img.src=URL.createObjectURL(f);box.appendChild(img)});
+  if(this.files.length>5)alert('अधिकतम 5 फोटो ही अपलोड की जाएंगी।');
+});
 
+async function resolveCatalogId(ord){
+  let catalogId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'');
+  if(!supabaseClient)return catalogId;
   try{
-    context = JSON.parse(
-      localStorage.getItem('dp_rating_order_context') || '{}'
-    ) || {};
-  }catch(e){
-    context = {};
-  }
-
-  if(!Object.keys(context).length){
-    try{
-      context = JSON.parse(
-        localStorage.getItem('dp_rating_catalog_context') || '{}'
-      ) || {};
-    }catch(e){
-      context = {};
+    const {data,error}=await supabaseClient.from('catalog').select('*').limit(1000);
+    if(error||!Array.isArray(data))return catalogId;
+    const title=clean(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
+    const model=clean(ord.card_model||ord.model||ord.code||ord.model_no||'');
+    const ot=norm(title), ob=compact(stripModel(title)), om=norm(model);
+    let best=null,bestScore=-1;
+    for(const c of data){
+      const cid=clean(c?.id??c?.catalog_id??c?.card_id); if(!cid)continue;
+      const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
+      const cb=compact(stripModel(ct));
+      const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
+      let score=0;
+      if(om&&cm&&om===cm)score+=5000;
+      else if(om&&cm&&(om.includes(cm)||cm.includes(om)))score+=1800;
+      if(ot&&ct===ot)score+=500;
+      else if(ob&&cb&&ob===cb)score+=450;
+      else if(ob&&cb&&(ob.includes(cb)||cb.includes(ob)))score+=250;
+      if(catalogId&&cid===catalogId)score+=100;
+      if(score>bestScore){bestScore=score;best=c}
     }
-  }
-
-  // My Orders से आने वाले context में database order का id अक्सर `id` में होता है।
-  // उसी order का card_title/card_model भी सीधे उपलब्ध रहता है।
-  catalogId = clean(q.get('id') || context.catalog_id || context.catalogId || context.card_catalog_id || context.catalog_item_id);
-  orderDbId = clean(q.get('order_db_id') || context.order_db_id || context.id);
-  orderId = clean(q.get('order_id') || context.order_id);
-
-  // पुराने/मौजूदा My Orders data में ये fields अलग नामों से आते हैं।
-  // इन्हें normalize करके catalog matching को सही order के card तक सीमित किया जाता है।
-  if(!context.name){
-    context.name = context.card_title || context.card_name || context.product_name || context.title || '';
-  }
-  if(!context.model){
-    context.model = context.card_model || context.model_no || context.code || context.model || '';
-  }
-  if(!context.customer_name){
-    context.customer_name = context.name_customer || context.customer || '';
-  }
-}
-
-/* =========================================================
-   RESOLVE ORDER
-   ========================================================= */
-
-async function resolveOrder(){
-
-  if(!sb) return null;
-
-  let o = null;
-
-  try{
-
-    if(orderDbId){
-
-      const r = await sb
-      .from('orders')
-      .select('*')
-      .eq('id', Number(orderDbId))
-      .maybeSingle();
-
-      if(!r.error && r.data) o = r.data;
-    }
-
-  }catch(e){
-    console.error('Order DB lookup:', e);
-  }
-
-  if(!o && orderId){
-
-    try{
-
-      const r = await sb
-      .from('orders')
-      .select('*')
-      .eq('order_id', orderId)
-      .maybeSingle();
-
-      if(!r.error && r.data) o = r.data;
-
-    }catch(e){
-      console.error('Order ID lookup:', e);
-    }
-  }
-
-  if(o){
-
-    orderDbId = clean(o.id);
-    orderId = clean(o.order_id || orderId);
-
-    context = {
-      ...context,
-
-      catalog_id:
-        o.catalog_id ||
-        o.card_id ||
-        o.product_id ||
-        context.catalog_id,
-
-      name:
-        o.card_title ||
-        o.card_name ||
-        o.product_name ||
-        context.name,
-
-      model:
-        o.card_model ||
-        o.model ||
-        o.code ||
-        o.model_no ||
-        context.model,
-
-      customer_name:
-        o.customer_name ||
-        context.customer_name
-    };
-  }
-
-  return o;
-}
-
-/* =========================================================
-   LOAD CATALOG
-   ========================================================= */
-
-async function loadCatalog(){
-
-  let list = [];
-
-  if(sb){
-
-    try{
-
-      const r = await sb
-      .from('catalog')
-      .select('*')
-      .limit(1000);
-
-      if(!r.error && Array.isArray(r.data)){
-        list = r.data;
-      }else if(r.error){
-        console.warn('Catalog load:', r.error.message);
-      }
-
-    }catch(e){
-      console.error('Catalog error:', e);
-    }
-  }
-
-  if(!list.length){
-
-    try{
-
-      const c = JSON.parse(
-        localStorage.getItem('dp_index_catalog') || '[]'
-      );
-
-      if(Array.isArray(c)) list = c;
-
-    }catch(e){}
-  }
-
-  const targetId = clean(catalogId);
-  const title = norm(context.name);
-  const model = norm(context.model);
-
-  let best = null;
-  let score = -1;
-
-  for(const c of list){
-
-    const cid = clean(
-      c?.id ??
-      c?.catalog_id ??
-      c?.card_id
-    );
-
-    const ct = norm(
-      c?.name ??
-      c?.title ??
-      c?.card_name ??
-      c?.product_name
-    );
-
-    const cm = norm(
-      c?.model ??
-      c?.code ??
-      c?.card_model ??
-      c?.model_no
-    );
-
-    let s = 0;
-
-    if(targetId && cid === targetId) s += 1000;
-
-    if(title && ct === title) s += 900;
-    else if(title && ct &&
-      (title.includes(ct) || ct.includes(title))) s += 650;
-
-    if(model && cm === model) s += 180;
-
-    if(s > score){
-      score = s;
-      best = c;
-    }
-  }
-
-  if(best){
-
-    product = best;
-
-    catalogId = clean(
-      best.id ??
-      best.catalog_id ??
-      best.card_id
-    );
-
-  }else{
-
-    product = {
-      id: catalogId,
-      name: context.name || 'कैटलॉग',
-      model: context.model || '',
-      image: context.image || ''
-    };
-  }
-
-  document.getElementById('productName').textContent =
-    product.name ||
-    product.title ||
-    product.card_name ||
-    'कैटलॉग';
-
-  document.getElementById('productModel').textContent =
-    product.model ||
-    product.code ||
-    product.card_model ||
-    product.model_no ||
-    '';
-
-  const img =
-    product.image ||
-    product.image_url ||
-    product.photo ||
-    product.thumbnail ||
-    context.image ||
-    '';
-
-  if(img){
-    document.getElementById('productImage').src = img;
-  }else{
-    document.getElementById('productImage').style.display = 'none';
-  }
-}
-
-/* =========================================================
-   LOAD REVIEWS
-   ========================================================= */
-
-async function loadReviews(){
-
-  rows = [];
-
-  if(sb){
-
-    try{
-
-      const r = await sb
-      .from('catalog_feedback')
-      .select('*')
-      .order('created_at',{ascending:false})
-      .limit(2000);
-
-      if(!r.error && Array.isArray(r.data)){
-
-        rows = r.data;
-
-      }else if(r.error){
-
-        console.warn('Review load error:', r.error.message);
-      }
-
-    }catch(e){
-      console.error('Review load error:', e);
-    }
-  }
-
-  /* Local backup */
-  try{
-
-    const a = JSON.parse(
-      localStorage.getItem('catalog_feedback_' + catalogId) || '[]'
-    );
-
-    if(Array.isArray(a)) rows.push(...a);
-
+    if(best)catalogId=clean(best.id??best.catalog_id??best.card_id);
   }catch(e){}
-
-  /* Only current catalog */
-  const seen = new Set();
-
-  rows = rows
-  .filter(r => {
-
-    const cid = clean(r?.catalog_id);
-
-    if(cid && cid === catalogId) return true;
-
-    return false;
-
-  })
-  .filter(r => {
-
-    const k =
-      String(r?.id ?? '') + '|' +
-      String(r?.order_db_id ?? r?.order_id ?? '') + '|' +
-      String(r?.created_at ?? '') + '|' +
-      String(r?.rating ?? r?.stars ?? '') + '|' +
-      String(r?.name ?? r?.user_name ?? '');
-
-    if(seen.has(k)) return false;
-
-    seen.add(k);
-
-    return true;
-  });
-
-  renderReviews();
-}
-
-/* =========================================================
-   RENDER REVIEWS
-   ========================================================= */
-
-function renderReviews(){
-
-  const vals = rows
-  .map(r => Number(r?.rating ?? r?.stars ?? 0))
-  .filter(v => v >= 1 && v <= 5);
-
-  const avg = vals.length
-    ? vals.reduce((a,v)=>a+v,0) / vals.length
-    : 0;
-
-  document.getElementById('avg').textContent =
-    avg ? avg.toFixed(1) : '0.0';
-
-  document.getElementById('avgStars').textContent =
-    stars(avg);
-
-  document.getElementById('total').textContent =
-    vals.length + ' Reviews';
-
-  document.getElementById('reviewCount').textContent =
-    '(' + vals.length + ')';
-
-  let b = '';
-
-  for(let n=5;n>=1;n--){
-
-    const c = vals.filter(
-      v => Math.round(v) === n
-    ).length;
-
-    const width = vals.length
-      ? c / vals.length * 100
-      : 0;
-
-    b += `
-      <div class="barrow">
-        <span>${n}★</span>
-        <div class="track">
-          <i class="fill"
-             style="display:block;width:${width}%"></i>
-        </div>
-        <span>${c}</span>
-      </div>`;
-  }
-
-  document.getElementById('bars').innerHTML = b;
-
-  const box = document.getElementById('reviewList');
-
-  if(!rows.length){
-
-    box.innerHTML =
-      '<div class="empty">अभी कोई रिव्यू नहीं है।</div>';
-
-    return;
-  }
-
-  box.innerHTML = rows
-  .slice(0,100)
-  .map(r => {
-
-    let imgs =
-      r.review_images ??
-      r.images ??
-      r.image_urls ??
-      [];
-
-    if(typeof imgs === 'string'){
-
-      try{
-        imgs = JSON.parse(imgs);
-      }catch(e){
-        imgs = [];
-      }
-    }
-
-    if(!Array.isArray(imgs)) imgs = [];
-
-    const im = imgs
-    .filter(x =>
-      typeof x === 'string' &&
-      /^https?:\/\//i.test(x)
-    )
-    .map(x =>
-      `<img src="${esc(x)}" alt="Review photo">`
-    )
-    .join('');
-
-    return `
-      <div class="review">
-
-        <div class="review-head">
-
-          <span class="review-name">
-            ${esc(r.name || r.user_name || 'ग्राहक')}
-          </span>
-
-          <span class="date">
-            ${
-              r.created_at
-              ? esc(
-                  new Date(r.created_at)
-                  .toLocaleDateString('en-IN')
-                )
-              : ''
-            }
-          </span>
-
-        </div>
-
-        <div class="review-stars">
-          ${stars(r.rating || r.stars)}
-        </div>
-
-        <div class="review-text">
-          ${esc(
-            r.feedback ||
-            r.comment ||
-            'रेटिंग दी गई है।'
-          )}
-        </div>
-
-        ${
-          im
-          ? `<div class="review-imgs">${im}</div>`
-          : ''
-        }
-
-      </div>
-    `;
-
-  })
-  .join('');
-}
-
-/* =========================================================
-   STAR SELECTION
-   ========================================================= */
-
-document
-.querySelectorAll('#ratingSelect button')
-.forEach(b => {
-
-  b.addEventListener('click', () => {
-
-    ratingValue = Number(b.dataset.v) || 0;
-
-    document
-    .querySelectorAll('#ratingSelect button')
-    .forEach(x => {
-
-      x.classList.toggle(
-        'on',
-        Number(x.dataset.v) <= ratingValue
-      );
-
-    });
-  });
-});
-
-/* =========================================================
-   IMAGE PREVIEW
-   ========================================================= */
-
-document
-.getElementById('images')
-.addEventListener('change', () => {
-
-  const box = document.getElementById('previews');
-
-  box.innerHTML = '';
-
-  [...document.getElementById('images').files]
-  .slice(0,5)
-  .forEach(f => {
-
-    const u = URL.createObjectURL(f);
-
-    const i = document.createElement('img');
-
-    i.src = u;
-
-    box.appendChild(i);
-  });
-});
-
-/* =========================================================
-   UPLOAD IMAGES
-   ========================================================= */
-
-async function uploadImages(files){
-
-  if(!sb) return [];
-
-  const urls = [];
-
-  for(const file of files.slice(0,5)){
-
-    const ext =
-      (file.name.split('.').pop() || 'jpg')
-      .replace(/[^a-z0-9]/gi,'')
-      .toLowerCase() || 'jpg';
-
-    const path =
-      `ratings/${orderDbId || orderId || catalogId}/review_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-
-    try{
-
-      const up =
-        await sb.storage
-        .from('review-images')
-        .upload(
-          path,
-          file,
-          {
-            upsert:false,
-            contentType:file.type
-          }
-        );
-
-      if(up.error){
-
-        console.warn(
-          'Image upload error:',
-          up.error.message
-        );
-
-        continue;
-      }
-
-      const p =
-        sb.storage
-        .from('review-images')
-        .getPublicUrl(path);
-
-      if(p.data?.publicUrl){
-        urls.push(p.data.publicUrl);
-      }
-
-    }catch(e){
-
-      console.error(
-        'Image upload exception:',
-        e
-      );
-    }
-  }
-
-  return urls;
-}
-
-/* =========================================================
-   RESOLVE CATALOG ID
-   ========================================================= */
-
-async function resolveCatalogId(){
-
-  const supplied = clean(catalogId);
-
-  if(supplied) return supplied;
-
-  const o = await resolveOrder();
-
-  if(o){
-
-    catalogId = clean(
-      o.catalog_id ||
-      o.card_id ||
-      o.product_id
-    );
-
-    if(catalogId) return catalogId;
-
-    context = {
-      ...context,
-      name:
-        o.card_title ||
-        o.card_name ||
-        o.product_name ||
-        '',
-      model:
-        o.card_model ||
-        o.model ||
-        o.code ||
-        o.model_no ||
-        ''
-    };
-  }
-
   return catalogId;
 }
 
-/* =========================================================
-   STATUS MESSAGE
-   ========================================================= */
-
-function setStatus(msg, ok=false){
-
-  const el =
-    document.getElementById('status');
-
-  el.textContent = msg;
-
-  el.className =
-    'status show ' +
-    (ok ? 'ok' : 'err');
+async function uploadImages(files,orderId){
+  const urls=[];
+  if(!supabaseClient)return urls;
+  for(const file of files.slice(0,5)){
+    if(file.size>8*1024*1024)continue;
+    const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
+    const path=`${orderId}/review_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    try{
+      const up=await supabaseClient.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});
+      if(up.error)continue;
+      const pub=supabaseClient.storage.from('review-images').getPublicUrl(path);
+      if(pub.data?.publicUrl)urls.push(pub.data.publicUrl);
+    }catch(e){}
+  }
+  return urls;
 }
 
-/* =========================================================
-   SAVE RATING
-   ========================================================= */
+async function submitRating(){
+  if(!order){setStatus('ऑर्डर की जानकारी नहीं मिली। My Orders से फिर Rating खोलें।','err');return}
+  if(!ratingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return}
 
-async function saveRating(){
-
-  if(!ratingValue){
-
-    setStatus(
-      'कृपया 1 से 5 स्टार रेटिंग चुनें।'
-    );
-
-    return;
-  }
-
-  const btn =
-    document.getElementById('submit');
-
-  btn.disabled = true;
-
-  setStatus(
-    'रेटिंग सेव की जा रही है...',
-    true
-  );
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> सेव हो रहा है...';
 
   try{
+    const name=(document.getElementById('ratingName').value||'').trim()||order.customer_name||'ग्राहक';
+    const feedback=(document.getElementById('ratingText').value||'').trim();
+    const files=[...(document.getElementById('ratingImages').files||[])].slice(0,5);
+    const catalogId=await resolveCatalogId(order);
+    const orderDbId=order.id!=null?String(order.id):null;
+    const orderId=order.order_id!=null?String(order.order_id):null;
+    const createdAt=new Date().toISOString();
+    const imageUrls=await uploadImages(files,orderDbId||orderId||('local_'+Date.now()));
 
-    await resolveCatalogId();
-
-    if(!catalogId){
-
-      setStatus(
-        'कैटलॉग की पहचान नहीं हो पाई। पहले कैटलॉग खोलकर फिर रेटिंग दें।'
-      );
-
-      btn.disabled = false;
-
-      return;
-    }
-
-    if(!orderDbId && orderId){
-      await resolveOrder();
-    }
-
-    const name =
-      clean(document.getElementById('name').value) ||
-      clean(context.customer_name) ||
-      'ग्राहक';
-
-    const text =
-      clean(document.getElementById('text').value);
-
-    const files =
-      [...document.getElementById('images').files]
-      .slice(0,5);
-
-    const imageUrls =
-      await uploadImages(files);
-
-    if(!sb){
-      throw new Error(
-        'Supabase connection उपलब्ध नहीं है।'
-      );
-    }
-
-    const row = {
-
-      catalog_id:String(catalogId),
-
-      order_id:
-        orderId
-        ? String(orderId)
-        : null,
-
-      order_db_id:
-        orderDbId
-        ? String(orderDbId)
-        : null,
-
-      rating:ratingValue,
-
-      stars:ratingValue,
-
+    // Current catalog_feedback schema uses these core columns.
+    const coreRow={
+      catalog_id:catalogId||null,
+      order_db_id:orderDbId,
+      rating:Number(ratingValue),
+      stars:Number(ratingValue),
       name:name,
-
-      user_name:name,
-
-      feedback:text,
-
-      comment:text,
-
-      review_images:imageUrls,
-
-      created_at:
-        new Date().toISOString()
+      feedback:feedback,
+      created_at:createdAt
     };
 
-    /* Find existing order review */
+    let saved=false, dbError='';
 
-    let existing = null;
+    if(supabaseClient){
+      try{
+        let existing=null;
+        if(orderDbId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_db_id',orderDbId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
+        if(!existing && orderId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_id',orderId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
 
-    if(orderDbId){
+        if(existing?.id!=null){
+          const up=await supabaseClient.from('catalog_feedback').update({
+            catalog_id:catalogId||null,
+            rating:Number(ratingValue),
+            stars:Number(ratingValue),
+            name:name,
+            feedback:feedback,
+            created_at:createdAt
+          }).eq('id',existing.id);
+          if(!up.error)saved=true; else dbError=up.error.message||String(up.error);
+        }else{
+          const ins=await supabaseClient.from('catalog_feedback').insert(coreRow);
+          if(!ins.error)saved=true; else dbError=ins.error.message||String(ins.error);
+        }
+      }catch(e){dbError=e?.message||String(e)}
+    }else dbError='Supabase connection उपलब्ध नहीं है।';
 
-      const r =
-        await sb
-        .from('catalog_feedback')
-        .select('*')
-        .eq(
-          'order_db_id',
-          String(orderDbId)
-        )
-        .order(
-          'created_at',
-          {ascending:false}
-        )
-        .limit(1);
-
-      if(!r.error && r.data?.[0]){
-        existing = r.data[0];
-      }
+    // Keep the same local cache used by Index / Catalog Detail.
+    const fullRow={...coreRow,order_id:orderId,user_name:name,comment:feedback,review_images:imageUrls};
+    if(catalogId){
+      try{
+        const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+        map[String(catalogId)]=fullRow; localStorage.setItem('dp_catalog_ratings',JSON.stringify(map));
+      }catch(e){}
+      try{
+        const key='catalog_feedback_'+String(catalogId);
+        const arr=JSON.parse(localStorage.getItem(key)||'[]');
+        const a=Array.isArray(arr)?arr:[];
+        a.unshift(fullRow);localStorage.setItem(key,JSON.stringify(a.slice(0,100)));
+      }catch(e){}
     }
+    try{
+      localStorage.setItem('dp_order_rating_'+String(orderDbId||orderId||Date.now()),JSON.stringify(fullRow));
+      const keys=['my_orders_list','dp_all_orders','user_orders','dp_my_orders'];
+      keys.forEach(k=>{
+        let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){}
+        if(!Array.isArray(a))a=[];
+        a=a.map(x=>(String(x.id||x.order_id)===String(orderDbId||orderId))?{...x,rating:Number(ratingValue),stars:Number(ratingValue),rating_feedback:feedback,rating_name:name,rating_images:imageUrls,rating_created_at:createdAt,catalog_id:catalogId||x.catalog_id}:x);
+        localStorage.setItem(k,JSON.stringify(a));
+      });
+    }catch(e){}
 
-    if(!existing && orderId){
-
-      const r =
-        await sb
-        .from('catalog_feedback')
-        .select('*')
-        .eq(
-          'order_id',
-          String(orderId)
-        )
-        .order(
-          'created_at',
-          {ascending:false}
-        )
-        .limit(1);
-
-      if(!r.error && r.data?.[0]){
-        existing = r.data[0];
-      }
-    }
-
-    /* Insert / Update */
-
-    if(existing?.id != null){
-
-      const u =
-        await sb
-        .from('catalog_feedback')
-        .update(row)
-        .eq('id',existing.id);
-
-      if(u.error){
-
-        throw new Error(
-          u.error.message ||
-          'पुरानी रेटिंग update नहीं हुई।'
-        );
-      }
-
+    if(saved){
+      setStatus('आपकी रेटिंग और रिव्यू Database में सफलतापूर्वक सेव हो गया।','ok');
+      btn.innerHTML='<i class="fa-solid fa-check"></i> सेव हो गया';
+      setTimeout(()=>location.href='my_orders.html',900);
     }else{
-
-      const ins =
-        await sb
-        .from('catalog_feedback')
-        .insert(row);
-
-      if(ins.error){
-
-        throw new Error(
-          ins.error.message ||
-          'रेटिंग save नहीं हुई।'
-        );
-      }
+      setStatus('रेटिंग इस डिवाइस में सेव हो गई, लेकिन Database में सेव नहीं हो पाई। कारण: '+(dbError||'अज्ञात Database error'),'err');
+      btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> फिर से Submit करें';
+      console.error('Rating cloud save failed:',dbError);
     }
-
-    /* Local backup */
-
-    try{
-
-      let a = JSON.parse(
-        localStorage.getItem(
-          'catalog_feedback_' + catalogId
-        ) || '[]'
-      );
-
-      if(!Array.isArray(a)) a = [];
-
-      a.unshift(row);
-
-      localStorage.setItem(
-        'catalog_feedback_' + catalogId,
-        JSON.stringify(a.slice(0,100))
-      );
-
-    }catch(e){}
-
-    try{
-      localStorage.removeItem(
-        'dp_rating_order_context'
-      );
-    }catch(e){}
-
-    setStatus(
-      'आपकी रेटिंग और रिव्यू सफलतापूर्वक Supabase में सेव हो गया।',
-      true
-    );
-
-    /* Reset */
-
-    ratingValue = 0;
-
-    document
-    .querySelectorAll('#ratingSelect button')
-    .forEach(x => x.classList.remove('on'));
-
-    document.getElementById('text').value = '';
-
-    document.getElementById('images').value = '';
-
-    document.getElementById('previews').innerHTML = '';
-
-    await loadReviews();
-
   }catch(e){
-
-    console.error(
-      'SAVE RATING ERROR:',
-      e
-    );
-
-    let msg =
-      e?.message ||
-      String(e) ||
-      'Unknown error';
-
-    /* Clearer API key message */
-
-    if(
-      /invalid api key/i.test(msg) ||
-      /apikey/i.test(msg)
-    ){
-
-      msg =
-        'Supabase API Key मान्य नहीं है। Supabase Settings → API से सही key लगाएँ।';
-    }
-
-    setStatus(
-      'रेटिंग सेव नहीं हुई: ' + msg
-    );
-
-  }finally{
-
-    btn.disabled = false;
+    setStatus('रेटिंग सेव करते समय समस्या: '+(e?.message||String(e)),'err');
+    btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें';
   }
 }
 
-/* =========================================================
-   INITIAL LOAD
-   ========================================================= */
-
-(async()=>{
-
-  getCtx();
-
-  await resolveOrder();
-
-  await loadCatalog();
-
-  await loadReviews();
-
-})();
+function loadOrder(){
+  try{order=JSON.parse(localStorage.getItem('dp_rating_order_context')||'null')}catch(e){order=null}
+  if(!order){
+    document.getElementById('orderTitle').textContent='ऑर्डर नहीं मिला';
+    document.getElementById('orderMeta').textContent='कृपया My Orders पेज से Rating बटन दबाएँ।';
+    document.getElementById('submitBtn').disabled=true;
+    return;
+  }
+  document.getElementById('orderTitle').textContent=order.card_title||order.card_name||'शादी कार्ड';
+  document.getElementById('orderMeta').textContent='ऑर्डर #'+(order.order_id||order.id||'-')+(order.card_model?' • मॉडल: '+order.card_model:'');
+  let u={};try{u=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}')}catch(e){}
+  document.getElementById('ratingName').value=u.name||order.customer_name||'';
+  updateStars();
+}
+document.addEventListener('DOMContentLoaded',loadOrder);
 </script>
-
 </body>
-</html>
+</htmlfunction getCtx(){
+  try{context=JSON.parse(localStorage.getItem('dp_rating_order_context')||'{}')||{}}catch(e){context={}}
+  if(!Object.keys(context).length){
+    try{context=JSON.parse(localStorage.getItem('dp_rating_catalog_context')||'{}')||{}}catch(e){}
+  }
+  orderDbId=clean(q.get('order_db_id')||context.order_db_id);
+  orderId=clean(q.get('order_id')||context.order_id);
+  // URL id is only a fallback. The Order's own catalog_id/model is authoritative.
+  catalogId='';
+  if(!orderDbId&&!orderId) catalogId=clean(q.get('id')||context.catalog_id);
+}udflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif}
+body{min-height:100vh;background:#f1f3f6;color:#212121;padding-bottom:30px}
+.nav{height:58px;background:#2874f0;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;box-shadow:0 2px 7px rgba(0,0,0,.18)}
+.back{border:0;background:rgba(255,255,255,.15);color:#fff;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer}
+.nav h2{font-size:19px;font-weight:800}
+.wrap{max-width:620px;margin:18px auto;padding:0 12px}
+.panel{background:#fff;border:1px solid #e0e0e0;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:18px}
+.order-info{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-bottom:15px}
+.order-info b{display:block;color:#0f2f70;font-size:15px;margin-bottom:3px}
+.order-info span{font-size:12px;color:#64748b;font-weight:600}
+.title{text-align:center;color:#0f2f70;font-size:21px;font-weight:800;margin-bottom:4px}
+.sub{text-align:center;color:#64748b;font-size:12px;margin-bottom:10px}
+.stars{display:flex;justify-content:center;gap:7px;margin:12px 0 18px}
+.star{border:0;background:transparent;color:#cbd5e1;font-size:44px;line-height:1;cursor:pointer;padding:0 2px}
+.star.selected{color:#f59e0b}
+.rating-label{text-align:center;font-size:13px;font-weight:800;color:#f59e0b;min-height:20px}
+input,textarea{width:100%;border:1px solid #d5dce5;border-radius:8px;padding:11px;margin-bottom:11px;outline:none;font-size:14px}
+textarea{min-height:105px;resize:vertical}
+.upload{display:flex;align-items:center;justify-content:center;gap:7px;border:1px dashed #94a3b8;border-radius:9px;padding:12px;margin-bottom:9px;color:#2563eb;font-weight:800;background:#f8fbff;cursor:pointer}
+.upload input{display:none}
+.preview{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.preview img{width:68px;height:68px;object-fit:cover;border-radius:7px;border:1px solid #e2e8f0}
+.note{font-size:11px;color:#64748b;background:#f8fafc;padding:8px;border-radius:7px;margin-bottom:12px}
+.submit{width:100%;border:0;border-radius:8px;padding:13px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.submit:disabled{opacity:.65;cursor:wait}
+.status{display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:12px;font-weight:700}
+.status.ok{display:block;background:#dcfce7;color:#166534;border:1px solid #86efac}
+.status.err{display:block;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+@media(max-width:520px){.wrap{margin:10px auto;padding:0}.panel{border-left:0;border-right:0;border-radius:0;padding:16px}.star{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <button class="back" type="button" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></button>
+  <h2>रेटिंग और रिव्यू</h2>
+</div>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="title"><i class="fa-solid fa-star" style="color:#f59e0b"></i> अपनी रेटिंग दें</div>
+    <div class="sub">आपके ऑर्डर के कार्ड का अनुभव बताइए</div>
+
+    <div class="order-info">
+      <b id="orderTitle">ऑर्डर लोड हो रहा है...</b>
+      <span id="orderMeta"></span>
+    </div>
+
+    <div class="stars" id="stars">
+      <button class="star" type="button" data-star="1">★</button>
+      <button class="star" type="button" data-star="2">★</button>
+      <button class="star" type="button" data-star="3">★</button>
+      <button class="star" type="button" data-star="4">★</button>
+      <button class="star" type="button" data-star="5">★</button>
+    </div>
+    <div class="rating-label" id="ratingLabel">रेटिंग चुनें</div>
+
+    <input id="ratingName" type="text" placeholder="आपका नाम">
+    <textarea id="ratingText" placeholder="अपने अनुभव के बारे में लिखें..."></textarea>
+
+    <label class="upload">
+      <i class="fa-solid fa-camera"></i> फोटो अपलोड करें (अधिकतम 5)
+      <input id="ratingImages" type="file" accept="image/*" multiple>
+    </label>
+    <div class="preview" id="preview"></div>
+
+    <div class="note">फोटो लगाना वैकल्पिक है। आपकी रेटिंग इस ऑर्डर और इसी कैटलॉग कार्ड से जोड़ी जाएगी।</div>
+    <button class="submit" id="submitBtn" type="button" onclick="submitRating()">
+      <i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें
+    </button>
+    <div id="status" class="status"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+let supabaseClient=null;
+try{if(window.supabase)supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
+
+let order=null;
+let ratingValue=0;
+
+function clean(v){return String(v??'').trim()}
+function norm(v){return clean(v).toLowerCase().replace(/\s+/g,' ').trim()}
+function compact(v){return norm(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'')}
+function stripModel(v){return norm(v).replace(/\s*\([^()]*\)\s*$/,'').trim()}
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+
+function goBack(){
+  if(document.referrer && document.referrer.includes('my_orders')) history.back();
+  else location.href='my_orders.html';
+}
+
+function setStatus(msg,type){
+  const el=document.getElementById('status'); if(!el)return;
+  el.className='status '+type; el.textContent=msg; el.style.display='block';
+}
+
+function updateStars(){
+  document.querySelectorAll('.star').forEach(b=>b.classList.toggle('selected',Number(b.dataset.star)<=ratingValue));
+  const labels=['','बहुत खराब','खराब','ठीक-ठाक','अच्छा','बहुत अच्छा'];
+  document.getElementById('ratingLabel').textContent=labels[ratingValue]||'रेटिंग चुनें';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.star');
+  if(!b)return;
+  ratingValue=Number(b.dataset.star)||0; updateStars();
+});
+
+document.getElementById('ratingImages').addEventListener('change',function(){
+  const files=[...this.files].filter(f=>f.type.startsWith('image/')).slice(0,5);
+  const box=document.getElementById('preview'); box.innerHTML='';
+  files.forEach(f=>{const img=document.createElement('img');img.src=URL.createObjectURL(f);box.appendChild(img)});
+  if(this.files.length>5)alert('अधिकतम 5 फोटो ही अपलोड की जाएंगी।');
+});
+
+async function resolveCatalogId(ord){
+  let catalogId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'');
+  if(!supabaseClient)return catalogId;
+  try{
+    const {data,error}=await supabaseClient.from('catalog').select('*').limit(1000);
+    if(error||!Array.isArray(data))return catalogId;
+    const title=clean(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
+    const model=clean(ord.card_model||ord.model||ord.code||ord.model_no||'');
+    const ot=norm(title), ob=compact(stripModel(title)), om=norm(model);
+    let best=null,bestScore=-1;
+    for(const c of data){
+      const cid=clean(c?.id??c?.catalog_id??c?.card_id); if(!cid)continue;
+      const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
+      const cb=compact(stripModel(ct));
+      const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
+      let score=0;
+      if(om&&cm&&om===cm)score+=5000;
+      else if(om&&cm&&(om.includes(cm)||cm.includes(om)))score+=1800;
+      if(ot&&ct===ot)score+=500;
+      else if(ob&&cb&&ob===cb)score+=450;
+      else if(ob&&cb&&(ob.includes(cb)||cb.includes(ob)))score+=250;
+      if(catalogId&&cid===catalogId)score+=100;
+      if(score>bestScore){bestScore=score;best=c}
+    }
+    if(best)catalogId=clean(best.id??best.catalog_id??best.card_id);
+  }catch(e){}
+  return catalogId;
+}
+
+async function uploadImages(files,orderId){
+  const urls=[];
+  if(!supabaseClient)return urls;
+  for(const file of files.slice(0,5)){
+    if(file.size>8*1024*1024)continue;
+    const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
+    const path=`${orderId}/review_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    try{
+      const up=await supabaseClient.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});
+      if(up.error)continue;
+      const pub=supabaseClient.storage.from('review-images').getPublicUrl(path);
+      if(pub.data?.publicUrl)urls.push(pub.data.publicUrl);
+    }catch(e){}
+  }
+  return urls;
+}
+
+async function submitRating(){
+  if(!order){setStatus('ऑर्डर की जानकारी नहीं मिली। My Orders से फिर Rating खोलें।','err');return}
+  if(!ratingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return}
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> सेव हो रहा है...';
+
+  try{
+    const name=(document.getElementById('ratingName').value||'').trim()||order.customer_name||'ग्राहक';
+    const feedback=(document.getElementById('ratingText').value||'').trim();
+    const files=[...(document.getElementById('ratingImages').files||[])].slice(0,5);
+    const catalogId=await resolveCatalogId(order);
+    const orderDbId=order.id!=null?String(order.id):null;
+    const orderId=order.order_id!=null?String(order.order_id):null;
+    const createdAt=new Date().toISOString();
+    const imageUrls=await uploadImages(files,orderDbId||orderId||('local_'+Date.now()));
+
+    // Current catalog_feedback schema uses these core columns.
+    const coreRow={
+      catalog_id:catalogId||null,
+      order_db_id:orderDbId,
+      rating:Number(ratingValue),
+      stars:Number(ratingValue),
+      name:name,
+      feedback:feedback,
+      created_at:createdAt
+    };
+
+    let saved=false, dbError='';
+
+    if(supabaseClient){
+      try{
+        let existing=null;
+        if(orderDbId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_db_id',orderDbId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
+        if(!existing && orderId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_id',orderId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
+
+        if(existing?.id!=null){
+          const up=await supabaseClient.from('catalog_feedback').update({
+            catalog_id:catalogId||null,
+            rating:Number(ratingValue),
+            stars:Number(ratingValue),
+            name:name,
+            feedback:feedback,
+            created_at:createdAt
+          }).eq('id',existing.id);
+          if(!up.error)saved=true; else dbError=up.error.message||String(up.error);
+        }else{
+          const ins=await supabaseClient.from('catalog_feedback').insert(coreRow);
+          if(!ins.error)saved=true; else dbError=ins.error.message||String(ins.error);
+        }
+      }catch(e){dbError=e?.message||String(e)}
+    }else dbError='Supabase connection उपलब्ध नहीं है।';
+
+    // Keep the same local cache used by Index / Catalog Detail.
+    const fullRow={...coreRow,order_id:orderId,user_name:name,comment:feedback,review_images:imageUrls};
+    if(catalogId){
+      try{
+        const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+        map[String(catalogId)]=fullRow; localStorage.setItem('dp_catalog_ratings',JSON.stringify(map));
+      }catch(e){}
+      try{
+        const key='catalog_feedback_'+String(catalogId);
+        const arr=JSON.parse(localStorage.getItem(key)||'[]');
+        const a=Array.isArray(arr)?arr:[];
+        a.unshift(fullRow);localStorage.setItem(key,JSON.stringify(a.slice(0,100)));
+      }catch(e){}
+    }
+    try{
+      localStorage.setItem('dp_order_rating_'+String(orderDbId||orderId||Date.now()),JSON.stringify(fullRow));
+      const keys=['my_orders_list','dp_all_orders','user_orders','dp_my_orders'];
+      keys.forEach(k=>{
+        let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){}
+        if(!Array.isArray(a))a=[];
+        a=a.map(x=>(String(x.id||x.order_id)===String(orderDbId||orderId))?{...x,rating:Number(ratingValue),stars:Number(ratingValue),rating_feedback:feedback,rating_name:name,rating_images:imageUrls,rating_created_at:createdAt,catalog_id:catalogId||x.catalog_id}:x);
+        localStorage.setItem(k,JSON.stringify(a));
+      });
+    }catch(e){}
+
+    if(saved){
+      setStatus('आपकी रेटिंग और रिव्यू Database में सफलतापूर्वक सेव हो गया।','ok');
+      btn.innerHTML='<i class="fa-solid fa-check"></i> सेव हो गया';
+      setTimeout(()=>location.href='my_orders.html',900);
+    }else{
+      setStatus('रेटिंग इस डिवाइस में सेव हो गई, लेकिन Database में सेव नहीं हो पाई। कारण: '+(dbError||'अज्ञात Database error'),'err');
+      btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> फिर से Submit करें';
+      console.error('Rating cloud save failed:',dbError);
+    }
+  }catch(e){
+    setStatus('रेटिंग सेव करते समय समस्या: '+(e?.message||String(e)),'err');
+    btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें';
+  }
+}
+
+function loadOrder(){
+  try{order=JSON.parse(localStorage.getItem('dp_rating_order_context')||'null')}catch(e){order=null}
+  if(!order){
+    document.getElementById('orderTitle').textContent='ऑर्डर नहीं मिला';
+    document.getElementById('orderMeta').textContent='कृपया My Orders पेज से Rating बटन दबाएँ।';
+    document.getElementById('submitBtn').disabled=true;
+    return;
+  }
+  document.getElementById('orderTitle').textContent=order.card_title||order.card_name||'शादी कार्ड';
+  document.getElementById('orderMeta').textContent='ऑर्डर #'+(order.order_id||order.id||'-')+(order.card_model?' • मॉडल: '+order.card_model:'');
+  let u={};try{u=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}')}catch(e){}
+  document.getElementById('ratingName').value=u.name||order.customer_name||'';
+  updateStars();
+}
+document.addEventListener('DOMContentLoaded',loadOrder);
+</script>
+</body>
+</htmlasync function resolveOrder(){
+  if(!sb)return null;
+  let o=null;
+  try{
+    if(orderDbId){
+      const n=Number(orderDbId);
+      const r=await sb.from('orders').select('*').eq('id',Number.isFinite(n)?n:orderDbId).maybeSingle();
+      if(!r.error&&r.data)o=r.data;
+    }
+  }catch(e){}
+  if(!o&&orderId){
+    try{
+      const r=await sb.from('orders').select('*').eq('order_id',orderId).maybeSingle();
+      if(!r.error&&r.data)o=r.data;
+    }catch(e){}
+  }
+  if(o){
+    orderDbId=clean(o.id);
+    orderId=clean(o.order_id||orderId);
+    const exactOrderCatalog=clean(o.catalog_id||o.catalogId||o.card_id||o.product_id||'');
+    context={
+      ...context,
+      catalog_id:exactOrderCatalog,
+      name:o.card_title||o.card_name||o.product_name||o.title||context.name,
+      model:o.card_model||o.model||o.code||o.model_no||o.card_code||context.model,
+      image:o.card_image||o.image||o.image_url||context.image,
+      customer_name:o.customer_name||context.customer_name
+    };
+    // Never trust a generic URL catalog id when we have an exact order record.
+    catalogId=exactOrderCatalog;
+  }
+  return o;
+}r:#212121;padding-bottom:30px}
+.nav{height:58px;background:#2874f0;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;box-shadow:0 2px 7px rgba(0,0,0,.18)}
+.back{border:0;background:rgba(255,255,255,.15);color:#fff;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer}
+.nav h2{font-size:19px;font-weight:800}
+.wrap{max-width:620px;margin:18px auto;padding:0 12px}
+.panel{background:#fff;border:1px solid #e0e0e0;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:18px}
+.order-info{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-bottom:15px}
+.order-info b{display:block;color:#0f2f70;font-size:15px;margin-bottom:3px}
+.order-info span{font-size:12px;color:#64748b;font-weight:600}
+.title{text-align:center;color:#0f2f70;font-size:21px;font-weight:800;margin-bottom:4px}
+.sub{text-align:center;color:#64748b;font-size:12px;margin-bottom:10px}
+.stars{display:flex;justify-content:center;gap:7px;margin:12px 0 18px}
+.star{border:0;background:transparent;color:#cbd5e1;font-size:44px;line-height:1;cursor:pointer;padding:0 2px}
+.star.selected{color:#f59e0b}
+.rating-label{text-align:center;font-size:13px;font-weight:800;color:#f59e0b;min-height:20px}
+input,textarea{width:100%;border:1px solid #d5dce5;border-radius:8px;padding:11px;margin-bottom:11px;outline:none;font-size:14px}
+textarea{min-height:105px;resize:vertical}
+.upload{display:flex;align-items:center;justify-content:center;gap:7px;border:1px dashed #94a3b8;border-radius:9px;padding:12px;margin-bottom:9px;color:#2563eb;font-weight:800;background:#f8fbff;cursor:pointer}
+.upload input{display:none}
+.preview{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.preview img{width:68px;height:68px;object-fit:cover;border-radius:7px;border:1px solid #e2e8f0}
+.note{font-size:11px;color:#64748b;background:#f8fafc;padding:8px;border-radius:7px;margin-bottom:12px}
+.submit{width:100%;border:0;border-radius:8px;padding:13px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.submit:disabled{opacity:.65;cursor:wait}
+.status{display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:12px;font-weight:700}
+.status.ok{display:block;background:#dcfce7;color:#166534;border:1px solid #86efac}
+.status.err{display:block;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+@media(max-width:520px){.wrap{margin:10px auto;padding:0}.panel{border-left:0;border-right:0;border-radius:0;padding:16px}.star{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <button class="back" type="button" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></button>
+  <h2>रेटिंग और रिव्यू</h2>
+</div>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="title"><i class="fa-solid fa-star" style="color:#f59e0b"></i> अपनी रेटिंग दें</div>
+    <div class="sub">आपके ऑर्डर के कार्ड का अनुभव बताइए</div>
+
+    <div class="order-info">
+      <b id="orderTitle">ऑर्डर लोड हो रहा है...</b>
+      <span id="orderMeta"></span>
+    </div>
+
+    <div class="stars" id="stars">
+      <button class="star" type="button" data-star="1">★</button>
+      <button class="star" type="button" data-star="2">★</button>
+      <button class="star" type="button" data-star="3">★</button>
+      <button class="star" type="button" data-star="4">★</button>
+      <button class="star" type="button" data-star="5">★</button>
+    </div>
+    <div class="rating-label" id="ratingLabel">रेटिंग चुनें</div>
+
+    <input id="ratingName" type="text" placeholder="आपका नाम">
+    <textarea id="ratingText" placeholder="अपने अनुभव के बारे में लिखें..."></textarea>
+
+    <label class="upload">
+      <i class="fa-solid fa-camera"></i> फोटो अपलोड करें (अधिकतम 5)
+      <input id="ratingImages" type="file" accept="image/*" multiple>
+    </label>
+    <div class="preview" id="preview"></div>
+
+    <div class="note">फोटो लगाना वैकल्पिक है। आपकी रेटिंग इस ऑर्डर और इसी कैटलॉग कार्ड से जोड़ी जाएगी।</div>
+    <button class="submit" id="submitBtn" type="button" onclick="submitRating()">
+      <i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें
+    </button>
+    <div id="status" class="status"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+let supabaseClient=null;
+try{if(window.supabase)supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
+
+let order=null;
+let ratingValue=0;
+
+function clean(v){return String(v??'').trim()}
+function norm(v){return clean(v).toLowerCase().replace(/\s+/g,' ').trim()}
+function compact(v){return norm(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'')}
+function stripModel(v){return norm(v).replace(/\s*\([^()]*\)\s*$/,'').trim()}
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+
+function goBack(){
+  if(document.referrer && document.referrer.includes('my_orders')) history.back();
+  else location.href='my_orders.html';
+}
+
+function setStatus(msg,type){
+  const el=document.getElementById('status'); if(!el)return;
+  el.className='status '+type; el.textContent=msg; el.style.display='block';
+}
+
+function updateStars(){
+  document.querySelectorAll('.star').forEach(b=>b.classList.toggle('selected',Number(b.dataset.star)<=ratingValue));
+  const labels=['','बहुत खराब','खराब','ठीक-ठाक','अच्छा','बहुत अच्छा'];
+  document.getElementById('ratingLabel').textContent=labels[ratingValue]||'रेटिंग चुनें';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.star');
+  if(!b)return;
+  ratingValue=Number(b.dataset.star)||0; updateStars();
+});
+
+document.getElementById('ratingImages').addEventListener('change',function(){
+  const files=[...this.files].filter(f=>f.type.startsWith('image/')).slice(0,5);
+  const box=document.getElementById('preview'); box.innerHTML='';
+  files.forEach(f=>{const img=document.createElement('img');img.src=URL.createObjectURL(f);box.appendChild(img)});
+  if(this.files.length>5)alert('अधिकतम 5 फोटो ही अपलोड की जाएंगी।');
+});
+
+async function resolveCatalogId(ord){
+  let catalogId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'');
+  if(!supabaseClient)return catalogId;
+  try{
+    const {data,error}=await supabaseClient.from('catalog').select('*').limit(1000);
+    if(error||!Array.isArray(data))return catalogId;
+    const title=clean(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
+    const model=clean(ord.card_model||ord.model||ord.code||ord.model_no||'');
+    const ot=norm(title), ob=compact(stripModel(title)), om=norm(model);
+    let best=null,bestScore=-1;
+    for(const c of data){
+      const cid=clean(c?.id??c?.catalog_id??c?.card_id); if(!cid)continue;
+      const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
+      const cb=compact(stripModel(ct));
+      const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
+      let score=0;
+      if(om&&cm&&om===cm)score+=5000;
+      else if(om&&cm&&(om.includes(cm)||cm.includes(om)))score+=1800;
+      if(ot&&ct===ot)score+=500;
+      else if(ob&&cb&&ob===cb)score+=450;
+      else if(ob&&cb&&(ob.includes(cb)||cb.includes(ob)))score+=250;
+      if(catalogId&&cid===catalogId)score+=100;
+      if(score>bestScore){bestScore=score;best=c}
+    }
+    if(best)catalogId=clean(best.id??best.catalog_id??best.card_id);
+  }catch(e){}
+  return catalogId;
+}
+
+async function uploadImages(files,orderId){
+  const urls=[];
+  if(!supabaseClient)return urls;
+  for(const file of files.slice(0,5)){
+    if(file.size>8*1024*1024)continue;
+    const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
+    const path=`${orderId}/review_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    try{
+      const up=await supabaseClient.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});
+      if(up.error)continue;
+      const pub=supabaseClient.storage.from('review-images').getPublicUrl(path);
+      if(pub.data?.publicUrl)urls.push(pub.data.publicUrl);
+    }catch(e){}
+  }
+  return urls;
+}
+
+async function submitRating(){
+  if(!order){setStatus('ऑर्डर की जानकारी नहीं मिली। My Orders से फिर Rating खोलें।','err');return}
+  if(!ratingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return}
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> सेव हो रहा है...';
+
+  try{
+    const name=(document.getElementById('ratingName').value||'').trim()||order.customer_name||'ग्राहक';
+    const feedback=(document.getElementById('ratingText').value||'').trim();
+    const files=[...(document.getElementById('ratingImages').files||[])].slice(0,5);
+    const catalogId=await resolveCatalogId(order);
+    const orderDbId=order.id!=null?String(order.id):null;
+    const orderId=order.order_id!=null?String(order.order_id):null;
+    const createdAt=new Date().toISOString();
+    const imageUrls=await uploadImages(files,orderDbId||orderId||('local_'+Date.now()));
+
+    // Current catalog_feedback schema uses these core columns.
+    const coreRow={
+      catalog_id:catalogId||null,
+      order_db_id:orderDbId,
+      rating:Number(ratingValue),
+      stars:Number(ratingValue),
+      name:name,
+      feedback:feedback,
+      created_at:createdAt
+    };
+
+    let saved=false, dbError='';
+
+    if(supabaseClient){
+      try{
+        let existing=null;
+        if(orderDbId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_db_id',orderDbId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
+        if(!existing && orderId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_id',orderId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
+
+        if(existing?.id!=null){
+          const up=await supabaseClient.from('catalog_feedback').update({
+            catalog_id:catalogId||null,
+            rating:Number(ratingValue),
+            stars:Number(ratingValue),
+            name:name,
+            feedback:feedback,
+            created_at:createdAt
+          }).eq('id',existing.id);
+          if(!up.error)saved=true; else dbError=up.error.message||String(up.error);
+        }else{
+          const ins=await supabaseClient.from('catalog_feedback').insert(coreRow);
+          if(!ins.error)saved=true; else dbError=ins.error.message||String(ins.error);
+        }
+      }catch(e){dbError=e?.message||String(e)}
+    }else dbError='Supabase connection उपलब्ध नहीं है।';
+
+    // Keep the same local cache used by Index / Catalog Detail.
+    const fullRow={...coreRow,order_id:orderId,user_name:name,comment:feedback,review_images:imageUrls};
+    if(catalogId){
+      try{
+        const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+        map[String(catalogId)]=fullRow; localStorage.setItem('dp_catalog_ratings',JSON.stringify(map));
+      }catch(e){}
+      try{
+        const key='catalog_feedback_'+String(catalogId);
+        const arr=JSON.parse(localStorage.getItem(key)||'[]');
+        const a=Array.isArray(arr)?arr:[];
+        a.unshift(fullRow);localStorage.setItem(key,JSON.stringify(a.slice(0,100)));
+      }catch(e){}
+    }
+    try{
+      localStorage.setItem('dp_order_rating_'+String(orderDbId||orderId||Date.now()),JSON.stringify(fullRow));
+      const keys=['my_orders_list','dp_all_orders','user_orders','dp_my_orders'];
+      keys.forEach(k=>{
+        let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){}
+        if(!Array.isArray(a))a=[];
+        a=a.map(x=>(String(x.id||x.order_id)===String(orderDbId||orderId))?{...x,rating:Number(ratingValue),stars:Number(ratingValue),rating_feedback:feedback,rating_name:name,rating_images:imageUrls,rating_created_at:createdAt,catalog_id:catalogId||x.catalog_id}:x);
+        localStorage.setItem(k,JSON.stringify(a));
+      });
+    }catch(e){}
+
+    if(saved){
+      setStatus('आपकी रेटिंग और रिव्यू Database में सफलतापूर्वक सेव हो गया।','ok');
+      btn.innerHTML='<i class="fa-solid fa-check"></i> सेव हो गया';
+      setTimeout(()=>location.href='my_orders.html',900);
+    }else{
+      setStatus('रेटिंग इस डिवाइस में सेव हो गई, लेकिन Database में सेव नहीं हो पाई। कारण: '+(dbError||'अज्ञात Database error'),'err');
+      btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> फिर से Submit करें';
+      console.error('Rating cloud save failed:',dbError);
+    }
+  }catch(e){
+    setStatus('रेटिंग सेव करते समय समस्या: '+(e?.message||String(e)),'err');
+    btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें';
+  }
+}
+
+function loadOrder(){
+  try{order=JSON.parse(localStorage.getItem('dp_rating_order_context')||'null')}catch(e){order=null}
+  if(!order){
+    document.getElementById('orderTitle').textContent='ऑर्डर नहीं मिला';
+    document.getElementById('orderMeta').textContent='कृपया My Orders पेज से Rating बटन दबाएँ।';
+    document.getElementById('submitBtn').disabled=true;
+    return;
+  }
+  document.getElementById('orderTitle').textContent=order.card_title||order.card_name||'शादी कार्ड';
+  document.getElementById('orderMeta').textContent='ऑर्डर #'+(order.order_id||order.id||'-')+(order.card_model?' • मॉडल: '+order.card_model:'');
+  let u={};try{u=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}')}catch(e){}
+  document.getElementById('ratingName').value=u.name||order.customer_name||'';
+  updateStars();
+}
+document.addEventListener('DOMContentLoaded',loadOrder);
+</script>
+</body>
+</htmlfunction getCtx(){
+  try{context=JSON.parse(localStorage.getItem('dp_rating_order_context')||'{}')||{}}catch(e){context={}}
+  if(!Object.keys(context).length){
+    try{context=JSON.parse(localStorage.getItem('dp_rating_catalog_context')||'{}')||{}}catch(e){}
+  }
+  orderDbId=clean(q.get('order_db_id')||context.order_db_id);
+  orderId=clean(q.get('order_id')||context.order_id);
+  // URL id is only a fallback. The Order's own catalog_id/model is authoritative.
+  catalogId='';
+  if(!orderDbId&&!orderId) catalogId=clean(q.get('id')||context.catalog_id);
+}udflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Mukta','Poppins',sans-serif}
+body{min-height:100vh;background:#f1f3f6;color:#212121;padding-bottom:30px}
+.nav{height:58px;background:#2874f0;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;box-shadow:0 2px 7px rgba(0,0,0,.18)}
+.back{border:0;background:rgba(255,255,255,.15);color:#fff;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer}
+.nav h2{font-size:19px;font-weight:800}
+.wrap{max-width:620px;margin:18px auto;padding:0 12px}
+.panel{background:#fff;border:1px solid #e0e0e0;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:18px}
+.order-info{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-bottom:15px}
+.order-info b{display:block;color:#0f2f70;font-size:15px;margin-bottom:3px}
+.order-info span{font-size:12px;color:#64748b;font-weight:600}
+.title{text-align:center;color:#0f2f70;font-size:21px;font-weight:800;margin-bottom:4px}
+.sub{text-align:center;color:#64748b;font-size:12px;margin-bottom:10px}
+.stars{display:flex;justify-content:center;gap:7px;margin:12px 0 18px}
+.star{border:0;background:transparent;color:#cbd5e1;font-size:44px;line-height:1;cursor:pointer;padding:0 2px}
+.star.selected{color:#f59e0b}
+.rating-label{text-align:center;font-size:13px;font-weight:800;color:#f59e0b;min-height:20px}
+input,textarea{width:100%;border:1px solid #d5dce5;border-radius:8px;padding:11px;margin-bottom:11px;outline:none;font-size:14px}
+textarea{min-height:105px;resize:vertical}
+.upload{display:flex;align-items:center;justify-content:center;gap:7px;border:1px dashed #94a3b8;border-radius:9px;padding:12px;margin-bottom:9px;color:#2563eb;font-weight:800;background:#f8fbff;cursor:pointer}
+.upload input{display:none}
+.preview{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.preview img{width:68px;height:68px;object-fit:cover;border-radius:7px;border:1px solid #e2e8f0}
+.note{font-size:11px;color:#64748b;background:#f8fafc;padding:8px;border-radius:7px;margin-bottom:12px}
+.submit{width:100%;border:0;border-radius:8px;padding:13px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.submit:disabled{opacity:.65;cursor:wait}
+.status{display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:12px;font-weight:700}
+.status.ok{display:block;background:#dcfce7;color:#166534;border:1px solid #86efac}
+.status.err{display:block;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+@media(max-width:520px){.wrap{margin:10px auto;padding:0}.panel{border-left:0;border-right:0;border-radius:0;padding:16px}.star{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <button class="back" type="button" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></button>
+  <h2>रेटिंग और रिव्यू</h2>
+</div>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="title"><i class="fa-solid fa-star" style="color:#f59e0b"></i> अपनी रेटिंग दें</div>
+    <div class="sub">आपके ऑर्डर के कार्ड का अनुभव बताइए</div>
+
+    <div class="order-info">
+      <b id="orderTitle">ऑर्डर लोड हो रहा है...</b>
+      <span id="orderMeta"></span>
+    </div>
+
+    <div class="stars" id="stars">
+      <button class="star" type="button" data-star="1">★</button>
+      <button class="star" type="button" data-star="2">★</button>
+      <button class="star" type="button" data-star="3">★</button>
+      <button class="star" type="button" data-star="4">★</button>
+      <button class="star" type="button" data-star="5">★</button>
+    </div>
+    <div class="rating-label" id="ratingLabel">रेटिंग चुनें</div>
+
+    <input id="ratingName" type="text" placeholder="आपका नाम">
+    <textarea id="ratingText" placeholder="अपने अनुभव के बारे में लिखें..."></textarea>
+
+    <label class="upload">
+      <i class="fa-solid fa-camera"></i> फोटो अपलोड करें (अधिकतम 5)
+      <input id="ratingImages" type="file" accept="image/*" multiple>
+    </label>
+    <div class="preview" id="preview"></div>
+
+    <div class="note">फोटो लगाना वैकल्पिक है। आपकी रेटिंग इस ऑर्डर और इसी कैटलॉग कार्ड से जोड़ी जाएगी।</div>
+    <button class="submit" id="submitBtn" type="button" onclick="submitRating()">
+      <i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें
+    </button>
+    <div id="status" class="status"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+let supabaseClient=null;
+try{if(window.supabase)supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){}
+
+let order=null;
+let ratingValue=0;
+
+function clean(v){return String(v??'').trim()}
+function norm(v){return clean(v).toLowerCase().replace(/\s+/g,' ').trim()}
+function compact(v){return norm(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'')}
+function stripModel(v){return norm(v).replace(/\s*\([^()]*\)\s*$/,'').trim()}
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+
+function goBack(){
+  if(document.referrer && document.referrer.includes('my_orders')) history.back();
+  else location.href='my_orders.html';
+}
+
+function setStatus(msg,type){
+  const el=document.getElementById('status'); if(!el)return;
+  el.className='status '+type; el.textContent=msg; el.style.display='block';
+}
+
+function updateStars(){
+  document.querySelectorAll('.star').forEach(b=>b.classList.toggle('selected',Number(b.dataset.star)<=ratingValue));
+  const labels=['','बहुत खराब','खराब','ठीक-ठाक','अच्छा','बहुत अच्छा'];
+  document.getElementById('ratingLabel').textContent=labels[ratingValue]||'रेटिंग चुनें';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.star');
+  if(!b)return;
+  ratingValue=Number(b.dataset.star)||0; updateStars();
+});
+
+document.getElementById('ratingImages').addEventListener('change',function(){
+  const files=[...this.files].filter(f=>f.type.startsWith('image/')).slice(0,5);
+  const box=document.getElementById('preview'); box.innerHTML='';
+  files.forEach(f=>{const img=document.createElement('img');img.src=URL.createObjectURL(f);box.appendChild(img)});
+  if(this.files.length>5)alert('अधिकतम 5 फोटो ही अपलोड की जाएंगी।');
+});
+
+async function resolveCatalogId(ord){
+  let catalogId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'');
+  if(!supabaseClient)return catalogId;
+  try{
+    const {data,error}=await supabaseClient.from('catalog').select('*').limit(1000);
+    if(error||!Array.isArray(data))return catalogId;
+    const title=clean(ord.card_title||ord.card_name||ord.product_name||ord.title||'');
+    const model=clean(ord.card_model||ord.model||ord.code||ord.model_no||'');
+    const ot=norm(title), ob=compact(stripModel(title)), om=norm(model);
+    let best=null,bestScore=-1;
+    for(const c of data){
+      const cid=clean(c?.id??c?.catalog_id??c?.card_id); if(!cid)continue;
+      const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name??'');
+      const cb=compact(stripModel(ct));
+      const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??'');
+      let score=0;
+      if(om&&cm&&om===cm)score+=5000;
+      else if(om&&cm&&(om.includes(cm)||cm.includes(om)))score+=1800;
+      if(ot&&ct===ot)score+=500;
+      else if(ob&&cb&&ob===cb)score+=450;
+      else if(ob&&cb&&(ob.includes(cb)||cb.includes(ob)))score+=250;
+      if(catalogId&&cid===catalogId)score+=100;
+      if(score>bestScore){bestScore=score;best=c}
+    }
+    if(best)catalogId=clean(best.id??best.catalog_id??best.card_id);
+  }catch(e){}
+  return catalogId;
+}
+
+async function uploadImages(files,orderId){
+  const urls=[];
+  if(!supabaseClient)return urls;
+  for(const file of files.slice(0,5)){
+    if(file.size>8*1024*1024)continue;
+    const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
+    const path=`${orderId}/review_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    try{
+      const up=await supabaseClient.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});
+      if(up.error)continue;
+      const pub=supabaseClient.storage.from('review-images').getPublicUrl(path);
+      if(pub.data?.publicUrl)urls.push(pub.data.publicUrl);
+    }catch(e){}
+  }
+  return urls;
+}
+
+async function submitRating(){
+  if(!order){setStatus('ऑर्डर की जानकारी नहीं मिली। My Orders से फिर Rating खोलें।','err');return}
+  if(!ratingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return}
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> सेव हो रहा है...';
+
+  try{
+    const name=(document.getElementById('ratingName').value||'').trim()||order.customer_name||'ग्राहक';
+    const feedback=(document.getElementById('ratingText').value||'').trim();
+    const files=[...(document.getElementById('ratingImages').files||[])].slice(0,5);
+    const catalogId=await resolveCatalogId(order);
+    const orderDbId=order.id!=null?String(order.id):null;
+    const orderId=order.order_id!=null?String(order.order_id):null;
+    const createdAt=new Date().toISOString();
+    const imageUrls=await uploadImages(files,orderDbId||orderId||('local_'+Date.now()));
+
+    // Current catalog_feedback schema uses these core columns.
+    const coreRow={
+      catalog_id:catalogId||null,
+      order_db_id:orderDbId,
+      rating:Number(ratingValue),
+      stars:Number(ratingValue),
+      name:name,
+      feedback:feedback,
+      created_at:createdAt
+    };
+
+    let saved=false, dbError='';
+
+    if(supabaseClient){
+      try{
+        let existing=null;
+        if(orderDbId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_db_id',orderDbId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
+        if(!existing && orderId){
+          const q=await supabaseClient.from('catalog_feedback').select('id').eq('order_id',orderId).order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data?.[0])existing=q.data[0];
+        }
+
+        if(existing?.id!=null){
+          const up=await supabaseClient.from('catalog_feedback').update({
+            catalog_id:catalogId||null,
+            rating:Number(ratingValue),
+            stars:Number(ratingValue),
+            name:name,
+            feedback:feedback,
+            created_at:createdAt
+          }).eq('id',existing.id);
+          if(!up.error)saved=true; else dbError=up.error.message||String(up.error);
+        }else{
+          const ins=await supabaseClient.from('catalog_feedback').insert(coreRow);
+          if(!ins.error)saved=true; else dbError=ins.error.message||String(ins.error);
+        }
+      }catch(e){dbError=e?.message||String(e)}
+    }else dbError='Supabase connection उपलब्ध नहीं है।';
+
+    // Keep the same local cache used by Index / Catalog Detail.
+    const fullRow={...coreRow,order_id:orderId,user_name:name,comment:feedback,review_images:imageUrls};
+    if(catalogId){
+      try{
+        const map=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');
+        map[String(catalogId)]=fullRow; localStorage.setItem('dp_catalog_ratings',JSON.stringify(map));
+      }catch(e){}
+      try{
+        const key='catalog_feedback_'+String(catalogId);
+        const arr=JSON.parse(localStorage.getItem(key)||'[]');
+        const a=Array.isArray(arr)?arr:[];
+        a.unshift(fullRow);localStorage.setItem(key,JSON.stringify(a.slice(0,100)));
+      }catch(e){}
+    }
+    try{
+      localStorage.setItem('dp_order_rating_'+String(orderDbId||orderId||Date.now()),JSON.stringify(fullRow));
+      const keys=['my_orders_list','dp_all_orders','user_orders','dp_my_orders'];
+      keys.forEach(k=>{
+        let a=[];try{a=JSON.parse(localStorage.getItem(k)||'[]')}catch(e){}
+        if(!Array.isArray(a))a=[];
+        a=a.map(x=>(String(x.id||x.order_id)===String(orderDbId||orderId))?{...x,rating:Number(ratingValue),stars:Number(ratingValue),rating_feedback:feedback,rating_name:name,rating_images:imageUrls,rating_created_at:createdAt,catalog_id:catalogId||x.catalog_id}:x);
+        localStorage.setItem(k,JSON.stringify(a));
+      });
+    }catch(e){}
+
+    if(saved){
+      setStatus('आपकी रेटिंग और रिव्यू Database में सफलतापूर्वक सेव हो गया।','ok');
+      btn.innerHTML='<i class="fa-solid fa-check"></i> सेव हो गया';
+      setTimeout(()=>location.href='my_orders.html',900);
+    }else{
+      setStatus('रेटिंग इस डिवाइस में सेव हो गई, लेकिन Database में सेव नहीं हो पाई। कारण: '+(dbError||'अज्ञात Database error'),'err');
+      btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> फिर से Submit करें';
+      console.error('Rating cloud save failed:',dbError);
+    }
+  }catch(e){
+    setStatus('रेटिंग सेव करते समय समस्या: '+(e?.message||String(e)),'err');
+    btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> रेटिंग सबमिट करें';
+  }
+}
+
+function loadOrder(){
+  try{order=JSON.parse(localStorage.getItem('dp_rating_order_context')||'null')}catch(e){order=null}
+  if(!order){
+    document.getElementById('orderTitle').textContent='ऑर्डर नहीं मिला';
+    document.getElementById('orderMeta').textContent='कृपया My Orders पेज से Rating बटन दबाएँ।';
+    document.getElementById('submitBtn').disabled=true;
+    return;
+  }
+  document.getElementById('orderTitle').textContent=order.card_title||order.card_name||'शादी कार्ड';
+  document.getElementById('orderMeta').textContent='ऑर्डर #'+(order.order_id||order.id||'-')+(order.card_model?' • मॉडल: '+order.card_model:'');
+  let u={};try{u=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}')}catch(e){}
+  document.getElementById('ratingName').value=u.name||order.customer_name||'';
+  updateStars();
+}
+document.addEventListener('DOMContentLoaded',loadOrder);
+</script>
+</body>
+</htmlasync function loadCatalog(){
+ let rows=[];
+ if(sb){
+   try{
+     const r=await sb.from('catalog').select('*').limit(1000);
+     if(!r.error&&Array.isArray(r.data))rows=r.data
+   }catch(e){}
+ }
+ if(!rows.length){
+   try{
+     const c=JSON.parse(localStorage.getItem('dp_index_catalog')||'[]');
+     if(Array.isArray(c))rows=c
+   }catch(e){}
+ }
+
+ const targetId=clean(catalogId);
+ const title=norm(context.name);
+ const model=norm(context.model);
+ const modelCompact=modelKey(model);
+ let best=null,bestScore=-1;
+
+ for(const c of rows){
+   const cid=clean(c?.id??c?.catalog_id??c?.card_id);
+   if(!cid)continue;
+   const ct=norm(c?.name??c?.title??c?.card_name??c?.product_name);
+   const cm=norm(c?.model??c?.code??c?.card_model??c?.model_no??c?.card_code);
+   const cmCompact=modelKey(cm);
+   let s=0;
+
+   // Exact model is the strongest identity for old orders.
+   if(modelCompact && cmCompact && modelCompact===cmCompact)s+=10000;
+   else if(model && cm && (model===cm || model.includes(cm) || cm.includes(model)))s+=5000;
+
+   // Exact catalog ID from the actual orders row is next.
+   if(targetId && cid===targetId)s+=3000;
+
+   // Title is ONLY a tie-breaker. It must never beat an exact model.
+   if(title && ct===title)s+=500;
+   else if(title && ct && (title.includes(ct)||ct.includes(title)))s+=150;
+
+   if(s>bestScore){bestScore=s;best=c}
+ }
+
+ if(best){
+   product=best;
+   catalogId=clean(best.id??best.catalog_id??best.card_id);
+ }else{
+   product={
+     id:catalogId,
+     name:context.name||'कैटलॉग',
+     model:context.model||'',
+     image:context.image||''
+   };
+ }
+
+ document.getElementById('productName').textContent=
+   product.name||product.title||product.card_name||'कैटलॉग';
+ document.getElementById('productModel').textContent=
+   product.model||product.code||product.card_model||product.model_no||'';
+ const img=product.image||product.image_url||product.photo||product.thumbnail||context.image||'';
+ if(img)document.getElementById('productImage').src=img;
+ else document.getElementById('productImage').style.display='none';
+}>
