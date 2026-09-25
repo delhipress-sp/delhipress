@@ -263,41 +263,71 @@
         let paymentStageOpened = false;
 
         window.addEventListener('DOMContentLoaded', () => {
-            const rawTemp = localStorage.getItem('dp_temp_order');
-            if (rawTemp) {
-                try { pendingOrderData = JSON.parse(rawTemp); } catch(e) {}
-            }
-
-            if (!pendingOrderData) {
-                pendingOrderData = {
-                    total_amount: 1500, advance_paid: 500, balance_amount: 1000,
-                    card_title: "शादी कार्ड", quantity: 100, groom_name: "वर", bride_name: "वधू", customer_name: "ग्राहक", mobile: "9304509464"
-                };
-            }
-
-            const total = pendingOrderData.total_amount || 0;
-            const advance = pendingOrderData.advance_paid || pendingOrderData.advance_amount || 0;
-            const balance = pendingOrderData.balance_amount || (total - advance);
-
-            document.getElementById('lblTotal').innerText = `₹${total}`;
-            document.getElementById('lblAdvance').innerText = `₹${advance}`;
-            const oa = document.getElementById('onlineAdvanceAmount'); if (oa) oa.innerText = `₹${advance}`;
-            const ca = document.getElementById('cashAdvanceAmount'); if (ca) ca.innerText = `₹${advance}`;
-            document.getElementById('lblBalance').innerText = `₹${balance}`;
-
-            if (pendingOrderData.card_image) document.getElementById('prevCardImg').src = pendingOrderData.card_image;
-            document.getElementById('prevCardTitle').innerText = pendingOrderData.card_title || 'शादी कार्ड';
-            document.getElementById('prevCardQty').innerText = pendingOrderData.quantity || 100;
-            document.getElementById('prevGroom').innerText = pendingOrderData.groom_name || '-';
-            document.getElementById('prevBride').innerText = pendingOrderData.bride_name || '-';
-            document.getElementById('prevCustomer').innerText = pendingOrderData.customer_name || '-';
-            document.getElementById('prevMobile').innerText = pendingOrderData.mobile || '-';
-
-            // Cashfree return: server-side verification is mandatory before we treat payment as paid.
             const qs = new URLSearchParams(window.location.search);
             const returnedCashfreeOrderId = qs.get('cashfree_order_id');
+
+            // Cashfree return के समय उसी payment के समय सुरक्षित किया गया
+            // exact order snapshot पहले लें। इससे पुराना/stale dp_temp_order
+            // लगकर गलत card/advance save नहीं होगा।
             if (returnedCashfreeOrderId) {
                 cashfreeOrderId = returnedCashfreeOrderId;
+                try {
+                    const exactRaw = localStorage.getItem('dp_cashfree_pending_order_' + returnedCashfreeOrderId);
+                    if (exactRaw) {
+                        const exact = JSON.parse(exactRaw);
+                        pendingOrderData = exact?.data || exact;
+                    }
+                } catch(e) {}
+                if (!pendingOrderData) {
+                    try {
+                        const commonRaw = localStorage.getItem('dp_cashfree_pending_order');
+                        if (commonRaw) {
+                            const common = JSON.parse(commonRaw);
+                            if (!common.cashfree_order_id || common.cashfree_order_id === returnedCashfreeOrderId) {
+                                pendingOrderData = common.data || common;
+                            }
+                        }
+                    } catch(e) {}
+                }
+            }
+
+            // सामान्य payment page पर current order का temp data लें।
+            if (!pendingOrderData) {
+                const rawTemp = localStorage.getItem('dp_temp_order');
+                if (rawTemp) {
+                    try { pendingOrderData = JSON.parse(rawTemp); } catch(e) {}
+                }
+            }
+
+            // Dummy order बिल्कुल न बनाएं। Data missing हो तो साफ संदेश दें।
+            if (!pendingOrderData || !pendingOrderData.card_title) {
+                pendingOrderData = pendingOrderData || {};
+                console.warn('Current order data not found. Payment page will not use a dummy order.');
+            }
+
+            const total = Number(pendingOrderData.total_amount || 0);
+            const advance = Number(pendingOrderData.advance_paid || pendingOrderData.advance_amount || 0);
+            const balance = Number.isFinite(Number(pendingOrderData.balance_amount))
+                ? Number(pendingOrderData.balance_amount)
+                : (total - advance);
+
+            const setText = (id, value) => { const el=document.getElementById(id); if(el) el.innerText=value; };
+            setText('lblTotal', `₹${total}`);
+            setText('lblAdvance', `₹${advance}`);
+            const oa = document.getElementById('onlineAdvanceAmount'); if (oa) oa.innerText = `₹${advance}`;
+            const ca = document.getElementById('cashAdvanceAmount'); if (ca) ca.innerText = `₹${advance}`;
+            setText('lblBalance', `₹${balance}`);
+
+            if (pendingOrderData.card_image) { const el=document.getElementById('prevCardImg'); if(el) el.src = pendingOrderData.card_image; }
+            setText('prevCardTitle', pendingOrderData.card_title || 'शादी कार्ड');
+            setText('prevCardQty', pendingOrderData.quantity || 100);
+            setText('prevGroom', pendingOrderData.groom_name || '-');
+            setText('prevBride', pendingOrderData.bride_name || '-');
+            setText('prevCustomer', pendingOrderData.customer_name || '-');
+            setText('prevMobile', pendingOrderData.mobile || '-');
+
+            // Cashfree return: server-side verification is mandatory before we treat payment as paid.
+            if (returnedCashfreeOrderId) {
                 paymentStageOpened = true;
                 document.getElementById('paymentOptionsWrap')?.classList.add('show');
                 verifyCashfreeAndSubmit(returnedCashfreeOrderId);
@@ -374,7 +404,7 @@ await finalizeAndSubmitOrder('cash');
             const data = pendingOrderData || {};
             const advance = Number(data.advance_paid || data.advance_amount || 0);
             const user = getLoggedUserForCashfree();
-            const mobile = String(data.mobile || data.phone || user.mobile || user.phone || '').replace(/\D/g, '').slice(-10);
+            const mobile = String(user.mobile || user.phone || data.mobile || data.phone || '').replace(/\D/g, '').slice(-10);
             const customerName = String(data.customer_name || user.name || user.full_name || 'Customer').trim();
             const customerEmail = String(data.email || user.email || '').trim();
 
@@ -398,6 +428,13 @@ await finalizeAndSubmitOrder('cash');
 
             try {
                 const merchantOrderId = 'DP_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                // इस exact Cashfree order के साथ पूरा order snapshot सुरक्षित रखें।
+                // Return के बाद यही data card/advance/customer के लिए authoritative रहेगा।
+                try {
+                    const snapshot = JSON.stringify({ cashfree_order_id: merchantOrderId, data: data, saved_at: new Date().toISOString() });
+                    localStorage.setItem('dp_cashfree_pending_order_' + merchantOrderId, snapshot);
+                    localStorage.setItem('dp_cashfree_pending_order', snapshot);
+                } catch (e) {}
                 const returnUrl = `${window.location.origin}${window.location.pathname}?cashfree_order_id={order_id}`;
                 const notifyUrl = `${SUPABASE_URL}/functions/v1/cashfree-webhook`;
 
@@ -639,8 +676,8 @@ await finalizeAndSubmitOrder('cash');
                 return d.length >= 10 ? d.slice(-10) : d;
             };
             const orderMobile = normalizeMobile(
-                currentData.mobile || currentData.phone ||
-                loggedUser.mobile || loggedUser.phone || ''
+                loggedUser.mobile || loggedUser.phone ||
+                currentData.mobile || currentData.phone || ''
             );
 
             const uniqueOrderId = 'DP-' + Math.floor(100000 + Math.random() * 900000);
@@ -685,16 +722,19 @@ await finalizeAndSubmitOrder('cash');
             // can open the original file independently of the typed matter.
             // Order Form का PDF/फोटो Matter IndexedDB में रखा जाता है।
             // यहां केवल flag पर निर्भर न रहें; actual file मौजूद हो तो उसे जरूर Cloud Storage में भेजें।
-            let uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
+            let uploadedMatterFile = null;
+            try {
+                uploadedMatterFile = await Promise.race([
+                    uploadWeddingMatterToCloud(uniqueOrderId),
+                    new Promise(resolve => setTimeout(() => resolve(null), 7000))
+                ]);
+            } catch (e) { uploadedMatterFile = null; }
             if (uploadedMatterFile) {
                 // New structure: My Orders / Admin दोनों customer_files से file खोल सकते हैं।
                 cleanOrderPayload.customer_files = [uploadedMatterFile];
                 // Backward compatibility: Admin का पुराना "मैटर देखें" column भी यही URL दिखाए।
                 cleanOrderPayload.order_matter = uploadedMatterFile.url;
             }
-
-            // Browser में order cache नहीं रखा जाता। My Orders Supabase से ही पढ़ता है.
-            try { localStorage.removeItem('dp_temp_order'); } catch (e) {}
 
             // 2. Cloud DB sync.
             // orders table का वास्तविक primary key "id" है; order_id और phone
@@ -775,13 +815,25 @@ await finalizeAndSubmitOrder('cash');
             }
 
             if (cloudSaved) {
-                showCashOrderCompleteState();
-                alert('आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है और Database में Save हो गया है! एडवांस कैश दुकान पर देना है।');
-            } else {
-                const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
-                alert('ऑर्डर Database में Save नहीं हुआ।' + detail);
+                try { localStorage.removeItem('dp_temp_order'); } catch (e) {}
+                if (isCashfree && cashfreeOrderId) {
+                    try { localStorage.removeItem('dp_cashfree_pending_order_' + cashfreeOrderId); } catch (e) {}
+                    try {
+                        const commonRaw = localStorage.getItem('dp_cashfree_pending_order');
+                        const common = commonRaw ? JSON.parse(commonRaw) : null;
+                        if (!common || common.cashfree_order_id === cashfreeOrderId) localStorage.removeItem('dp_cashfree_pending_order');
+                    } catch (e) {}
+                    statusText = document.getElementById('cashfreeStatus');
+                    if (statusText) { statusText.style.display='block'; statusText.innerText='Payment सफल। आपका Order Save हो गया है, My Orders खुल रहा है...'; }
+                } else {
+                    showCashOrderCompleteState();
+                }
+                window.location.replace('my_orders.html');
+                return;
             }
-            window.location.replace("my_orders.html");
+            const detail = lastCloudError?.message ? ('\n\nDatabase Error: ' + lastCloudError.message) : '';
+            alert('ऑर्डर Database में Save नहीं हुआ।' + detail);
+            if (submitBtn) submitBtn.disabled = false;
         }
     </script>
 </body>
