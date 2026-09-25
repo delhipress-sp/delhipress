@@ -756,7 +756,15 @@
                             <label style="background:var(--blue); color:white; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; display:inline-block;">
                                 अपलोड मैटर <input type="file" onchange="uploadOrderMatter('${o.id}', this)" accept="image/*,.pdf" style="display:none;">
                             </label>
-                            ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" style="color:var(--green); font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-down"></i> मैटर देखें</b></a>` : ''}
+                            ${o.order_matter ? `<br><a href="${o.order_matter}" target="_blank" rel="noopener" style="color:var(--green); font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-down"></i> मैटर देखें</b></a>` : ''}
+                            ${(() => {
+                                try {
+                                    const raw = o.customer_files;
+                                    const arr = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw || '[]') : []);
+                                    const files = arr.filter(f => f && f.url);
+                                    return files.map((f, i) => `<br><a href="${String(f.url).replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="color:#7f1d1d; font-size:11px; display:inline-block; margin-top:4px;"><b><i class="fa-solid fa-file-arrow-up"></i> ग्राहक मैटर ${i+1}</b></a>`).join('');
+                                } catch(e) { return ''; }
+                            })()}
                         </td>
                         <td>${correctionBtn}</td>
                         <td>
@@ -1236,9 +1244,20 @@
                 const base64File = reader.result;
 
                 if (supabaseClient) {
+                    const mime = file.type || 'application/octet-stream';
+                    const meta = [{
+                        kind: 'matter',
+                        name: file.name || 'admin-matter',
+                        mime,
+                        fileType: mime,
+                        size: file.size || 0,
+                        url: base64File,
+                        from: 'admin',
+                        at: new Date().toISOString()
+                    }];
                     const { error } = await supabaseClient
                         .from('orders')
-                        .update({ order_matter: base64File })
+                        .update({ order_matter: base64File, customer_files: meta })
                         .eq('id', Number(orderId));
 
                     if (error) {
