@@ -421,7 +421,37 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 <style id="dp-receipt-form-style">
 .form-line{font-size:12px;line-height:1.7;border-bottom:1px dashed #d6d3d1;padding:3px 0;word-break:break-word}.form-line:last-child{border-bottom:0}.matter-file-btn{display:inline-flex;align-items:center;gap:6px;background:#7f1d1d;color:#fff;text-decoration:none;padding:8px 11px;border-radius:7px;font-size:12px;font-weight:800}.matter-file-btn:hover{opacity:.9}@media(max-width:600px){#printableReceiptArea>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}#printableReceiptArea table{font-size:11px!important}}
 </style>
-</head>
+<style>
+
+/* CUSTOMER PROFILE - added without changing existing My Orders functions */
+.dp-profile-btn{background:#fff!important;color:#2874f0!important;border-color:rgba(255,255,255,.8)!important;cursor:pointer;}
+.dp-profile-overlay{display:none;position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.72);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:14px;}
+.dp-profile-panel{width:min(560px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 25px 70px rgba(0,0,0,.28);}
+.dp-profile-head{display:flex;align-items:center;justify-content:space-between;padding:15px 17px;background:linear-gradient(135deg,#2874f0,#1456c7);color:#fff;}
+.dp-profile-head h3{margin:0;font-size:19px;font-weight:800;}
+.dp-profile-close{width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:22px;cursor:pointer;}
+.dp-profile-body{padding:16px;}
+.dp-profile-avatar{width:68px;height:68px;border-radius:50%;margin:0 auto 10px;background:#e8f0ff;color:#2874f0;display:grid;place-items:center;font-size:30px;}
+.dp-profile-name{text-align:center;font-size:19px;font-weight:800;color:#172554;margin-bottom:14px;}
+.dp-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dp-profile-field{background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:10px 11px;}
+.dp-profile-field.full{grid-column:1/-1;}
+.dp-profile-field label{display:block;font-size:11px;font-weight:800;color:#64748b;margin-bottom:3px;}
+.dp-profile-field div{font-size:13px;font-weight:700;color:#1e293b;word-break:break-word;}
+.dp-profile-section{margin-top:15px;padding-top:14px;border-top:1px solid #e2e8f0;}
+.dp-profile-section h4{margin:0 0 10px;color:#172554;font-size:15px;}
+.dp-profile-password-row{display:flex;gap:8px;align-items:center;}
+.dp-profile-password-row input{flex:1;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-size:13px;outline:none;}
+.dp-profile-password-row button{border:0;border-radius:8px;padding:10px 13px;background:#2874f0;color:#fff;font-weight:800;cursor:pointer;white-space:nowrap;}
+.dp-profile-note{font-size:11px;color:#64748b;margin-top:7px;line-height:1.5;}
+.dp-profile-status{font-size:12px;font-weight:700;margin-top:8px;min-height:18px;}
+@media(max-width:520px){
+  .dp-profile-btn{padding:7px 10px!important;font-size:12px!important;}
+  .dp-profile-grid{grid-template-columns:1fr;}
+  .dp-profile-field.full{grid-column:auto;}
+  .dp-profile-password-row{flex-direction:column;align-items:stretch;}
+}
+</style>\n</head>
 <body>
 
     <nav class="navbar">
@@ -431,6 +461,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
         </a>
         <div class="nav-actions">
             <a href="index.html" class="btn-nav"><i class="fa-solid fa-house"></i> होम</a>
+            <button type="button" class="btn-nav dp-profile-btn" onclick="openCustomerProfile()"><i class="fa-solid fa-user"></i> प्रोफाइल</button>
             <button type="button" onclick="logoutCustomer()" class="btn-nav btn-logout-nav"><i class="fa-solid fa-right-from-bracket"></i> लॉगआउट</button>
         </div>
     </nav>
@@ -587,8 +618,12 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             // दूसरे browser में localStorage खाली होता है। इसलिए ग्राहक को उसी
             // account से login कराकर Supabase से उसके cloud orders दिखाए जाएंगे।
             if (!mobile) {
-                window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
-                return;
+                // Local Chrome/file:// preview: do not redirect to a missing local login.html.
+                // On the real website (http/https), keep the normal login redirect.
+                if (location.protocol !== 'file:') {
+                    window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
+                    return;
+                }
             }
 
             // Orders are CLOUD ONLY. Never load or restore order data from localStorage.
@@ -655,7 +690,14 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 
             const loggedInMobile = normPhone(userObj.phone || userObj.mobile || '');
             if (!loggedInMobile) {
-                window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
+                // Local Chrome/file:// preview: don't redirect to a missing local login page.
+                if (location.protocol !== 'file:') {
+                    window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
+                    return;
+                }
+                fetchedOrdersList = [];
+                renderOrdersUI();
+                updateUserGreeting();
                 return;
             }
 
@@ -1824,7 +1866,181 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
  }catch(e){status.textContent='वीडियो लोड नहीं हो पाया।';}
 }
 function closeOrderCardVideo(){const m=document.getElementById('orderVideoModal'),p=document.getElementById('orderVideoPlayer');if(p){p.pause();p.removeAttribute('src');p.load()}if(m)m.style.display='none'}
+
+/* CUSTOMER PROFILE FUNCTIONS */
+function getProfileLoggedUser(){
+    try{
+        return JSON.parse(
+            localStorage.getItem('dp_current_user') ||
+            localStorage.getItem('dp_logged_in_user') ||
+            localStorage.getItem('user') || '{}'
+        ) || {};
+    }catch(e){ return {}; }
+}
+
+function profileSet(id, value){
+    const el=document.getElementById(id);
+    if(el) el.textContent=(value===null || value===undefined || String(value).trim()==='') ? '—' : String(value);
+}
+
+async function openCustomerProfile(){
+    const modal=document.getElementById('customerProfileModal');
+    if(!modal) return;
+    modal.style.display='flex';
+
+    const localUser=getProfileLoggedUser();
+    const mobile=String(localUser.mobile || localUser.phone || '').replace(/\D/g,'').slice(-10);
+
+    profileSet('profileName', localUser.name || 'ग्राहक');
+    profileSet('profileMobile', mobile || localUser.mobile || localUser.phone || '—');
+    profileSet('profileEmail', localUser.email || '—');
+    profileSet('profileVillage', localUser.village || '—');
+    profileSet('profileAddress', localUser.address || 'पता उपलब्ध नहीं है');
+    const status=document.getElementById('profilePasswordStatus');
+    if(status) status.textContent='';
+
+    if(!mobile || !supabaseClient){
+        if(status) status.textContent='प्रोफाइल का Database विवरण लोड नहीं हो पाया।';
+        return;
+    }
+
+    try{
+        // Profile address is read from the same users record used by Login/Register.
+        const {data,error}=await supabaseClient
+            .from('users')
+            .select('name,email,mobile,village,address')
+            .eq('mobile',mobile)
+            .maybeSingle();
+
+        if(error) throw error;
+
+        if(data){
+            profileSet('profileName',data.name || localUser.name || 'ग्राहक');
+            profileSet('profileMobile',data.mobile || mobile);
+            profileSet('profileEmail',data.email || localUser.email || '—');
+            profileSet('profileVillage',data.village || localUser.village || '—');
+            profileSet('profileAddress',data.address || localUser.address || 'पता उपलब्ध नहीं है');
+
+            // Keep the current login profile cache in sync, without touching order caches.
+            try{
+                const merged={...localUser,
+                    name:data.name || localUser.name || '',
+                    email:data.email || localUser.email || '',
+                    mobile:data.mobile || mobile,
+                    village:data.village || localUser.village || '',
+                    address:data.address || localUser.address || ''
+                };
+                const json=JSON.stringify(merged);
+                localStorage.setItem('dp_current_user',json);
+                localStorage.setItem('user',json);
+            }catch(e){}
+        }else if(status){
+            status.textContent='Database में इस मोबाइल का प्रोफाइल नहीं मिला।';
+        }
+    }catch(e){
+        console.error('Customer profile load error:',e);
+        if(status) status.textContent='प्रोफाइल लोड नहीं हो पाया। कृपया दोबारा खोलें।';
+    }
+}
+
+function closeCustomerProfile(){
+    const modal=document.getElementById('customerProfileModal');
+    if(modal) modal.style.display='none';
+}
+
+async function changeCustomerPassword(){
+    const input=document.getElementById('profileNewPassword');
+    const status=document.getElementById('profilePasswordStatus');
+    const newPass=String(input?.value || '').trim();
+    const localUser=getProfileLoggedUser();
+    const mobile=String(localUser.mobile || localUser.phone || '').replace(/\D/g,'').slice(-10);
+
+    if(newPass.length < 4){
+        if(status) status.textContent='नया पासवर्ड कम से कम 4 अक्षर/अंक का रखें।';
+        return;
+    }
+    if(!mobile){
+        if(status) status.textContent='लॉगिन मोबाइल नंबर नहीं मिला।';
+        return;
+    }
+    if(!supabaseClient){
+        if(status) status.textContent='Database connection उपलब्ध नहीं है।';
+        return;
+    }
+
+    try{
+        if(status) status.textContent='पासवर्ड अपडेट हो रहा है...';
+
+        const {error}=await supabaseClient
+            .from('users')
+            .update({pass:newPass})
+            .eq('mobile',mobile);
+
+        if(error) throw error;
+
+        input.value='';
+        if(status){
+            status.style.color='#059669';
+            status.textContent='✓ पासवर्ड सफलतापूर्वक बदल दिया गया।';
+        }
+        setTimeout(()=>{ if(status){status.style.color='';status.textContent='';} },3000);
+    }catch(e){
+        console.error('Password update error:',e);
+        if(status){
+            status.style.color='#dc2626';
+            status.textContent='पासवर्ड अपडेट नहीं हुआ: '+(e?.message || 'Database error');
+        }
+    }
+}
+
 </script>
+
+    <!-- Customer Profile -->
+    <div class="dp-profile-overlay" id="customerProfileModal" onclick="if(event.target===this) closeCustomerProfile()">
+        <div class="dp-profile-panel">
+            <div class="dp-profile-head">
+                <h3><i class="fa-solid fa-user-circle"></i> मेरा प्रोफाइल</h3>
+                <button type="button" class="dp-profile-close" onclick="closeCustomerProfile()">×</button>
+            </div>
+            <div class="dp-profile-body">
+                <div class="dp-profile-avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="dp-profile-name" id="profileName">लोड हो रहा है...</div>
+
+                <div class="dp-profile-grid">
+                    <div class="dp-profile-field">
+                        <label>मोबाइल नंबर</label>
+                        <div id="profileMobile">—</div>
+                    </div>
+                    <div class="dp-profile-field">
+                        <label>ईमेल</label>
+                        <div id="profileEmail">—</div>
+                    </div>
+                    <div class="dp-profile-field">
+                        <label>गाँव</label>
+                        <div id="profileVillage">—</div>
+                    </div>
+                    <div class="dp-profile-field">
+                        <label>पासवर्ड</label>
+                        <div id="profilePasswordMask">••••••••</div>
+                    </div>
+                    <div class="dp-profile-field full">
+                        <label>पूरा पता (Login में दिया गया)</label>
+                        <div id="profileAddress">लोड हो रहा है...</div>
+                    </div>
+                </div>
+
+                <div class="dp-profile-section">
+                    <h4><i class="fa-solid fa-key"></i> पासवर्ड बदलें</h4>
+                    <div class="dp-profile-password-row">
+                        <input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="नया पासवर्ड">
+                        <button type="button" onclick="changeCustomerPassword()">बदलें</button>
+                    </div>
+                    <div class="dp-profile-note">सुरक्षा के लिए पुराना पासवर्ड स्क्रीन पर नहीं दिखाया जाता। नया पासवर्ड Supabase में आपके उसी मोबाइल नंबर वाले अकाउंट में अपडेट होगा।</div>
+                    <div class="dp-profile-status" id="profilePasswordStatus"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="rating-modal" id="orderRatingModal">
         <div class="rating-panel">
