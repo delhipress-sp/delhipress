@@ -1117,7 +1117,14 @@ html, body{
                 const statusBadge = getStatusBadge(status);
                 const cardImg = ord.card_image || safeCardPlaceholder;
                 const orderKey = ord.id || ord.order_id;
-                const isCancelled = status.toLowerCase() === 'cancelled' || status === 'रद्द';
+                const statusLower = status.toLowerCase();
+                const isCancelled = statusLower === 'cancelled' || statusLower === 'canceled' || status.includes('रद्द');
+                // Delivered status अलग-अलग पुराने/नए रूप में सेव हो सकता है:
+                // delivered, डिलीवर, डिलीवर हो चुका है, डिलीवरी आदि।
+                const isDelivered = statusLower === 'delivered' ||
+                    statusLower.includes('deliver') ||
+                    status.includes('डिलीवर') ||
+                    status.includes('डिलीवरी');
 
                 // Cancellation note if present
                 let cancelReasonHtml = '';
@@ -1172,7 +1179,7 @@ html, body{
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
-                                ${!isCancelled ? `
+                                ${(!isCancelled && !isDelivered && !statusLower.includes('deliver') && !status.includes('डिलीवर') && !status.includes('डिलीवरी')) ? `
                                     <button class="btn-cancel-order" onclick="cancelCustomerOrder('${orderKey}', ${index})">
                                         <i class="fa-solid fa-ban"></i> ऑर्डर कैंसिल करें
                                     </button>
