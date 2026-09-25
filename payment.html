@@ -453,12 +453,26 @@ await finalizeAndSubmitOrder('cash');
             }
         }
 
+        function setCashfreeSubmitText(text) {
+            const btn = document.getElementById('btnSubmitOrder');
+            if (!btn) return;
+            const textEl = document.getElementById('submitBtnText');
+            if (textEl) {
+                textEl.innerText = text;
+            } else {
+                // Return URL से page दोबारा खुलने पर button के अंदर span मौजूद नहीं होता।
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span id="submitBtnText"></span>';
+                const newTextEl = document.getElementById('submitBtnText');
+                if (newTextEl) newTextEl.innerText = text;
+            }
+        }
+
         async function verifyCashfreeAndSubmit(orderId) {
             const submitBtn = document.getElementById('btnSubmitOrder');
             const status = document.getElementById('cashfreeStatus');
             try {
                 submitBtn.disabled = true;
-                document.getElementById('submitBtnText').innerText = 'Cashfree payment verify हो रहा है...';
+                setCashfreeSubmitText('Cashfree payment verify हो रहा है...');
                 status.style.display = 'block';
                 status.innerText = 'Payment की server-side पुष्टि की जा रही है...';
 
@@ -492,7 +506,7 @@ await finalizeAndSubmitOrder('cash');
 
                 status.innerText = 'Payment अभी Paid नहीं है: ' + (result.order_status || 'Pending');
                 submitBtn.disabled = false;
-                document.getElementById('submitBtnText').innerText = 'Cashfree से Payment करें';
+                setCashfreeSubmitText('Cashfree से Payment करें');
                 alert('Cashfree payment अभी सफल/PAID नहीं दिख रहा है। कृपया दोबारा जांचें।');
             } catch (e) {
                 console.error('Cashfree verify error:', e);
