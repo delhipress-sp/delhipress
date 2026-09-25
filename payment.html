@@ -610,7 +610,12 @@ await finalizeAndSubmitOrder('cash');
             const txnId = isCashfree ? (cashfreePaymentId || cashfreeOrderId || 'Cashfree') : 'ADVANCE CASH - दुकान पर';
 
             submitBtn.disabled = true;
-            document.getElementById('submitBtnText').innerText = "ऑर्डर दर्ज हो रहा है...";
+            const submitBtnText = document.getElementById('submitBtnText');
+            if (submitBtnText) {
+                submitBtnText.innerText = "ऑर्डर दर्ज हो रहा है...";
+            } else {
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ऑर्डर दर्ज हो रहा है...';
+            }
 
             const currentData = pendingOrderData || {};
 
