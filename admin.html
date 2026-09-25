@@ -748,7 +748,7 @@
                         <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
                         <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}<br><small style="color:#2563eb;">${o.email || o.customer_email || ''}</small></td>
                         <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || o.advance_amount || 0}</td>
+                        <td>कुल: ₹${o.total_amount || 0}<br>ऑनलाइन एडवांस: ₹${o.advance_paid || o.advance_amount || 0}<br>दुकान Cash: ₹${o.cash_paid || 0}<br><b>कुल जमा: ₹${(parseFloat(o.advance_paid || o.advance_amount || 0) + parseFloat(o.cash_paid || 0))}</b><br><span style="color:#dc2626;">बाकी: ₹${Math.max(0, parseFloat(o.total_amount || 0) - parseFloat(o.advance_paid || o.advance_amount || 0) - parseFloat(o.cash_paid || 0))}</span><br><button type="button" onclick="recordShopCash('${o.id}')" style="margin-top:5px;background:#16a34a;color:#fff;border:0;border-radius:5px;padding:4px 8px;font-size:11px;font-weight:800;cursor:pointer;">💵 Cash जमा</button></td>
                         <td>
                             <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
                                 <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -1275,6 +1275,38 @@
                     }
                 }
             };
+        }
+
+        async function recordShopCash(id) {
+            if (!supabaseClient) return;
+            const o = globalOrdersCache.find(x => String(x.id) === String(id));
+            if (!o) return;
+            const total = parseFloat(o.total_amount || 0) || 0;
+            const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
+            const currentCash = parseFloat(o.cash_paid || 0) || 0;
+            const currentBalance = Math.max(0, total - advance - currentCash);
+            const entered = prompt(`ऑर्डर #${id}\nकुल राशि: ₹${total}\nऑनलाइन एडवांस: ₹${advance}\nअभी दुकान Cash: ₹${currentCash}\nबाकी: ₹${currentBalance}\n\nदुकान पर अब तक मिला कुल Cash डालें:`, String(currentCash));
+            if (entered === null) return;
+            const newCash = parseFloat(String(entered).replace(/,/g,''));
+            if (!Number.isFinite(newCash) || newCash < 0) { alert('कृपया सही Cash राशि डालें।'); return; }
+            if (newCash > Math.max(0, total - advance) && total > 0) {
+                if (!confirm(`Cash ₹${newCash} है, जबकि ऑनलाइन एडवांस के बाद अधिकतम बकाया ₹${Math.max(0,total-advance)} है। फिर भी सेव करें?`)) return;
+            }
+            const newBalance = Math.max(0, total - advance - newCash);
+            try {
+                const { error } = await supabaseClient.from('orders').update({
+                    cash_paid: newCash,
+                    balance_amount: newBalance
+                }).eq('id', Number(id));
+                if (error) {
+                    alert('Cash सेव नहीं हुआ। Supabase में orders table का cash_paid column जोड़ना जरूरी है।\n\n' + error.message);
+                    return;
+                }
+                alert(`Cash ₹${newCash} सेव हो गया।\nकुल जमा: ₹${advance + newCash}\nबाकी: ₹${newBalance}`);
+                loadAdminOrders();
+            } catch (e) {
+                alert('Cash अपडेट करते समय नेटवर्क त्रुटि हुई।');
+            }
         }
 
         async function updateOrderStatus(id, newStatus) {
@@ -1927,7 +1959,9 @@
 
             const total = parseFloat(o.total_amount || 0) || 0;
             const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
-            const balance = Math.max(0, total - advance);
+            const cashPaid = parseFloat(o.cash_paid || 0) || 0;
+            const totalPaid = advance + cashPaid;
+            const balance = Math.max(0, total - totalPaid);
             const matter = parseAdminOrderMatterForReceipt(baseNotes);
             const files = parseAdminCustomerFilesForReceipt(o);
             const cardImg = o.card_image || o.image || o.card_photo || '';
@@ -2031,12 +2065,14 @@
             const src = o.payment_receipt || o.screenshot || '';
             const utr = o.utr_number || o.txn_id || '';
             const mode = o.payment_mode || '-';
-            const amount = o.advance_paid || o.advance_amount || 0;
+            const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
+            const cashPaid = parseFloat(o.cash_paid || 0) || 0;
+            const amount = advance + cashPaid;
             const box = document.getElementById('paymentReceiptArea');
             if (!box) return;
             box.innerHTML = `
                 <div class="dp-payment-receipt-title">💳 Payment Receipt / भुगतान रसीद</div>
-                <div class="dp-payment-receipt-info"><b>ऑर्डर #${escapeAdminReceiptText(o.id)}</b> &nbsp; | &nbsp; राशि: <b>₹${escapeAdminReceiptText(amount)}</b><br>Payment Mode: <b>${escapeAdminReceiptText(mode)}</b><br>UTR / Transaction ID: <b>${escapeAdminReceiptText(utr || 'उपलब्ध नहीं')}</b></div>
+                <div class="dp-payment-receipt-info"><b>ऑर्डर #${escapeAdminReceiptText(o.id)}</b> &nbsp; | &nbsp; कुल जमा: <b>₹${escapeAdminReceiptText(amount)}</b><br>ऑनलाइन एडवांस: <b>₹${escapeAdminReceiptText(advance)}</b><br>दुकान Cash: <b>₹${escapeAdminReceiptText(cashPaid)}</b><br>Payment Mode: <b>${escapeAdminReceiptText(mode)}</b><br>UTR / Transaction ID: <b>${escapeAdminReceiptText(utr || 'उपलब्ध नहीं')}</b></div>
                 ${src ? `<a href="${escapeAdminReceiptText(src)}" target="_blank" rel="noopener" class="dp-payment-image-link"><img src="${escapeAdminReceiptText(src)}" alt="Payment Receipt"><span>📷 Payment Receipt खोलें</span></a>` : '<div class="dp-no-payment">Payment receipt / screenshot उपलब्ध नहीं है।</div>'}
             `;
             document.getElementById('paymentReceiptModal').style.display='flex';
