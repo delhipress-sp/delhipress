@@ -577,8 +577,8 @@ await finalizeAndSubmitOrder('cash');
                 return {
                     kind: 'matter',
                     name: matter.name || safeName,
-                    mime: matter.type || blob.type || '',
-                    fileType: matter.type || blob.type || '',
+                    mime: matter.type || blob.type || 'application/octet-stream',
+                    fileType: matter.type || blob.type || 'application/octet-stream',
                     size: matter.size || blob.size || 0,
                     url,
                     path,
@@ -586,7 +586,7 @@ await finalizeAndSubmitOrder('cash');
                     at: new Date().toISOString()
                 };
             } catch (e) {
-                console.warn('Handwritten matter cloud upload failed:', e);
+                console.warn('Handwritten/PDF matter cloud upload failed:', e);
                 return null;
             }
         }
@@ -683,14 +683,14 @@ await finalizeAndSubmitOrder('cash');
             // Handwritten/photo/PDF matter is uploaded as a separate file.
             // The URL is saved in orders.customer_files so My Orders and Admin
             // can open the original file independently of the typed matter.
-            let uploadedMatterFile = null;
-            if (currentData.wedding_matter_uploaded || currentData.wedding_matter_file) {
-                uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
-                if (uploadedMatterFile) {
-                    cleanOrderPayload.customer_files = [uploadedMatterFile];
-                } else {
-                    cleanOrderPayload.customer_files = [];
-                }
+            // Order Form का PDF/फोटो Matter IndexedDB में रखा जाता है।
+            // यहां केवल flag पर निर्भर न रहें; actual file मौजूद हो तो उसे जरूर Cloud Storage में भेजें।
+            let uploadedMatterFile = await uploadWeddingMatterToCloud(uniqueOrderId);
+            if (uploadedMatterFile) {
+                // New structure: My Orders / Admin दोनों customer_files से file खोल सकते हैं।
+                cleanOrderPayload.customer_files = [uploadedMatterFile];
+                // Backward compatibility: Admin का पुराना "मैटर देखें" column भी यही URL दिखाए।
+                cleanOrderPayload.order_matter = uploadedMatterFile.url;
             }
 
             // Browser में order cache नहीं रखा जाता। My Orders Supabase से ही पढ़ता है.
@@ -726,6 +726,8 @@ await finalizeAndSubmitOrder('cash');
                         card_title: cloudBase.card_title,
                         card_model: cloudBase.card_model,
                         card_image: cloudBase.card_image,
+                        order_matter: cloudBase.order_matter || '',
+                        customer_files: cloudBase.customer_files || [],
                         quantity: cloudBase.quantity,
                         total_amount: cloudBase.total_amount,
                         advance_paid: cloudBase.advance_paid,
