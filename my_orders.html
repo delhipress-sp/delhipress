@@ -470,7 +470,7 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
         
         <div class="user-welcome-card" id="userCardBlock">
             <div class="user-info">
-                <h3 id="userDisplayName">सम्मानित ग्राहक</h3>
+                <h3 id="userDisplayName"></h3>
                 <p id="userDisplayPhone">विवरण लोड हो रहा है...</p>
             </div>
             <button onclick="logoutCustomer()" class="btn-nav btn-logout-nav">
@@ -628,6 +628,9 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
 
             // Orders are CLOUD ONLY. Never load or restore order data from localStorage.
             clearLocalOrderCaches();
+            // Login के समय सेव हुए customer name को तुरंत UI में दिखाएँ।
+            // इससे Supabase orders आने का इंतजार करने पर भी 'Customer' / 'सम्मानित ग्राहक' नहीं दिखेगा।
+            updateUserGreeting();
             loadRecommendedCatalog();
             syncWithCloudFast();
             // Network/RLS transient issue में कुछ सेकंड बाद दोबारा cloud orders लें।
@@ -654,19 +657,21 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             const phoneEl = document.getElementById('userDisplayPhone');
             let customerName = userObj && userObj.name ? String(userObj.name).trim() : '';
             if (!customerName && fetchedOrdersList.length > 0) customerName = String(fetchedOrdersList[0].customer_name || '').trim();
-            customerName = customerName.replace(/^(md|md\.|mohd|mohammad|muhammad)\s+/i,'').trim() || 'Customer';
+            customerName = customerName.replace(/^(md|md\.|mohd|mohammad|muhammad)\s+/i,'').trim();
             const headerEl = document.getElementById('headerCustomerGreeting');
-            if(headerEl) headerEl.textContent = 'Hey ' + customerName;
-            if (userObj && (userObj.name || userObj.phone || userObj.mobile)) {
-                if (nameEl) nameEl.innerText = userObj.name || 'सम्मानित ग्राहक';
+            const displayName = customerName || 'Customer';
+            if(headerEl) headerEl.textContent = 'Hey ' + displayName;
+            if (customerName) {
+                if (nameEl) nameEl.innerText = customerName;
                 if (phoneEl) phoneEl.innerText = userObj.phone || userObj.mobile || '';
             } else if (fetchedOrdersList.length > 0) {
                 const ord = fetchedOrdersList[0];
-                if (nameEl) nameEl.innerText = ord.customer_name || 'सम्मानित ग्राहक';
+                const orderName = String(ord.customer_name || '').trim();
+                if (nameEl) nameEl.innerText = orderName || 'Customer';
                 if (phoneEl) phoneEl.innerText = ord.mobile || ord.phone || '';
             } else {
-                if (nameEl) nameEl.innerText = 'सम्मानित ग्राहक';
-                if (phoneEl) phoneEl.innerText = 'दिल्ली प्रेस में आपका स्वागत है';
+                if (nameEl) nameEl.innerText = 'Customer';
+                if (phoneEl) phoneEl.innerText = '';
             }
         }
 
