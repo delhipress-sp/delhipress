@@ -110,9 +110,6 @@
             cursor: pointer; font-size: 13px;
         }
         .tab-btn.active { background: var(--primary-gradient); color: white; }
-        .dp-tab-alert { display:none; margin-left:6px; min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:#dc2626; color:#fff; font-size:10px; font-weight:900; align-items:center; justify-content:center; vertical-align:middle; animation:dpTabBlink 1s infinite; box-shadow:0 0 0 0 rgba(220,38,38,.75); }
-        .dp-tab-alert.show { display:inline-flex; }
-        @keyframes dpTabBlink { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.7)} 50%{opacity:.35;box-shadow:0 0 0 7px rgba(220,38,38,0)} }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -385,8 +382,8 @@
             </div>
 
             <div class="nav-tabs">
-                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)<span id="tabAlertOrders" class="dp-tab-alert">NEW</span></button>
-                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक<span id="tabAlertCatalog" class="dp-tab-alert">!</span></button>
+                <button type="button" class="tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-box-archive"></i> ग्राहक ऑर्डर्स (लाइव)</button>
+                <button type="button" class="tab-btn" id="tabBtnCatalog" onclick="switchAdminTab('catalog')"><i class="fa-solid fa-images"></i> कैटलॉग व स्टॉक</button>
                 <button type="button" class="tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i> ग्राहक ग्राफ़ व लिस्ट</button>
                 <button type="button" class="tab-btn" id="tabBtnRatings" onclick="switchAdminTab('ratings')"><i class="fa-solid fa-star"></i> ग्राहक रेटिंग</button>
             </div>
@@ -671,7 +668,6 @@
             document.getElementById('adminDashboard').style.display = 'block';
             loadAdminOrders();
             loadCatalogStock();
-            startAdminTabAlerts();
         }
 
         function switchAdminTab(tab) {
@@ -684,13 +680,6 @@
             document.getElementById('tabBtnCatalog').classList.toggle('active', tab === 'catalog');
             document.getElementById('tabBtnRatings').classList.toggle('active', tab === 'ratings');
             document.getElementById('tabBtnAnalytics').classList.toggle('active', tab === 'analytics');
-
-            const alertMap = {orders:'tabAlertOrders', catalog:'tabAlertCatalog'};
-            if (alertMap[tab]) {
-                const a = document.getElementById(alertMap[tab]);
-                if (a) a.classList.remove('show');
-                try { localStorage.setItem('dp_admin_alert_seen_' + tab, String(Date.now())); } catch(e) {}
-            }
 
             if (tab === 'ratings') loadAdminRatings();
             if (tab === 'analytics') buildCustomerAnalytics(globalOrdersCache);
@@ -713,65 +702,6 @@
             const seenKey = 'dp_chat_admin_seen_' + String(order.id);
             const seen = Number(localStorage.getItem(seenKey) || 0);
             return latest > seen;
-        }
-
-        // ===== ADMIN TAB ALERTS (NO LAYOUT CHANGE) =====
-        let dpAlertPrimed = false;
-        let dpLastOrderId = 0;
-        let dpLastOrderChatStamp = 0;
-        let dpLastCatalogSignature = '';
-        let dpLastRatingId = 0;
-
-        function dpShowTabAlert(tab, text='NEW') {
-            const id = tab==='orders' ? 'tabAlertOrders' : 'tabAlertCatalog';
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.textContent = text;
-            el.classList.add('show');
-        }
-
-        function dpOrderChatStamp(o) {
-            const all = [];
-            try { all.push(...(Array.isArray(o.customer_messages) ? o.customer_messages : JSON.parse(o.customer_messages || '[]'))); } catch(e) {}
-            try { all.push(...(Array.isArray(o.customer_files) ? o.customer_files : JSON.parse(o.customer_files || '[]'))); } catch(e) {}
-            return all.reduce((m,x)=>Math.max(m, Date.parse(x?.at || '') || 0),0);
-        }
-
-        async function checkAdminTabAlerts() {
-            if (!supabaseClient || sessionStorage.getItem('dp_admin_auth') !== 'true') return;
-            try {
-                const {data: orders, error: oe} = await supabaseClient
-                    .from('orders').select('id,created_at,customer_messages,customer_files').order('id',{ascending:false}).limit(100);
-                if (oe) return;
-                const list = orders || [];
-                const newestId = Number(list[0]?.id || 0);
-                const newestChat = list.reduce((m,o)=>Math.max(m,dpOrderChatStamp(o)),0);
-                if (!dpAlertPrimed) {
-                    dpLastOrderId = newestId;
-                    dpLastOrderChatStamp = newestChat;
-                } else {
-                    if (newestId > dpLastOrderId) dpShowTabAlert('orders','NEW');
-                    if (newestChat > dpLastOrderChatStamp) dpShowTabAlert('orders','CHAT');
-                    dpLastOrderId = Math.max(dpLastOrderId,newestId);
-                    dpLastOrderChatStamp = Math.max(dpLastOrderChatStamp,newestChat);
-                }
-
-                const {data: cats, error: ce} = await supabaseClient
-                    .from('catalog').select('id,rate,price,sale_rate,selling_price,in_stock,updated_at,image,image_url,image_urls,gallery_images,images,video_url,video_urls,catalog_video').order('id',{ascending:false});
-                if (!ce) {
-                    const sig = (cats||[]).map(c=>[c.id,c.rate,c.price,c.sale_rate,c.selling_price,c.in_stock,c.updated_at,c.image,c.image_url,c.image_urls,c.gallery_images,c.images,c.video_url,c.video_urls,c.catalog_video].join(':')).join('|');
-                    if (!dpAlertPrimed) dpLastCatalogSignature = sig;
-                    else if (sig !== dpLastCatalogSignature) dpShowTabAlert('catalog','!');
-                    dpLastCatalogSignature = sig;
-                }
-
-                dpAlertPrimed = true;
-            } catch(e) {}
-        }
-
-        async function startAdminTabAlerts() {
-            await checkAdminTabAlerts();
-            setInterval(checkAdminTabAlerts, 8000);
         }
 
         async function loadAdminOrders() {
@@ -818,7 +748,7 @@
                         <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
                         <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}<br><small style="color:#2563eb;">${o.email || o.customer_email || ''}</small></td>
                         <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                        <td>कुल: ₹${o.total_amount || 0}<br>ऑनलाइन एडवांस: ₹${o.advance_paid || o.advance_amount || 0}<br>दुकान Cash: ₹${o.cash_paid || 0}<br><b>कुल जमा: ₹${(parseFloat(o.advance_paid || o.advance_amount || 0) + parseFloat(o.cash_paid || 0))}</b><br><span style="color:#dc2626;">बाकी: ₹${Math.max(0, parseFloat(o.total_amount || 0) - parseFloat(o.advance_paid || o.advance_amount || 0) - parseFloat(o.cash_paid || 0))}</span><br><button type="button" onclick="recordShopCash('${o.id}')" style="margin-top:5px;background:#16a34a;color:#fff;border:0;border-radius:5px;padding:4px 8px;font-size:11px;font-weight:800;cursor:pointer;">💵 Cash जमा</button></td>
+                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || o.advance_amount || 0}</td>
                         <td>
                             <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
                                 <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -826,7 +756,6 @@
                                 <option value="Matter Typing" ${o.status === 'Matter Typing' ? 'selected' : ''}>Matter Typing</option>
                                 <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
                                 <option value="Ready" ${o.status === 'Ready' ? 'selected' : ''}>Ready</option>
-                                <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
                             </select>
                         </td>
                         <td>
@@ -1347,38 +1276,6 @@
             };
         }
 
-        async function recordShopCash(id) {
-            if (!supabaseClient) return;
-            const o = globalOrdersCache.find(x => String(x.id) === String(id));
-            if (!o) return;
-            const total = parseFloat(o.total_amount || 0) || 0;
-            const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
-            const currentCash = parseFloat(o.cash_paid || 0) || 0;
-            const currentBalance = Math.max(0, total - advance - currentCash);
-            const entered = prompt(`ऑर्डर #${id}\nकुल राशि: ₹${total}\nऑनलाइन एडवांस: ₹${advance}\nअभी दुकान Cash: ₹${currentCash}\nबाकी: ₹${currentBalance}\n\nदुकान पर अब तक मिला कुल Cash डालें:`, String(currentCash));
-            if (entered === null) return;
-            const newCash = parseFloat(String(entered).replace(/,/g,''));
-            if (!Number.isFinite(newCash) || newCash < 0) { alert('कृपया सही Cash राशि डालें।'); return; }
-            if (newCash > Math.max(0, total - advance) && total > 0) {
-                if (!confirm(`Cash ₹${newCash} है, जबकि ऑनलाइन एडवांस के बाद अधिकतम बकाया ₹${Math.max(0,total-advance)} है। फिर भी सेव करें?`)) return;
-            }
-            const newBalance = Math.max(0, total - advance - newCash);
-            try {
-                const { error } = await supabaseClient.from('orders').update({
-                    cash_paid: newCash,
-                    balance_amount: newBalance
-                }).eq('id', Number(id));
-                if (error) {
-                    alert('Cash सेव नहीं हुआ। Supabase में orders table का cash_paid column जोड़ना जरूरी है।\n\n' + error.message);
-                    return;
-                }
-                alert(`Cash ₹${newCash} सेव हो गया।\nकुल जमा: ₹${advance + newCash}\nबाकी: ₹${newBalance}`);
-                loadAdminOrders();
-            } catch (e) {
-                alert('Cash अपडेट करते समय नेटवर्क त्रुटि हुई।');
-            }
-        }
-
         async function updateOrderStatus(id, newStatus) {
             if (!supabaseClient) return;
             try {
@@ -1453,7 +1350,7 @@
                 return `
                     <tr>
                         <td><div style="display:flex;gap:3px;justify-content:center;align-items:center;flex-wrap:wrap;max-width:120px;">${[c.image||c.image_url,...imgs].filter(Boolean).slice(0,5).map(u=>`<img src="${String(u).replace(/"/g,'&quot;')}" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;" onerror="this.style.display='none'">`).join('')}</div></td>
-                        <td><b>${c.name || c.card_name || c.title || '-'}</b></td>
+                        <td><b>${c.name || c.card_name || c.title || '-'}<br><button type="button" class="btn-price-edit" style="background:#2563eb;margin-top:6px;" onclick="openCatalogMediaManager('${c.id}')"><i class="fa-solid fa-photo-film"></i> फोटो/वीडियो</button></b></td>
                         <td>${c.model || c.code || '-'}</td>
                         <td><span class="category-pill ${catClass}">${catText}</span></td>
                         <td><b style="color:#64748b;text-decoration:${sale<mrp?'line-through':'none'};">₹${mrp.toLocaleString('en-IN')}</b></td>
@@ -1845,6 +1742,273 @@
         }
 
         // कैटलॉग कार्ड का रेट/Price एडिट करें
+        // ===== EXISTING CATALOG: ADD MORE PHOTOS / VIDEO =====
+        function parseCatalogMediaList(value) {
+            if (!value) return [];
+            if (Array.isArray(value)) return value.filter(Boolean).map(String);
+            if (typeof value === 'string') {
+                const s = value.trim();
+                if (!s) return [];
+                try {
+                    const parsed = JSON.parse(s);
+                    if (Array.isArray(parsed)) return parsed.filter(Boolean).map(String);
+                } catch (e) {}
+                return [s];
+            }
+            return [];
+        }
+
+        function uniqueMediaUrls(list) {
+            const out = [];
+            const seen = new Set();
+            for (const v of (list || [])) {
+                const u = String(v || '').trim();
+                if (u && !seen.has(u)) {
+                    seen.add(u);
+                    out.push(u);
+                }
+            }
+            return out;
+        }
+
+        function closeCatalogMediaManager() {
+            const modal = document.getElementById('catalogMediaManagerModal');
+            if (modal) modal.remove();
+        }
+
+        function openCatalogMediaManager(id) {
+            const card = globalCatalogCache.find(x => String(x.id) === String(id));
+            if (!card) { alert('कैटलॉग कार्ड नहीं मिला।'); return; }
+
+            closeCatalogMediaManager();
+
+            const existingPhotos = uniqueMediaUrls([
+                card.image, card.image_url,
+                ...parseCatalogMediaList(card.gallery_images),
+                ...parseCatalogMediaList(card.images),
+                ...parseCatalogMediaList(card.image_urls)
+            ]);
+            const existingVideos = uniqueMediaUrls([
+                card.video_url,
+                ...parseCatalogMediaList(card.video_urls),
+                ...parseCatalogMediaList(card.catalog_video),
+                ...parseCatalogMediaList(card.video)
+            ]);
+
+            const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            const modal = document.createElement('div');
+            modal.id = 'catalogMediaManagerModal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.82);backdrop-filter:blur(5px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:14px;';
+            modal.innerHTML = `
+                <div style="width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:18px;box-shadow:0 25px 70px rgba(0,0,0,.35);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;">
+                        <div>
+                            <div style="font-size:18px;font-weight:900;color:#0f172a;">📸 फोटो / 🎥 वीडियो जोड़ें</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:2px;">${esc(card.name || card.card_name || card.title || 'कैटलॉग कार्ड')}</div>
+                            <div style="font-size:11px;color:#64748b;">मॉडल: ${esc(card.model || card.code || '-')}</div>
+                        </div>
+                        <button type="button" onclick="closeCatalogMediaManager()" style="border:0;background:#f1f5f9;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;">×</button>
+                    </div>
+
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-bottom:12px;">
+                        <b style="font-size:12px;">अभी मौजूद मीडिया</b>
+                        <div style="font-size:12px;color:#475569;margin-top:4px;">📷 ${existingPhotos.length} फोटो &nbsp; | &nbsp; 🎥 ${existingVideos.length} वीडियो</div>
+                    </div>
+
+                    <div style="border:1px solid #dbeafe;background:#eff6ff;border-radius:12px;padding:12px;margin-bottom:10px;">
+                        <b style="color:#1d4ed8;">📷 नई फोटो जोड़ें</b>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
+                            <label style="display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border:1px solid #93c5fd;border-radius:8px;background:#fff;color:#1d4ed8;font-weight:800;cursor:pointer;">
+                                <i class="fa-solid fa-images"></i> Gallery
+                                <input id="catalogMediaGalleryInput" type="file" accept="image/*" multiple style="display:none;">
+                            </label>
+                            <label style="display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border:1px solid #93c5fd;border-radius:8px;background:#fff;color:#1d4ed8;font-weight:800;cursor:pointer;">
+                                <i class="fa-solid fa-camera"></i> Camera
+                                <input id="catalogMediaCameraInput" type="file" accept="image/*" capture="environment" style="display:none;">
+                            </label>
+                        </div>
+                        <div id="catalogMediaPhotoStatus" style="font-size:11px;color:#64748b;margin-top:8px;">नई फोटो नहीं चुनी गई।</div>
+                    </div>
+
+                    <div style="border:1px solid #bbf7d0;background:#f0fdf4;border-radius:12px;padding:12px;margin-bottom:10px;">
+                        <b style="color:#15803d;">🎥 नया वीडियो जोड़ें</b>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
+                            <label style="display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border:1px solid #86efac;border-radius:8px;background:#fff;color:#15803d;font-weight:800;cursor:pointer;">
+                                <i class="fa-solid fa-video"></i> वीडियो चुनें / रिकॉर्ड करें
+                                <input id="catalogMediaVideoInput" type="file" accept="video/*" capture="environment" style="display:none;">
+                            </label>
+                        </div>
+                        <div style="font-size:10px;color:#64748b;margin-top:6px;">अधिकतम 1 मिनट का वीडियो रखें।</div>
+                        <div id="catalogMediaVideoStatus" style="font-size:11px;color:#64748b;margin-top:6px;">नया वीडियो नहीं चुना गया।</div>
+                    </div>
+
+                    <div id="catalogMediaUploadStatus" style="display:none;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:9px;padding:10px;font-size:12px;margin-bottom:10px;"></div>
+
+                    <div style="display:flex;gap:8px;">
+                        <button type="button" id="catalogMediaSaveBtn" onclick="saveCatalogAdditionalMedia('${String(id).replace(/'/g,"\\'")}')" style="flex:1;padding:11px;border:0;border-radius:9px;background:#10b981;color:#fff;font-weight:900;cursor:pointer;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> मीडिया सेव करें
+                        </button>
+                        <button type="button" onclick="closeCatalogMediaManager()" style="padding:11px 16px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-weight:800;cursor:pointer;">बंद करें</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+
+            const gallery = document.getElementById('catalogMediaGalleryInput');
+            const camera = document.getElementById('catalogMediaCameraInput');
+            const video = document.getElementById('catalogMediaVideoInput');
+            const updatePhotoStatus = () => {
+                const count = Array.from(gallery?.files || []).length + Array.from(camera?.files || []).length;
+                const el = document.getElementById('catalogMediaPhotoStatus');
+                if (el) el.textContent = count ? `${count} नई फोटो चुनी गईं।` : 'नई फोटो नहीं चुनी गई।';
+            };
+            gallery?.addEventListener('change', updatePhotoStatus);
+            camera?.addEventListener('change', updatePhotoStatus);
+            video?.addEventListener('change', () => {
+                const el = document.getElementById('catalogMediaVideoStatus');
+                if (el) el.textContent = video.files?.[0] ? `🎬 ${video.files[0].name}` : 'नया वीडियो नहीं चुना गया।';
+            });
+        }
+
+        async function updateCatalogMediaFields(id, photoUrls, videoUrls) {
+            const photos = uniqueMediaUrls(photoUrls);
+            const videos = uniqueMediaUrls(videoUrls);
+            let lastError = null;
+
+            const photoVariants = [
+                { gallery_images: JSON.stringify(photos), image_urls: JSON.stringify(photos), images: photos, image: photos[0] || null, image_url: photos[0] || null },
+                { gallery_images: JSON.stringify(photos) },
+                { image_urls: JSON.stringify(photos) },
+                { images: photos },
+                { image: photos[0] || null, image_url: photos[0] || null }
+            ];
+            let photoUpdated = false;
+            for (const payload of photoVariants) {
+                try {
+                    const r = await supabaseClient.from('catalog').update(payload).eq('id', Number(id));
+                    if (!r.error) { photoUpdated = true; break; }
+                    lastError = r.error;
+                } catch (e) { lastError = e; }
+            }
+
+            const videoVariants = [
+                { video_urls: JSON.stringify(videos), video_url: videos[0] || null, catalog_video: videos[0] || null },
+                { video_urls: JSON.stringify(videos) },
+                { video_url: videos[0] || null },
+                { catalog_video: videos[0] || null }
+            ];
+            let videoUpdated = !videos.length;
+            if (videos.length) {
+                for (const payload of videoVariants) {
+                    try {
+                        const r = await supabaseClient.from('catalog').update(payload).eq('id', Number(id));
+                        if (!r.error) { videoUpdated = true; break; }
+                        lastError = r.error;
+                    } catch (e) { lastError = e; }
+                }
+            }
+            if (!photoUpdated || !videoUpdated) throw lastError || new Error('कैटलॉग मीडिया अपडेट नहीं हो पाया।');
+        }
+
+        async function saveCatalogAdditionalMedia(id) {
+            if (!supabaseClient) { alert('डेटाबेस कनेक्ट नहीं है!'); return; }
+            const card = globalCatalogCache.find(x => String(x.id) === String(id));
+            if (!card) { alert('कैटलॉग कार्ड नहीं मिला।'); return; }
+
+            const gallery = document.getElementById('catalogMediaGalleryInput');
+            const camera = document.getElementById('catalogMediaCameraInput');
+            const videoInput = document.getElementById('catalogMediaVideoInput');
+            const saveBtn = document.getElementById('catalogMediaSaveBtn');
+            const status = document.getElementById('catalogMediaUploadStatus');
+
+            const newPhotos = [
+                ...Array.from(gallery?.files || []),
+                ...Array.from(camera?.files || [])
+            ].filter(f => f && f.type && f.type.startsWith('image/'));
+            const newVideo = videoInput?.files?.[0] || null;
+
+            if (!newPhotos.length && !newVideo) {
+                alert('पहले कम से कम 1 फोटो या 1 वीडियो चुनें।');
+                return;
+            }
+            if (newVideo) {
+                if (!newVideo.type.startsWith('video/')) { alert('केवल वीडियो फाइल चुनें।'); return; }
+                const duration = await getVideoDuration(newVideo);
+                if (duration > 60) {
+                    alert(`वीडियो ${duration.toFixed(1)} सेकंड का है। कृपया 1 मिनट (60 सेकंड) के अंदर का वीडियो चुनें।`);
+                    return;
+                }
+            }
+
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> अपलोड हो रहा है...';
+            }
+            if (status) {
+                status.style.display = 'block';
+                status.textContent = 'फोटो/वीडियो अपलोड और सेव हो रहा है...';
+            }
+
+            try {
+                const existingPhotos = uniqueMediaUrls([
+                    card.image, card.image_url,
+                    ...parseCatalogMediaList(card.gallery_images),
+                    ...parseCatalogMediaList(card.images),
+                    ...parseCatalogMediaList(card.image_urls)
+                ]);
+                const existingVideos = uniqueMediaUrls([
+                    card.video_url,
+                    ...parseCatalogMediaList(card.video_urls),
+                    ...parseCatalogMediaList(card.catalog_video),
+                    ...parseCatalogMediaList(card.video)
+                ]);
+
+                const uploadedPhotos = [];
+                for (let i = 0; i < newPhotos.length; i++) {
+                    if (status) status.textContent = `फोटो ${i + 1}/${newPhotos.length} अपलोड हो रही है...`;
+                    uploadedPhotos.push(await uploadCatalogAdminFile(newPhotos[i], 'catalog'));
+                }
+
+                const uploadedVideos = [];
+                if (newVideo) {
+                    if (status) status.textContent = 'वीडियो compress और upload हो रहा है...';
+                    const compressed = await compressCatalogVideo(newVideo);
+                    uploadedVideos.push(await uploadCatalogAdminFile(compressed, 'catalog'));
+                }
+
+                const finalPhotos = uniqueMediaUrls([...existingPhotos, ...uploadedPhotos]);
+                const finalVideos = uniqueMediaUrls([...existingVideos, ...uploadedVideos]);
+
+                if (status) status.textContent = 'Database में कैटलॉग अपडेट हो रहा है...';
+                await updateCatalogMediaFields(id, finalPhotos, finalVideos);
+
+                card.image = finalPhotos[0] || card.image;
+                card.image_url = finalPhotos[0] || card.image_url;
+                card.gallery_images = JSON.stringify(finalPhotos);
+                card.image_urls = JSON.stringify(finalPhotos);
+                card.images = finalPhotos;
+                if (finalVideos.length) {
+                    card.video_url = finalVideos[0];
+                    card.video_urls = JSON.stringify(finalVideos);
+                    card.catalog_video = finalVideos[0];
+                }
+
+                alert(`कैटलॉग में मीडिया सफलतापूर्वक जोड़ दिया गया।\nकुल फोटो: ${finalPhotos.length}\nकुल वीडियो: ${finalVideos.length}`);
+                closeCatalogMediaManager();
+                const selected = document.getElementById('adminCategoryFilter');
+                filterAdminCatalog(selected ? selected.value : 'all');
+            } catch (err) {
+                alert('फोटो/वीडियो जोड़ने में त्रुटि: ' + (err?.message || err));
+                if (status) status.textContent = 'अपलोड नहीं हो पाया। कृपया दोबारा कोशिश करें।';
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> मीडिया सेव करें';
+                }
+            }
+        }
+
+        // कैटलॉग कार्ड का रेट/Price एडिट करें
+
         async function editCardPrice(id, currentPrice) {
             if (!supabaseClient) {
                 alert("डेटाबेस कनेक्ट नहीं है!");
@@ -2029,9 +2193,7 @@
 
             const total = parseFloat(o.total_amount || 0) || 0;
             const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
-            const cashPaid = parseFloat(o.cash_paid || 0) || 0;
-            const totalPaid = advance + cashPaid;
-            const balance = Math.max(0, total - totalPaid);
+            const balance = Math.max(0, total - advance);
             const matter = parseAdminOrderMatterForReceipt(baseNotes);
             const files = parseAdminCustomerFilesForReceipt(o);
             const cardImg = o.card_image || o.image || o.card_photo || '';
@@ -2135,14 +2297,12 @@
             const src = o.payment_receipt || o.screenshot || '';
             const utr = o.utr_number || o.txn_id || '';
             const mode = o.payment_mode || '-';
-            const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
-            const cashPaid = parseFloat(o.cash_paid || 0) || 0;
-            const amount = advance + cashPaid;
+            const amount = o.advance_paid || o.advance_amount || 0;
             const box = document.getElementById('paymentReceiptArea');
             if (!box) return;
             box.innerHTML = `
                 <div class="dp-payment-receipt-title">💳 Payment Receipt / भुगतान रसीद</div>
-                <div class="dp-payment-receipt-info"><b>ऑर्डर #${escapeAdminReceiptText(o.id)}</b> &nbsp; | &nbsp; कुल जमा: <b>₹${escapeAdminReceiptText(amount)}</b><br>ऑनलाइन एडवांस: <b>₹${escapeAdminReceiptText(advance)}</b><br>दुकान Cash: <b>₹${escapeAdminReceiptText(cashPaid)}</b><br>Payment Mode: <b>${escapeAdminReceiptText(mode)}</b><br>UTR / Transaction ID: <b>${escapeAdminReceiptText(utr || 'उपलब्ध नहीं')}</b></div>
+                <div class="dp-payment-receipt-info"><b>ऑर्डर #${escapeAdminReceiptText(o.id)}</b> &nbsp; | &nbsp; राशि: <b>₹${escapeAdminReceiptText(amount)}</b><br>Payment Mode: <b>${escapeAdminReceiptText(mode)}</b><br>UTR / Transaction ID: <b>${escapeAdminReceiptText(utr || 'उपलब्ध नहीं')}</b></div>
                 ${src ? `<a href="${escapeAdminReceiptText(src)}" target="_blank" rel="noopener" class="dp-payment-image-link"><img src="${escapeAdminReceiptText(src)}" alt="Payment Receipt"><span>📷 Payment Receipt खोलें</span></a>` : '<div class="dp-no-payment">Payment receipt / screenshot उपलब्ध नहीं है।</div>'}
             `;
             document.getElementById('paymentReceiptModal').style.display='flex';
