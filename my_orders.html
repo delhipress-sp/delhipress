@@ -1109,8 +1109,10 @@ html, body{
             container.innerHTML = fetchedOrdersList.map((ord, index) => {
                 const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN') : 'हाल ही में';
                 const total = parseFloat(ord.total_amount || 0);
-                const advance = parseFloat(ord.advance_paid || 0);
-                const balance = Math.max(0, total - advance);
+                const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0) || 0;
+                const cashPaid = parseFloat(ord.cash_paid || 0) || 0;
+                const totalPaid = advance + cashPaid;
+                const balance = Math.max(0, total - totalPaid);
                 const status = (ord.status || 'Pending').trim();
                 const statusBadge = getStatusBadge(status);
                 const cardImg = ord.card_image || safeCardPlaceholder;
@@ -1143,7 +1145,9 @@ html, body{
                         <div class="order-details-grid">
                             <div class="detail-item"><b>मात्रा</b>${ord.quantity || 100} पीस</div>
                             <div class="detail-item"><b>कुल बिल राशि</b>₹${total}</div>
-                            <div class="detail-item"><b>जमा एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
+                            <div class="detail-item"><b>ऑनलाइन एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
+                            <div class="detail-item"><b>दुकान पर Cash</b><span style="color:green; font-weight:bold;">₹${cashPaid}</span></div>
+                            <div class="detail-item"><b>कुल जमा</b><span style="color:#2563eb; font-weight:bold;">₹${totalPaid}</span></div>
                             <div class="detail-item"><b>बाकी बकाया</b><span style="color:red; font-weight:bold;">₹${balance}</span></div>
                         </div>
 
@@ -1160,13 +1164,11 @@ html, body{
                         </div>
 
                         <div class="order-card-footer">
-                            <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
+                            <div class="balance-info">कुल जमा: <b>₹${totalPaid}</b> &nbsp; | &nbsp; बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <div class="footer-action-buttons">
-                                ${status.toLowerCase() === 'delivered' ? `
                                 <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
                                     <i class="fa-solid fa-star"></i> रेटिंग दें
                                 </button>
-                                ` : ''}
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
@@ -1875,8 +1877,10 @@ html, body{
             if (!ord) return;
 
             const total = parseFloat(ord.total_amount || 0);
-            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0);
-            const balance = Math.max(0, total - advance);
+            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0) || 0;
+            const cashPaid = parseFloat(ord.cash_paid || 0) || 0;
+            const totalPaid = advance + cashPaid;
+            const balance = Math.max(0, total - totalPaid);
             const safeId = escapeReceiptText(ord.order_id || ord.id || '-');
             const matterText = String(ord.custom_notes || ord.order_notes || ord.notes || '');
             const matter = parseOrderMatterForReceipt(matterText);
@@ -1953,6 +1957,8 @@ html, body{
                 <div class="receipt-section-title">बिल एवं भुगतान स्थिति</div>
                 <div class="receipt-row"><span>कुल राशि:</span> <b>₹${total}</b></div>
                 <div class="receipt-row"><span>अग्रिम जमा (एडवांस):</span> <b style="color:var(--green);">₹${advance}</b></div>
+                <div class="receipt-row"><span>दुकान पर जमा Cash:</span> <b style="color:var(--green);">₹${cashPaid}</b></div>
+                <div class="receipt-row"><span>कुल जमा:</span> <b style="color:#2563eb;">₹${totalPaid}</b></div>
                 <div class="receipt-row"><span>शेष बकाया:</span> <b style="color:#e63946;">₹${balance}</b></div>
                 <div class="receipt-row"><span>ऑर्डर स्टेटस:</span> <b>${escapeReceiptText(ord.status||'Pending')}</b></div>
                 <div style="margin-top:12px;text-align:center;">${paymentButton}</div>
@@ -1977,13 +1983,15 @@ html, body{
             const src = ord.payment_receipt || ord.screenshot || '';
             const utr = ord.utr_number || ord.txn_id || '';
             const mode = ord.payment_mode || '-';
-            const amount = ord.advance_paid || ord.advance_amount || 0;
+            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0) || 0;
+            const cashPaid = parseFloat(ord.cash_paid || 0) || 0;
+            const amount = advance + cashPaid;
             const box = document.getElementById('customerPaymentReceiptArea');
             if(!box) return;
             box.innerHTML = `
                 <div style="font-size:19px;font-weight:900;color:#1d4ed8;margin-bottom:10px;">💳 Payment Receipt / भुगतान रसीद</div>
                 <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:12px;">
-                    <b>ऑर्डर #${escapeReceiptText(ord.id || ord.order_id || '-')}</b> &nbsp; | &nbsp; राशि: <b>₹${escapeReceiptText(amount)}</b><br>
+                    <b>ऑर्डर #${escapeReceiptText(ord.id || ord.order_id || '-')}</b> &nbsp; | &nbsp; कुल जमा: <b>₹${escapeReceiptText(amount)}</b><br>ऑनलाइन एडवांस: <b>₹${escapeReceiptText(advance)}</b> &nbsp; | &nbsp; दुकान Cash: <b>₹${escapeReceiptText(cashPaid)}</b><br>
                     Payment Mode: <b>${escapeReceiptText(mode)}</b><br>
                     UTR / Transaction ID: <b>${escapeReceiptText(utr || 'उपलब्ध नहीं')}</b>
                 </div>
