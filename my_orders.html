@@ -451,7 +451,8 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
   .dp-profile-field.full{grid-column:auto;}
   .dp-profile-password-row{flex-direction:column;align-items:stretch;}
 }
-</style>\n<style id="dp-mobile-layout-fix">
+</style>
+<style id="dp-mobile-layout-fix">
 html, body{
   width:100%!important;
   max-width:100%!important;
@@ -753,48 +754,63 @@ html, body{
             if (phoneEl) phoneEl.innerText = mobile || userObj.phone || userObj.mobile || '';
         }
 
+        let cloudSyncInFlight = null;
+
         async function syncWithCloudFast() {
-            let userObj = {};
-            try {
-                userObj = JSON.parse(
-                    localStorage.getItem('dp_current_user') ||
-                    localStorage.getItem('dp_logged_in_user') ||
-                    localStorage.getItem('user') || '{}'
-                ) || {};
-            } catch(e) {}
+            if (cloudSyncInFlight) return cloudSyncInFlight;
 
-            const clean = v => String(v ?? '').trim();
-            const normPhone = v => {
-                const d = clean(v).replace(/\D/g,'');
-                return d.length >= 10 ? d.slice(-10) : d;
-            };
+            cloudSyncInFlight = (async () => {
+                let userObj = {};
+                try {
+                    userObj = JSON.parse(
+                        localStorage.getItem('dp_current_user') ||
+                        localStorage.getItem('dp_logged_in_user') ||
+                        localStorage.getItem('user') || '{}'
+                    ) || {};
+                } catch(e) {}
 
-            const loggedInMobile = normPhone(userObj.phone || userObj.mobile || '');
-            if (!loggedInMobile) {
-                if (location.protocol !== 'file:') {
-                    window.location.replace('login.html?redirect=' + encodeURIComponent('my_orders.html'));
+                const clean = v => String(v ?? '').trim();
+                const normPhone = v => {
+                    const d = clean(v).replace(/\D/g,'');
+                    return d.length >= 10 ? d.slice(-10) : d;
+                };
+
+                const loggedInMobile = normPhone(userObj.phone || userObj.mobile || '');
+
+                if (!loggedInMobile) {
+                    if (location.protocol !== 'file:') {
+                        window.location.replace(
+                            'login.html?redirect=' + encodeURIComponent('my_orders.html')
+                        );
+                        return;
+                    }
+                    fetchedOrdersList = [];
+                    renderOrdersUI();
+                    updateUserGreeting();
                     return;
                 }
-                fetchedOrdersList = [];
-                renderOrdersUI();
-                updateUserGreeting();
-                return;
-            }
 
-            if (!supabaseClient) {
-                fetchedOrdersList = [];
-                renderOrdersUI();
-                return;
-            }
+                if (!supabaseClient) {
+                    fetchedOrdersList = [];
+                    renderOrdersUI();
+                    const box = document.getElementById('ordersContainer');
+                    if (box) {
+                        box.innerHTML = `
+                          <div class="empty-orders">
+                            <div style="font-size:42px;margin-bottom:10px;">⚠️</div>
+                            <h3 style="margin-bottom:8px;color:#334155;">Supabase Database कनेक्ट नहीं है</h3>
+                            <p style="font-size:13px;">कृपया इंटरनेट कनेक्शन जाँचकर <b>रिफ्रेश</b> दबाएँ।</p>
+                          </div>`;
+                    }
+                    return;
+                }
 
-            try {
                 const timeout = ms => new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('orders timeout')), ms)
                 );
 
-                // Supabase orders are the ONLY source. Use simple column queries
-                // instead of one complex .or() filter so PostgREST/RLS differences
-                // cannot make a valid order look like a database failure.
+                // अलग-अलग columns पर query करें। इससे यदि orders table में
+                // phone column न हो तो mobile वाली query फिर भी काम करती रहे।
                 const variants = [...new Set([
                     loggedInMobile,
                     '91' + loggedInMobile,
@@ -803,102 +819,129 @@ html, body{
 
                 let cloud = [];
                 let lastQueryError = null;
-                let querySucceeded = false;
 
-                // 1) Check mobile column in all common formats.
-                for (const v of variants) {
+                const runQuery = async (column, value) => {
                     try {
-                        const q = supabaseClient
-                            .from('orders')
-                            .select('*')
-                            .eq('mobile', v)
-                            .order('id', {ascending:false})
-                            .limit(100);
-                        const r = await Promise.race([q, timeout(7000)]);
-                        if (r?.error) { lastQueryError = r.error; continue; }
-                        querySucceeded = true;
-                        if (Array.isArray(r?.data) && r.data.length) {
-                            cloud = r.data;
-                            break;
+                        const r = await Promise.race([
+                            supabaseClient
+                                .from('orders')
+                                .select('*')
+                                .eq(column, value)
+                                .order('id', {ascending:false})
+                                .limit(100),
+                            timeout(6500)
+                        ]);
+                        if (r?.error) {
+                            lastQueryError = r.error;
+                            return [];
                         }
-                    } catch(e) { lastQueryError = e; }
+                        return Array.isArray(r?.data) ? r.data : [];
+                    } catch(e) {
+                        lastQueryError = e;
+                        return [];
+                    }
+                };
+
+                // 1) पहले mobile column — यही मुख्य customer identifier है।
+                for (const v of variants) {
+                    cloud = await runQuery('mobile', v);
+                    if (cloud.length) break;
                 }
 
-                // 2) Some older orders were stored in phone instead of mobile.
+                // 2) पुराने orders में phone column इस्तेमाल हुआ हो तो fallback।
                 if (!cloud.length) {
                     for (const v of variants) {
-                        try {
-                            const q = supabaseClient
-                                .from('orders')
-                                .select('*')
-                                .eq('phone', v)
-                                .order('id', {ascending:false})
-                                .limit(100);
-                            const r = await Promise.race([q, timeout(7000)]);
-                            if (r?.error) { lastQueryError = r.error; continue; }
-                            querySucceeded = true;
-                            if (Array.isArray(r?.data) && r.data.length) {
-                                cloud = r.data;
-                                break;
-                            }
-                        } catch(e) { lastQueryError = e; }
+                        cloud = await runQuery('phone', v);
+                        if (cloud.length) break;
                     }
                 }
 
-                // 3) Last fallback: suffix match on each existing column separately.
+                // 3) अंतिम fallback: last 10 digits, लेकिन हर column अलग query।
+                // इससे किसी एक missing/invalid column की वजह से पूरी query fail नहीं होगी।
                 if (!cloud.length) {
-                    for (const column of ['mobile','phone']) {
+                    cloud = await (async () => {
                         try {
-                            const q = supabaseClient
-                                .from('orders')
-                                .select('*')
-                                .ilike(column, '%' + loggedInMobile)
-                                .order('id', {ascending:false})
-                                .limit(100);
-                            const r = await Promise.race([q, timeout(7000)]);
-                            if (r?.error) { lastQueryError = r.error; continue; }
-                            querySucceeded = true;
-                            if (Array.isArray(r?.data) && r.data.length) {
-                                cloud = r.data;
-                                break;
-                            }
+                            const r = await Promise.race([
+                                supabaseClient
+                                    .from('orders')
+                                    .select('*')
+                                    .ilike('mobile', '%' + loggedInMobile)
+                                    .order('id', {ascending:false})
+                                    .limit(100),
+                                timeout(6500)
+                            ]);
+                            if (!r?.error && Array.isArray(r?.data)) return r.data;
+                            if (r?.error) lastQueryError = r.error;
                         } catch(e) { lastQueryError = e; }
-                    }
+                        return [];
+                    })();
                 }
 
-                // If the database query itself succeeded but returned zero rows,
-                // that means this login currently has no cloud orders — not a DB error.
-                if (!querySucceeded && lastQueryError) {
-                    console.error('My Orders SELECT failed:', lastQueryError);
+                if (!cloud.length) {
+                    cloud = await (async () => {
+                        try {
+                            const r = await Promise.race([
+                                supabaseClient
+                                    .from('orders')
+                                    .select('*')
+                                    .ilike('phone', '%' + loggedInMobile)
+                                    .order('id', {ascending:false})
+                                    .limit(100),
+                                timeout(6500)
+                            ]);
+                            if (!r?.error && Array.isArray(r?.data)) return r.data;
+                            if (r?.error) lastQueryError = r.error;
+                        } catch(e) { lastQueryError = e; }
+                        return [];
+                    })();
+                }
+
+                // कोई order नहीं मिला तो spinner हटाकर साफ संदेश दिखाएँ।
+                if (!cloud.length) {
                     fetchedOrdersList = [];
                     renderOrdersUI();
+                    updateUserGreeting();
+
                     const box = document.getElementById('ordersContainer');
                     if (box) {
                         box.innerHTML = `
                           <div class="empty-orders">
-                            <div style="font-size:42px;margin-bottom:10px;">⚠️</div>
-                            <h3 style="margin-bottom:8px;color:#334155;">ऑर्डर Database से पढ़ा नहीं जा सका</h3>
-                            <p style="font-size:13px;">कृपया कुछ सेकंड बाद <b>रिफ्रेश</b> दबाएँ।</p>
+                            <i class="fa-solid fa-box-open" style="font-size:42px;margin-bottom:10px;"></i>
+                            <h4>अभी तक कोई ऑर्डर नहीं मिला!</h4>
+                            <p style="font-size:13px;margin:8px 0;">
+                              Supabase में इस मोबाइल नंबर का ऑर्डर नहीं मिला।
+                            </p>
+                            <button type="button" onclick="fetchCustomerOrders()" class="btn-refresh" style="color:#2874f0;border-color:#2874f0;background:#fff;">
+                              <i class="fa-solid fa-arrows-rotate"></i> दोबारा लोड करें
+                            </button>
                           </div>`;
                     }
+                    if (lastQueryError) console.error('My Orders SELECT issue:', lastQueryError);
                     return;
                 }
 
-                fetchedOrdersList = (Array.isArray(cloud) ? cloud : []).sort((a,b) => {
-                    const ta = Number(a?.id || 0) || (new Date(a?.created_at || 0).getTime() || 0);
-                    const tb = Number(b?.id || 0) || (new Date(b?.created_at || 0).getTime() || 0);
+                // Supabase से order मिलते ही पहले render करें — catalog/rating enrichment
+                // के कारण My Orders अब spinner में अटका नहीं रहेगा।
+                fetchedOrdersList = cloud.sort((a,b) => {
+                    const ta = Number(a?.id || 0) ||
+                        (new Date(a?.created_at || 0).getTime() || 0);
+                    const tb = Number(b?.id || 0) ||
+                        (new Date(b?.created_at || 0).getTime() || 0);
                     return tb - ta;
                 });
 
-                // Catalog-image enrichment must NEVER hide a valid order.
-                try {
-                    fetchedOrdersList = await enrichOrderCatalogImages(fetchedOrdersList);
-                } catch(e) {
-                    console.warn('Catalog image enrichment skipped:', e);
-                }
-
                 renderOrdersUI();
                 updateUserGreeting();
+
+                // अतिरिक्त जानकारी बाद में आए; मुख्य orders को block न करे।
+                enrichOrderCatalogImages(fetchedOrdersList)
+                    .then(enriched => {
+                        if (Array.isArray(enriched)) {
+                            fetchedOrdersList = enriched;
+                            renderOrdersUI();
+                        }
+                    })
+                    .catch(()=>{});
 
                 attachCloudRatings(fetchedOrdersList)
                     .then(withRatings => {
@@ -909,19 +952,12 @@ html, body{
                     })
                     .catch(()=>{});
 
-            } catch(e) {
-                console.error('My Orders cloud sync error:', e);
-                fetchedOrdersList = [];
-                renderOrdersUI();
-                const box = document.getElementById('ordersContainer');
-                if (box) {
-                    box.innerHTML = `
-                      <div class="empty-orders">
-                        <div style="font-size:42px;margin-bottom:10px;">⚠️</div>
-                        <h3 style="margin-bottom:8px;color:#334155;">ऑर्डर Database से पढ़ा नहीं जा सका</h3>
-                        <p style="font-size:13px;">कृपया कुछ सेकंड बाद <b>रिफ्रेश</b> दबाएँ।</p>
-                      </div>`;
-                }
+            })();
+
+            try {
+                return await cloudSyncInFlight;
+            } finally {
+                cloudSyncInFlight = null;
             }
         }
 
@@ -1639,7 +1675,11 @@ html, body{
                 const clean=live.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
                 renderRecommendedCatalogCards(clean);
             }catch(e){
-                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग Database से लोड नहीं हो पाया। Refresh करें।</p>`;
+                console.error('Recommended catalog load error:', e);
+                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग लोड नहीं हो पाया। फिर से कोशिश हो रही है...</p>`;
+                setTimeout(() => {
+                    if (document.getElementById('recommendedCatalogContainer') === container) loadRecommendedCatalog();
+                }, 2500);
             }
         }
 
