@@ -451,7 +451,49 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
   .dp-profile-field.full{grid-column:auto;}
   .dp-profile-password-row{flex-direction:column;align-items:stretch;}
 }
-</style>\n</head>
+</style>\n<style id="dp-mobile-layout-fix">
+html, body{
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:hidden!important;
+}
+*{box-sizing:border-box;}
+.navbar{
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  padding-left:10px!important;
+  padding-right:10px!important;
+}
+.nav-brand{
+  min-width:0!important;
+  flex:1 1 auto!important;
+  overflow:hidden!important;
+}
+.nav-brand h2{
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.nav-actions{
+  flex:0 0 auto!important;
+  min-width:0!important;
+  gap:5px!important;
+}
+@media(max-width:520px){
+  .navbar{padding:8px 8px!important;}
+  .nav-brand{max-width:48%!important;}
+  .nav-brand h2{font-size:18px!important;}
+  .nav-actions .btn-nav{padding:7px 9px!important;font-size:12px!important;}
+  .nav-actions{gap:4px!important;}
+  .container{width:100%!important;max-width:100%!important;overflow-x:hidden!important;}
+  .user-welcome-card{width:100%!important;max-width:100%!important;overflow:hidden!important;}
+}
+</style>
+</head>
 <body>
 
     <nav class="navbar">
@@ -650,29 +692,65 @@ margin-bottom:10px}.order-video-head button{border:0;background:#e2e8f0;border-r
             updateUserGreeting();
         }
 
-        function updateUserGreeting() {
-            let userObj = null;
-            try { userObj = JSON.parse(localStorage.getItem('dp_current_user') || localStorage.getItem('dp_logged_in_user') || '{}'); } catch(e) {}
+        async function updateUserGreeting() {
+            let userObj = {};
+            try {
+                userObj = JSON.parse(
+                    localStorage.getItem('dp_current_user') ||
+                    localStorage.getItem('dp_logged_in_user') ||
+                    localStorage.getItem('user') || '{}'
+                ) || {};
+            } catch(e) {}
+
             const nameEl = document.getElementById('userDisplayName');
             const phoneEl = document.getElementById('userDisplayPhone');
-            let customerName = userObj && userObj.name ? String(userObj.name).trim() : '';
-            if (!customerName && fetchedOrdersList.length > 0) customerName = String(fetchedOrdersList[0].customer_name || '').trim();
-            customerName = customerName.replace(/^(md|md\.|mohd|mohammad|muhammad)\s+/i,'').trim();
             const headerEl = document.getElementById('headerCustomerGreeting');
-            const displayName = customerName || 'Customer';
-            if(headerEl) headerEl.textContent = 'Hey ' + displayName;
-            if (customerName) {
-                if (nameEl) nameEl.innerText = customerName;
-                if (phoneEl) phoneEl.innerText = userObj.phone || userObj.mobile || '';
-            } else if (fetchedOrdersList.length > 0) {
-                const ord = fetchedOrdersList[0];
-                const orderName = String(ord.customer_name || '').trim();
-                if (nameEl) nameEl.innerText = orderName || 'Customer';
-                if (phoneEl) phoneEl.innerText = ord.mobile || ord.phone || '';
-            } else {
-                if (nameEl) nameEl.innerText = 'Customer';
-                if (phoneEl) phoneEl.innerText = '';
+
+            let customerName = String(userObj.name || '').trim();
+            const mobile = normalizeCustomerMobile(userObj.mobile || userObj.phone || '');
+
+            // कभी-कभी पुराने login cache में name के स्थान पर email चला जाता है।
+            // ऐसे में उसी मोबाइल नंबर के Supabase users record से असली नाम लें।
+            const looksLikeEmail = customerName.includes('@');
+            if ((!customerName || looksLikeEmail) && mobile && supabaseClient) {
+                try {
+                    const {data} = await supabaseClient
+                        .from('users')
+                        .select('name,email,mobile')
+                        .eq('mobile', mobile)
+                        .maybeSingle();
+
+                    if (data && String(data.name || '').trim()) {
+                        customerName = String(data.name).trim();
+
+                        const merged = {
+                            ...userObj,
+                            name: customerName,
+                            email: data.email || userObj.email || '',
+                            mobile: data.mobile || mobile
+                        };
+                        try {
+                            const json = JSON.stringify(merged);
+                            localStorage.setItem('dp_current_user', json);
+                            localStorage.setItem('user', json);
+                        } catch(e) {}
+                    }
+                } catch(e) {}
             }
+
+            if (!customerName && fetchedOrdersList.length > 0) {
+                customerName = String(fetchedOrdersList[0].customer_name || '').trim();
+            }
+
+            customerName = customerName
+                .replace(/^(md|md\.|mohd|mohammad|muhammad)\s+/i,'')
+                .trim();
+
+            const displayName = customerName || 'Customer';
+
+            if (headerEl) headerEl.textContent = 'Hey ' + displayName;
+            if (nameEl) nameEl.innerText = displayName;
+            if (phoneEl) phoneEl.innerText = mobile || userObj.phone || userObj.mobile || '';
         }
 
         async function syncWithCloudFast() {
