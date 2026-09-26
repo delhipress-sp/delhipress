@@ -60,7 +60,7 @@ input:focus,textarea:focus,select:focus{border-color:#2874f0;box-shadow:0 0 0 3p
     <form id="addressForm">
       <div class="group">
         <label for="customerName">पूरा नाम *</label>
-        <input id="customerName" type="text" placeholder="जैसे: Md Sajad Ansari" required>
+        <input id="customerName" type="text" placeholder="Name" required>
       </div>
 
       <div class="group">
@@ -81,6 +81,17 @@ input:focus,textarea:focus,select:focus{border-color:#2874f0;box-shadow:0 0 0 3p
         <div class="group">
           <label for="police">थाना</label>
           <input id="police" type="text" placeholder="थाना">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="group">
+          <label for="password">Password *</label>
+          <input id="password" type="password" minlength="6" placeholder="कम से कम 6 अक्षर" autocomplete="new-password" required>
+        </div>
+        <div class="group">
+          <label for="confirmPassword">Confirm Password *</label>
+          <input id="confirmPassword" type="password" minlength="6" placeholder="Password दोबारा लिखें" autocomplete="new-password" required>
         </div>
       </div>
 
@@ -111,94 +122,26 @@ input:focus,textarea:focus,select:focus{border-color:#2874f0;box-shadow:0 0 0 3p
   </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   const form=document.getElementById('addressForm');
-  const statusEl=document.getElementById('locationStatus');
-  const locationBtn=document.getElementById('useCurrentLocationBtn');
 
-  function setv(id,v){
-    const e=document.getElementById(id);
-    if(e && v!==undefined && v!==null) e.value=v;
-  }
-  function getv(id){ return document.getElementById(id)?.value.trim() || ''; }
-  function pick(...v){ return v.find(x=>String(x||'').trim()) || ''; }
+  // पहले से सेव address हो तो form में दिखाएँ।
+  let old={};
+  try{old=JSON.parse(localStorage.getItem('dp_delivery_address')||'{}')||{};}catch(e){}
 
-  // पहले से सेव address form में रखें।
-  try{
-    const old=JSON.parse(localStorage.getItem('dp_delivery_address')||'{}')||{};
-    ['customerName','mobile','address','post','police','district','state','pincode'].forEach(id=>{
-      if(old[id]) setv(id,old[id]);
-    });
-  }catch(e){}
-
-  try{
-    const o=JSON.parse(localStorage.getItem('dp_temp_order')||'{}')||{};
-    if(!getv('customerName')) setv('customerName',o.customer_name||o.name);
-    if(!getv('mobile')) setv('mobile',o.mobile||o.phone);
-    if(!getv('address')) setv('address',o.address||o.delivery_address);
-  }catch(e){}
-
-  async function useCurrentLocation(){
-    if(!navigator.geolocation){
-      if(statusEl) statusEl.textContent='इस डिवाइस में Location उपलब्ध नहीं है।';
-      return;
-    }
-
-    if(statusEl) statusEl.textContent='📍 वर्तमान लोकेशन प्राप्त की जा रही है…';
-    if(locationBtn){ locationBtn.disabled=true; locationBtn.textContent='📍 लोकेशन मिल रही है…'; }
-
-    navigator.geolocation.getCurrentPosition(async pos=>{
-      try{
-        const lat=pos.coords.latitude, lon=pos.coords.longitude;
-        const url='https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+
-          encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lon)+'&localityLanguage=hi';
-
-        const res=await fetch(url,{headers:{'Accept':'application/json'}});
-        if(!res.ok) throw new Error('Reverse geocoding failed');
-        const d=await res.json();
-
-        const locality=pick(d.localityName,d.locality,d.city);
-        const postcode=pick(d.postcode);
-        const state=pick(d.principalSubdivision);
-        const country=pick(d.countryName);
-
-        setv('address',locality);
-        setv('district',pick(getv('district'),d.city));
-        setv('state',pick(getv('state'),state)||'Jharkhand');
-        setv('pincode',pick(getv('pincode'),postcode));
-
-        if(!getv('post')) setv('post',locality);
-        if(!getv('police')) setv('police','');
-
-        // पूरा readable location address.
-        const readable=[locality,state,postcode,country].filter(Boolean).join(', ');
-        setv('address',readable);
-
-        if(statusEl) statusEl.textContent='✓ वर्तमान लोकेशन का पता अपने-आप भर दिया गया है।';
-      }catch(e){
-        if(statusEl) statusEl.textContent='लोकेशन का पता नहीं मिला। कृपया पता manually भरें।';
-      }finally{
-        if(locationBtn){ locationBtn.disabled=false; locationBtn.textContent='📍 वर्तमान लोकेशन से पता भरें'; }
-      }
-    },()=>{
-      if(statusEl) statusEl.textContent='Location permission नहीं मिली। कृपया Allow करें या पता manually भरें।';
-      if(locationBtn){ locationBtn.disabled=false; locationBtn.textContent='📍 वर्तमान लोकेशन से पता भरें'; }
-    },{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
-  }
-
-  locationBtn?.addEventListener('click',useCurrentLocation);
-
-  // Page खुलते ही automatic location request.
-  window.addEventListener('load',()=>setTimeout(useCurrentLocation,500));
+  const ids=['customerName','mobile','address','post','police','district','state','pincode'];
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && old[id]) el.value=old[id];
+  });
 
   form.addEventListener('submit',function(e){
     e.preventDefault();
 
     const data={};
-    ['customerName','mobile','address','post','police','district','state','pincode'].forEach(id=>{
-      data[id]=getv(id);
-    });
+    ids.forEach(id=>data[id]=document.getElementById(id).value.trim());
 
     if(!/^\d{10}$/.test(data.mobile)){
       alert('कृपया सही 10 अंकों का मोबाइल नंबर डालें।');
@@ -211,28 +154,106 @@ input:focus,textarea:focus,select:focus{border-color:#2874f0;box-shadow:0 0 0 3p
       return;
     }
 
-    data.updated_at=new Date().toISOString();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    if(password.length < 6){
+      alert('Password कम से कम 6 अक्षरों का होना चाहिए।');
+      document.getElementById('password').focus();
+      return;
+    }
+    if(password !== confirmPassword){
+      alert('Password और Confirm Password एक जैसा होना चाहिए।');
+      document.getElementById('confirmPassword').focus();
+      return;
+    }
+
+    // Address को अलग से सेव करें।
     localStorage.setItem('dp_delivery_address',JSON.stringify(data));
 
+    // अगर ग्राहक पहले से login नहीं है, तो इसी Address Details के Submit पर
+    // बिना OTP/अलग Login screen के उसका account अपने-आप बनाकर local login कर दें।
+    // पहले उसी mobile का existing account देखें; मिलने पर उसी account को login मानें।
+    (async function autoCreateOrRestoreLogin(){
+      try{
+        const SUPABASE_URL = "https://qsvhtfkrlzclnqwypfdy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+        if(!window.supabase || !window.supabase.createClient) throw new Error('Supabase library unavailable');
+        const client = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+        let current={};
+        try{ current=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||localStorage.getItem('user')||'{}')||{}; }catch(e){}
+        const loggedMobile=String(current.mobile||current.phone||'').replace(/\D/g,'');
+        if(loggedMobile.length>=10) return;
+
+        const mobile=data.mobile;
+        let existing=null;
+        for(const variant of [...new Set([mobile,'91'+mobile,'+91'+mobile])]){
+          const {data:row,error}=await client.from('users').select('*').eq('mobile',variant).maybeSingle();
+          if(!error && row){ existing=row; break; }
+        }
+
+        let user=existing;
+        if(!user){
+          const autoEmail=(mobile+'@carddelhipress.in').toLowerCase();
+          const autoPass='DP'+mobile.slice(-6);
+          const {data:created,error}=await client.from('users').insert([{
+            email:autoEmail, mobile:mobile, name:data.customerName,
+            village:data.post||'', address:[data.address,data.post?'पोस्ट: '+data.post:'',data.police?'थाना: '+data.police:'',data.district?'जिला: '+data.district:'',data.state,data.pincode?'PIN: '+data.pincode:''].filter(Boolean).join(', '),
+            pass:password
+          }]).select('*').maybeSingle();
+          if(error){
+            // Mobile may already exist in another format; retry lookup once.
+            for(const variant of [...new Set([mobile,'91'+mobile,'+91'+mobile])]){
+              const {data:row}=await client.from('users').select('*').eq('mobile',variant).maybeSingle();
+              if(row){ user=row; break; }
+            }
+          }else{ user=created; }
+        }
+
+        if(user){
+          const localUser={
+            name:user.name||data.customerName||'', email:user.email||'', mobile:user.mobile||mobile,
+            village:user.village||data.post||'', address:user.address||data.address||''
+          };
+          const json=JSON.stringify(localUser);
+          localStorage.setItem('dp_current_user',json);
+          localStorage.setItem('dp_logged_in_user',json);
+          localStorage.setItem('user',json);
+        }
+      }catch(err){
+        console.warn('Auto signup/login skipped:',err);
+      }
+    })().finally(function(){
+      // मौजूदा order data में भी customer details जोड़ दें।
+      continueAfterAutoAccount();
+    });
+    return;
+
+    function continueAfterAutoAccount(){
     try{
       const raw=localStorage.getItem('dp_temp_order');
-      const order=raw ? (JSON.parse(raw)||{}) : {};
-      order.customer_name=data.customerName;
-      order.name=data.customerName;
-      order.mobile=data.mobile;
-      order.phone=data.mobile;
-      order.address=data.address;
-      order.delivery_address=data.address;
-      order.delivery_post=data.post;
-      order.delivery_police=data.police;
-      order.delivery_district=data.district;
-      order.delivery_state=data.state;
-      order.delivery_pincode=data.pincode;
-      order.updated_at=data.updated_at;
-      localStorage.setItem('dp_temp_order',JSON.stringify(order));
+      if(raw){
+        const order=JSON.parse(raw);
+        order.customer_name=data.customerName;
+        order.name=data.customerName;
+        order.mobile=data.mobile;
+        order.phone=data.mobile;
+        order.address=[
+          data.address,
+          data.post ? 'पोस्ट: '+data.post : '',
+          data.police ? 'थाना: '+data.police : '',
+          data.district ? 'जिला: '+data.district : '',
+          data.state,
+          data.pincode ? 'PIN: '+data.pincode : ''
+        ].filter(Boolean).join(', ');
+        order.delivery_address=data;
+        localStorage.setItem('dp_temp_order',JSON.stringify(order));
+      }
     }catch(e){}
 
-    window.location.href='confirm-details.html';
+      // अगली स्क्रीन
+      window.location.href='confirm-details.html';
+    }
   });
 })();
 </script>
