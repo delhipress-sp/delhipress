@@ -1418,25 +1418,41 @@
 
         async function reverseGeocodeLocation(lat,lng){
             try{
-                const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng)+'&zoom=18&addressdetails=1&accept-language=hi';
-                const res = await fetch(url, {headers:{'Accept':'application/json'}});
-                if (!res.ok) throw new Error('reverse geocode failed');
-                const data = await res.json();
-                const a = data.address || {};
-                // केवल स्थानीय/नज़दीकी पता दिखाएँ; राज्य/देश/पिनकोड को लोकेशन पट्टी में न दिखाएँ।
-                const localParts = [
-                    a.house_number,
-                    a.road,
-                    a.neighbourhood,
-                    a.suburb,
-                    a.village,
-                    a.town,
-                    a.city
-                ].filter(Boolean);
-                // एक ही जगह दोबारा आने से बचाएँ।
-                const pieces = [...new Set(localParts.map(v => String(v).trim()).filter(Boolean))];
-                return pieces.join(', ') || '';
-            }catch(e){ return ''; }
+                // स्क्रीन पर केवल स्थानीय नाम दिखाएँ, लेकिन पूरा पता अलग से सुरक्षित रखें
+                // ताकि Order page में राज्य, जिला, PIN आदि अपने-आप भर सकें।
+                const zooms = [18, 16, 14];
+                for (const zoom of zooms){
+                    try{
+                        const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng)+'&zoom='+zoom+'&addressdetails=1&accept-language=hi';
+                        const res = await fetch(url, {headers:{'Accept':'application/json'}});
+                        if (!res.ok) continue;
+                        const data = await res.json();
+                        const a = data.address || {};
+
+                        const localParts = [
+                            a.road, a.neighbourhood, a.suburb, a.hamlet, a.village,
+                            a.town, a.city, a.municipality
+                        ].filter(Boolean);
+                        const localPieces = [...new Set(localParts.map(v => String(v).trim()).filter(Boolean))];
+
+                        // पूरा पता: स्थानीय भाग + पोस्ट/जिला/राज्य/PIN। देश जानबूझकर नहीं जोड़ा गया।
+                        const fullParts = [
+                            a.house_number, a.road, a.neighbourhood, a.suburb, a.hamlet,
+                            a.village, a.town, a.city, a.municipality, a.post_office,
+                            a.postcode, a.district, a.state
+                        ].filter(Boolean);
+                        const fullPieces = [...new Set(fullParts.map(v => String(v).trim()).filter(Boolean))];
+
+                        if (localPieces.length || fullPieces.length){
+                            return {
+                                local: localPieces.join(', '),
+                                full: fullPieces.join(', ')
+                            };
+                        }
+                    }catch(e){}
+                }
+                return {local:'', full:''};
+            }catch(e){ return {local:'', full:''}; }
         }
 
         function requestLocationAccess(closeAfter){
@@ -1450,10 +1466,18 @@
                 async function(pos){
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
-                    let address = await reverseGeocodeLocation(lat,lng);
-                    if (!address) address = lat.toFixed(5) + ', ' + lng.toFixed(5);
-                    setLocationAddress(address);
-                    try { localStorage.setItem('dp_user_location', JSON.stringify({lat,lng,address,at:Date.now()})); } catch(e) {}
+                    const geo = await reverseGeocodeLocation(lat,lng);
+                    const localAddress = (geo && geo.local) ? geo.local : 'स्थानीय नाम नहीं मिला';
+                    const fullAddress = (geo && geo.full) ? geo.full : '';
+                    setLocationAddress(localAddress);
+                    try {
+                        localStorage.setItem('dp_user_location', JSON.stringify({
+                            lat, lng,
+                            address: localAddress,
+                            fullAddress: fullAddress,
+                            at: Date.now()
+                        }));
+                    } catch(e) {}
                     closeLocationPopup();
                 },
                 function(){
