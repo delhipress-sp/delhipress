@@ -1737,6 +1737,17 @@
                 } catch (e) {}
             }
 
+            // Homepage से मिले GPS के पूरे पता विवरण को Order address में auto-fill करें।
+            // ऊपर Location strip में केवल local नाम दिखता है; यहाँ राज्य/PIN आदि वाला पूरा पता आएगा।
+            try {
+                const savedLocation = JSON.parse(localStorage.getItem('dp_user_location') || 'null');
+                const locationFullAddress = savedLocation && savedLocation.fullAddress ? String(savedLocation.fullAddress).trim() : '';
+                const addressInput = document.getElementById('custFullAddress');
+                if (locationFullAddress && addressInput && !String(addressInput.value || '').trim()) {
+                    addressInput.value = locationFullAddress;
+                }
+            } catch (e) {}
+
             // Customer का पूरा Address उसी registered mobile से users table से auto-fill करें।
             await loadCustomerAddressFromProfile();
 
@@ -2379,10 +2390,23 @@
             };
 
             localStorage.setItem('dp_temp_order', JSON.stringify(fullPayload));
+
+            // Logged-in customer: saved profile/address is already available, so
+            // skip the separate Address screen and continue directly to Payment.
+            let hasLoggedInCustomer = false;
+            try {
+                const u = JSON.parse(
+                    localStorage.getItem('dp_current_user') ||
+                    localStorage.getItem('dp_logged_in_user') ||
+                    localStorage.getItem('user') || '{}'
+                ) || {};
+                hasLoggedInCustomer = String(u.mobile || u.phone || '').replace(/\D/g,'').length >= 10;
+            } catch (e) {}
+
             if (goPayment) {
                 window.location.href = "payment.html";
             } else {
-                window.location.href = "address.html";
+                window.location.href = hasLoggedInCustomer ? "payment.html" : "address.html";
             }
         }
 
