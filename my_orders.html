@@ -1173,9 +1173,11 @@ html, body{
                         <div class="order-card-footer">
                             <div class="balance-info">कुल जमा: <b>₹${totalPaid}</b> &nbsp; | &nbsp; बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <div class="footer-action-buttons">
-                                <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
-                                    <i class="fa-solid fa-star"></i> रेटिंग दें
-                                </button>
+                                ${isDelivered && !isCancelled ? `
+                                    <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
+                                        <i class="fa-solid fa-star"></i> रेटिंग दें
+                                    </button>
+                                ` : ''}
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
