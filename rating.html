@@ -16,6 +16,9 @@ body{min-height:100vh;background:#f1f3f6;color:#212121;padding-bottom:30px}
 .wrap{max-width:620px;margin:18px auto;padding:0 12px}
 .panel{background:#fff;border:1px solid #e0e0e0;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:18px}
 .order-info{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-bottom:15px}
+.order-product{display:flex;align-items:center;gap:12px}
+.order-product img{width:72px;height:72px;object-fit:cover;border-radius:7px;border:1px solid #e2e8f0;background:#fff;display:none;flex:none}
+.order-product img.show{display:block}
 .order-info b{display:block;color:#0f2f70;font-size:15px;margin-bottom:3px}
 .order-info span{font-size:12px;color:#64748b;font-weight:600}
 .title{text-align:center;color:#0f2f70;font-size:21px;font-weight:800;margin-bottom:4px}
@@ -51,8 +54,13 @@ textarea{min-height:105px;resize:vertical}
     <div class="sub">आपके ऑर्डर के कार्ड का अनुभव बताइए</div>
 
     <div class="order-info">
-      <b id="orderTitle">ऑर्डर लोड हो रहा है...</b>
-      <span id="orderMeta"></span>
+      <div class="order-product">
+        <img id="orderCardImage" alt="कार्ड फोटो">
+        <div>
+          <b id="orderTitle">ऑर्डर लोड हो रहा है...</b>
+          <span id="orderMeta"></span>
+        </div>
+      </div>
     </div>
 
     <div class="stars" id="stars">
@@ -89,7 +97,6 @@ try{if(window.supabase)supabaseClient=window.supabase.createClient(SUPABASE_URL,
 
 let order=null;
 let ratingValue=0;
-let orderDelivered=false;
 
 function clean(v){return String(v??'').trim()}
 function norm(v){return clean(v).toLowerCase().replace(/\s+/g,' ').trim()}
@@ -126,10 +133,7 @@ document.getElementById('ratingImages').addEventListener('change',function(){
 });
 
 async function resolveCatalogId(ord){
-  // Order में exact catalog_id मौजूद है तो वही authoritative है; किसी दूसरे model/name से इसे override नहीं करेंगे.
-  const exactCatalogId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'');
-  if(exactCatalogId)return exactCatalogId;
-  let catalogId='';
+  let catalogId=clean(ord.catalog_id||ord.catalogId||ord.card_catalog_id||ord.catalog_item_id||'');
   if(!supabaseClient)return catalogId;
   try{
     const {data,error}=await supabaseClient.from('catalog').select('*').limit(1000);
@@ -176,7 +180,6 @@ async function uploadImages(files,orderId){
 
 async function submitRating(){
   if(!order){setStatus('ऑर्डर की जानकारी नहीं मिली। My Orders से फिर Rating खोलें।','err');return}
-  if(!orderDelivered){setStatus('यह ऑर्डर अभी Delivered नहीं हुआ है। Delivery के बाद ही Rating दी जा सकती है।','err');return}
   if(!ratingValue){alert('कृपया 1 से 5 स्टार रेटिंग चुनें।');return}
 
   const btn=document.getElementById('submitBtn');
@@ -282,35 +285,35 @@ async function loadOrder(){
     document.getElementById('submitBtn').disabled=true;
     return;
   }
-  document.getElementById('orderTitle').textContent=order.card_title||order.card_name||'शादी कार्ड';
-  document.getElementById('orderMeta').textContent='ऑर्डर #'+(order.order_id||order.id||'-')+(order.card_model?' • मॉडल: '+order.card_model:'');
+
+  const title=order.card_title||order.card_name||order.product_name||order.title||'शादी कार्ड';
+  document.getElementById('orderTitle').textContent=title;
+
+  const orderNo=order.order_id||order.id||order.order_db_id||'-';
+  document.getElementById('orderMeta').textContent='ऑर्डर #'+orderNo+(order.card_model||order.model?' • मॉडल: '+(order.card_model||order.model):'');
+
+  let image=order.card_image||order.image||order.image_url||order.photo||order.thumbnail||'';
+
+  // यदि My Orders context में फोटो न मिले, उसी catalog ID से फोटो लाएँ।
+  const catalogId=clean(order.catalog_id||order.card_id||order.product_id||order.catalogId||order.card_catalog_id||order.catalog_item_id||'');
+  if(!image && supabaseClient && catalogId){
+    try{
+      const {data}=await supabaseClient.from('catalog').select('*').eq('id',catalogId).maybeSingle();
+      if(data) image=data.image||data.image_url||data.photo||data.thumbnail||data.card_image||'';
+    }catch(e){}
+  }
+
+  const img=document.getElementById('orderCardImage');
+  if(image){
+    img.src=image;
+    img.classList.add('show');
+  }
+
   let u={};try{u=JSON.parse(localStorage.getItem('dp_current_user')||localStorage.getItem('dp_logged_in_user')||'{}')}catch(e){}
   document.getElementById('ratingName').value=u.name||order.customer_name||'';
   updateStars();
-
-  // Security/accuracy check: Rating page itself also verifies that this order is Delivered.
-  orderDelivered=false;
-  if(supabaseClient){
-    try{
-      let q=null;
-      if(order.order_db_id){
-        q=await supabaseClient.from('orders').select('status').eq('id',Number(order.order_db_id)).maybeSingle();
-      }
-      if((!q || q.error || !q.data) && order.order_id){
-        q=await supabaseClient.from('orders').select('status').eq('order_id',String(order.order_id)).limit(1);
-        if(!q.error) q={data:Array.isArray(q.data)?q.data[0]:q.data,error:null};
-      }
-      const liveStatus=String(q?.data?.status||'').trim().toLowerCase();
-      orderDelivered=(liveStatus==='delivered');
-    }catch(e){orderDelivered=false;}
-  }
-  if(!orderDelivered){
-    document.getElementById('orderMeta').textContent='ऑर्डर #'+(order.order_id||order.id||'-')+' • अभी Delivered नहीं हुआ';
-    document.getElementById('submitBtn').disabled=true;
-    setStatus('Delivery के बाद ही Rating दी जा सकती है।','err');
-  }
 }
-document.addEventListener('DOMContentLoaded',loadOrder);
+document.addEventListener('DOMContentLoaded',()=>{loadOrder();});
 </script>
 </body>
 </html>
