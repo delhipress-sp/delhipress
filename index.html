@@ -646,6 +646,78 @@
 @media(max-width:360px){.category-sheet{width:min(320px,calc(100% - 22px));padding-left:8px;padding-right:8px}.category-sheet-grid{gap:5px}.category-sheet-card{min-height:64px;font-size:10px}.category-sheet-card small{font-size:7px}.category-sheet-card i{font-size:18px}}
 </style>
 
+
+<style id="footer-short-slider-clean">
+/* Compact footer — only requested footer presentation changes. */
+@media(max-width:768px){
+  .main-footer{
+    margin-top:8px;
+    padding:18px 14px 76px!important;
+    text-align:left;
+    border-top-left-radius:22px;
+    border-top-right-radius:22px;
+  }
+  .main-footer:before{top:-16px;height:34px}
+  .footer-grid{
+    display:flex!important;
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px!important;
+    padding-bottom:0!important;
+    width:100%;
+  }
+  .footer-col{width:100%;max-width:none;text-align:left}
+  .footer-col h4{font-size:13px;margin:1px 0 4px;line-height:1.2}
+  .footer-col p{font-size:10px;line-height:1.3;margin:2px 0}
+  .footer-col p i{width:14px}
+  .footer-page-btns{
+    display:flex!important;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    align-items:center;
+    gap:5px!important;
+    width:100%;
+    margin-top:4px;
+    overflow:hidden;
+  }
+  .footer-page-btn{
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    min-height:28px;
+    padding:5px 7px!important;
+    border-radius:10px!important;
+    justify-content:center;
+    font-size:8.5px!important;
+    line-height:1.05;
+    white-space:nowrap;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .footer-bottom{
+    margin:8px 0 0!important;
+    padding-top:6px!important;
+    justify-content:flex-start!important;
+    text-align:left!important;
+    font-size:8px!important;
+  }
+}
+
+/* Remove only the rotating polygon/ring effect from catalog slider cards. */
+.real-card-slide::before{
+  animation:none!important;
+  opacity:0!important;
+  display:none!important;
+}
+.real-card-slide::after{
+  display:block!important;
+  animation:cardFlash 3.8s ease-in-out infinite!important;
+  transform:rotate(18deg)!important;
+  opacity:initial;
+}
+.real-card-slide{
+  box-shadow:0 6px 16px rgba(0,0,0,.16),0 0 0 1px rgba(255,215,80,.22)!important;
+}
+</style>
 </head>
 
 <body>
@@ -1351,8 +1423,19 @@
                 if (!res.ok) throw new Error('reverse geocode failed');
                 const data = await res.json();
                 const a = data.address || {};
-                const pieces = [a.house_number, a.road, a.neighbourhood || a.suburb || a.village || a.town || a.city, a.district, a.state, a.postcode].filter(Boolean);
-                return pieces.join(', ') || data.display_name || '';
+                // केवल स्थानीय/नज़दीकी पता दिखाएँ; राज्य/देश/पिनकोड को लोकेशन पट्टी में न दिखाएँ।
+                const localParts = [
+                    a.house_number,
+                    a.road,
+                    a.neighbourhood,
+                    a.suburb,
+                    a.village,
+                    a.town,
+                    a.city
+                ].filter(Boolean);
+                // एक ही जगह दोबारा आने से बचाएँ।
+                const pieces = [...new Set(localParts.map(v => String(v).trim()).filter(Boolean))];
+                return pieces.join(', ') || '';
             }catch(e){ return ''; }
         }
 
@@ -1482,12 +1565,6 @@
             <div class="footer-col">
                 <h4>हमारी सेवाएं</h4>
                 <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
-            </div>
-            <div class="footer-col">
-                <h4>संपर्क एवं सहायता</h4>
-                <p><i class="fa-solid fa-phone"></i> सीधे हमसे संपर्क करें</p>
-                <p><i class="fa-solid fa-clock"></i> समय पर प्रिंटिंग सेवा</p>
-                <p><i class="fa-solid fa-shield"></i> विश्वसनीय प्रिंटिंग सेवा</p>
             </div>
             <div class="footer-col">
                 <h4>Important Information</h4>
