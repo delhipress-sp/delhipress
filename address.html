@@ -195,7 +195,6 @@ input:focus,textarea:focus,select:focus{border-color:#2874f0;box-shadow:0 0 0 3p
         let user=existing;
         if(!user){
           const autoEmail=(mobile+'@carddelhipress.in').toLowerCase();
-          const autoPass='DP'+mobile.slice(-6);
           const {data:created,error}=await client.from('users').insert([{
             email:autoEmail, mobile:mobile, name:data.customerName,
             village:data.post||'', address:[data.address,data.post?'पोस्ट: '+data.post:'',data.police?'थाना: '+data.police:'',data.district?'जिला: '+data.district:'',data.state,data.pincode?'PIN: '+data.pincode:''].filter(Boolean).join(', '),
