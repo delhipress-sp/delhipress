@@ -1109,17 +1109,15 @@ html, body{
             container.innerHTML = fetchedOrdersList.map((ord, index) => {
                 const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN') : 'हाल ही में';
                 const total = parseFloat(ord.total_amount || 0);
-                const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0) || 0;
-                const cashPaid = parseFloat(ord.cash_paid || 0) || 0;
-                const totalPaid = advance + cashPaid;
-                const balance = Math.max(0, total - totalPaid);
+                const advance = parseFloat(ord.advance_paid || 0);
+                const balance = Math.max(0, total - advance);
                 const status = (ord.status || 'Pending').trim();
                 const statusBadge = getStatusBadge(status);
                 const cardImg = ord.card_image || safeCardPlaceholder;
                 const orderKey = ord.id || ord.order_id;
                 const statusLower = status.toLowerCase();
                 const isCancelled = statusLower === 'cancelled' || status === 'रद्द';
-                const isDelivered = statusLower === 'delivered' || status === 'डिलीवर';
+                const isDelivered = statusLower === 'delivered' || status.includes('डिलीवर') || status.includes('डिलीवरी');
 
                 // Cancellation note if present
                 let cancelReasonHtml = '';
@@ -1147,9 +1145,7 @@ html, body{
                         <div class="order-details-grid">
                             <div class="detail-item"><b>मात्रा</b>${ord.quantity || 100} पीस</div>
                             <div class="detail-item"><b>कुल बिल राशि</b>₹${total}</div>
-                            <div class="detail-item"><b>ऑनलाइन एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
-                            <div class="detail-item"><b>दुकान पर Cash</b><span style="color:green; font-weight:bold;">₹${cashPaid}</span></div>
-                            <div class="detail-item"><b>कुल जमा</b><span style="color:#2563eb; font-weight:bold;">₹${totalPaid}</span></div>
+                            <div class="detail-item"><b>जमा एडवांस</b><span style="color:green; font-weight:bold;">₹${advance}</span></div>
                             <div class="detail-item"><b>बाकी बकाया</b><span style="color:red; font-weight:bold;">₹${balance}</span></div>
                         </div>
 
@@ -1166,15 +1162,17 @@ html, body{
                         </div>
 
                         <div class="order-card-footer">
-                            <div class="balance-info">कुल जमा: <b>₹${totalPaid}</b> &nbsp; | &nbsp; बाकी बकाया राशि: <b>₹${balance}</b></div>
+                            <div class="balance-info">बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <div class="footer-action-buttons">
-                                <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
-                                    <i class="fa-solid fa-star"></i> रेटिंग दें
-                                </button>
+                                ${isDelivered ? `
+                                    <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
+                                        <i class="fa-solid fa-star"></i> रेटिंग दें
+                                    </button>
+                                ` : ''}
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
-                                ${(!isCancelled && !isDelivered) ? `
+                                ${!isCancelled && !isDelivered ? `
                                     <button class="btn-cancel-order" onclick="cancelCustomerOrder('${orderKey}', ${index})">
                                         <i class="fa-solid fa-ban"></i> ऑर्डर कैंसिल करें
                                     </button>
@@ -1672,31 +1670,21 @@ html, body{
             }
             try{
                 const {data,error}=await Promise.race([
-                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(12),
-                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),5000))
+                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
+                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),7000))
                 ]);
                 if(error) throw error;
                 const live=Array.isArray(data)?data:[];
                 const seen=new Set();
                 const clean=live.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
-                if(clean.length){
-                    renderRecommendedCatalogCards(clean);
-                    return;
-                }
+                renderRecommendedCatalogCards(clean);
             }catch(e){
                 console.error('Recommended catalog load error:', e);
+                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग लोड नहीं हो पाया। फिर से कोशिश हो रही है...</p>`;
+                setTimeout(() => {
+                    if (document.getElementById('recommendedCatalogContainer') === container) loadRecommendedCatalog();
+                }, 2500);
             }
-            // Supabase query fail/empty होने पर Index में पहले से उपलब्ध catalog को fallback रखें।
-            try{
-                const raw=localStorage.getItem('dp_index_catalog');
-                const parsed=raw?JSON.parse(raw):[];
-                if(Array.isArray(parsed)&&parsed.length){
-                    const seen=new Set();
-                    const clean=parsed.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;}).slice(0,12);
-                    if(clean.length){ renderRecommendedCatalogCards(clean); return; }
-                }
-            }catch(e){}
-            container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
         }
 
         function renderRecommendedCatalogCards(fetched){
@@ -1832,7 +1820,7 @@ html, body{
         }
 
         function parseOrderMatterForReceipt(text) {
-            const out = {events:[], rsvp:[], raw:String(text || '')};
+            const out = {events:[], rsvp:[], bestCompliments:'', contact:'', raw:String(text || '')};
             const lines = out.raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
             for (const line of lines) {
                 if (/^कार्यक्रम\s*:/i.test(line)) {
@@ -1843,8 +1831,25 @@ html, body{
                         return p?p.replace(new RegExp('^'+label+'\\s*:\\s*','i'),'').trim():'';
                     };
                     out.events.push({title:get('कार्यक्रम')||parts[0]||'',date:get('तारीख'),day:get('दिन'),part:get('समय का भाग'),time:get('समय')});
-                } else if (/^(विनीत\s*\/\s*निवेदक|दर्शनाभिलाषी|संपर्क)\s*:/i.test(line)) {
+                    continue;
+                }
+
+                // RSVP / From
+                if (/^(विनीत\s*\/\s*निवेदक|निवेदक\s*परिवार|from\s*\(?.*cordially invited by.*\)?|r\.?s\.?v\.?p\.?\s*)\s*:/i.test(line)) {
                     out.rsvp.push(line);
+                    continue;
+                }
+
+                // With Best Compliments / दर्शनाभिलाषी / अदाई-आकांक्षी
+                if (/^(दर्शनाभिलाषी|अदाई\s*\/\s*आकांक्षी|with\s*best\s*compliments(?:\s*from)?|best\s*compliments(?:\s*from)?)\s*:/i.test(line)) {
+                    out.bestCompliments = line.replace(/^[^:]+:\s*/,'').trim();
+                    continue;
+                }
+
+                // Contact
+                if (/^(संपर्क|contact(?:\s*(?:person|number))?|mobile\s*(?:number|\/\s*contact\s*person)?)\s*:/i.test(line)) {
+                    out.contact = line.replace(/^[^:]+:\s*/,'').trim();
+                    continue;
                 }
             }
             return out;
@@ -1889,10 +1894,8 @@ html, body{
             if (!ord) return;
 
             const total = parseFloat(ord.total_amount || 0);
-            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0) || 0;
-            const cashPaid = parseFloat(ord.cash_paid || 0) || 0;
-            const totalPaid = advance + cashPaid;
-            const balance = Math.max(0, total - totalPaid);
+            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0);
+            const balance = Math.max(0, total - advance);
             const safeId = escapeReceiptText(ord.order_id || ord.id || '-');
             const matterText = String(ord.custom_notes || ord.order_notes || ord.notes || '');
             const matter = parseOrderMatterForReceipt(matterText);
@@ -1951,9 +1954,19 @@ html, body{
                 <div style="font-weight:900;color:#7f1d1d;font-size:16px;margin:10px 0 6px;">3. कार्यक्रम</div>
                 <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;"><thead><tr><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">कार्यक्रम</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">तारीख</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">दिन</th><th style="border:1px solid #7f1d1d;padding:7px;background:#fff7d6;">समय</th></tr></thead><tbody>${eventRows}</tbody></table>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;"><b style="color:#7f1d1d;">R.S.V.P. / चश्मे बराह</b><div style="margin-top:6px;white-space:pre-wrap;line-height:1.6;">${escapeReceiptText(matter.rsvp.join('\n')||'—')}</div></div>
-                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;"><b style="color:#7f1d1d;">ऑर्डर जानकारी</b><div style="margin-top:6px;line-height:1.7;">ग्राहक: <b>${escapeReceiptText(ord.customer_name||'-')}</b><br>मोबाइल: <b>${escapeReceiptText(ord.mobile||ord.phone||'-')}</b><br>मात्रा: <b>${escapeReceiptText(ord.quantity||100)} पीस</b></div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;min-width:0;">
+                        <b style="color:#7f1d1d;">R.S.V.P. / चश्मे बराह</b>
+                        <div style="margin-top:6px;white-space:pre-wrap;word-break:break-word;line-height:1.6;">${escapeReceiptText(matter.rsvp.join('\n')||'—')}</div>
+                    </div>
+                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;min-width:0;">
+                        <b style="color:#7f1d1d;">With Best Compliments From</b>
+                        <div style="margin-top:6px;white-space:pre-wrap;word-break:break-word;line-height:1.6;">${escapeReceiptText(matter.bestCompliments||'—')}</div>
+                    </div>
+                    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#f8fafc;min-width:0;">
+                        <b style="color:#7f1d1d;">Contact</b>
+                        <div style="margin-top:6px;white-space:pre-wrap;word-break:break-word;line-height:1.6;">${escapeReceiptText(matter.contact||'—')}</div>
+                    </div>
                 </div>
 
                 <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:#fff;margin-bottom:12px;">
@@ -1969,8 +1982,6 @@ html, body{
                 <div class="receipt-section-title">बिल एवं भुगतान स्थिति</div>
                 <div class="receipt-row"><span>कुल राशि:</span> <b>₹${total}</b></div>
                 <div class="receipt-row"><span>अग्रिम जमा (एडवांस):</span> <b style="color:var(--green);">₹${advance}</b></div>
-                <div class="receipt-row"><span>दुकान पर जमा Cash:</span> <b style="color:var(--green);">₹${cashPaid}</b></div>
-                <div class="receipt-row"><span>कुल जमा:</span> <b style="color:#2563eb;">₹${totalPaid}</b></div>
                 <div class="receipt-row"><span>शेष बकाया:</span> <b style="color:#e63946;">₹${balance}</b></div>
                 <div class="receipt-row"><span>ऑर्डर स्टेटस:</span> <b>${escapeReceiptText(ord.status||'Pending')}</b></div>
                 <div style="margin-top:12px;text-align:center;">${paymentButton}</div>
@@ -1995,15 +2006,13 @@ html, body{
             const src = ord.payment_receipt || ord.screenshot || '';
             const utr = ord.utr_number || ord.txn_id || '';
             const mode = ord.payment_mode || '-';
-            const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0) || 0;
-            const cashPaid = parseFloat(ord.cash_paid || 0) || 0;
-            const amount = advance + cashPaid;
+            const amount = ord.advance_paid || ord.advance_amount || 0;
             const box = document.getElementById('customerPaymentReceiptArea');
             if(!box) return;
             box.innerHTML = `
                 <div style="font-size:19px;font-weight:900;color:#1d4ed8;margin-bottom:10px;">💳 Payment Receipt / भुगतान रसीद</div>
                 <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:12px;">
-                    <b>ऑर्डर #${escapeReceiptText(ord.id || ord.order_id || '-')}</b> &nbsp; | &nbsp; कुल जमा: <b>₹${escapeReceiptText(amount)}</b><br>ऑनलाइन एडवांस: <b>₹${escapeReceiptText(advance)}</b> &nbsp; | &nbsp; दुकान Cash: <b>₹${escapeReceiptText(cashPaid)}</b><br>
+                    <b>ऑर्डर #${escapeReceiptText(ord.id || ord.order_id || '-')}</b> &nbsp; | &nbsp; राशि: <b>₹${escapeReceiptText(amount)}</b><br>
                     Payment Mode: <b>${escapeReceiptText(mode)}</b><br>
                     UTR / Transaction ID: <b>${escapeReceiptText(utr || 'उपलब्ध नहीं')}</b>
                 </div>
