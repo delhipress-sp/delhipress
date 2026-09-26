@@ -646,6 +646,78 @@
 @media(max-width:360px){.category-sheet{width:min(320px,calc(100% - 22px));padding-left:8px;padding-right:8px}.category-sheet-grid{gap:5px}.category-sheet-card{min-height:64px;font-size:10px}.category-sheet-card small{font-size:7px}.category-sheet-card i{font-size:18px}}
 </style>
 
+
+<style id="footer-short-slider-clean">
+/* Compact footer — only requested footer presentation changes. */
+@media(max-width:768px){
+  .main-footer{
+    margin-top:8px;
+    padding:18px 14px 76px!important;
+    text-align:left;
+    border-top-left-radius:22px;
+    border-top-right-radius:22px;
+  }
+  .main-footer:before{top:-16px;height:34px}
+  .footer-grid{
+    display:flex!important;
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px!important;
+    padding-bottom:0!important;
+    width:100%;
+  }
+  .footer-col{width:100%;max-width:none;text-align:left}
+  .footer-col h4{font-size:13px;margin:1px 0 4px;line-height:1.2}
+  .footer-col p{font-size:10px;line-height:1.3;margin:2px 0}
+  .footer-col p i{width:14px}
+  .footer-page-btns{
+    display:flex!important;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    align-items:center;
+    gap:5px!important;
+    width:100%;
+    margin-top:4px;
+    overflow:hidden;
+  }
+  .footer-page-btn{
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    min-height:28px;
+    padding:5px 7px!important;
+    border-radius:10px!important;
+    justify-content:center;
+    font-size:8.5px!important;
+    line-height:1.05;
+    white-space:nowrap;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .footer-bottom{
+    margin:8px 0 0!important;
+    padding-top:6px!important;
+    justify-content:flex-start!important;
+    text-align:left!important;
+    font-size:8px!important;
+  }
+}
+
+/* Remove only the rotating polygon/ring effect from catalog slider cards. */
+.real-card-slide::before{
+  animation:none!important;
+  opacity:0!important;
+  display:none!important;
+}
+.real-card-slide::after{
+  display:block!important;
+  animation:cardFlash 3.8s ease-in-out infinite!important;
+  transform:rotate(18deg)!important;
+  opacity:initial;
+}
+.real-card-slide{
+  box-shadow:0 6px 16px rgba(0,0,0,.16),0 0 0 1px rgba(255,215,80,.22)!important;
+}
+</style>
 </head>
 
 <body>
@@ -811,8 +883,7 @@
         }
 
         function checkLoginBeforeOrder() {
-            // अब ऑर्डर शुरू करने से पहले Login नहीं माँगा जाएगा।
-            // Order → Address → Signup/Login → Confirm → Payment flow चलेगा।
+            // ऑर्डर शुरू होने पर आगे Address → Signup/Login → Confirm → Payment flow चलेगा।
             window.location.href = "order.html";
         }
 
@@ -1337,14 +1408,41 @@
 
         async function reverseGeocodeLocation(lat,lng){
             try{
-                const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng)+'&zoom=18&addressdetails=1&accept-language=hi';
-                const res = await fetch(url, {headers:{'Accept':'application/json'}});
-                if (!res.ok) throw new Error('reverse geocode failed');
-                const data = await res.json();
-                const a = data.address || {};
-                const pieces = [a.house_number, a.road, a.neighbourhood || a.suburb || a.village || a.town || a.city, a.district, a.state, a.postcode].filter(Boolean);
-                return pieces.join(', ') || data.display_name || '';
-            }catch(e){ return ''; }
+                // स्क्रीन पर केवल स्थानीय नाम दिखाएँ, लेकिन पूरा पता अलग से सुरक्षित रखें
+                // ताकि Order page में राज्य, जिला, PIN आदि अपने-आप भर सकें।
+                const zooms = [18, 16, 14];
+                for (const zoom of zooms){
+                    try{
+                        const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng)+'&zoom='+zoom+'&addressdetails=1&accept-language=hi';
+                        const res = await fetch(url, {headers:{'Accept':'application/json'}});
+                        if (!res.ok) continue;
+                        const data = await res.json();
+                        const a = data.address || {};
+
+                        const localParts = [
+                            a.road, a.neighbourhood, a.suburb, a.hamlet, a.village,
+                            a.town, a.city, a.municipality
+                        ].filter(Boolean);
+                        const localPieces = [...new Set(localParts.map(v => String(v).trim()).filter(Boolean))];
+
+                        // पूरा पता: स्थानीय भाग + पोस्ट/जिला/राज्य/PIN। देश जानबूझकर नहीं जोड़ा गया।
+                        const fullParts = [
+                            a.house_number, a.road, a.neighbourhood, a.suburb, a.hamlet,
+                            a.village, a.town, a.city, a.municipality, a.post_office,
+                            a.postcode, a.district, a.state
+                        ].filter(Boolean);
+                        const fullPieces = [...new Set(fullParts.map(v => String(v).trim()).filter(Boolean))];
+
+                        if (localPieces.length || fullPieces.length){
+                            return {
+                                local: localPieces.join(', '),
+                                full: fullPieces.join(', ')
+                            };
+                        }
+                    }catch(e){}
+                }
+                return {local:'', full:''};
+            }catch(e){ return {local:'', full:''}; }
         }
 
         function requestLocationAccess(closeAfter){
@@ -1358,10 +1456,18 @@
                 async function(pos){
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
-                    let address = await reverseGeocodeLocation(lat,lng);
-                    if (!address) address = lat.toFixed(5) + ', ' + lng.toFixed(5);
-                    setLocationAddress(address);
-                    try { localStorage.setItem('dp_user_location', JSON.stringify({lat,lng,address,at:Date.now()})); } catch(e) {}
+                    const geo = await reverseGeocodeLocation(lat,lng);
+                    const fullAddress = (geo && geo.full) ? geo.full : '';
+                    const localAddress = (geo && geo.local) ? geo.local : (fullAddress || 'लोकेशन नाम प्राप्त नहीं हो सका');
+                    setLocationAddress(localAddress);
+                    try {
+                        localStorage.setItem('dp_user_location', JSON.stringify({
+                            lat, lng,
+                            address: localAddress,
+                            fullAddress: fullAddress,
+                            at: Date.now()
+                        }));
+                    } catch(e) {}
                     closeLocationPopup();
                 },
                 function(){
@@ -1473,12 +1579,6 @@
             <div class="footer-col">
                 <h4>हमारी सेवाएं</h4>
                 <p>शादी कार्ड | फ्लेक्स बैनर | विजिटिंग कार्ड | बिल बुक | ऑनलाइन सेवाएं</p>
-            </div>
-            <div class="footer-col">
-                <h4>संपर्क एवं सहायता</h4>
-                <p><i class="fa-solid fa-phone"></i> सीधे हमसे संपर्क करें</p>
-                <p><i class="fa-solid fa-clock"></i> समय पर प्रिंटिंग सेवा</p>
-                <p><i class="fa-solid fa-shield"></i> विश्वसनीय प्रिंटिंग सेवा</p>
             </div>
             <div class="footer-col">
                 <h4>Important Information</h4>
