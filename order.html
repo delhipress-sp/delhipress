@@ -599,6 +599,87 @@
 .matter-success{background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:12px;padding:12px;font-weight:800}
 .matter-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:12px;padding:12px;font-weight:800}
 .matter-hidden-wedding{display:none!important}
+
+/* ===== Premium Order Form Finish ===== */
+.form-wrapper{
+    border-radius:24px!important;
+    box-shadow:0 18px 55px rgba(15,23,42,.18)!important;
+}
+.form-block{
+    border-radius:16px!important;
+    box-shadow:0 6px 18px rgba(15,23,42,.055)!important;
+}
+.form-block h4{
+    font-size:16px!important;
+    letter-spacing:.1px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea{
+    min-height:44px;
+    border-radius:11px!important;
+    background:#fbfdff!important;
+}
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover{
+    border-color:#aebdce;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+    transform:translateY(-1px);
+}
+.calendar-picker-wrap{
+    position:relative;
+    width:100%;
+}
+.calendar-picker-wrap .calendar-icon{
+    position:absolute;
+    left:13px;
+    top:50%;
+    transform:translateY(-50%);
+    color:#2874f0;
+    font-size:17px;
+    z-index:2;
+    pointer-events:none;
+}
+.calendar-picker-wrap .event-date{
+    width:100%;
+    padding-left:42px!important;
+    cursor:pointer;
+    font-weight:700;
+    color:#172337;
+    min-height:46px;
+}
+.calendar-picker-wrap .event-date::-webkit-calendar-picker-indicator{
+    cursor:pointer;
+    opacity:.9;
+    padding:4px;
+}
+.selected-card-banner{
+    border-radius:16px!important;
+    box-shadow:0 7px 22px rgba(230,57,70,.09)!important;
+}
+.card-preview-thumb{
+    box-shadow:0 6px 16px rgba(15,23,42,.10)!important;
+}
+.btn-order-now,
+.checkout-continue{
+    transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;
+}
+.btn-order-now:hover,
+.checkout-continue:hover{
+    filter:saturate(1.08);
+}
+@media(max-width:600px){
+    .form-block{padding:14px!important}
+    .form-group input,
+    .form-group select,
+    .form-group textarea{font-size:15px!important}
+    .calendar-picker-wrap .event-date{min-height:48px}
+}
+
 </style>
 
 </head>
@@ -782,9 +863,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label data-i18n="lbl_event_date">दिनांक चुनें:</label>
-                                    <select class="event-date" onchange="setEventDayFromDate(this)">
-                                        <option value="">-- तारीख चुनें --</option>
-                                    </select>
+                                    <div class="calendar-picker-wrap">
+                                        <i class="fa-regular fa-calendar-days calendar-icon" aria-hidden="true"></i>
+                                        <input type="date" class="event-date" min="2026-01-01" max="2029-12-31" onchange="setEventDayFromDate(this)" aria-label="कार्यक्रम की तारीख">
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label>दिन:</label>
@@ -1325,17 +1407,98 @@
             document.getElementById('universalBalanceDisplay').innerText = `₹${bal.toLocaleString('en-IN')}`;
         });
 
+        async function loadCustomerAddressFromProfile() {
+            const addressEl = document.getElementById('custFullAddress');
+            const mobileEl = document.getElementById('custMobile');
+            if (!addressEl || !mobileEl || !supabaseClient) return;
+
+            const cleanPhone = value => String(value || '').replace(/\D/g, '').slice(-10);
+            const mobile = cleanPhone(mobileEl.value);
+            if (mobile.length !== 10) return;
+
+            try {
+                const variants = [...new Set([mobile, '91' + mobile, '+91' + mobile])];
+                let profile = null;
+
+                for (const variant of variants) {
+                    const { data, error } = await supabaseClient
+                        .from('users')
+                        .select('name,mobile,village,address')
+                        .eq('mobile', variant)
+                        .maybeSingle();
+
+                    if (error) continue;
+                    if (data) {
+                        profile = data;
+                        break;
+                    }
+                }
+
+                if (!profile) return;
+
+                const nameEl = document.getElementById('custFullName');
+                if (nameEl && profile.name && !String(nameEl.value || '').trim()) {
+                    nameEl.value = profile.name;
+                }
+
+                const savedAddress = String(profile.address || '').trim();
+                const savedVillage = String(profile.village || '').trim();
+                const finalAddress = savedAddress || savedVillage;
+
+                if (finalAddress) {
+                    addressEl.value = finalAddress;
+                    addressEl.dispatchEvent(new Event('input', {bubbles:true}));
+                    addressEl.dispatchEvent(new Event('change', {bubbles:true}));
+                }
+
+                // अगली बार Order page खोलने पर भी वही profile data उपलब्ध रहे।
+                try {
+                    const key = localStorage.getItem('dp_current_user') ? 'dp_current_user' :
+                                (localStorage.getItem('dp_logged_in_user') ? 'dp_logged_in_user' : 'user');
+                    const oldUser = JSON.parse(localStorage.getItem(key) || '{}') || {};
+                    const merged = {
+                        ...oldUser,
+                        name: profile.name || oldUser.name || '',
+                        mobile: profile.mobile || oldUser.mobile || mobile,
+                        village: profile.village || oldUser.village || '',
+                        address: profile.address || oldUser.address || ''
+                    };
+                    localStorage.setItem(key, JSON.stringify(merged));
+                    if (key !== 'dp_current_user') {
+                        localStorage.setItem('dp_current_user', JSON.stringify(merged));
+                    }
+                } catch (e) {}
+            } catch (e) {
+                console.warn('Customer profile address auto-fill:', e);
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
             updateCartBadges();
 
-            const currentUser = localStorage.getItem('dp_current_user');
+            const currentUser = localStorage.getItem('dp_current_user') ||
+                                 localStorage.getItem('dp_logged_in_user') ||
+                                 localStorage.getItem('user');
             if (currentUser) {
                 try {
-                    const u = JSON.parse(currentUser);
-                    if (u.name) document.getElementById('custFullName').value = u.name;
-                    if (u.mobile) document.getElementById('custMobile').value = u.mobile;
+                    const u = JSON.parse(currentUser) || {};
+                    if (u.name || u.customer_name) {
+                        document.getElementById('custFullName').value = u.name || u.customer_name;
+                    }
+                    if (u.mobile || u.phone) {
+                        document.getElementById('custMobile').value = u.mobile || u.phone;
+                    }
+                    // Login profile में address पहले से मौजूद हो तो तुरंत दिखाएँ।
+                    if (u.address) {
+                        document.getElementById('custFullAddress').value = u.address;
+                    } else if (u.village) {
+                        document.getElementById('custFullAddress').value = u.village;
+                    }
                 } catch (e) {}
             }
+
+            // Customer का पूरा Address उसी registered mobile से users table से auto-fill करें।
+            await loadCustomerAddressFromProfile();
 
             await fetchAndFillCatalogDropdown();
 
@@ -1541,28 +1704,13 @@
             }
         }
 
-        function fillEventDateSelect(selectEl) {
-            if (!selectEl) return;
-            const current = selectEl.value || '';
-            const today = new Date();
-            const startYear = today.getFullYear();
-            const endYear = startYear + 3;
-            const hindiMonths = ['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
-            selectEl.innerHTML = '<option value="">-- तारीख चुनें --</option>';
-            for (let y = startYear; y <= endYear; y++) {
-                for (let m = 0; m < 12; m++) {
-                    const days = new Date(y, m + 1, 0).getDate();
-                    for (let d = 1; d <= days; d++) {
-                        const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                        const label = `${String(d).padStart(2,'0')} ${hindiMonths[m]} ${y}`;
-                        const opt = document.createElement('option');
-                        opt.value = iso;
-                        opt.textContent = label;
-                        selectEl.appendChild(opt);
-                    }
-                }
-            }
-            if (current) selectEl.value = current;
+        function fillEventDateSelect(dateInput) {
+            // तारीख अब native calendar picker से चुनी जाएगी।
+            // पुराने function name को compatibility के लिए रखा गया है।
+            if (!dateInput) return;
+            dateInput.type = 'date';
+            dateInput.min = '2026-01-01';
+            dateInput.max = '2029-12-31';
         }
 
         function setEventDayFromDate(dateInput) {
@@ -1599,7 +1747,10 @@
                 </div>
                 <div class="form-group">
                     <label>${translations[currentLang].lbl_event_date}</label>
-                    <select class="event-date" onchange="setEventDayFromDate(this)"><option value="">-- तारीख चुनें --</option></select>
+                    <div class="calendar-picker-wrap">
+                        <i class="fa-regular fa-calendar-days calendar-icon" aria-hidden="true"></i>
+                        <input type="date" class="event-date" min="2026-01-01" max="2029-12-31" onchange="setEventDayFromDate(this)" aria-label="कार्यक्रम की तारीख">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>दिन:</label>
