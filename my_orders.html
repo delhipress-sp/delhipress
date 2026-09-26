@@ -1118,13 +1118,8 @@ html, body{
                 const cardImg = ord.card_image || safeCardPlaceholder;
                 const orderKey = ord.id || ord.order_id;
                 const statusLower = status.toLowerCase();
-                const isCancelled = statusLower === 'cancelled' || statusLower === 'canceled' || status.includes('रद्द');
-                // Delivered status अलग-अलग पुराने/नए रूप में सेव हो सकता है:
-                // delivered, डिलीवर, डिलीवर हो चुका है, डिलीवरी आदि।
-                const isDelivered = statusLower === 'delivered' ||
-                    statusLower.includes('deliver') ||
-                    status.includes('डिलीवर') ||
-                    status.includes('डिलीवरी');
+                const isCancelled = statusLower === 'cancelled' || status === 'रद्द';
+                const isDelivered = statusLower === 'delivered' || status === 'डिलीवर';
 
                 // Cancellation note if present
                 let cancelReasonHtml = '';
@@ -1173,15 +1168,13 @@ html, body{
                         <div class="order-card-footer">
                             <div class="balance-info">कुल जमा: <b>₹${totalPaid}</b> &nbsp; | &nbsp; बाकी बकाया राशि: <b>₹${balance}</b></div>
                             <div class="footer-action-buttons">
-                                ${isDelivered && !isCancelled ? `
-                                    <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
-                                        <i class="fa-solid fa-star"></i> रेटिंग दें
-                                    </button>
-                                ` : ''}
+                                <button class="btn-rate-order" onclick="openStandaloneOrderRating(${index})">
+                                    <i class="fa-solid fa-star"></i> रेटिंग दें
+                                </button>
                                 <button class="btn-view-receipt" onclick="viewCustomerReceipt(${index})">
                                     <i class="fa-solid fa-file-invoice"></i> रसीद देखें
                                 </button>
-                                ${(!isCancelled && !isDelivered && !statusLower.includes('deliver') && !status.includes('डिलीवर') && !status.includes('डिलीवरी')) ? `
+                                ${(!isCancelled && !isDelivered) ? `
                                     <button class="btn-cancel-order" onclick="cancelCustomerOrder('${orderKey}', ${index})">
                                         <i class="fa-solid fa-ban"></i> ऑर्डर कैंसिल करें
                                     </button>
@@ -1679,21 +1672,31 @@ html, body{
             }
             try{
                 const {data,error}=await Promise.race([
-                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(1000),
-                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),7000))
+                    supabaseClient.from('catalog').select('*').order('id',{ascending:false}).limit(12),
+                    new Promise((_,reject)=>setTimeout(()=>reject(new Error('catalog timeout')),5000))
                 ]);
                 if(error) throw error;
                 const live=Array.isArray(data)?data:[];
                 const seen=new Set();
                 const clean=live.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;});
-                renderRecommendedCatalogCards(clean);
+                if(clean.length){
+                    renderRecommendedCatalogCards(clean);
+                    return;
+                }
             }catch(e){
                 console.error('Recommended catalog load error:', e);
-                container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">कैटलॉग लोड नहीं हो पाया। फिर से कोशिश हो रही है...</p>`;
-                setTimeout(() => {
-                    if (document.getElementById('recommendedCatalogContainer') === container) loadRecommendedCatalog();
-                }, 2500);
             }
+            // Supabase query fail/empty होने पर Index में पहले से उपलब्ध catalog को fallback रखें।
+            try{
+                const raw=localStorage.getItem('dp_index_catalog');
+                const parsed=raw?JSON.parse(raw):[];
+                if(Array.isArray(parsed)&&parsed.length){
+                    const seen=new Set();
+                    const clean=parsed.filter(c=>{const id=String(c?.id??'').trim(); if(!id||seen.has(id))return false; seen.add(id); return true;}).slice(0,12);
+                    if(clean.length){ renderRecommendedCatalogCards(clean); return; }
+                }
+            }catch(e){}
+            container.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:13px;padding:20px;">वर्तमान में कोई कार्ड उपलब्ध नहीं है।</p>`;
         }
 
         function renderRecommendedCatalogCards(fetched){
