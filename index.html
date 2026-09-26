@@ -916,28 +916,33 @@
                     for (const key of cacheKeys) {
                         const raw = storage.getItem(key);
                         if (!raw) continue;
-                        const cachedCards = JSON.parse(raw);
-                        if (Array.isArray(cachedCards) && cachedCards.length) {
-                            hadCache = true;
-                            globalCards = cachedCards;
-                            syncIndexCatalogCache(cachedCards);
-                            try { renderRealCardsFromCatalog(cachedCards); } catch(e) {}
-                            try { renderCatalogCards(cachedCards); } catch(e) {}
-                            // Rating बाद में आए तो cards फिर से render होंगे; catalog blank नहीं होगा।
-                            loadCatalogRatings()
-                                .then(()=>{ try {
-                                    renderRealCardsFromCatalog(globalCards);
-                                    renderCatalogCards(globalCards);
-                                } catch(e){} })
-                                .catch(()=>{});
-                            break;
-                        }
+                        const cachedCardsRaw = JSON.parse(raw);
+                        if (!Array.isArray(cachedCardsRaw) || !cachedCardsRaw.length) continue;
+
+                        // केवल Admin के मुख्य `catalog` source का cache मान्य है।
+                        // पुराने cards/cards_catalog cache से कोई पुराना/छिपा कार्ड दोबारा न आए।
+                        const cachedCards = cachedCardsRaw.filter(card => String(card?._source_table || '').toLowerCase() === 'catalog');
+                        if (!cachedCards.length) continue;
+
+                        hadCache = true;
+                        globalCards = cachedCards;
+                        syncIndexCatalogCache(cachedCards);
+                        try { renderRealCardsFromCatalog(cachedCards); } catch(e) {}
+                        try { renderCatalogCards(cachedCards); } catch(e) {}
+                        // Rating बाद में आए तो cards फिर से render होंगे; catalog blank नहीं होगा।
+                        loadCatalogRatings()
+                            .then(()=>{ try {
+                                renderRealCardsFromCatalog(globalCards);
+                                renderCatalogCards(globalCards);
+                            } catch(e){} })
+                            .catch(()=>{});
+                        break;
                     }
                 } catch(e) {}
                 if (hadCache) break;
             }
 
-            // Supabase उपलब्ध नहीं है तो cached catalog दिखाकर रुकें।
+            // Supabase उपलब्ध नहीं है तो केवल Admin के मुख्य catalog cache को दिखाकर रुकें।
             if (!supabaseClient) {
                 if (!hadCache) {
                     container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#ef4444">डेटाबेस कनेक्ट नहीं हो पाया।</p>';
@@ -945,8 +950,9 @@
                 return;
             }
 
-            // Admin में जिस catalog source का data है, उसी को पढ़ें।
-            const tables = ['catalog', 'cards', 'cards_catalog'];
+            // Index पर केवल Admin के मुख्य `catalog` table से कार्ड आएंगे।
+            // `cards` / `cards_catalog` जैसे पुराने/अलग sources से कोई कार्ड नहीं लिया जाएगा।
+            const tables = ['catalog'];
             const allRows = [];
 
             for (const tbl of tables) {
