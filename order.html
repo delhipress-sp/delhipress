@@ -682,12 +682,32 @@
 
 </style>
 
+<style id="order-language-button-style">
+.order-lang-btn{
+    margin-left:auto;
+    border:1px solid rgba(255,255,255,.55);
+    background:#fff;
+    color:#1e3a8a;
+    border-radius:20px;
+    padding:7px 12px;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+    white-space:nowrap;
+    box-shadow:0 2px 7px rgba(0,0,0,.12);
+}
+.order-lang-btn:active{transform:scale(.97)}
+</style>
+
 </head>
 <body>
 
     <div class="checkout-progress-header">
         <a href="index.html" class="checkout-back" aria-label="Back">←</a>
         <div class="checkout-title">ऑर्डर फॉर्म</div>
+        <button type="button" id="langBtn" class="order-lang-btn" onclick="toggleLanguage()" aria-label="Change language">
+            <span id="langBtnLabel">English Matter → English</span>
+        </button>
     </div>
     <div class="checkout-steps">
         <div class="checkout-step active"><span class="step-circle">1</span><span>Order</span></div>
@@ -712,7 +732,7 @@
 
         <div class="notice-banner">
             <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px; color: #d97706;"></i>
-            <span data-i18n="notice_text">नोट: प्रिंटिंग से पहले मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।</span>
+            <span data-i18n="notice_text">नोट: प्रिंटिंग से पहले पूरा मैटर एक बार ध्यान से जाँच लें। हिंदी में लिखने के लिए अपने मोबाइल/कंप्यूटर के हिंदी कीबोर्ड का इस्तेमाल करें। प्रिंटिंग के बाद बदलाव की जिम्मेदारी ग्राहक की होगी।</span>
         </div>
 
         <div class="form-wrapper">
@@ -842,7 +862,7 @@
                     <div class="form-block">
                         <h4><span data-i18n="sec3_title">३. प्रोग्राम/कार्यक्रम</span></h4>
                         <div class="wedding-event-table-head">
-    <span>रस्म / कार्यक्रम</span><span>तारीख</span><span>दिन</span><span>समय</span><span>स्थान</span>
+    <span data-i18n="event_head_name">रस्म / कार्यक्रम</span><span data-i18n="event_head_date">तारीख</span><span data-i18n="event_head_day">दिन</span><span data-i18n="event_head_time">समय</span><span data-i18n="event_head_place">स्थान</span>
 </div>
 <div id="eventsContainer">
                             <div class="event-box-item event-card-premium wedding-event-row">
@@ -869,7 +889,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>दिन:</label>
+                                    <label data-i18n="event_day_label">दिन:</label>
                                     <select class="event-day">
                                         <option value="">-- दिन चुनें --</option>
                                         <option value="रविवार">रविवार</option><option value="सोमवार">सोमवार</option>
@@ -879,11 +899,11 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>समय:</label>
+                                    <label data-i18n="lbl_event_time">समय:</label>
                                     <div class="time-select-grid">
-                                        <div><label>घंटा</label><select class="event-hour"><option value="">--</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
-                                        <div><label>मिनट</label><select class="event-minute"><option value="">--</option><option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select></div>
-                                        <div><label>दिन / रात</label><select class="event-ampm"><option value="">--</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
+                                        <div><label data-i18n="event_hour_label">घंटा</label><select class="event-hour"><option value="">--</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
+                                        <div><label data-i18n="event_minute_label">मिनट</label><select class="event-minute"><option value="">--</option><option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select></div>
+                                        <div><label data-i18n="event_ampm_label">दिन / रात</label><select class="event-ampm"><option value="">--</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
                                     </div>
                                 </div>
                                 <input type="hidden" class="event-time" value="">
@@ -1133,9 +1153,177 @@
         let currentLang = 'hi';
         let coupleCount = 1;
 
+        const eventTranslations = {
+            '': { hi: '-- कार्यक्रम चुनें --', en: '-- Select Event --' },
+            'रस्म-ए-हल्दी': { hi: 'रस्म-ए-हल्दी', en: 'Haldi Ceremony' },
+            'मिलाद उन नबी': { hi: 'मिलाद उन नबी', en: 'Milad-un-Nabi' },
+            'रवानगी बारात': { hi: 'रवानगी बारात', en: 'Departure of Barat' },
+            'वापसी बारात': { hi: 'वापसी बारात', en: 'Return of Barat' },
+            'आमद-ए-बारात': { hi: 'आमद-ए-बारात', en: 'Arrival of Barat' },
+            'दावत-ए-वलीमा': { hi: 'दावत-ए-वलीमा', en: 'Walima Feast' },
+            'दावत-ए-खाना': { hi: 'दावत-ए-खाना', en: 'Dinner / Feast' },
+            'निकाह मसनून': { hi: 'निकाह मसनून', en: 'Masnoon Nikah' },
+            'रुखसती बारात': { hi: 'रुखसती बारात', en: 'Rukhsati / Farewell Barat' }
+        };
+        const dayTranslations = {
+            '': { hi: '-- दिन चुनें --', en: '-- Select Day --' },
+            'रविवार': { hi: 'रविवार', en: 'Sunday' },
+            'सोमवार': { hi: 'सोमवार', en: 'Monday' },
+            'मंगलवार': { hi: 'मंगलवार', en: 'Tuesday' },
+            'बुधवार': { hi: 'बुधवार', en: 'Wednesday' },
+            'गुरुवार': { hi: 'गुरुवार', en: 'Thursday' },
+            'शुक्रवार': { hi: 'शुक्रवार', en: 'Friday' },
+            'शनिवार': { hi: 'शनिवार', en: 'Saturday' }
+        };
+
+        /* ===== Full-page Hindi ↔ English UI text =====
+           केवल पेज के UI labels/placeholders/options का अनुवाद होता है।
+           ग्राहक द्वारा टाइप किया गया अपना मैटर/नाम/पता नहीं बदला जाता। */
+        const uiTextTranslations = {
+            'शादी कार्ड ऑर्डर':'Wedding Card Order',
+            'फ्लेक्स बैनर':'Flex Banner',
+            'विज़िटिंग कार्ड':'Visiting Card',
+            'ग्राहक का विवरण (Customer Details)':'Customer Details',
+            'ग्राहक का पूरा नाम:':'Full Name of Customer:',
+            'मोबाइल नंबर / WhatsApp:':'Mobile / WhatsApp Number:',
+            'ग्राहक का पूरा पता (गाँव/शहर, पोस्ट, थाना, जिला):':'Complete Address (Village/City, Post, Police Station, District):',
+            'चुना हुआ शादी कार्ड कैटलॉग देखें':'Selected Wedding Card',
+            'कैटलॉग देखें':'View Catalog',
+            'कार्ड चुनें':'Select Card',
+            'या कैटलॉग से कोई अन्य कार्ड चुनें:':'Or pick another card from catalog:',
+            '-- कैटलॉग लोड हो रहा है... --':'-- Loading Catalog... --',
+            '-- कैटलॉग से दूसरा कार्ड चुनें --':'-- Select another card from Catalog --',
+            '१. कार्ड कैटगरी, रेट एवं संख्या':'1. Card Category, Rate & Quantity',
+            'कार्ड मॉडल / नाम:':'Card Model / Title:',
+            'प्रति पीस रेट (₹):':'Rate per Piece (₹):',
+            'संख्या (Quantity):':'Quantity (Pieces):',
+            '२. दूल्हा-दुल्हन का विवरण':'2. Bride & Groom Details',
+            'दुल्हन पक्ष ऊपर करें':'Move Bride Section Up',
+            'दूल्हा पक्ष ऊपर करें':'Move Groom Section Up',
+            '+ अन्य दूल्हा-दुल्हन जोड़ें (Multiple Couples)':'+ Add Another Couple (Multiple Couples)',
+            'लड़का (दूल्हा) का विवरण':'Groom Details',
+            'लड़का का नाम:':'Groom Name:',
+            'लड़का का नाम:':'Groom Name:',
+            'पिता का नाम:':'Father’s Name:',
+            'लड़का का पता:':'Groom’s Address:',
+            'वधू (दुल्हन) का विवरण':'Bride Details',
+            'वधू का नाम:':'Bride Name:',
+            'लड़की का नाम:':'Bride Name:',
+            'वधू का पता:':'Bride’s Address:',
+            'लड़की का पता:':'Bride’s Address:',
+            '३. प्रोग्राम/कार्यक्रम':'3. Wedding Events & Functions',
+            'कार्यक्रम / रस्म चुनें:':'Select Event / Function:',
+            '-- कार्यक्रम चुनें --':'-- Select Event --',
+            'दिनांक चुनें:':'Select Date:',
+            'दिनांक (Date):':'Date:',
+            'दिन:':'Day:',
+            'समय:':'Time:',
+            'घंटा':'Hour',
+            'मिनट':'Minute',
+            'दिन / रात':'AM / PM',
+            'दिन/रात':'AM / PM',
+            'दिन':'AM',
+            'रात':'PM',
+            'अन्य कार्यक्रम जोड़ें':'Add More Event',
+            'हटाएं':'Remove',
+            '४. RSVP /चश्मे बराह दर्शनाभिलाषी':'4. RSVP & Best Compliments',
+            'From ( चश्मे बराह / दर्शनाभिलाषी):':'From (Cordially Invited By):',
+            'From (निवेदक परिवार):':'From (Cordially Invited By):',
+            'अदाई / आकांक्षी:':'With Best Compliments:',
+            'Contact / संपर्क:':'Contact:',
+            'शायरी / बाल मनुहार':'Poetry / Quotes / Notes',
+            'नया बॉक्स':'Add New Box',
+            'मैटर / Matter Upload करें':'Matter / Matter Upload',
+            'मैटर की फोटो / PDF चुनें:':'Select Matter Photo / PDF:',
+            'मैंने मैटर और Terms & Conditions पढ़कर सहमति दी है।':'I have read and agree to the Matter and Terms & Conditions.',
+            'Order के अगले चरण पर जाएँ':'Proceed to the Next Order Step',
+            'बैनर साइज एवं स्पेसिफिकेशन':'Banner Size & Specifications',
+            'चौड़ाई (Width in Feet):':'Width (in Feet):',
+            'ऊंचाई (Height in Feet):':'Height (in Feet):',
+            'क्वालिटी (Flex Quality):':'Flex Quality:',
+            'बैनर की संख्या (Quantity):':'Number of Banners (Quantity):',
+            'कुल वर्ग फीट (Sq. Feet):':'Total Sq. Feet:',
+            'बैनर पर क्या लिखवाना है (मैटर विवरण)':'Banner Print Content / Text',
+            'दुकान / संस्था / आयोजन का मुख्य शीर्षक (Title):':'Main Shop / Organization Title:',
+            'सेवाएं / ऑफर / अन्य मैटर:':'Services / Offers / Key Details:',
+            'प्रोपराइटर / संपर्क नाम:':'Proprietor / Contact Person:',
+            'बैनर पर डालने हेतु मोबाइल नंबर:':'Mobile Number for Banner:',
+            'विज़िटिंग कार्ड टाइप एवं मात्रा':'Visiting Card Type & Quantity',
+            'कार्ड पेपर प्रकार:':'Card Paper Type:',
+            'मात्रा (Quantity):':'Quantity:',
+            'कार्ड डिज़ाइन प्रकार:':'Card Print Style:',
+            'बिज़नेस कार्ड मैटर':'Business Card Content',
+            'फर्म / दुकान / कंपनी का नाम:':'Shop / Firm / Company Name:',
+            'व्यक्ति का नाम एवं पद:':'Person’s Name & Designation:',
+            'उपलब्ध सेवाएं / डीलिंग सामग्री:':'Services / Dealings:',
+            'कार्ड पर छपने वाला पता:':'Address for Card:',
+            'ईमेल / वेबसाइट (यदि हो):':'Email / Website (If any):',
+            'एडवांस जमा राशि (₹):':'Advance Deposit (₹):',
+            'बाकी बकाया (Balance):':'Balance Due:',
+            'मैं दिल्ली प्रेस (सज्जाद प्रिंटर्स) के नियम एवं शर्तों तथा रिफंड नीति से सहमत हूँ। छपाई के बाद वर्तनी (Spelling) या मैटर की त्रुटि की जिम्मेदारी मेरी होगी।':'I agree to Delhi Press (Sajjad Printers) Terms & Conditions and Refund Policy. I am responsible for spelling or matter errors after printing.',
+            'पॉलिसी विवरण':'Policy Details',
+            'अपना नाम दर्ज करें':'Enter your name',
+            '10 अंकों का मोबाइल नंबर':'10-digit mobile number',
+            'ग्राम, पोस्ट, जिला...':'Village, Post, District...',
+            'कार्ड का नाम':'Card Name',
+            'लड़का का नाम':'Groom Name',
+            'लड़की का नाम':'Bride Name',
+            'ग्राम - ...':'Village - ...',
+            'सभी दोस्त रिश्तेदार':'All friends and relatives',
+            'चाचा, ताऊ...':'Uncles...',
+            'मोबाइल नंबर / संपर्क व्यक्ति':'Mobile number / contact person',
+            'उदा: पूजा ज्वेलर्स / शुभ उद्घाटन':'Example: Pooja Jewellers / Grand Opening',
+            'यहाँ सभी पॉइंट लिखें जो बैनर पर छापने हैं...':'Enter all points to be printed on the banner...',
+            'नाम...':'Name...',
+            'उदा: 93045XXXXX':'Example: 93045XXXXX',
+            'उदा: दिल्ली प्रेस':'Example: Delhi Press',
+            'उदा: मो. सज्जाद (संचालक)':'Example: Md. Sajad (Proprietor)',
+            'आप क्या बेचते हैं या क्या सेवा देते हैं...':'What do you sell or what service do you provide...',
+            'ईदगाह मोड़, करमाटांड़...':'Eidgah More, Karmatar...'
+        };
+
+        function applyFullPageLanguage() {
+            const toEnglish = currentLang === 'en';
+            const map = {};
+            Object.keys(uiTextTranslations).forEach(hi => {
+                map[toEnglish ? hi : uiTextTranslations[hi]] = toEnglish ? uiTextTranslations[hi] : hi;
+            });
+
+            // Translate visible/static text nodes only; typed input values are never touched.
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+            const nodes = [];
+            let node;
+            while ((node = walker.nextNode())) nodes.push(node);
+            nodes.forEach(n => {
+                const raw = n.nodeValue || '';
+                const trimmed = raw.trim();
+                if (!trimmed || n.parentElement?.closest('script,style')) return;
+                if (map[trimmed]) n.nodeValue = raw.replace(trimmed, map[trimmed]);
+            });
+
+            // Translate placeholders without changing what the customer has typed.
+            document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+                const ph = el.getAttribute('placeholder');
+                if (map[ph]) el.setAttribute('placeholder', map[ph]);
+            });
+
+            // AM/PM selector: English = AM/PM, Hindi = दिन/रात.
+            document.querySelectorAll('.event-ampm').forEach(select => {
+                Array.from(select.options).forEach(opt => {
+                    if (opt.value === 'दिन') opt.textContent = toEnglish ? 'AM' : 'दिन';
+                    else if (opt.value === 'रात') opt.textContent = toEnglish ? 'PM' : 'रात';
+                });
+            });
+
+            // Common date accessibility label.
+            document.querySelectorAll('.event-date').forEach(el => {
+                el.setAttribute('aria-label', toEnglish ? 'Event Date' : 'कार्यक्रम की तारीख');
+            });
+        }
+
         const translations = {
             hi: {
-                lang_toggle: "English",
+                lang_toggle: "English Matter → English",
                 brand_name: "दिल्ली प्रेस",
                 nav_home: "होम पेज",
                 nav_cart: "कार्ट",
@@ -1146,7 +1334,7 @@
                 tab_wedding: "शादी कार्ड ऑर्डर",
                 tab_banner: "फ्लेक्स बैनर",
                 tab_visiting: "विज़िटिंग कार्ड",
-                notice_text: "नोट: प्रिंटिंग से पहले मैटर को एक बार अवश्य देख लीजिये, अन्यथा बाद में कोई सुधार नहीं होगा।",
+                notice_text: "नोट: प्रिंटिंग से पहले पूरा मैटर एक बार ध्यान से जाँच लें। हिंदी में लिखने के लिए अपने मोबाइल/कंप्यूटर के हिंदी कीबोर्ड का इस्तेमाल करें। प्रिंटिंग के बाद बदलाव की जिम्मेदारी ग्राहक की होगी।",
                 title_wedding: "शादी कार्ड ऑर्डर फॉर्म",
                 title_banner: "फ्लेक्स बैनर ऑर्डर फॉर्म",
                 title_visiting: "विज़िटिंग कार्ड ऑर्डर फॉर्म",
@@ -1176,6 +1364,7 @@
                 lbl_bride_father: "पिता का नाम:",
                 lbl_bride_address: "वधू का पता:",
                 sec3_title: "३. वैवाहिक कार्यक्रम",
+                event_head_name: "रस्म / कार्यक्रम", event_head_date: "तारीख", event_head_day: "दिन", event_head_time: "समय", event_head_place: "स्थान", event_day_label: "दिन:", event_hour_label: "घंटा", event_minute_label: "मिनट", event_ampm_label: "दिन / रात",
                 lbl_event_title: "कार्यक्रम नाम:",
                 lbl_event_date: "दिनांक (Date):",
                 lbl_event_time: "समय:",
@@ -1226,7 +1415,7 @@
                 footer_admin: "एडमिन"
             },
             en: {
-                lang_toggle: "हिन्दी",
+                lang_toggle: "Hindi Matter → Hindi",
                 brand_name: "Delhi Press",
                 nav_home: "Home Page",
                 nav_cart: "Cart",
@@ -1237,7 +1426,7 @@
                 tab_wedding: "Wedding Card",
                 tab_banner: "Flex Banner",
                 tab_visiting: "Visiting Card",
-                notice_text: "Note: Please verify the entire content before printing; no changes can be made later.",
+                notice_text: "Note: Please check the complete matter carefully before printing. To type in Hindi, use the Hindi keyboard on your mobile/computer. The customer is responsible for changes requested after printing.",
                 title_wedding: "Wedding Card Order Form",
                 title_banner: "Flex Banner Order Form",
                 title_visiting: "Visiting Card Order Form",
@@ -1267,6 +1456,7 @@
                 lbl_bride_father: "Father's Name:",
                 lbl_bride_address: "Bride's Address:",
                 sec3_title: "3. Wedding Events & Functions",
+                event_head_name: "Event / Function", event_head_date: "Date", event_head_day: "Day", event_head_time: "Time", event_head_place: "Place", event_day_label: "Day:", event_hour_label: "Hour", event_minute_label: "Minute", event_ampm_label: "AM / PM",
                 lbl_event_title: "Event Name:",
                 lbl_event_date: "Date:",
                 lbl_event_time: "Time:",
@@ -1318,12 +1508,34 @@
             }
         };
 
+        // Apply the initial language to event names and day names too.
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('langBtnLabel').innerText = translations[currentLang].lang_toggle;
+            translateEventAndDayOptions();
+            applyFullPageLanguage();
+        });
+
         function updateCartBadges() {
             try {
                 const cart = JSON.parse(localStorage.getItem('dp_cart_items') || '[]');
                 const badge = document.getElementById('navCartBadge');
                 if (badge) badge.innerText = cart.length;
             } catch (e) {}
+        }
+
+        function translateEventAndDayOptions() {
+            document.querySelectorAll('.event-title').forEach(select => {
+                Array.from(select.options).forEach(opt => {
+                    const t = eventTranslations[opt.value];
+                    if (t) opt.textContent = t[currentLang] || t.hi;
+                });
+            });
+            document.querySelectorAll('.event-day').forEach(select => {
+                Array.from(select.options).forEach(opt => {
+                    const t = dayTranslations[opt.value];
+                    if (t) opt.textContent = t[currentLang] || t.hi;
+                });
+            });
         }
 
         function toggleLanguage() {
@@ -1337,6 +1549,8 @@
                 }
             });
 
+            translateEventAndDayOptions();
+            applyFullPageLanguage();
             switchOrderCategory(currentActiveCategory);
         }
 
@@ -1540,32 +1754,21 @@
             const dropdown = document.getElementById('directCardSelect');
             if (!dropdown) return;
 
-            let fetched = false;
             let data = [];
 
-            if (supabaseClient) {
-                try {
-                    const res = await supabaseClient.from('catalog').select('*').order('id', { ascending: false });
-                    if (res && res.data && res.data.length > 0) {
-                        data = res.data;
-                        fetched = true;
-                    }
-                } catch (e) {
-                    console.warn("Dropdown catalog fetch warn:", e);
-                }
-            }
-
+            // पहले local catalog तुरंत दिखाएँ ताकि form Supabase का इंतज़ार न करे।
             try {
                 const local = JSON.parse(localStorage.getItem('dp_local_catalog') || '[]');
-                local.forEach(lc => {
-                    if (!data.some(c => String(c.id) === String(lc.id))) {
-                        data.push(lc);
-                        fetched = true;
-                    }
-                });
-            } catch (err) {}
+                if (Array.isArray(local)) {
+                    data = local.filter(c => c && c.id != null);
+                }
+            } catch (e) {}
 
-            if (fetched && data.length > 0) {
+            const renderCatalogOptions = () => {
+                if (!data.length) {
+                    dropdown.innerHTML = '<option value="">-- कैटलॉग लोड हो रहा है... --</option>';
+                    return;
+                }
                 globalCatalogCards = data;
                 dropdown.innerHTML = '<option value="">-- कैटलॉग से दूसरा कार्ड चुनें --</option>';
                 data.forEach(item => {
@@ -1577,8 +1780,33 @@
                     opt.textContent = `${item.name || 'शादी कार्ड'} (${item.model || ''}) - ₹${saleRate}/पीस${discount}`;
                     dropdown.appendChild(opt);
                 });
-            } else {
-                dropdown.innerHTML = '<option value="">-- कोई कार्ड उपलब्ध नहीं --</option>';
+            };
+
+            renderCatalogOptions();
+
+            // Cloud catalog background में लें; पूरा 1000-row payload नहीं माँगेंगे।
+            if (supabaseClient) {
+                try {
+                    const res = await Promise.race([
+                        supabaseClient.from('catalog').select('*').order('id', { ascending: false }).limit(100),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('catalog timeout')), 5000))
+                    ]);
+                    if (res && !res.error && Array.isArray(res.data)) {
+                        const merged = [];
+                        const seen = new Set();
+                        [...res.data, ...data].forEach(item => {
+                            const id = String(item?.id ?? '').trim();
+                            if (!id || seen.has(id)) return;
+                            seen.add(id);
+                            merged.push(item);
+                        });
+                        data = merged;
+                        renderCatalogOptions();
+                    }
+                } catch (e) {
+                    console.warn('Dropdown catalog background fetch warn:', e);
+                    // Local catalog पहले ही render हो चुका है; form को spinner में अटकने नहीं देंगे।
+                }
             }
         }
 
@@ -1678,6 +1906,7 @@
                 </div>
             `;
             container.appendChild(div);
+            applyFullPageLanguage();
         }
 
         function swapAdditionalCoupleSides(btn) {
@@ -1753,7 +1982,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>दिन:</label>
+                    <label>${translations[currentLang].event_day_label}</label>
                     <select class="event-day">
                         <option value="">-- दिन चुनें --</option>
                         <option value="रविवार">रविवार</option><option value="सोमवार">सोमवार</option>
@@ -1763,10 +1992,10 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>समय:</label>
+                    <label>${translations[currentLang].lbl_event_time}</label>
                     <div class="time-select-grid">
-                      <div><label>घंटा</label><select class="event-hour"><option value="">--</option>${Array.from({length:12},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('')}</select></div>
-                      <div><label>मिनट</label><select class="event-minute"><option value="">--</option>${Array.from({length:60},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select></div>
+                      <div><label>${currentLang === 'en' ? 'Hour' : 'घंटा'}</label><select class="event-hour"><option value="">--</option>${Array.from({length:12},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('')}</select></div>
+                      <div><label>${currentLang === 'en' ? 'Minute' : 'मिनट'}</label><select class="event-minute"><option value="">--</option>${Array.from({length:60},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select></div>
                       <div><label>दिन/रात</label><select class="event-ampm"><option value="">--</option><option value="दिन">दिन</option><option value="रात">रात</option></select></div>
                     </div>
                 </div>
@@ -1774,6 +2003,8 @@
             `;
             document.getElementById('eventsContainer').appendChild(div);
             fillEventDateSelect(div.querySelector('.event-date'));
+            applyFullPageLanguage();
+            translateEventAndDayOptions();
         }
 
         function syncEventTime(box) {
@@ -1796,6 +2027,7 @@
                 <div class="form-group" style="margin-bottom:0;"><label>संदेश / Message:</label><textarea class="custom-note-text transliterate-input" rows="2"></textarea></div>
             `;
             document.getElementById('customNotesContainer').appendChild(div);
+            applyFullPageLanguage();
         }
 
 
@@ -1806,125 +2038,9 @@
             }
         });
 
-        /* ===== English/Hinglish → Hindi for all text boxes ===== */
-        const transliterationState = new WeakMap();
-
-        function shouldTransliterateInput(el) {
-            // Conversion runs only in Hindi mode.
-            // When the form is switched to English, typed English stays English.
-            if (currentLang !== 'hi') return false;
-            if (!el || !el.matches('input[type="text"], textarea')) return false;
-            const id = (el.id || '').toLowerCase();
-            const cls = (el.className || '').toString().toLowerCase();
-            if (id.includes('email') || id.includes('web') || id.includes('phone') ||
-                id.includes('mobile') || cls.includes('email') || cls.includes('phone')) return false;
-            return true;
-        }
-
-        async function transliterateToHindi(text) {
-            const value = text.trim();
-            if (!value || !/[A-Za-z]/.test(value)) return null;
-            try {
-                const url = 'https://inputtools.google.com/request?text=' +
-                    encodeURIComponent(value) +
-                    '&itc=hi-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8';
-                const response = await fetch(url);
-                if (!response.ok) return null;
-                const data = await response.json();
-                if (Array.isArray(data) && data[0] === 'SUCCESS' &&
-                    data[1] && data[1][0] && data[1][0][1] &&
-                    data[1][0][1][0]) {
-                    return data[1][0][1][0];
-                }
-            } catch (e) {}
-            return null;
-        }
-
-        function queueHindiConversion(el) {
-            if (!shouldTransliterateInput(el)) return;
-            const state = transliterationState.get(el) || {};
-            clearTimeout(state.timer);
-
-            state.timer = setTimeout(async () => {
-                const before = el.value;
-                if (!before || !/[A-Za-z]/.test(before)) return;
-
-                const hindi = await transliterateToHindi(before);
-                if (!hindi || el.value !== before) return;
-
-                const cursor = el.selectionStart;
-                el.value = hindi;
-                try {
-                    const p = Math.min(cursor == null ? hindi.length : cursor, hindi.length);
-                    el.setSelectionRange(p, p);
-                } catch (e) {}
-                el.dispatchEvent(new Event('change', { bubbles: true }));
-            }, 300);
-
-            transliterationState.set(el, state);
-        }
-
-        // English → Hindi conversion केवल SPACE (स्पेस) दबाने पर होगी।
-        // Mobile keyboard में कई बार keydown event नहीं आता, इसलिए input event भी handle किया गया है।
-        async function convertWordBeforeSpace(el, beforeValue, cursorPos) {
-            if (!shouldTransliterateInput(el)) return false;
-            const pos = cursorPos == null ? beforeValue.length : cursorPos;
-            const left = beforeValue.slice(0, pos);
-            const right = beforeValue.slice(pos);
-            const match = left.match(/([A-Za-z][A-Za-z0-9'’.-]*)\s*$/);
-            if (!match) return false;
-
-            const word = match[1];
-            const wordStart = left.length - match[0].length + (match[0].length - match[1].length - (left.endsWith(' ') ? 1 : 0));
-            // Safer exact word start calculation.
-            const exactStart = left.lastIndexOf(word);
-            if (exactStart < 0) return false;
-
-            const hindi = await transliterateToHindi(word);
-            if (!hindi || el.value !== beforeValue) return false;
-
-            el.value = beforeValue.slice(0, exactStart) + hindi + ' ' + right;
-            try {
-                const newPos = exactStart + hindi.length + 1;
-                el.setSelectionRange(newPos, newPos);
-            } catch (err) {}
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-            return true;
-        }
-
-        document.addEventListener('keydown', async function(e) {
-            const el = e.target;
-            if (e.key !== ' ' || !shouldTransliterateInput(el)) return;
-            const before = el.value;
-            const cursor = el.selectionStart;
-            const endPos = el.selectionEnd;
-            if (cursor !== endPos) return;
-            if (!/[A-Za-z]/.test(before.slice(0, cursor))) return;
-
-            e.preventDefault();
-            await convertWordBeforeSpace(el, before, cursor);
-        }, true);
-
-        // Android/iPhone virtual keyboards: space is often delivered through input,
-        // not keydown. Detect only a newly inserted SPACE and convert the last word.
-        document.addEventListener('input', async function(e) {
-            const el = e.target;
-            if (!shouldTransliterateInput(el)) return;
-            if (e.inputType !== 'insertText' || e.data !== ' ') return;
-
-            const after = el.value;
-            const cursor = el.selectionStart;
-            if (cursor == null || cursor < 2) return;
-            const before = after.slice(0, cursor - 1);
-            if (!/[A-Za-z]/.test(before)) return;
-
-            // Remove the just-inserted space while conversion is being requested.
-            const previousValue = before + after.slice(cursor);
-            el.value = previousValue;
-            try { el.setSelectionRange(cursor - 1, cursor - 1); } catch (err) {}
-
-            await convertWordBeforeSpace(el, previousValue, cursor - 1);
-        }, true);
+        /* ===== Automatic English/Hinglish → Hindi conversion बंद =====
+           अब जो भाषा keyboard से टाइप होगी, वही रहेगी। हिंदी में लिखने के लिए
+           ग्राहक अपने मोबाइल/कंप्यूटर का Hindi keyboard इस्तेमाल कर सकता है। */
 
 
         // ===== Handwritten Matter Upload Flow =====
