@@ -622,6 +622,30 @@
 .quick-call{background:#1677ff}.quick-wa{background:#16b866}
 @media(max-width:700px){.quick-contact{right:10px;bottom:74px}.quick-contact a{width:43px;height:43px;font-size:19px}}
 </style>
+
+<style id="category-sheet-only-fix">
+.category-sheet-overlay{position:fixed;inset:0;background:rgba(9,18,35,.30);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:99990;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
+.category-sheet-overlay.active{opacity:1;visibility:visible;pointer-events:auto}
+.category-sheet{width:min(340px,calc(100% - 30px));background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border:1px solid rgba(255,255,255,.95);border-radius:24px 24px 18px 18px;padding:8px 10px calc(10px + env(safe-area-inset-bottom));margin:0 auto 9px;box-shadow:0 -14px 38px rgba(0,0,0,.24),0 2px 10px rgba(20,50,90,.12);transform:translateY(120%) scale(.88) rotateX(38deg);transform-origin:bottom center;transition:transform .55s cubic-bezier(.16,1.25,.32,1)}
+.category-sheet-overlay.active .category-sheet{transform:translateY(0) scale(1) rotateX(0)}
+.category-sheet-handle{width:34px;height:4px;border-radius:20px;background:linear-gradient(90deg,#cbd5e1,#64748b,#cbd5e1);margin:0 auto 7px;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.category-sheet-title{text-align:center;font-size:14px;font-weight:900;color:#17325f;margin:0 0 8px;letter-spacing:.1px}
+.category-sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;perspective:700px}
+.category-sheet-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.72);border-radius:15px;padding:8px 3px 7px;color:#fff;min-height:68px;font-weight:900;font-size:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 7px 15px rgba(0,0,0,.18);transform:translateY(65px) rotateX(65deg) rotateZ(-5deg) scale(.72);transform-origin:center bottom;opacity:0;transition:transform .58s cubic-bezier(.16,1.35,.3,1),opacity .24s ease,box-shadow .2s ease}
+.category-sheet-card::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.24),transparent 42%,rgba(255,255,255,.08));pointer-events:none}
+.category-sheet-overlay.active .category-sheet-card:nth-child(1){transform:translateY(0) rotateX(0) rotateZ(0) scale(1);opacity:1;transition-delay:.10s}
+.category-sheet-overlay.active .category-sheet-card:nth-child(2){transform:translateY(0) rotateX(0) rotateZ(0) scale(1);opacity:1;transition-delay:.18s}
+.category-sheet-overlay.active .category-sheet-card:nth-child(3){transform:translateY(0) rotateX(0) rotateZ(0) scale(1);opacity:1;transition-delay:.26s}
+.category-sheet-card:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 20px rgba(0,0,0,.22);transform:translateY(-2px)}
+.category-sheet-card.all{background:linear-gradient(135deg,#475569,#1e293b)}
+.category-sheet-card.muslim{background:linear-gradient(135deg,#08a878,#056b4d)}
+.category-sheet-card.hindu{background:linear-gradient(135deg,#ffb21a,#ea580c)}
+.category-sheet-card i{display:block;font-size:20px;margin-bottom:3px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
+.category-sheet-card small{display:block;font-size:8px;font-weight:800;opacity:.95;margin-top:2px;white-space:nowrap}
+.category-sheet-close{display:block;margin:7px auto 0;border:1px solid #dbe4ee;background:#eef3f8;color:#334155;border-radius:18px;padding:5px 16px;font-size:10px;font-weight:900;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+@media(max-width:360px){.category-sheet{width:min(320px,calc(100% - 22px));padding-left:8px;padding-right:8px}.category-sheet-grid{gap:5px}.category-sheet-card{min-height:64px;font-size:10px}.category-sheet-card small{font-size:7px}.category-sheet-card i{font-size:18px}}
+</style>
+
 </head>
 
 <body>
@@ -660,19 +684,6 @@
 
     </nav>
 
-    <div class="mobile-shop-shortcuts" aria-label="कार्ड श्रेणियां">
-        <button type="button" class="shop-shortcut active" onclick="filterCategory('all');setSimpleCat(document.querySelector('.simple-cat'))">
-            <span class="shortcut-icon"><i class="fa-solid fa-layer-group"></i></span><b>सभी कार्ड</b><small>All Cards</small>
-        </button>
-        <button type="button" class="shop-shortcut" onclick="filterCategory('muslim');setSimpleCat(document.querySelectorAll('.simple-cat')[1])">
-            <span class="shortcut-icon"><i class="fa-solid fa-mosque"></i></span><b>मुस्लिम कार्ड</b><small>Muslim</small>
-        </button>
-        <button type="button" class="shop-shortcut" onclick="filterCategory('hindu');setSimpleCat(document.querySelectorAll('.simple-cat')[2])">
-            <span class="shortcut-icon"><i class="fa-solid fa-om"></i></span><b>हिंदू कार्ड</b><small>Hindu</small>
-        </button>
-    </div>
-
-
 
     <div class="container">
         <section class="top-card-tools" aria-label="कार्ड खोज और श्रेणी">
@@ -695,11 +706,6 @@
                     </datalist>
                     <button type="button" onclick="searchCatalogTop()">खोजें</button>
                 </div>
-            </div>
-            <div class="top-card-categories">
-                <button type="button" class="simple-cat active" onclick="filterCategory('all'); setSimpleCat(this)"><i class="fa-solid fa-grip"></i> सभी कार्ड</button>
-                <button type="button" class="simple-cat" onclick="filterCategory('muslim'); setSimpleCat(this)"><i class="fa-solid fa-mosque"></i> मुस्लिम कार्ड</button>
-                <button type="button" class="simple-cat" onclick="filterCategory('hindu'); setSimpleCat(this)"><i class="fa-solid fa-om"></i> हिंदू कार्ड</button>
             </div>
         </section>
 
@@ -1442,9 +1448,23 @@
         </div>
     </div>
 
-    <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="मोबाइल नेविगेशन">
+    
+<div class="category-sheet-overlay" id="categorySheetOverlay" aria-hidden="true" onclick="if(event.target===this)closeCategorySheet()">
+  <div class="category-sheet" role="dialog" aria-modal="true" aria-label="कार्ड कैटेगरी">
+    <div class="category-sheet-handle"></div>
+    <h3 class="category-sheet-title">कार्ड कैटेगरी चुनें</h3>
+    <div class="category-sheet-grid">
+      <button type="button" class="category-sheet-card all" onclick="chooseSheetCategory('all')"><i class="fa-solid fa-layer-group"></i>सभी कार्ड<small>All Cards</small></button>
+      <button type="button" class="category-sheet-card muslim" onclick="chooseSheetCategory('muslim')"><i class="fa-solid fa-mosque"></i>मुस्लिम कार्ड<small>Muslim Cards</small></button>
+      <button type="button" class="category-sheet-card hindu" onclick="chooseSheetCategory('hindu')"><i class="fa-solid fa-om"></i>हिंदू कार्ड<small>Hindu Cards</small></button>
+    </div>
+    <button type="button" class="category-sheet-close" onclick="closeCategorySheet()">बंद करें</button>
+  </div>
+</div>
+
+<nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="मोबाइल नेविगेशन">
         <a href="index.html"><i class="fa-solid fa-house"></i><span>होम</span></a>
-        <a href="#showcaseSection"><i class="fa-solid fa-grip"></i><span>कैटेगरी</span></a>
+        <a href="#showcaseSection" onclick="openCategorySheet(); return false;"><i class="fa-solid fa-grip"></i><span>कैटेगरी</span></a>
         <a href="login.html" id="mobileAuthLink"><i class="fa-solid fa-user"></i><span id="mobileAuthText">लॉगिन</span></a>
         <a href="cart.html" id="mobileCartLink" class="mobile-cart-link" aria-label="कार्ट">
             <i class="fa-solid fa-cart-shopping"></i><span>कार्ट</span><span class="cart-badge-count" id="navCartBadge">0</span>
@@ -1497,6 +1517,32 @@ function setSimpleCat(btn){
   <a href="https://wa.me/919304509464?text=नमस्ते%20दिल्ली%20प्रेस%2C%20मुझे%20कार्ड%20के%20बारे%20में%20जानकारी%20चाहिए।" target="_blank" rel="noopener" class="quick-wa" aria-label="WhatsApp पर बात करें"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
 </div>
 
+
+
+<script id="category-sheet-only-js">
+function openCategorySheet(){
+  const el=document.getElementById('categorySheetOverlay');
+  if(!el)return;
+  el.classList.add('active');
+  el.setAttribute('aria-hidden','false');
+}
+function closeCategorySheet(){
+  const el=document.getElementById('categorySheetOverlay');
+  if(!el)return;
+  el.classList.remove('active');
+  el.setAttribute('aria-hidden','true');
+}
+function chooseSheetCategory(cat){
+  closeCategorySheet();
+  filterCategory(cat);
+  document.querySelectorAll('.simple-cat').forEach((b)=>{
+    const t=(b.textContent||'').toLowerCase();
+    b.classList.toggle('active',(cat==='muslim'&&t.includes('मुस्लिम'))||(cat==='hindu'&&t.includes('हिंदू')));
+  });
+  const section=document.getElementById('showcaseSection');
+  if(section)setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}),120);
+}
+</script>
 
 </body>
 </html>
