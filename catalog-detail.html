@@ -233,9 +233,8 @@ function getImages(c){
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 async function findProduct(){
-  // The Index page sends the exact selected card before navigation.
-  // Always trust that fresh handoff first; this avoids an old/mismatched URL id
-  // or a slow Supabase request keeping the detail page on the loading screen.
+  // When an id is present in the URL, it is the source of truth.
+  // Never let an old local/session handoff object replace the card requested by the URL.
   const handoffKeys=['dp_catalog_detail_selected','dp_catalog_detail_fallback','dp_selected_catalog_card'];
   for(const key of handoffKeys){
     const raws=[];
@@ -245,8 +244,14 @@ async function findProduct(){
       try{
         const f=JSON.parse(raw);
         if(!f) continue;
+        const fId=f.id??f.catalog_id??f.card_id??f.product_id;
+        if(activeId){
+          // Only accept a cached handoff when it belongs to the exact URL id.
+          if(fId!=null && String(fId)===String(activeId)) return f;
+          continue;
+        }
+        // No URL id: legacy handoff is allowed as a fallback.
         if(f._from_index || key==='dp_catalog_detail_selected') return f;
-        if(!activeId || f.id==null || String(f.id)===String(activeId) || String(f.catalog_id??'')===String(activeId)) return f;
       }catch(e){}
     }
   }
