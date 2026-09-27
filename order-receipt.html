@@ -39,11 +39,10 @@
 </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
 const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
-const sb=window.supabase.createClient(URL,KEY), $=id=>document.getElementById(id);
+const $=id=>document.getElementById(id);
 const esc=v=>String(v??"-").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function get(o,...ks){for(const k of ks)if(o&&o[k]!==undefined&&o[k]!==null&&String(o[k]).trim()!=="")return o[k];return""}
 function money(v){return "₹"+(Number(v)||0).toLocaleString("en-IN",{maximumFractionDigits:2})}
@@ -70,13 +69,32 @@ function files(o){
  const u=String(o.order_matter||"").trim();if(/^https?:\/\//i.test(u)||/^data:(image\/|application\/pdf)/i.test(u))a.push({url:u,name:"Order Form से अपलोड की गई फाइल",type:u.includes("pdf")?"application/pdf":"image/*"});
  return a.filter((x,i,z)=>x.url&&!z.slice(0,i).some(y=>y.url===x.url))
 }
+async function apiGet(column,value){
+ const u=URL+"/rest/v1/orders?select=*&"+encodeURIComponent(column)+"=eq."+encodeURIComponent(String(value))+"&limit=1";
+ const ctl=new AbortController();
+ const timer=setTimeout(()=>ctl.abort(),10000);
+ try{
+  const r=await fetch(u,{method:"GET",headers:{"apikey":KEY,"Authorization":"Bearer "+KEY,"Accept":"application/json","Cache-Control":"no-cache"},cache:"no-store",signal:ctl.signal});
+  const text=await r.text();
+  if(!r.ok) throw Error("Supabase error "+r.status);
+  const arr=text?JSON.parse(text):[];
+  return Array.isArray(arr)&&arr.length?arr[0]:null;
+ }catch(e){
+  if(e&&e.name==="AbortError") throw Error("ऑर्डर लोड होने में समय लग रहा है। इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।");
+  throw e;
+ }finally{clearTimeout(timer)}
+}
 async function load(){
- const k=key();if(!k)throw Error("URL में Order ID नहीं मिली।");
- let q;
- if(/^\d+$/.test(k)){q=await sb.from("orders").select("*").eq("id",Number(k)).maybeSingle();if(q.data)return q.data}
- q=await sb.from("orders").select("*").eq("order_id",k).maybeSingle();if(q.data)return q.data;
+ const k=key();
+ if(!k) throw Error("URL में Order ID नहीं मिली।");
+ let data=null,lastError=null;
+ try{if(/^\d+$/.test(k)) data=await apiGet("id",Number(k));}catch(e){lastError=e}
+ if(data)return data;
+ try{data=await apiGet("order_id",k)}catch(e){lastError=e}
+ if(data)return data;
  for(const n of ["dp_latest_confirmed_order","dp_temp_order"]){try{const x=JSON.parse(localStorage.getItem(n)||"null");if(x&&String(x.id||x.order_id)===String(k))return x}catch(e){}}
- throw Error("Order नहीं मिला।")
+ if(lastError&&/Supabase error/.test(lastError.message||"")) throw Error("ऑर्डर डेटा लोड नहीं हो सका। Supabase से कनेक्शन/परमिशन जाँचें।");
+ throw Error("Order नहीं मिला।");
 }
 function render(o){
  const total=+get(o,"total_amount")||0,adv=+get(o,"advance_paid","advance_amount")||0,cash=+get(o,"cash_paid")||0,paid=adv+cash,bal=Math.max(0,total-paid),m=parseMatter(get(o,"custom_notes","order_notes","notes"));
@@ -91,7 +109,12 @@ function render(o){
  const fs=files(o);$("files").innerHTML=fs.length?fs.map((f,i)=>`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name||("फाइल "+(i+1)))} — खोलें</a>`).join(""):'<div class="empty">कोई PDF/फोटो अपलोड नहीं किया गया है।</div>';
  $("loading").style.display="none";$("receipt").style.display="block"
 }
-(async()=>{try{render(await load())}catch(e){$("loading").innerHTML='<div style="color:#b42318;font-weight:800">'+esc(e.message||e)+'</div>'}})();
+(async()=>{
+ try{render(await load())}
+ catch(e){
+  $("loading").innerHTML='<div style="color:#b42318;font-weight:800;padding:18px">'+esc(e.message||e)+`<br><button onclick="location.reload()" style="margin-top:12px;padding:10px 16px;border:0;border-radius:10px;background:#111827;color:#fff;font-weight:800">फिर से प्रयास करें</button></div>`
+ }
+})();
 </script>
 </body>
 </html>
