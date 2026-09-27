@@ -1083,15 +1083,20 @@
             }
         }
 
-        function buildCustomerAnalytics(orders) {
+        async function buildCustomerAnalytics(orders) {
             const customerMap = {};
             let totalEmails = 0;
 
-            orders.forEach(o => {
-                const phone = (o.mobile || o.customer_phone || '').trim();
-                const email = (o.email || o.customer_email || '').trim();
-                const name = (o.customer_name || 'अज्ञात ग्राहक').trim();
-                const key = email ? email.toLowerCase() : (phone || `cust_${o.id}`);
+            const clean = (v) => String(v ?? '').trim();
+            const normPhone = (v) => clean(v).replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
+
+            // पहले orders से ग्राहक डेटा तैयार करें।
+            (Array.isArray(orders) ? orders : []).forEach(o => {
+                const phone = clean(o.mobile || o.customer_phone || o.phone);
+                const email = clean(o.email || o.customer_email);
+                const name = clean(o.customer_name || o.name) || 'अज्ञात ग्राहक';
+                const phoneKey = normPhone(phone);
+                const key = email ? 'e:' + email.toLowerCase() : (phoneKey ? 'p:' + phoneKey : `cust_${o.id}`);
 
                 if (!customerMap[key]) {
                     customerMap[key] = {
@@ -1103,10 +1108,14 @@
                         firstDate: o.created_at ? new Date(o.created_at) : new Date()
                     };
                     if (email) totalEmails++;
+                } else {
+                    if (!customerMap[key].name || customerMap[key].name === 'अज्ञात ग्राहक') customerMap[key].name = name;
+                    if (!customerMap[key].phone && phone) customerMap[key].phone = phone;
+                    if (!customerMap[key].email && email) customerMap[key].email = email;
                 }
 
                 customerMap[key].ordersCount += 1;
-                customerMap[key].totalSpent += parseFloat(o.total_amount || 0);
+                customerMap[key].totalSpent += parseFloat(o.total_amount || 0) || 0;
 
                 if (o.created_at) {
                     const d = new Date(o.created_at);
@@ -1114,11 +1123,73 @@
                 }
             });
 
-            const customersList = Object.values(customerMap);
+            // SIGNUP/LOGIN वाले ग्राहक orders से अलग भी हो सकते हैं।
+            // इसलिए users table से सभी registered customers भी लाएँ।
+            if (supabaseClient) {
+                try {
+                    const { data: users, error: usersError } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .order('id', { ascending: false });
+
+                    if (!usersError && Array.isArray(users)) {
+                        users.forEach(u => {
+                            const phone = clean(u.mobile || u.phone || u.customer_phone);
+                            const email = clean(u.email || u.customer_email);
+                            const name = clean(u.name || u.customer_name || u.full_name) || 'अज्ञात ग्राहक';
+                            const phoneKey = normPhone(phone);
+                            const key = email ? 'e:' + email.toLowerCase() : (phoneKey ? 'p:' + phoneKey : (u.id != null ? 'u:' + u.id : ''));
+                            if (!key) return;
+
+                            // पहले email/phone से existing order customer को खोजें ताकि duplicate न बने।
+                            let targetKey = key;
+                            if (!customerMap[targetKey] && phoneKey) {
+                                const possible = Object.keys(customerMap).find(k => k === 'p:' + phoneKey);
+                                if (possible) targetKey = possible;
+                            }
+                            if (!customerMap[targetKey] && email) {
+                                const possible = Object.keys(customerMap).find(k => k === 'e:' + email.toLowerCase());
+                                if (possible) targetKey = possible;
+                            }
+
+                            if (!customerMap[targetKey]) {
+                                customerMap[targetKey] = {
+                                    name,
+                                    email,
+                                    phone,
+                                    ordersCount: 0,
+                                    totalSpent: 0,
+                                    firstDate: u.created_at ? new Date(u.created_at) : new Date()
+                                };
+                                if (email) totalEmails++;
+                            } else {
+                                if ((!customerMap[targetKey].name || customerMap[targetKey].name === 'अज्ञात ग्राहक') && name) customerMap[targetKey].name = name;
+                                if (!customerMap[targetKey].email && email) {
+                                    customerMap[targetKey].email = email;
+                                    totalEmails++;
+                                }
+                                if (!customerMap[targetKey].phone && phone) customerMap[targetKey].phone = phone;
+                                if (u.created_at) {
+                                    const d = new Date(u.created_at);
+                                    if (d < customerMap[targetKey].firstDate) customerMap[targetKey].firstDate = d;
+                                }
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('users table load skipped:', e);
+                }
+            }
+
+            const customersList = Object.values(customerMap).sort((a,b) => {
+                const ad = a.firstDate instanceof Date ? a.firstDate.getTime() : 0;
+                const bd = b.firstDate instanceof Date ? b.firstDate.getTime() : 0;
+                return bd - ad;
+            });
 
             document.getElementById('statTotalCustomers').innerText = customersList.length;
             document.getElementById('statTotalEmails').innerText = totalEmails;
-            document.getElementById('statTotalOrders').innerText = orders.length;
+            document.getElementById('statTotalOrders').innerText = Array.isArray(orders) ? orders.length : 0;
             const miniCustomers = document.getElementById('miniCustomersCount');
             if (miniCustomers) miniCustomers.innerText = customersList.length;
 
@@ -1126,20 +1197,21 @@
             if (customersList.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7">कोई ग्राहक डेटा उपलब्ध नहीं है।</td></tr>';
             } else {
+                const esc = (v) => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\'/g,'&#39;');
                 tbody.innerHTML = customersList.map((c, i) => `
                     <tr>
                         <td><b>${i + 1}</b></td>
-                        <td><b>${c.name}</b></td>
-                        <td>${c.email ? `<span style="color:#2563eb; font-weight:600;"><i class="fa-regular fa-envelope"></i> ${c.email}</span>` : '<span style="color:#94a3b8;">-</span>'}</td>
-                        <td>${c.phone ? `📞 ${c.phone}` : '-'}</td>
+                        <td><b>${esc(c.name)}</b></td>
+                        <td>${c.email ? `<span style="color:#2563eb; font-weight:600;"><i class="fa-regular fa-envelope"></i> ${esc(c.email)}</span>` : '<span style="color:#94a3b8;">-</span>'}</td>
+                        <td>${c.phone ? `📞 ${esc(c.phone)}` : '-'}</td>
                         <td><span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:12px; font-weight:bold;">${c.ordersCount} ऑर्डर्स</span></td>
                         <td><b>₹${c.totalSpent}</b></td>
-                        <td>${c.firstDate.toLocaleDateString('hi-IN')}</td>
+                        <td>${c.firstDate instanceof Date && !isNaN(c.firstDate) ? c.firstDate.toLocaleDateString('hi-IN') : '-'}</td>
                     </tr>
                 `).join('');
             }
 
-            renderCustomerGraph(orders);
+            renderCustomerGraph(Array.isArray(orders) ? orders : []);
         }
 
         function renderCustomerGraph(orders) {
@@ -2227,12 +2299,107 @@
         }
 
         function openOrderReceiptModal(orderId) {
-            const id = String(orderId || '').trim();
-            if (!id) {
-                alert('ऑर्डर ID नहीं मिली।');
-                return;
-            }
-            window.location.href = 'order-receipt.html?id=' + encodeURIComponent(id);
+            window.__adminReceiptOrderId = String(orderId);
+            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
+            if (!o) return;
+
+            let baseNotes = String(o.custom_notes || o.order_notes || o.notes || '');
+            if (baseNotes.includes('[ADMIN_NOTICE]')) baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
+
+            const total = parseFloat(o.total_amount || 0) || 0;
+            const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
+            const balance = Math.max(0, total - advance);
+            const matter = parseAdminOrderMatterForReceipt(baseNotes);
+            const files = parseAdminCustomerFilesForReceipt(o);
+            const cardImg = o.card_image || o.image || o.card_photo || '';
+            const safeId = escapeAdminReceiptText(o.id || '-');
+            const safe = escapeAdminReceiptText;
+
+            const eventRows = matter.events.length ? matter.events.map((e,i)=>`
+                <tr>
+                    <td>${i+1}. ${safe(e.title || '-')}</td>
+                    <td>${safe(e.date || '-')}</td>
+                    <td>${safe(e.day || '-')}</td>
+                    <td>${safe(e.time || e.part || '-')}</td>
+                </tr>`).join('') : `
+                <tr><td colspan="4" style="text-align:center;color:#64748b;">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
+
+            const fileRows = files.length ? files.map(f=>{
+                const url = String(f.url || '').trim();
+                const isPdf=/pdf/i.test(String(f.mime||f.fileType||f.type||f.name||url));
+                return `<a href="${safe(url)}" target="_blank" rel="noopener" class="admin-matter-file-btn">
+                    <i class="fa-solid ${isPdf?'fa-file-pdf':'fa-image'}"></i> ${safe(f.name || (isPdf?'PDF फाइल खोलें':'फोटो खोलें'))}
+                </a>`;
+            }).join('') : `<span style="color:#64748b;font-size:12px;">अलग PDF/फोटो फाइल उपलब्ध नहीं है।</span>`;
+
+            area = document.getElementById('printableReceiptArea');
+            area.innerHTML = `
+                <div class="receipt-header dp-full-receipt-head">
+                    <h2>बिस्मिल्लाहिर्रहमानिर्रहीम</h2>
+                    <div class="dp-receipt-title">ऑर्डर मैटर रसीद / फॉर्म</div>
+                    <div class="dp-receipt-meta"><b>रसीद नं.:</b> #${safeId} &nbsp; | &nbsp; <b>तिथि:</b> ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</div>
+                </div>
+
+                <div class="dp-two-col">
+                    <div class="dp-person-box">
+                        <div class="dp-box-title">1. लड़का:</div>
+                        <div class="form-line"><b>लड़का का नाम:</b> ${safe(o.groom_name||'-')}</div>
+                        <div class="form-line"><b>पिता का नाम:</b> ${safe(o.groom_father||'-')}</div>
+                        <div class="form-line"><b>पता:</b> ${safe(o.groom_address||'-')}</div>
+                    </div>
+                    <div class="dp-person-box">
+                        <div class="dp-box-title">2. लड़की:</div>
+                        <div class="form-line"><b>लड़की का नाम:</b> ${safe(o.bride_name||'-')}</div>
+                        <div class="form-line"><b>पिता का नाम:</b> ${safe(o.bride_father||'-')}</div>
+                        <div class="form-line"><b>पता:</b> ${safe(o.bride_address||'-')}</div>
+                    </div>
+                </div>
+
+                <div class="dp-section-heading">3. कार्यक्रम</div>
+                <table class="dp-event-table">
+                    <thead><tr><th>कार्यक्रम</th><th>तारीख</th><th>दिन</th><th>समय</th></tr></thead>
+                    <tbody>${eventRows}</tbody>
+                </table>
+
+                <div class="dp-two-col">
+                    <div class="dp-info-box">
+                        <b class="dp-info-title">R.S.V.P. / चश्मे बराह</b>
+                        <div class="dp-info-body">${safe(matter.rsvp.join('\n') || '—')}</div>
+                    </div>
+                    <div class="dp-info-box">
+                        <b class="dp-info-title">ऑर्डर जानकारी</b>
+                        <div class="dp-info-body">ग्राहक: <b>${safe(o.customer_name||'-')}</b><br>मोबाइल: <b>${safe(o.mobile||o.phone||'-')}</b><br>मात्रा: <b>${safe(o.quantity||100)} पीस</b><br>कार्ड: <b>${safe(o.card_title||o.card_name||'शादी कार्ड')}</b>${o.card_model?`<br>मॉडल / कोड: <b>${safe(o.card_model)}</b>`:''}</div>
+                    </div>
+                </div>
+
+                <div class="dp-file-box">
+                    <div class="dp-box-title">✍️ ऑर्डर फॉर्म से अपलोड किया हुआ PDF / फोटो — देखने के लिए</div>
+                    <div class="dp-file-list">${fileRows}</div>
+                </div>
+
+                <div class="dp-typed-box">
+                    <div class="dp-box-title">✏️ टाइप किया हुआ ऑर्डर</div>
+                    <div class="dp-typed-preview">${safe(baseNotes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}</div>
+                </div>
+
+                <div class="dp-selected-card-box">
+                    <div class="dp-box-title">🖼️ ऑर्डर में चुना गया कार्ड</div>
+                    <div class="dp-selected-card-row">
+                        ${cardImg ? `<img src="${safe(cardImg)}" alt="Selected Card" onerror="this.style.display='none';">` : ''}
+                        <div><b>${safe(o.card_title||o.card_name||'शादी कार्ड')}</b><br>${o.card_model?`मॉडल / कोड: <b>${safe(o.card_model)}</b><br>`:''}<span>ऑर्डर में चुना गया कार्ड</span></div>
+                    </div>
+                </div>
+
+                <div class="dp-payment-box">
+                    <div class="dp-box-title">💰 बिल एवं भुगतान स्थिति</div>
+                    <div class="dp-payment-row"><span>कुल राशि:</span><b>₹${total}</b></div>
+                    <div class="dp-payment-row"><span>अग्रिम जमा:</span><b class="dp-green">₹${advance}</b></div>
+                    <div class="dp-payment-row"><span>शेष बकाया:</span><b class="dp-red">₹${balance}</b></div>
+                    <div class="dp-payment-row"><span>ऑर्डर स्टेटस:</span><b>${safe(o.status||'Pending')}</b></div>
+                </div>
+            `;
+
+            document.getElementById('orderModal').style.display = 'flex';
         }
 
         function closeOrderModal() {
