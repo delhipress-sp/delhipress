@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delhi Press - Order Receipt</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef2f7;color:#172033;font-family:Arial,"Noto Sans Devanagari",sans-serif}.page{max-width:900px;margin:18px auto;background:#fff;padding:20px;border-radius:14px;box-shadow:0 8px 30px #0001}.head{display:flex;justify-content:space-between;gap:15px;border-bottom:3px solid #8b1e2d;padding-bottom:12px}.brand{font-size:23px;font-weight:900;color:#8b1e2d}.title{text-align:right}.title h1{margin:0;color:#8b1e2d;font-size:22px}.muted{color:#64748b;font-size:13px}.tools{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:800;cursor:pointer;text-decoration:none}.print{background:#172033;color:#fff}.back{background:#e2e8f0;color:#172033}.home{background:#8b1e2d;color:#fff}.sec{border:1px solid #d8dee8;border-radius:10px;overflow:hidden;margin:14px 0}.sec h2{margin:0;padding:10px 13px;background:#f7f8fa;border-left:5px solid #8b1e2d;color:#8b1e2d;font-size:17px}.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee8;padding:8px 10px;text-align:left;vertical-align:top;font-size:14px}th{background:#fff7dc}.kv td:first-child{width:31%;font-weight:800;background:#fafbfc}.card{display:flex;gap:15px;padding:14px;align-items:center}.card img{width:135px;height:135px;object-fit:cover;border:1px solid #ddd;border-radius:8px}.cardname{font-size:18px;font-weight:900}.empty{text-align:center;color:#64748b;padding:12px}.files{padding:12px;display:grid;gap:8px}.files a{padding:10px;border:1px solid #d8dee8;border-radius:8px;color:#175cd3;text-decoration:none;font-weight:700}.status{font-weight:800}.footer{text-align:center;color:#64748b;font-size:12px;border-top:1px solid #ddd;margin-top:18px;padding-top:10px}@media(max-width:600px){.page{margin:0;border-radius:0;padding:12px;box-shadow:none}.head{flex-direction:column}.title{text-align:left}.card img{width:105px;height:105px}th,td{font-size:13px;padding:7px}}@media print{body{background:#fff}.page{margin:0;box-shadow:none;max-width:none;padding:0}.tools{display:none}.sec{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+<div id="loading" style="text-align:center;padding:50px;color:#64748b">ऑर्डर रिसीप्ट लोड हो रही है...</div>
+<main id="receipt" style="display:none">
+<div class="head"><div><div class="brand">दिल्ली प्रेस (सज्जाद प्रिंटर्स)</div><div class="muted">शादी कार्ड • फ्लेक्स • विज़िटिंग कार्ड • डिजिटल प्रिंटिंग</div></div><div class="title"><h1>ऑर्डर रिसीप्ट</h1><div>Order ID: <b id="orderId">-</b></div><div id="created">-</div></div></div>
+<div class="tools"><button class="btn print" onclick="window.print()">प्रिंट निकालें</button><button class="btn back" onclick="history.back()">वापस</button><a class="btn home" href="index.html">मुख्य मेनू पर जाएँ</a></div>
+
+<section class="sec"><h2>1. ग्राहक विवरण</h2><div class="wrap"><table class="kv">
+<tr><td>ग्राहक का नाम</td><td id="customerName">-</td></tr><tr><td>मोबाइल / WhatsApp</td><td id="mobile">-</td></tr><tr><td>पूरा पता</td><td id="address">-</td></tr><tr><td>ऑर्डर स्थिति</td><td id="status" class="status">-</td></tr>
+</table></div></section>
+
+<section class="sec"><h2>2. चुना गया कार्ड</h2><div class="card"><img id="cardImage" alt="Card"><div><div class="cardname" id="cardTitle">-</div><div class="muted">मॉडल / कोड: <b id="cardModel">-</b></div><div class="muted">कैटलॉग ID: <b id="catalogId">-</b></div></div></div><div class="wrap"><table class="kv">
+<tr><td>मात्रा</td><td id="qty">-</td></tr><tr><td>रेट</td><td id="rate">-</td></tr><tr><td>कुल बिल</td><td id="total">₹0</td></tr><tr><td>Advance Paid</td><td id="advance">₹0</td></tr><tr><td>Cash Paid</td><td id="cash">₹0</td></tr><tr><td>कुल भुगतान</td><td id="paid">₹0</td></tr><tr><td>बाकी राशि</td><td id="balance">₹0</td></tr><tr><td>Payment Mode</td><td id="paymentMode">-</td></tr><tr><td>Transaction ID</td><td id="txn">-</td></tr>
+</table></div></section>
+
+<section class="sec"><h2>3. वैवाहिक विवरण (शुभ विवाह)</h2><div class="wrap"><table><thead><tr><th></th><th>वर (लड़का)</th><th>वधू (लड़की)</th></tr></thead><tbody>
+<tr><th>नाम</th><td id="groom">-</td><td id="bride">-</td></tr><tr><th>पिता का नाम</th><td id="groomFather">-</td><td id="brideFather">-</td></tr><tr><th>पता</th><td id="groomAddress">-</td><td id="brideAddress">-</td></tr>
+</tbody></table></div></section>
+
+<section class="sec"><h2>4. वैवाहिक कार्यक्रम</h2><div class="wrap"><table><thead><tr><th>क्र.</th><th>कार्यक्रम</th><th>तारीख</th><th>दिन</th><th>समय</th></tr></thead><tbody id="events"></tbody></table></div></section>
+
+<section class="sec"><h2>5. R.S.V.P. / चश्मे बराह</h2><div class="wrap"><table class="kv">
+<tr><td>R.S.V.P. / विनीत / निवेदक</td><td id="rsvp">-</td></tr><tr><td>With Best Compliments From</td><td id="best">-</td></tr><tr><td>Contact / संपर्क</td><td id="contact">-</td></tr>
+</table></div></section>
+
+<section class="sec"><h2>6. अन्य मैटर / Notes</h2><div id="notes" style="padding:12px;white-space:pre-wrap;line-height:1.7"></div></section>
+<section class="sec"><h2>7. Order Form से अपलोड PDF / फोटो</h2><div id="files" class="files"></div></section>
+<div class="footer">दिल्ली प्रेस (सज्जाद प्रिंटर्स) • Eidgah More, Karmatar, Jamtara, Jharkhand</div>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const URL="https://qsvhtfkrlzclnqwypfdy.supabase.co";
+const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
+const sb=window.supabase.createClient(URL,KEY), $=id=>document.getElementById(id);
+const esc=v=>String(v??"-").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function get(o,...ks){for(const k of ks)if(o&&o[k]!==undefined&&o[k]!==null&&String(o[k]).trim()!=="")return o[k];return""}
+function money(v){return "₹"+(Number(v)||0).toLocaleString("en-IN",{maximumFractionDigits:2})}
+function key(){const p=new URLSearchParams(location.search);return p.get("id")||p.get("order_id")||p.get("orderId")||""}
+
+function parseMatter(text){
+ const r={events:[],rsvp:"",best:"",contact:"",other:[]};
+ for(const line of String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean)){
+  if(/^कार्यक्रम\s*:/i.test(line)){
+   const p=line.replace(/^कार्यक्रम\s*:\s*/i,"").split(/\s*\|\s*/);
+   const g=l=>{const x=p.find(z=>new RegExp("^"+l+"\\s*:","i").test(z));return x?x.replace(new RegExp("^"+l+"\\s*:\\s*","i"),"").trim():""};
+   r.events.push({title:g("कार्यक्रम")||p[0]||"-",date:g("तारीख"),day:g("दिन"),time:g("समय")||g("समय का भाग")});continue
+  }
+  if(/^(विनीत\s*\/\s*निवेदक|From\s*\(|R\.?S\.?V\.?P)/i.test(line)){r.rsvp=line.replace(/^[^:]+:\s*/,"");continue}
+  if(/^(दर्शनाभिलाषी|अदाई\s*\/\s*आकांक्षी|With Best Compliments)/i.test(line)){r.best=line.replace(/^[^:]+:\s*/,"");continue}
+  if(/^(संपर्क|Contact)\s*:/i.test(line)){r.contact=line.replace(/^[^:]+:\s*/,"");continue}
+  if(!/^(---|\[अतिरिक्त|जोड़ा\s*#|वर\s*:|वधू\s*:)/i.test(line))r.other.push(line)
+ }
+ return r
+}
+function files(o){
+ let a=[];const add=v=>{if(!v)return;let x=v;if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return}}if(Array.isArray(x))x.forEach(add);else if(x&&typeof x==="object"&&x.url)a.push(x)};
+ add(o.customer_files);add(o.wedding_matter_file);
+ const u=String(o.order_matter||"").trim();if(/^https?:\/\//i.test(u)||/^data:(image\/|application\/pdf)/i.test(u))a.push({url:u,name:"Order Form से अपलोड की गई फाइल",type:u.includes("pdf")?"application/pdf":"image/*"});
+ return a.filter((x,i,z)=>x.url&&!z.slice(0,i).some(y=>y.url===x.url))
+}
+async function load(){
+ const k=key();if(!k)throw Error("URL में Order ID नहीं मिली।");
+ let q;
+ if(/^\d+$/.test(k)){q=await sb.from("orders").select("*").eq("id",Number(k)).maybeSingle();if(q.data)return q.data}
+ q=await sb.from("orders").select("*").eq("order_id",k).maybeSingle();if(q.data)return q.data;
+ for(const n of ["dp_latest_confirmed_order","dp_temp_order"]){try{const x=JSON.parse(localStorage.getItem(n)||"null");if(x&&String(x.id||x.order_id)===String(k))return x}catch(e){}}
+ throw Error("Order नहीं मिला।")
+}
+function render(o){
+ const total=+get(o,"total_amount")||0,adv=+get(o,"advance_paid","advance_amount")||0,cash=+get(o,"cash_paid")||0,paid=adv+cash,bal=Math.max(0,total-paid),m=parseMatter(get(o,"custom_notes","order_notes","notes"));
+ $("orderId").textContent=get(o,"order_id","id")||"-";$("created").textContent=get(o,"created_at")?new Date(o.created_at).toLocaleString("hi-IN"):"";
+ $("customerName").textContent=get(o,"customer_name","name")||"-";$("mobile").textContent=get(o,"mobile","phone")||"-";$("address").textContent=get(o,"address","customer_address")||"-";$("status").textContent=get(o,"status")||"Pending";
+ $("cardTitle").textContent=get(o,"card_title","card_name")||"शादी कार्ड";$("cardModel").textContent=get(o,"card_model","model","catalog_model")||"-";$("catalogId").textContent=get(o,"catalog_id","catalogId","selected_catalog_id")||"-";
+ $("qty").textContent=get(o,"quantity")||"-";$("rate").textContent=get(o,"rate","card_rate","rate_per_piece")?money(get(o,"rate","card_rate","rate_per_piece")):"-";$("total").textContent=money(total);$("advance").textContent=money(adv);$("cash").textContent=money(cash);$("paid").textContent=money(paid);$("balance").textContent=money(bal);$("paymentMode").textContent=get(o,"payment_mode")||"-";$("txn").textContent=get(o,"txn_id","transaction_id")||"-";
+ $("groom").textContent=get(o,"groom_name")||"-";$("groomFather").textContent=get(o,"groom_father")||"-";$("groomAddress").textContent=get(o,"groom_address")||"-";$("bride").textContent=get(o,"bride_name")||"-";$("brideFather").textContent=get(o,"bride_father")||"-";$("brideAddress").textContent=get(o,"bride_address")||"-";
+ $("events").innerHTML=m.events.length?m.events.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(e.title)}</td><td>${esc(e.date||"-")}</td><td>${esc(e.day||"-")}</td><td>${esc(e.time||"-")}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
+ $("rsvp").textContent=m.rsvp||"-";$("best").textContent=m.best||"-";$("contact").textContent=m.contact||"-";$("notes").textContent=m.other.length?m.other.join("\n"):"कोई अतिरिक्त नोट उपलब्ध नहीं है।";
+ const img=get(o,"card_image","catalog_image","image","image_url");$("cardImage").src=img||"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='100%' height='100%' fill='#f1f5f9'/><text x='50%' y='50%' text-anchor='middle' fill='#94a3b8'>Card</text></svg>");
+ const fs=files(o);$("files").innerHTML=fs.length?fs.map((f,i)=>`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name||("फाइल "+(i+1)))} — खोलें</a>`).join(""):'<div class="empty">कोई PDF/फोटो अपलोड नहीं किया गया है।</div>';
+ $("loading").style.display="none";$("receipt").style.display="block"
+}
+(async()=>{try{render(await load())}catch(e){$("loading").innerHTML='<div style="color:#b42318;font-weight:800">'+esc(e.message||e)+'</div>'}})();
+</script>
+</body>
+</html>
