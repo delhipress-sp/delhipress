@@ -63,9 +63,10 @@ function parseMatter(text){
    if(/^जोड़ा\s*#\s*\d+\s*:/i.test(line)){addCouple();continue}
    if(parsePerson(line,/^वधू\s*:/i.test(line)?"bride":"groom"))continue;
    if(/^कार्यक्रम\s*:/i.test(line)){
-    const p=line.replace(/^कार्यक्रम\s*:\s*/i,"").split(/\s*\|\s*/);
+    const p=line.replace(/^कार्यक्रम\s*:\s*/i,"").split(/\s*\|\s*/).map(x=>x.trim()).filter(Boolean);
     const g=l=>{const x=p.find(z=>new RegExp("^"+l+"\\s*:","i").test(z));return x?x.replace(new RegExp("^"+l+"\\s*:\\s*","i"),"").trim():""};
-    r.events.push({title:g("कार्यक्रम")||p[0]||"-",date:g("तारीख"),day:g("दिन"),time:g("समय")||g("समय का भाग")});continue;
+    const title=g("कार्यक्रम") || (p[0] && !/^तारीख\s*:/i.test(p[0]) && !/^दिन\s*:/i.test(p[0]) && !/^समय/i.test(p[0]) ? p[0] : "") || "-";
+    r.events.push({title,date:g("तारीख"),day:g("दिन"),time:g("समय")||g("समय का भाग")});continue;
    }
    if(/^(विनीत\s*\/\s*निवेदक|From\s*\(|R\.?S\.?V\.?P)/i.test(line)){r.rsvp=line.replace(/^[^:]+:\s*/,"");continue}
    if(/^(दर्शनाभिलाषी|अदाई\s*\/\s*आकांक्षी|With Best Compliments)/i.test(line)){r.best=line.replace(/^[^:]+:\s*/,"");continue}
@@ -121,8 +122,16 @@ async function load(){
  if(lastError&&/Supabase error/.test(lastError.message||"")) throw Error("ऑर्डर डेटा लोड नहीं हो सका। Supabase से कनेक्शन/परमिशन जाँचें।");
  throw Error("Order नहीं मिला।");
 }
+function matterTextFromOrder(o){
+ const direct=get(o,"custom_notes","order_notes","notes");
+ if(String(direct||"").trim()) return String(direct);
+ const fallback=String(o?.order_matter||"").trim();
+ // order_matter में handwritten file का URL भी हो सकता है; उसे Notes में न दिखाएं।
+ if(fallback && !/^https?:\/\//i.test(fallback) && !/^data:/i.test(fallback)) return fallback;
+ return "";
+}
 function render(o){
- const total=+get(o,"total_amount")||0,adv=+get(o,"advance_paid","advance_amount")||0,cash=+get(o,"cash_paid")||0,paid=adv+cash,bal=Math.max(0,total-paid),m=parseMatter(get(o,"custom_notes","order_notes","notes"));
+ const total=+get(o,"total_amount")||0,adv=+get(o,"advance_paid","advance_amount")||0,cash=+get(o,"cash_paid")||0,paid=adv+cash,bal=Math.max(0,total-paid),m=parseMatter(matterTextFromOrder(o));
  $("orderId").textContent=get(o,"order_id","id")||"-";$("created").textContent=get(o,"created_at")?new Date(o.created_at).toLocaleString("hi-IN"):"";
  $("customerName").textContent=get(o,"customer_name","name")||"-";$("mobile").textContent=get(o,"mobile","phone")||"-";$("address").textContent=get(o,"address","customer_address")||"-";$("status").textContent=get(o,"status")||"Pending";
  $("cardTitle").textContent=get(o,"card_title","card_name")||"शादी कार्ड";$("cardModel").textContent=get(o,"card_model","model","catalog_model")||"-";$("catalogId").textContent=get(o,"catalog_id","catalogId","selected_catalog_id")||"-";
