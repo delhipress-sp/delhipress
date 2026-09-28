@@ -736,6 +736,16 @@ await finalizeAndSubmitOrder('cash');
                 cleanOrderPayload.order_matter = uploadedMatterFile.url;
             }
 
+            // Payment के बाद भी Receipt को पूरा typed matter मिले, इसलिए
+            // confirmed order का छोटा local snapshot हमेशा रखें। इसमें
+            // custom_notes जरूर रहेगा; payment screenshot इसमें नहीं रखा जाता।
+            try {
+                localStorage.setItem(
+                    'dp_latest_confirmed_order',
+                    JSON.stringify({ ...cleanOrderPayload, payment_receipt: '' })
+                );
+            } catch (e) {}
+
             // 2. Cloud DB sync.
             // orders table का वास्तविक primary key "id" है; order_id और phone
             // केवल local/display के लिए हैं, इसलिए Supabase payload से हटाए जाते हैं।
@@ -748,15 +758,21 @@ await finalizeAndSubmitOrder('cash');
                 delete cloudBase.phone;
                 delete cloudBase.wedding_matter_file;
 
+                // पहले पूरा payload भेजें। खास तौर पर custom_notes कभी हटाकर
+                // order को सफल मानना नहीं है, क्योंकि इसी में Order Form का
+                // कार्यक्रम/तारीख/दिन/समय/RSVP/अन्य नोट सुरक्षित हैं।
                 const payloadsToTry = [
                     cloudBase,
                     { ...cloudBase, payment_receipt: '' },
+                    // यदि Supabase schema में custom_notes या कुछ optional columns
+                    // पुराने हैं, तब भी typed matter को order_matter में सुरक्षित रखें।
                     (() => {
                         const x = { ...cloudBase };
                         delete x.custom_notes;
                         delete x.payment_receipt;
                         delete x.barat_date;
                         delete x.customer_files;
+                        x.order_matter = String(cloudBase.custom_notes || cloudBase.order_matter || '');
                         return x;
                     })(),
                     {
@@ -766,8 +782,7 @@ await finalizeAndSubmitOrder('cash');
                         card_title: cloudBase.card_title,
                         card_model: cloudBase.card_model,
                         card_image: cloudBase.card_image,
-                        order_matter: cloudBase.order_matter || '',
-                        customer_files: cloudBase.customer_files || [],
+                        order_matter: String(cloudBase.custom_notes || cloudBase.order_matter || ''),
                         quantity: cloudBase.quantity,
                         total_amount: cloudBase.total_amount,
                         advance_paid: cloudBase.advance_paid,
