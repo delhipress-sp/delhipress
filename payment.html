@@ -264,10 +264,11 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             const qs = new URLSearchParams(window.location.search);
-            const returnedCashfreeOrderId = qs.get('cashfree_order_id');
+            const returnedCashfreeOrderId = qs.get('order_id') || qs.get('cashfree_order_id');
 
-            // Cashfree return के समय उसी payment के समय सुरक्षित किया गया
-            // exact order snapshot पहले लें। इससे पुराना/stale dp_temp_order
+            // Cashfree return के समय Cashfree आधिकारिक रूप से `order_id` query parameter
+            // भेजता है। पुराने links के लिए `cashfree_order_id` भी स्वीकार करें।
+            // उसी payment के समय सुरक्षित किया गया exact order snapshot पहले लें। इससे पुराना/stale dp_temp_order
             // लगकर गलत card/advance save नहीं होगा।
             if (returnedCashfreeOrderId) {
                 cashfreeOrderId = returnedCashfreeOrderId;
@@ -435,7 +436,7 @@ await finalizeAndSubmitOrder('cash');
                     localStorage.setItem('dp_cashfree_pending_order_' + merchantOrderId, snapshot);
                     localStorage.setItem('dp_cashfree_pending_order', snapshot);
                 } catch (e) {}
-                const returnUrl = `${window.location.origin}${window.location.pathname}?cashfree_order_id={order_id}`;
+                const returnUrl = `${window.location.origin}${window.location.pathname}?order_id={order_id}`;
                 const notifyUrl = `${SUPABASE_URL}/functions/v1/cashfree-webhook`;
 
                 // Cashfree Edge Function के वर्तमान API के अनुसार सीधे fields भेजें।
