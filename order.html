@@ -2277,6 +2277,17 @@
                 
                 let notes = [];
 
+                // मुख्य दूल्हा-दुल्हन का पूरा डेटा भी custom_notes में सुरक्षित रखें।
+                // इससे Receipt में direct DB columns उपलब्ध न होने पर भी नाम/पिता/पता
+                // सही तरीके से recover हो सकेगा।
+                if ([mainGroom, mainGroomF, mainGroomA, mainBride, mainBrideF, mainBrideA]
+                    .some(v => String(v || '').trim() && String(v || '').trim() !== '-')) {
+                    notes.push("--- [मुख्य दूल्हा-दुल्हन विवरण] ---");
+                    notes.push(`वर: ${mainGroom} (पिता: ${mainGroomF}, पता: ${mainGroomA})`);
+                    notes.push(`वधू: ${mainBride} (पिता: ${mainBrideF}, पता: ${mainBrideA})`);
+                    notes.push("");
+                }
+
                 const additionalUnits = document.querySelectorAll('#additionalCouplesContainer .couple-pair-unit');
                 if (additionalUnits.length > 0) {
                     notes.push("--- [अतिरिक्त दूल्हा-दुल्हन विवरण] ---");
@@ -2300,8 +2311,8 @@
                     const t = el.querySelector('.event-title')?.value;
                     const d = el.querySelector('.event-date')?.value;
                     const day = el.querySelector('.event-day')?.value;
-                    const part = el.querySelector('.event-daypart')?.value;
-                    const tm = el.querySelector('.event-time')?.value;
+                    const part = el.querySelector('.event-ampm')?.value || '';
+                    const tm = el.querySelector('.event-time')?.value || '';
                     if(t || d || day || part || tm) {
                         notes.push(`कार्यक्रम: ${t || ''} | तारीख: ${d || ''} | दिन: ${day || ''} | समय का भाग: ${part || ''} | समय: ${tm || ''}`);
                     }
