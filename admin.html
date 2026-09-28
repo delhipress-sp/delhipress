@@ -790,7 +790,28 @@
                         <td><b>${o.card_title || 'शादी कार्ड'}</b><br><small>${o.quantity || 100} पीस</small></td>
                         <td><b>${o.customer_name || '-'}</b><br>📞 ${o.mobile || o.customer_phone || '-'}<br><small style="color:#2563eb;">${o.email || o.customer_email || ''}</small></td>
                         <td>वर: ${o.groom_name || '-'}<br>वधू: ${o.bride_name || '-'}</td>
-                        <td>कुल: ₹${o.total_amount || 0}<br>जमा: ₹${o.advance_paid || o.advance_amount || 0}</td>
+                        <td>
+                            ${(() => {
+                                const total = parseFloat(o.total_amount || 0) || 0;
+                                const adv = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
+                                const cash = parseFloat(o.cash_paid || 0) || 0;
+                                const paid = adv + cash;
+                                const bal = Math.max(0, total - paid);
+                                const notes = String(o.custom_notes || '');
+                                const history = [];
+                                const rx = /\[(?:भुगतान|बकाया पैसा जमा किए):\s*₹?([0-9]+(?:\.[0-9]+)?)\s*\|\s*(?:माध्यम:\s*)?([^|\]]+?)(?:\s*\|\s*दिनांक:\s*([^|\]]+))?(?:\s*\|\s*समय:\s*([^\]]+))?\]/g;
+                                let m;
+                                while ((m = rx.exec(notes))) history.push({amount:m[1],method:(m[2]||'').trim(),date:(m[3]||'').trim(),time:(m[4]||'').trim()});
+                                if (!history.length && adv > 0) {
+                                    const d = o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-';
+                                    const pm = String(o.payment_mode || '').toLowerCase();
+                                    const method = (pm.includes('cashfree') || pm.includes('online') || pm.includes('upi')) ? 'ऑनलाइन' : 'दुकान';
+                                    history.push({amount:String(adv),method,date:d,time:''});
+                                }
+                                const historyHtml = history.map((h,i) => `<div style="font-size:10px;line-height:1.45;color:#334155;margin-top:3px;"><b>${i===0?'एडवांस':'बकाया जमा'} ₹${h.amount}</b> • ${h.method || 'दुकान'}${h.date ? ' • '+h.date : ''}${h.time ? ' • '+h.time : ''}</div>`).join('');
+                                return `<b>कुल: ₹${total}</b><br><span style="color:#047857;font-weight:800;">कुल जमा: ₹${paid}</span><br><span style="color:#dc2626;font-weight:800;">बकाया: ₹${bal}</span>${historyHtml ? '<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #cbd5e1;">'+historyHtml+'</div>' : ''}<br><button type="button" onclick="editOrderAdvance('${o.id}')" style="margin-top:5px;background:#7c3aed;color:#fff;border:none;padding:4px 7px;border-radius:5px;font-size:10px;font-weight:800;cursor:pointer;">✏️ भुगतान जमा/एडवांस</button>`;
+                            })()}
+                        </td>
                         <td>
                             <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-weight:bold;">
                                 <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -1389,6 +1410,70 @@
                     }
                 }
             };
+        }
+
+        async function editOrderAdvance(id) {
+            if (!supabaseClient) return;
+            const order = globalOrdersCache.find(x => String(x.id) === String(id));
+            if (!order) return;
+
+            const total = parseFloat(order.total_amount || 0) || 0;
+            const currentAdvance = parseFloat(order.advance_paid || order.advance_amount || 0) || 0;
+            const currentCash = parseFloat(order.cash_paid || 0) || 0;
+            const alreadyPaid = currentAdvance + currentCash;
+            const remaining = Math.max(0, total - alreadyPaid);
+            if (remaining <= 0) {
+                alert('इस ऑर्डर का पूरा ₹' + total + ' जमा हो चुका है। बकाया ₹0 है।');
+                return;
+            }
+
+            const entered = prompt(`ऑर्डर #${id}\nकुल बिल: ₹${total}\nपहले से जमा: ₹${alreadyPaid}\nबकाया: ₹${remaining}\n\nअब कितना पैसा जमा हुआ?`, String(remaining));
+            if (entered === null) return;
+            const amount = parseFloat(String(entered).trim());
+            if (!Number.isFinite(amount) || amount <= 0) {
+                alert('कृपया सही जमा राशि दर्ज करें।');
+                return;
+            }
+            if (amount > remaining) {
+                alert(`₹${amount} जमा नहीं किया जा सकता। अधिकतम बकाया ₹${remaining} है।`);
+                return;
+            }
+
+            const methodRaw = prompt('पैसा कहाँ जमा हुआ?\n\nऑनलाइन या दुकान लिखें।', 'दुकान');
+            if (methodRaw === null) return;
+            const methodText = String(methodRaw).trim().toLowerCase();
+            const isOnline = methodText.includes('online') || methodText.includes('ऑनलाइन') || methodText.includes('upi') || methodText.includes('cashfree');
+            const method = isOnline ? 'ऑनलाइन' : 'दुकान';
+
+            const newAdvance = currentAdvance + (isOnline ? amount : 0);
+            const newCash = currentCash + (!isOnline ? amount : 0);
+            const balance = Math.max(0, total - newAdvance - newCash);
+
+            try {
+                const now = new Date();
+                const dateText = now.toLocaleDateString('hi-IN');
+                const timeText = now.toLocaleTimeString('hi-IN', {hour:'2-digit', minute:'2-digit'});
+                let nextNotes = String(order.custom_notes || '');
+                const entry = `\n[भुगतान: ₹${amount} | माध्यम: ${method} | दिनांक: ${dateText} | समय: ${timeText}]`;
+                nextNotes = nextNotes ? nextNotes + entry : entry.trim();
+
+                const updateData = {
+                    advance_paid: newAdvance,
+                    cash_paid: newCash,
+                    balance_amount: balance,
+                    custom_notes: nextNotes
+                };
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update(updateData)
+                    .eq('id', Number(id));
+                if (error) throw error;
+
+                alert(`₹${amount} ${method} जमा दर्ज हो गया।\nदिनांक: ${dateText}\nसमय: ${timeText}\nअब बकाया: ₹${balance}`);
+                loadAdminOrders();
+            } catch (e) {
+                alert('पैसा जमा अपडेट नहीं हो सका: ' + (e.message || 'नेटवर्क त्रुटि'));
+            }
         }
 
         async function updateOrderStatus(id, newStatus) {
