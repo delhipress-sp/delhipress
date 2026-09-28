@@ -2331,160 +2331,109 @@
                 .replace(/'/g,'&#039;');
         }
 
-        /* RECEIPT MODAL FUNCTIONS — My Orders के समान पूर्ण रसीद */
+        /* RECEIPT MODAL FUNCTIONS — My Orders / order-receipt.html के समान पूर्ण लॉजिक */
         function parseAdminOrderMatterForReceipt(text) {
-            const out = {events:[], rsvp:[], raw:String(text || '')};
-            const lines = out.raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-            for (const line of lines) {
-                if (/^कार्यक्रम\s*:/i.test(line)) {
-                    const v=line.replace(/^कार्यक्रम\s*:\s*/i,'');
-                    const parts=v.split(/\s*\|\s*/);
-                    const get=(label)=>{
-                        const p=parts.find(x=>new RegExp('^'+label+'\\s*:','i').test(x));
-                        return p?p.replace(new RegExp('^'+label+'\\s*:\\s*','i'),'').trim():'';
-                    };
-                    out.events.push({title:get('कार्यक्रम')||parts[0]||'',date:get('तारीख'),day:get('दिन'),part:get('समय का भाग'),time:get('समय')});
-                } else if (/^(विनीत\s*\/\s*निवेदक|दर्शनाभिलाषी|संपर्क)\s*:/i.test(line)) {
-                    out.rsvp.push(line);
+            const out = {events:[], couples:[], rsvp:'', best:'', contact:'', other:[], raw:String(text || '')};
+            let currentCouple = null;
+            const addCouple = () => {
+                currentCouple = {groom:'', groomFather:'', groomAddress:'', bride:'', brideFather:'', brideAddress:''};
+                out.couples.push(currentCouple);
+                return currentCouple;
+            };
+            const parsePerson = (line, type) => {
+                const m = String(line || '').match(/^(?:वर|वधू)\s*:\s*(.*?)\s*\(\s*पिता\s*:\s*(.*?)\s*,\s*पता\s*:\s*(.*?)\s*\)\s*$/i);
+                if (!m) return false;
+                const c = currentCouple || addCouple();
+                if (type === 'groom') {
+                    c.groom = m[1].trim();
+                    c.groomFather = m[2].trim();
+                    c.groomAddress = m[3].trim();
+                } else {
+                    c.bride = m[1].trim();
+                    c.brideFather = m[2].trim();
+                    c.brideAddress = m[3].trim();
                 }
+                return true;
+            };
+
+            for (const line of out.raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean)) {
+                if (/^---\s*\[.*दूल्हा-दुल्हन.*\]\s*---$/i.test(line)) { addCouple(); continue; }
+                if (/^जोड़ा\s*#\s*\d+\s*:/i.test(line)) { addCouple(); continue; }
+                if (parsePerson(line, /^वधू\s*:/i.test(line) ? 'bride' : 'groom')) continue;
+
+                if (/^कार्यक्रम\s*:/i.test(line)) {
+                    const p = line.replace(/^कार्यक्रम\s*:\s*/i, '').split(/\s*\|\s*/).map(x => x.trim()).filter(Boolean);
+                    const get = label => {
+                        const x = p.find(z => new RegExp('^' + label + '\\s*:', 'i').test(z));
+                        return x ? x.replace(new RegExp('^' + label + '\\s*:\\s*', 'i'), '').trim() : '';
+                    };
+                    const title = get('कार्यक्रम') || (p[0] && !/^तारीख\s*:/i.test(p[0]) && !/^दिन\s*:/i.test(p[0]) && !/^समय/i.test(p[0]) ? p[0] : '') || '-';
+                    out.events.push({title, date:get('तारीख'), day:get('दिन'), time:get('समय') || get('समय का भाग')});
+                    continue;
+                }
+
+                if (/^(विनीत\s*\/\s*निवेदक|निवेदक\s*परिवार|From\s*\(?.*cordially invited by.*\)?|R\.?S\.?V\.?P)\s*:/i.test(line)) {
+                    out.rsvp = line.replace(/^[^:]+:\s*/, '').trim();
+                    continue;
+                }
+                if (/^(दर्शनाभिलाषी|अदाई\s*\/\s*आकांक्षी|With Best Compliments(?: From)?|Best Compliments(?: From)?)\s*:/i.test(line)) {
+                    out.best = line.replace(/^[^:]+:\s*/, '').trim();
+                    continue;
+                }
+                if (/^(संपर्क|Contact(?:\s*(?:Person|Number))?|Mobile(?:\s*(?:Number|\/\s*Contact\s*Person))?)\s*:/i.test(line)) {
+                    out.contact = line.replace(/^[^:]+:\s*/, '').trim();
+                    continue;
+                }
+
+                if (!/^(---|\[अतिरिक्त|जोड़ा\s*#)/i.test(line)) out.other.push(line);
             }
+
+            out.couples = out.couples.filter(c => Object.values(c).some(v => String(v || '').trim() && String(v).trim() !== '-'));
             return out;
         }
 
         function parseAdminCustomerFilesForReceipt(o) {
-            const arr=[];
-            const add=v=>{
-                if(!v) return;
-                let x=v;
-                if(typeof x==='string'){
-                    try{x=JSON.parse(x)}catch(e){return;}
+            const arr = [];
+            const add = v => {
+                if (!v) return;
+                let x = v;
+                if (typeof x === 'string') {
+                    try { x = JSON.parse(x); } catch (e) {
+                        const u = x.trim();
+                        if (/^https?:\/\//i.test(u) || /^data:/i.test(u)) {
+                            arr.push({url:u, name:'Order Form से अपलोड की गई फाइल', mime:/pdf/i.test(u) ? 'application/pdf' : 'image/*'});
+                        }
+                        return;
+                    }
                 }
-                if(Array.isArray(x)) x.forEach(add);
-                else if(typeof x==='object' && x.url) arr.push(x);
+                if (Array.isArray(x)) x.forEach(add);
+                else if (typeof x === 'object' && x.url) arr.push(x);
             };
             add(o.customer_files);
-            if(o.wedding_matter_file) add(o.wedding_matter_file);
+            if (o.wedding_matter_file) add(o.wedding_matter_file);
 
-            // Order Form का मुख्य uploaded PDF/photo कई पुराने orders में सीधे
-            // `order_matter` field में save होता है (data URL या direct URL)।
-            // इसे भी Receipt में देखने योग्य file बनाएं।
+            // पुराने orders में Order Form की मुख्य फाइल सीधे order_matter में हो सकती है।
             const directMatter = o.order_matter;
-            if(directMatter){
-                if(typeof directMatter === 'string'){
-                    const u=directMatter.trim();
-                    if(/^data:(application\/pdf|image\/|[^;]+;base64,)/i.test(u) || /^https?:\/\//i.test(u)){
-                        const isPdf=/^data:application\/pdf/i.test(u) || /\.pdf(?:[?#]|$)/i.test(u);
-                        arr.push({url:u,name:isPdf?'अपलोड किया हुआ PDF खोलें':'अपलोड किया हुआ फोटो खोलें',mime:isPdf?'application/pdf':'image/*'});
-                    }
-                }else{
-                    add(directMatter);
-                }
-            }
-            return arr;
+            if (directMatter) add(directMatter);
+
+            return arr.filter((x, i, z) => x.url && !z.slice(0, i).some(y => y.url === x.url));
         }
 
+        // Receipt अब popup/modal में नहीं खुलेगा।
+        // My Orders की तरह सीधे पूर्ण order-receipt.html page खुलेगा।
         function openOrderReceiptModal(orderId) {
-            window.__adminReceiptOrderId = String(orderId);
-            const o = globalOrdersCache.find(x => String(x.id) === String(orderId));
-            if (!o) return;
+            const o = globalOrdersCache.find(x =>
+                String(x.id) === String(orderId) ||
+                String(x.order_id || '') === String(orderId)
+            );
 
-            let baseNotes = String(o.custom_notes || o.order_notes || o.notes || '');
-            if (baseNotes.includes('[ADMIN_NOTICE]')) baseNotes = baseNotes.split('[ADMIN_NOTICE]')[0].trim();
+            const receiptId = o ? (o.id || o.order_id || orderId) : orderId;
+            if (!receiptId) {
+                alert('ऑर्डर ID नहीं मिली।');
+                return;
+            }
 
-            const total = parseFloat(o.total_amount || 0) || 0;
-            const advance = parseFloat(o.advance_paid || o.advance_amount || 0) || 0;
-            const balance = Math.max(0, total - advance);
-            const matter = parseAdminOrderMatterForReceipt(baseNotes);
-            const files = parseAdminCustomerFilesForReceipt(o);
-            const cardImg = o.card_image || o.image || o.card_photo || '';
-            const safeId = escapeAdminReceiptText(o.id || '-');
-            const safe = escapeAdminReceiptText;
-
-            const eventRows = matter.events.length ? matter.events.map((e,i)=>`
-                <tr>
-                    <td>${i+1}. ${safe(e.title || '-')}</td>
-                    <td>${safe(e.date || '-')}</td>
-                    <td>${safe(e.day || '-')}</td>
-                    <td>${safe(e.time || e.part || '-')}</td>
-                </tr>`).join('') : `
-                <tr><td colspan="4" style="text-align:center;color:#64748b;">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
-
-            const fileRows = files.length ? files.map(f=>{
-                const url = String(f.url || '').trim();
-                const isPdf=/pdf/i.test(String(f.mime||f.fileType||f.type||f.name||url));
-                return `<a href="${safe(url)}" target="_blank" rel="noopener" class="admin-matter-file-btn">
-                    <i class="fa-solid ${isPdf?'fa-file-pdf':'fa-image'}"></i> ${safe(f.name || (isPdf?'PDF फाइल खोलें':'फोटो खोलें'))}
-                </a>`;
-            }).join('') : `<span style="color:#64748b;font-size:12px;">अलग PDF/फोटो फाइल उपलब्ध नहीं है।</span>`;
-
-            area = document.getElementById('printableReceiptArea');
-            area.innerHTML = `
-                <div class="receipt-header dp-full-receipt-head">
-                    <h2>बिस्मिल्लाहिर्रहमानिर्रहीम</h2>
-                    <div class="dp-receipt-title">ऑर्डर मैटर रसीद / फॉर्म</div>
-                    <div class="dp-receipt-meta"><b>रसीद नं.:</b> #${safeId} &nbsp; | &nbsp; <b>तिथि:</b> ${o.created_at ? new Date(o.created_at).toLocaleDateString('hi-IN') : '-'}</div>
-                </div>
-
-                <div class="dp-two-col">
-                    <div class="dp-person-box">
-                        <div class="dp-box-title">1. लड़का:</div>
-                        <div class="form-line"><b>लड़का का नाम:</b> ${safe(o.groom_name||'-')}</div>
-                        <div class="form-line"><b>पिता का नाम:</b> ${safe(o.groom_father||'-')}</div>
-                        <div class="form-line"><b>पता:</b> ${safe(o.groom_address||'-')}</div>
-                    </div>
-                    <div class="dp-person-box">
-                        <div class="dp-box-title">2. लड़की:</div>
-                        <div class="form-line"><b>लड़की का नाम:</b> ${safe(o.bride_name||'-')}</div>
-                        <div class="form-line"><b>पिता का नाम:</b> ${safe(o.bride_father||'-')}</div>
-                        <div class="form-line"><b>पता:</b> ${safe(o.bride_address||'-')}</div>
-                    </div>
-                </div>
-
-                <div class="dp-section-heading">3. कार्यक्रम</div>
-                <table class="dp-event-table">
-                    <thead><tr><th>कार्यक्रम</th><th>तारीख</th><th>दिन</th><th>समय</th></tr></thead>
-                    <tbody>${eventRows}</tbody>
-                </table>
-
-                <div class="dp-two-col">
-                    <div class="dp-info-box">
-                        <b class="dp-info-title">R.S.V.P. / चश्मे बराह</b>
-                        <div class="dp-info-body">${safe(matter.rsvp.join('\n') || '—')}</div>
-                    </div>
-                    <div class="dp-info-box">
-                        <b class="dp-info-title">ऑर्डर जानकारी</b>
-                        <div class="dp-info-body">ग्राहक: <b>${safe(o.customer_name||'-')}</b><br>मोबाइल: <b>${safe(o.mobile||o.phone||'-')}</b><br>मात्रा: <b>${safe(o.quantity||100)} पीस</b><br>कार्ड: <b>${safe(o.card_title||o.card_name||'शादी कार्ड')}</b>${o.card_model?`<br>मॉडल / कोड: <b>${safe(o.card_model)}</b>`:''}</div>
-                    </div>
-                </div>
-
-                <div class="dp-file-box">
-                    <div class="dp-box-title">✍️ ऑर्डर फॉर्म से अपलोड किया हुआ PDF / फोटो — देखने के लिए</div>
-                    <div class="dp-file-list">${fileRows}</div>
-                </div>
-
-                <div class="dp-typed-box">
-                    <div class="dp-box-title">✏️ टाइप किया हुआ ऑर्डर</div>
-                    <div class="dp-typed-preview">${safe(baseNotes || 'ऑर्डर फॉर्म का अतिरिक्त मैटर उपलब्ध नहीं है।')}</div>
-                </div>
-
-                <div class="dp-selected-card-box">
-                    <div class="dp-box-title">🖼️ ऑर्डर में चुना गया कार्ड</div>
-                    <div class="dp-selected-card-row">
-                        ${cardImg ? `<img src="${safe(cardImg)}" alt="Selected Card" onerror="this.style.display='none';">` : ''}
-                        <div><b>${safe(o.card_title||o.card_name||'शादी कार्ड')}</b><br>${o.card_model?`मॉडल / कोड: <b>${safe(o.card_model)}</b><br>`:''}<span>ऑर्डर में चुना गया कार्ड</span></div>
-                    </div>
-                </div>
-
-                <div class="dp-payment-box">
-                    <div class="dp-box-title">💰 बिल एवं भुगतान स्थिति</div>
-                    <div class="dp-payment-row"><span>कुल राशि:</span><b>₹${total}</b></div>
-                    <div class="dp-payment-row"><span>अग्रिम जमा:</span><b class="dp-green">₹${advance}</b></div>
-                    <div class="dp-payment-row"><span>शेष बकाया:</span><b class="dp-red">₹${balance}</b></div>
-                    <div class="dp-payment-row"><span>ऑर्डर स्टेटस:</span><b>${safe(o.status||'Pending')}</b></div>
-                </div>
-            `;
-
-            document.getElementById('orderModal').style.display = 'flex';
+            window.location.href = 'order-receipt.html?id=' + encodeURIComponent(String(receiptId));
         }
 
         function closeOrderModal() {
