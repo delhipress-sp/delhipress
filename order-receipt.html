@@ -23,9 +23,7 @@
 <tr><td>मात्रा</td><td id="qty">-</td></tr><tr><td>रेट</td><td id="rate">-</td></tr><tr><td>कुल बिल</td><td id="total">₹0</td></tr><tr><td>Advance Paid</td><td id="advance">₹0</td></tr><tr><td>Cash Paid</td><td id="cash">₹0</td></tr><tr><td>कुल भुगतान</td><td id="paid">₹0</td></tr><tr><td>बाकी राशि</td><td id="balance">₹0</td></tr><tr><td>Payment Mode</td><td id="paymentMode">-</td></tr><tr><td>Transaction ID</td><td id="txn">-</td></tr>
 </table></div></section>
 
-<section class="sec"><h2>3. वैवाहिक विवरण (शुभ विवाह)</h2><div class="wrap"><table><thead><tr><th></th><th>वर (लड़का)</th><th>वधू (लड़की)</th></tr></thead><tbody>
-<tr><th>नाम</th><td id="groom">-</td><td id="bride">-</td></tr><tr><th>पिता का नाम</th><td id="groomFather">-</td><td id="brideFather">-</td></tr><tr><th>पता</th><td id="groomAddress">-</td><td id="brideAddress">-</td></tr>
-</tbody></table></div></section>
+<section class="sec"><h2>3. वैवाहिक विवरण (शुभ विवाह)</h2><div class="wrap"><table id="couplesTable"><thead id="couplesHead"></thead><tbody id="couplesBody"></tbody></table></div></section>
 
 <section class="sec"><h2>4. वैवाहिक कार्यक्रम</h2><div class="wrap"><table><thead><tr><th>क्र.</th><th>कार्यक्रम</th><th>तारीख</th><th>दिन</th><th>समय</th></tr></thead><tbody id="events"></tbody></table></div></section>
 
@@ -49,18 +47,32 @@ function money(v){return "₹"+(Number(v)||0).toLocaleString("en-IN",{maximumFra
 function key(){const p=new URLSearchParams(location.search);return p.get("id")||p.get("order_id")||p.get("orderId")||""}
 
 function parseMatter(text){
- const r={events:[],rsvp:"",best:"",contact:"",other:[]};
+ const r={events:[],couples:[],rsvp:"",best:"",contact:"",other:[]};
+ let currentCouple=null;
+ const addCouple=()=>{currentCouple={groom:"",groomFather:"",groomAddress:"",bride:"",brideFather:"",brideAddress:""};r.couples.push(currentCouple);return currentCouple};
+ const parsePerson=(line,type)=>{
+   const m=String(line||"").match(/^(?:वर|वधू)\s*:\s*(.*?)\s*\(\s*पिता\s*:\s*(.*?)\s*,\s*पता\s*:\s*(.*?)\s*\)\s*$/i);
+   if(!m)return false;
+   const c=currentCouple||addCouple();
+   if(type==="groom"){c.groom=m[1].trim();c.groomFather=m[2].trim();c.groomAddress=m[3].trim();}
+   else {c.bride=m[1].trim();c.brideFather=m[2].trim();c.brideAddress=m[3].trim();}
+   return true;
+ };
  for(const line of String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean)){
-  if(/^कार्यक्रम\s*:/i.test(line)){
-   const p=line.replace(/^कार्यक्रम\s*:\s*/i,"").split(/\s*\|\s*/);
-   const g=l=>{const x=p.find(z=>new RegExp("^"+l+"\\s*:","i").test(z));return x?x.replace(new RegExp("^"+l+"\\s*:\\s*","i"),"").trim():""};
-   r.events.push({title:g("कार्यक्रम")||p[0]||"-",date:g("तारीख"),day:g("दिन"),time:g("समय")||g("समय का भाग")});continue
-  }
-  if(/^(विनीत\s*\/\s*निवेदक|From\s*\(|R\.?S\.?V\.?P)/i.test(line)){r.rsvp=line.replace(/^[^:]+:\s*/,"");continue}
-  if(/^(दर्शनाभिलाषी|अदाई\s*\/\s*आकांक्षी|With Best Compliments)/i.test(line)){r.best=line.replace(/^[^:]+:\s*/,"");continue}
-  if(/^(संपर्क|Contact)\s*:/i.test(line)){r.contact=line.replace(/^[^:]+:\s*/,"");continue}
-  if(!/^(---|\[अतिरिक्त|जोड़ा\s*#|वर\s*:|वधू\s*:)/i.test(line))r.other.push(line)
+   if(/^---\s*\[.*दूल्हा-दुल्हन.*\]\s*---$/i.test(line)){addCouple();continue}
+   if(/^जोड़ा\s*#\s*\d+\s*:/i.test(line)){addCouple();continue}
+   if(parsePerson(line,/^वधू\s*:/i.test(line)?"bride":"groom"))continue;
+   if(/^कार्यक्रम\s*:/i.test(line)){
+    const p=line.replace(/^कार्यक्रम\s*:\s*/i,"").split(/\s*\|\s*/);
+    const g=l=>{const x=p.find(z=>new RegExp("^"+l+"\\s*:","i").test(z));return x?x.replace(new RegExp("^"+l+"\\s*:\\s*","i"),"").trim():""};
+    r.events.push({title:g("कार्यक्रम")||p[0]||"-",date:g("तारीख"),day:g("दिन"),time:g("समय")||g("समय का भाग")});continue;
+   }
+   if(/^(विनीत\s*\/\s*निवेदक|From\s*\(|R\.?S\.?V\.?P)/i.test(line)){r.rsvp=line.replace(/^[^:]+:\s*/,"");continue}
+   if(/^(दर्शनाभिलाषी|अदाई\s*\/\s*आकांक्षी|With Best Compliments)/i.test(line)){r.best=line.replace(/^[^:]+:\s*/,"");continue}
+   if(/^(संपर्क|Contact)\s*:/i.test(line)){r.contact=line.replace(/^[^:]+:\s*/,"");continue}
+   if(!/^(---|\[अतिरिक्त|जोड़ा\s*#)/i.test(line))r.other.push(line)
  }
+ r.couples=r.couples.filter(c=>Object.values(c).some(v=>String(v||"").trim() && String(v).trim()!=="-"));
  return r
 }
 function files(o){
@@ -89,10 +101,23 @@ async function load(){
  if(!k) throw Error("URL में Order ID नहीं मिली।");
  let data=null,lastError=null;
  try{if(/^\d+$/.test(k)) data=await apiGet("id",Number(k));}catch(e){lastError=e}
- if(data)return data;
+ const localCandidates=[];
+ for(const n of ["dp_latest_confirmed_order","dp_temp_order"]){try{const x=JSON.parse(localStorage.getItem(n)||"null");if(x&&String(x.id||x.order_id)===String(k))localCandidates.push(x)}catch(e){}}
+ const mergeLocal=(db)=>{
+   if(!db)return localCandidates[0]||null;
+   const local=localCandidates.find(x=>String(x.id||x.order_id)===String(k));
+   if(!local)return db;
+   const out={...db};
+   ["groom_name","groom_father","groom_address","bride_name","bride_father","bride_address","custom_notes","order_notes","notes","customer_name","mobile","phone","address"].forEach(key=>{
+      const dv=out[key], lv=local[key];
+      if((dv===undefined||dv===null||String(dv).trim()===""||String(dv).trim()==="-") && lv!==undefined&&lv!==null&&String(lv).trim()!=="") out[key]=lv;
+   });
+   return out;
+ };
+ if(data)return mergeLocal(data);
  try{data=await apiGet("order_id",k)}catch(e){lastError=e}
- if(data)return data;
- for(const n of ["dp_latest_confirmed_order","dp_temp_order"]){try{const x=JSON.parse(localStorage.getItem(n)||"null");if(x&&String(x.id||x.order_id)===String(k))return x}catch(e){}}
+ if(data)return mergeLocal(data);
+ if(localCandidates.length)return localCandidates[0];
  if(lastError&&/Supabase error/.test(lastError.message||"")) throw Error("ऑर्डर डेटा लोड नहीं हो सका। Supabase से कनेक्शन/परमिशन जाँचें।");
  throw Error("Order नहीं मिला।");
 }
@@ -102,7 +127,19 @@ function render(o){
  $("customerName").textContent=get(o,"customer_name","name")||"-";$("mobile").textContent=get(o,"mobile","phone")||"-";$("address").textContent=get(o,"address","customer_address")||"-";$("status").textContent=get(o,"status")||"Pending";
  $("cardTitle").textContent=get(o,"card_title","card_name")||"शादी कार्ड";$("cardModel").textContent=get(o,"card_model","model","catalog_model")||"-";$("catalogId").textContent=get(o,"catalog_id","catalogId","selected_catalog_id")||"-";
  $("qty").textContent=get(o,"quantity")||"-";$("rate").textContent=get(o,"rate","card_rate","rate_per_piece")?money(get(o,"rate","card_rate","rate_per_piece")):"-";$("total").textContent=money(total);$("advance").textContent=money(adv);$("cash").textContent=money(cash);$("paid").textContent=money(paid);$("balance").textContent=money(bal);$("paymentMode").textContent=get(o,"payment_mode")||"-";$("txn").textContent=get(o,"txn_id","transaction_id")||"-";
- $("groom").textContent=get(o,"groom_name")||"-";$("groomFather").textContent=get(o,"groom_father")||"-";$("groomAddress").textContent=get(o,"groom_address")||"-";$("bride").textContent=get(o,"bride_name")||"-";$("brideFather").textContent=get(o,"bride_father")||"-";$("brideAddress").textContent=get(o,"bride_address")||"-";
+ // Direct columns से main couple लें; पुराने orders के लिए custom_notes fallback रखें।
+ const directCouple={groom:get(o,"groom_name"),groomFather:get(o,"groom_father"),groomAddress:get(o,"groom_address"),bride:get(o,"bride_name"),brideFather:get(o,"bride_father"),brideAddress:get(o,"bride_address")};
+ const couples=[...m.couples];
+ const hasDirect=Object.values(directCouple).some(v=>String(v||"").trim() && String(v).trim()!=="-");
+ if(hasDirect){
+   const first=couples[0]||{};
+   const merged={groom:directCouple.groom||first.groom||"",groomFather:directCouple.groomFather||first.groomFather||"",groomAddress:directCouple.groomAddress||first.groomAddress||"",bride:directCouple.bride||first.bride||"",brideFather:directCouple.brideFather||first.brideFather||"",brideAddress:directCouple.brideAddress||first.brideAddress||""};
+   if(couples.length)couples[0]=merged;else couples.push(merged);
+ }
+ if(!couples.length)couples.push({groom:"",groomFather:"",groomAddress:"",bride:"",brideFather:"",brideAddress:""});
+ $("couplesHead").innerHTML='<tr><th>विवरण</th>'+couples.map((c,i)=>`<th>वर (लड़का)${couples.length>1?' #'+(i+1):''}</th><th>वधू (लड़की)${couples.length>1?' #'+(i+1):''}</th>`).join('')+'</tr>';
+ const rows=[['नाम','groom','bride'],['पिता का नाम','groomFather','brideFather'],['पता','groomAddress','brideAddress']];
+ $("couplesBody").innerHTML=rows.map(row=>`<tr><th>${row[0]}</th>${couples.map(c=>`<td>${esc(c[row[1]]||'-')}</td><td>${esc(c[row[2]]||'-')}</td>`).join('')}</tr>`).join('');
  $("events").innerHTML=m.events.length?m.events.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(e.title)}</td><td>${esc(e.date||"-")}</td><td>${esc(e.day||"-")}</td><td>${esc(e.time||"-")}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">कार्यक्रम की जानकारी उपलब्ध नहीं है।</td></tr>`;
  $("rsvp").textContent=m.rsvp||"-";$("best").textContent=m.best||"-";$("contact").textContent=m.contact||"-";$("notes").textContent=m.other.length?m.other.join("\n"):"कोई अतिरिक्त नोट उपलब्ध नहीं है।";
  const img=get(o,"card_image","catalog_image","image","image_url");$("cardImage").src=img||"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='100%' height='100%' fill='#f1f5f9'/><text x='50%' y='50%' text-anchor='middle' fill='#94a3b8'>Card</text></svg>");
