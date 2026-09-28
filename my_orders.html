@@ -1109,8 +1109,10 @@ html, body{
             container.innerHTML = fetchedOrdersList.map((ord, index) => {
                 const dt = ord.created_at ? new Date(ord.created_at).toLocaleDateString('hi-IN') : 'हाल ही में';
                 const total = parseFloat(ord.total_amount || 0);
-                const advance = parseFloat(ord.advance_paid || 0);
-                const balance = Math.max(0, total - advance);
+                const advance = parseFloat(ord.advance_paid || ord.advance_amount || 0) || 0;
+                const cashPaid = parseFloat(ord.cash_paid || 0) || 0;
+                const totalPaid = advance + cashPaid;
+                const balance = Math.max(0, total - totalPaid);
                 const status = (ord.status || 'Pending').trim();
                 const statusBadge = getStatusBadge(status);
                 const cardImg = ord.card_image || safeCardPlaceholder;
