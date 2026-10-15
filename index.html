@@ -160,7 +160,7 @@
             box-shadow:0 5px 12px rgba(229,30,59,.22)
         }
         .hero h1{font-size:34px;line-height:1.04;color:#082e8c;font-weight:800}
-        .hero p{font-size:15px;color:#263c63;margin:8px 0 12px}
+        .hero p{font-size:15px;color:#ffffff !important;margin:8px 0 12px;text-shadow:0 1px 3px rgba(0,0,0,.28)}
         .btn-main-order{
             display:inline-flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;color:#fff;
             background:linear-gradient(135deg,#09b878,#06945f);padding:12px 27px;border-radius:32px;
@@ -340,7 +340,7 @@
             .fake-card.one{left:12%;top:8px}.fake-card.two{top:4px}.fake-card.three{right:12%;top:8px}
             .hero-content{padding:0 3px}.hero-brand{font-size:11px;padding:4px 12px}
             .top-card-tools{padding:7px 8px}.top-search-box{width:100%}.top-search-box button{padding:9px 13px}.top-card-categories{gap:5px}.top-card-categories .simple-cat{padding:6px 10px;font-size:11px}
-            .hero h1{font-size:24px}.hero p{font-size:11px;margin:5px 0 8px}.btn-main-order{font-size:12px;padding:10px 15px}
+            .hero h1{font-size:24px}.hero p{font-size:11px;color:#ffffff !important;margin:5px 0 8px;text-shadow:0 1px 3px rgba(0,0,0,.28)}.btn-main-order{font-size:12px;padding:10px 15px}
             .notice-banner{font-size:11px;padding:9px 10px;margin-bottom:7px}.notice-banner i{font-size:18px}
             .showcase-box{padding:12px;border-radius:14px}.catalog-head{align-items:flex-start;flex-direction:column}
             .showcase-header-title{font-size:19px}.catalog-heading i{font-size:24px}.catalog-sub{font-size:11px}
@@ -1789,6 +1789,37 @@ function chooseSheetCategory(cat){
 .dp-side-brand-badge{display:none!important}
 @media(max-width:768px){.navbar{display:flex!important;align-items:center!important;gap:8px!important}.nav-brand{min-width:0!important;flex:1 1 auto!important}.nav-brand-text h2{font-size:20px!important;color:#fff!important;-webkit-text-fill-color:#fff!important}.nav-brand-text p{color:#fff!important}.dp-header-right-name{margin-left:auto;flex:0 0 auto;font-size:13px;padding:7px 8px;max-width:132px;white-space:normal;text-align:center;border-radius:10px;}}
 @media(max-width:380px){.nav-logo-box{width:38px!important;height:38px!important}.nav-brand{gap:7px!important}.nav-brand-text h2{font-size:17px!important}.nav-brand-text p{font-size:8px!important}.dp-header-right-name{font-size:11px;padding:6px 6px;max-width:112px;}}
+</style>
+
+
+<style id="dp-final-rainbow-header-fix">
+/* Dynamic red-green-yellow rainbow lighting on surfaces, never on brand text */
+@keyframes dpHeaderRainbowReal {
+  0% {background-position:0% 50%; filter:hue-rotate(0deg)}
+  25% {background-position:50% 50%; filter:hue-rotate(70deg)}
+  50% {background-position:100% 50%; filter:hue-rotate(145deg)}
+  75% {background-position:50% 50%; filter:hue-rotate(245deg)}
+  100% {background-position:0% 50%; filter:hue-rotate(360deg)}
+}
+@keyframes dpHeaderGlowReal {
+  0%,100% {box-shadow:0 0 16px rgba(255,0,0,.22), inset 0 0 12px rgba(255,255,255,.10)}
+  33% {box-shadow:0 0 22px rgba(255,220,0,.30), inset 0 0 16px rgba(255,255,255,.14)}
+  66% {box-shadow:0 0 22px rgba(0,230,90,.28), inset 0 0 16px rgba(255,255,255,.14)}
+}
+.top-bar, .navbar, .mobile-shop-shortcuts, .top-card-tools, .top-card-categories {
+  background-image:linear-gradient(115deg,#ed1c24,#ffb800,#18b85a,#00a8ff,#753bdb,#ed1c24)!important;
+  background-size:500% 500%!important;
+  animation:dpHeaderRainbowReal 12s linear infinite,dpHeaderGlowReal 5s ease-in-out infinite!important;
+}
+/* Keep all brand and header labels fixed white; only the surface lighting moves */
+.nav-brand-text h2, .nav-brand-text p, .dp-header-right-name {
+  color:#fff!important;-webkit-text-fill-color:#fff!important; background:none!important; animation:none!important;
+}
+/* The featured-card heading should be white for clear contrast */
+.hero.real-card-hero h1, .hero.real-card-hero h1 span, .hero.real-card-hero .hero-title, .hero.real-card-hero .hero-content h1 {
+  color:#fff!important;-webkit-text-fill-color:#fff!important; text-shadow:0 2px 5px rgba(0,0,0,.45)!important;
+}
+@media(prefers-reduced-motion:reduce){.top-bar,.navbar,.mobile-shop-shortcuts,.top-card-tools,.top-card-categories{animation:none!important}}
 </style>
 
 </body>
