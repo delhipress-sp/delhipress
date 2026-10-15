@@ -1800,13 +1800,12 @@ function closeCategorySheet(){
 }
 function chooseSheetCategory(cat){
   closeCategorySheet();
-  filterCategory(cat);
-  document.querySelectorAll('.simple-cat').forEach((b)=>{
-    const t=(b.textContent||'').toLowerCase();
-    b.classList.toggle('active',(cat==='muslim'&&t.includes('मुस्लिम'))||(cat==='hindu'&&t.includes('हिंदू')));
-  });
-  const section=document.getElementById('showcaseSection');
-  if(section)setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}),120);
+  // Category pages are separate pages, so switch page instead of filtering
+  // the already-filtered cards a second time.
+  if(cat === 'muslim') { window.location.href = 'muslim-cards.html'; return; }
+  if(cat === 'hindu') { window.location.href = 'hindu-cards.html'; return; }
+  if(cat === 'all') { window.location.href = 'index.html#showcaseSection'; return; }
+  if(typeof filterCategory === 'function') filterCategory(cat);
 }
 </script>
 
@@ -1848,6 +1847,13 @@ function chooseSheetCategory(cat){
   color:#fff!important;-webkit-text-fill-color:#fff!important; text-shadow:0 2px 5px rgba(0,0,0,.45)!important;
 }
 @media(prefers-reduced-motion:reduce){.top-bar,.navbar,.mobile-shop-shortcuts,.top-card-tools,.top-card-categories{animation:none!important}}
+
+<style id="dp-category-sheet-click-fix">
+#categorySheetOverlay{z-index:100000!important;pointer-events:none;}
+#categorySheetOverlay.active{display:flex!important;pointer-events:auto!important;visibility:visible!important;opacity:1!important;}
+#categorySheetOverlay .category-sheet{position:relative;z-index:100001!important;pointer-events:auto!important;}
+.mobile-bottom-bar{z-index:99990!important;}
+</style>
 </style>
 
 </body>
