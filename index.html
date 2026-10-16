@@ -1736,10 +1736,7 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
             renderCatalogCards(filtered);
             if (['video','video_sample','video_printing'].includes(categoryVal) && !filtered.length) {
                 const container = document.getElementById('catalogContainer');
-                if (container) {
-                    const msg = categoryVal === 'video_sample' ? 'अभी कोई Card Sample Video उपलब्ध नहीं है।' : categoryVal === 'video_printing' ? 'अभी कोई Printing Video उपलब्ध नहीं है।' : 'अभी कोई Video Card उपलब्ध नहीं है।';
-                    container.innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:28px 12px;color:#64748b;background:#f8fafc;border-radius:12px"><i class="fa-solid fa-circle-play" style="font-size:28px;color:#7e22ce"></i><br><b>${msg}</b><br>एडमिन पैनल से संबंधित कैटेगरी में वीडियो अपलोड करने के बाद यहाँ दिखाई देंगे।</p>`;
-                }
+                if (container) container.innerHTML = '';
             }
         }
     </script>
