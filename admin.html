@@ -3,7 +3,7 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>एडमिन पैनल - दिल्ली प्रेस</title>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1534,8 +1534,8 @@
                 if (category === 'muslim') return raw === 'muslim' || name.includes('muslim') || name.includes('मुस्लिम') || name.includes('nikah') || name.includes('निकाह');
                 if (category === 'hindu') return raw === 'hindu' || name.includes('hindu') || name.includes('हिंदू') || name.includes('विवाह');
                 if (category === 'banner') return raw === 'banner' || name.includes('banner') || name.includes('flex') || name.includes('बैनर') || name.includes('फ्लेक्स');
-                if (category === 'video_sample') return ['video_sample','card_sample_video','cardsamplevideo'].includes(raw) && (!!(c.video_url || c.video || c.video_urls || c.catalog_video) || String(c.description||'').includes('[[VIDEO:'));
-                if (category === 'video_printing') return ['video_printing','printing_video','video'].includes(raw) && (!!(c.video_url || c.video || c.video_urls || c.catalog_video) || String(c.description||'').includes('[[VIDEO:'));
+                if (category === 'video_sample') return ['video_sample','card_sample_video','cardsamplevideo','card sample video','कार्ड सैंपल वीडियो'].includes(raw) && (!!(c.video_url || c.video || c.video_urls || c.catalog_video) || String(c.description||'').includes('[[VIDEO:'));
+                if (category === 'video_printing') return ['video_printing','printing_video','video','printing video','प्रिंटिंग वीडियो'].includes(raw) && (!!(c.video_url || c.video || c.video_urls || c.catalog_video) || String(c.description||'').includes('[[VIDEO:'));
                 if (category === 'other') return !['muslim','hindu','banner','video','video_sample','video_printing','card_sample_video','cardsamplevideo','printing_video'].includes(raw);
                 return true;
             });
@@ -1848,13 +1848,7 @@
             const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
             const ctx=canvas.getContext('2d',{alpha:false});
             const stream=canvas.captureStream(30);
-            try{
-                if(video.captureStream){
-                    const src=video.captureStream();
-                    const audioTracks=src.getAudioTracks();
-                    audioTracks.forEach(t=>stream.addTrack(t));
-                }
-            }catch(e){}
+            // Catalog previews autoplay muted; keep uploaded preview files silent too.
 
             const targetBytes=3.0*1024*1024;
             const totalKbps=Math.max(360,Math.min(1800,(targetBytes*8/1024)/duration));
