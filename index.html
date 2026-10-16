@@ -1366,10 +1366,10 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
         }
 
         function isVideoCategoryCard(card, targetCategory) {
-            const category = String(card?.category || '').toLowerCase().replace(/[\s-]+/g, '_');
+            const category = String(card?.category || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
             if (!getCatalogVideoUrl(card)) return false;
-            if (targetCategory === 'video_sample') return category === 'video_sample' || category === 'cardsamplevideo' || category === 'card_sample_video' || category === 'कार्ड_सैंपल_वीडियो';
-            if (targetCategory === 'video_printing') return category === 'video_printing' || category === 'printing_video' || category === 'प्रिंटिंग_वीडियो' || category === 'video';
+            if (targetCategory === 'video_sample') return ['video_sample','cardsamplevideo','card_sample_video','card_sample_video','कार्ड_सैंपल_वीडियो'].includes(category) || category.includes('card_sample') || category.includes('cardsample');
+            if (targetCategory === 'video_printing') return ['video_printing','printing_video','प्रिंटिंग_वीडियो','video','printing_video'].includes(category) || category.includes('printing_video') || category.includes('प्रिंटिंग');
             return false;
         }
 
