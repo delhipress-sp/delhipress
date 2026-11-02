@@ -236,10 +236,30 @@ function getImages(c){
 }
 function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+const DP_DETAIL_CATALOG_CACHE_KEY='dp_detail_catalog_cache_v1';
+const DP_DETAIL_PRODUCT_CACHE_PREFIX='dp_detail_product_v1_';
+const DP_DETAIL_RATINGS_CACHE_KEY='dp_detail_ratings_cache_v1';
+function readIndexCatalogCache(){
+  for(const key of ['dp_index_catalog_cache_v4','dp_index_catalog','dp_index_catalog_cache_v3']){
+    try{const rows=JSON.parse(localStorage.getItem(key)||'null');if(Array.isArray(rows)&&rows.length)return rows;}catch(e){}
+  }
+  try{const rows=JSON.parse(sessionStorage.getItem('dp_index_catalog_cache_v3')||'null');if(Array.isArray(rows)&&rows.length)return rows;}catch(e){}
+  return [];
+}
+function saveDetailCatalogCache(rows){
+  if(!Array.isArray(rows)||!rows.length)return;
+  try{localStorage.setItem(DP_DETAIL_CATALOG_CACHE_KEY,JSON.stringify(rows));}catch(e){}
+}
+function getDetailCatalogCache(){
+  try{const rows=JSON.parse(localStorage.getItem(DP_DETAIL_CATALOG_CACHE_KEY)||'null');if(Array.isArray(rows)&&rows.length)return rows;}catch(e){}
+  const rows=readIndexCatalogCache();if(rows.length)saveDetailCatalogCache(rows);return rows;
+}
+function saveDetailProductCache(row){
+  if(!row||row.id==null)return;
+  try{localStorage.setItem(DP_DETAIL_PRODUCT_CACHE_PREFIX+String(row.id),JSON.stringify(row));}catch(e){}
+}
 async function findProduct(){
-  // The Index page sends the exact selected card before navigation.
-  // Always trust that fresh handoff first; this avoids an old/mismatched URL id
-  // or a slow Supabase request keeping the detail page on the loading screen.
+  // Fast handoff from Index/Admin navigation, then permanent local cache.
   const handoffKeys=['dp_catalog_detail_selected','dp_catalog_detail_fallback','dp_selected_catalog_card'];
   for(const key of handoffKeys){
     const raws=[];
@@ -248,34 +268,36 @@ async function findProduct(){
     for(const raw of raws){
       try{
         const f=JSON.parse(raw);
-        if(!f) continue;
-        if(f._from_index || key==='dp_catalog_detail_selected') return f;
-        if(!activeId || f.id==null || String(f.id)===String(activeId) || String(f.catalog_id??'')===String(activeId)) return f;
+        if(!f)continue;
+        if(f._from_index || key==='dp_catalog_detail_selected' || !activeId || f.id==null || String(f.id)===String(activeId) || String(f.catalog_id??'')===String(activeId)){
+          saveDetailProductCache(f);return f;
+        }
       }catch(e){}
     }
   }
-
-  // Direct URL / refresh fallback: try all supported Supabase tables.
+  // A previously viewed item is served without a Supabase request.
+  if(activeId){
+    try{const cached=JSON.parse(localStorage.getItem(DP_DETAIL_PRODUCT_CACHE_PREFIX+String(activeId))||'null');if(cached)return cached;}catch(e){}
+  }
+  // Reuse the permanent Index catalog cache before attempting network access.
+  let rows=getDetailCatalogCache();
+  if(rows.length){
+    const hit=activeId?rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId)):rows[0];
+    if(hit){saveDetailProductCache(hit);return hit;}
+  }
+  // First-ever/direct visit only: one targeted Supabase lookup, then persist it.
   if(sb&&activeId){
     for(const tbl of ['catalog','cards','cards_catalog']){
       try{
         const query=sb.from(tbl).select('*').eq('id',activeId).limit(1);
         const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3500));
         const {data,error}=await Promise.race([query,timeout]);
-        if(!error&&Array.isArray(data)&&data[0]) return {...data[0],_source_table:tbl};
+        if(!error&&Array.isArray(data)&&data[0]){
+          const found={...data[0],_source_table:tbl};saveDetailProductCache(found);return found;
+        }
       }catch(e){}
     }
   }
-
-  // Cached Index catalog fallback.
-  try{
-    const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
-    const rows=JSON.parse(raw);
-    if(Array.isArray(rows)&&rows.length){
-      const hit=activeId ? rows.find(x=>String(x?.id??x?.catalog_id??'')===String(activeId)) : rows[0];
-      if(hit)return hit;
-    }
-  }catch(e){}
   return null;
 }
 function variantColor(c){
@@ -291,9 +313,12 @@ async function loadVariants(){
  const box=document.getElementById('variantSection'), list=document.getElementById('variantList'); if(!box||!list||!product)return;
  const model=String(product.model??product.code??'').trim(), category=String(product.category??'').trim();
  if(!sb||!model){box.style.display='none';return;}
- let all=[];
- for(const tbl of ['catalog','cards','cards_catalog']){
-   try{const {data,error}=await sb.from(tbl).select('*').limit(300);if(!error&&Array.isArray(data))all.push(...data.map(x=>({...x,_source_table:tbl})))}catch(e){}
+ let all=getDetailCatalogCache();
+ if(!all.length && sb){
+   for(const tbl of ['catalog','cards','cards_catalog']){
+     try{const {data,error}=await sb.from(tbl).select('*').limit(300);if(!error&&Array.isArray(data)){all.push(...data.map(x=>({...x,_source_table:tbl})));if(all.length)break;}}catch(e){}
+   }
+   if(all.length)saveDetailCatalogCache(all);
  }
  const rows=all.filter(x=>{
    const xm=String(x.model??x.code??'').trim(), xc=String(x.category??'').trim();
@@ -318,6 +343,16 @@ async function selectCatalogVariant(index){
 
 async function loadFeedback(){
   feedbackRows=[];
+  const feedbackCacheKey='dp_detail_feedback_v1_'+String(activeId??product?.id??'');
+  try{
+    const cached=JSON.parse(localStorage.getItem(feedbackCacheKey)||'null');
+    if(cached&&Array.isArray(cached.rows)){
+      feedbackRows=cached.rows;
+      const indexAvg=Number(product?._ratingAvg??0),indexCount=Number(product?._ratingCount??0);
+      window.__indexRatingFallback={avg:indexAvg>0?indexAvg:0,count:indexCount>0?indexCount:0};
+      renderRatings();return;
+    }
+  }catch(e){}
 
   // पहले common rating loader चलाएँ।
   try{ await loadAllRatingRows(); }catch(e){}
@@ -435,6 +470,7 @@ async function loadFeedback(){
   }
 
   feedbackRows=[...dedup.values()];
+  try{localStorage.setItem(feedbackCacheKey,JSON.stringify({rows:feedbackRows,cachedAt:Date.now()}));}catch(e){}
   renderRatings();
 }
 function cleanKey(v){return String(v??'').trim().toLowerCase().replace(/\s+/g,' ')}
@@ -451,13 +487,19 @@ function productModel(c){return modelKey(c?.model??c?.code??c?.card_model??c?.mo
 
 async function loadAllRatingRows(){
   if(allRatingRows.length)return allRatingRows;
+  try{
+    const cached=JSON.parse(localStorage.getItem(DP_DETAIL_RATINGS_CACHE_KEY)||'null');
+    if(cached&&Array.isArray(cached.rows)){allRatingRows=cached.rows;return allRatingRows;}
+  }catch(e){}
   const rows=[];const clean=v=>String(v??'').trim().toLowerCase();const modelKey=v=>clean(v).replace(/[^a-z0-9\u0900-\u097f]+/g,'');const titleKey=v=>clean(v).replace(/[^a-z0-9\u0900-\u097f]+/g,' ').replace(/\s+/g,' ').trim();
   try{const local=JSON.parse(localStorage.getItem('dp_catalog_ratings')||'{}');if(local&&typeof local==='object')Object.keys(local).forEach(k=>rows.push({...local[k],catalog_id:k,_source:'local'}))}catch(e){}
   if(sb){try{const {data,error}=await Promise.race([sb.from('catalog_feedback').select('*').order('created_at',{ascending:true}).limit(2000),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);if(!error&&Array.isArray(data))rows.push(...data.map(x=>({...x,_source:'supabase'})))}catch(e){}}
   const orderIds=[...new Set(rows.flatMap(r=>[r?.order_db_id,r?.order_id]).map(v=>String(v??'').trim()).filter(Boolean))];const orderMap={};
   if(sb&&orderIds.length){for(let i=0;i<orderIds.length;i+=100){const ids=orderIds.slice(i,i+100).map(Number).filter(Number.isFinite);if(!ids.length)continue;try{const {data,error}=await sb.from('orders').select('id,card_model,card_title,card_name,product_name,catalog_id,card_id,product_id,model,title').in('id',ids);if(!error&&Array.isArray(data))data.forEach(o=>orderMap[String(o.id)]=o)}catch(e){}}}
-  const catalogRows=[];if(sb){for(const tbl of ['catalog','cards','cards_catalog']){try{const {data,error}=await sb.from(tbl).select('*').limit(1000);if(!error&&Array.isArray(data))catalogRows.push(...data)}catch(e){}}}
-  const seen=new Set();rows.forEach(r=>{const key=String(r?.id??`${r?.order_db_id??r?.order_id??''}|${r?.catalog_id??r?.card_id??r?.product_id??''}|${r?.created_at??''}|${r?.rating??r?.stars??''}|${r?.name??r?.user_name??''}`);if(seen.has(key))return;seen.add(key);const resolved=new Set();[r?.catalog_id,r?.card_id,r?.product_id].forEach(v=>{const x=clean(v);if(x)resolved.add(x)});const o=orderMap[String(r?.order_db_id??r?.order_id??'').trim()];const ot=titleKey(o?.card_title??o?.card_name??o?.product_name??o?.title??r?.card_title??r?.card_name??r?.product_name??'');const om=modelKey(o?.card_model??o?.model??o?.code??r?.model??r?.card_model??r?.code??'');r._order_title=ot;r._order_model=om;if(o)[o.catalog_id,o.card_id,o.product_id].forEach(v=>{const x=clean(v);if(x)resolved.add(x)});if(ot||om){let best=null,score=0;for(const c of catalogRows){const cid=clean(c?.id??c?.catalog_id??c?.card_id??c?.product_id);if(!cid)continue;const ct=titleKey(c?.name??c?.title??c?.card_name??c?.product_name??'');const cm=modelKey(c?.model??c?.code??c?.card_model??c?.model_no??'');let s=0;if(ot&&ct&&(ot===ct||ot.includes(ct)||ct.includes(ot)))s+=100;if(om&&cm&&(om===cm||om.includes(cm)||cm.includes(om)))s+=50;if(s>score){score=s;best=cid}}if(best&&score>=100)resolved.add(best)}r._resolved_catalog_ids=[...resolved];allRatingRows.push(r)});return allRatingRows;
+  const catalogRows=getDetailCatalogCache();if(!catalogRows.length&&sb){for(const tbl of ['catalog','cards','cards_catalog']){try{const {data,error}=await sb.from(tbl).select('*').limit(1000);if(!error&&Array.isArray(data)){catalogRows.push(...data);if(catalogRows.length)break;}}catch(e){}}if(catalogRows.length)saveDetailCatalogCache(catalogRows)}
+  const seen=new Set();rows.forEach(r=>{const key=String(r?.id??`${r?.order_db_id??r?.order_id??''}|${r?.catalog_id??r?.card_id??r?.product_id??''}|${r?.created_at??''}|${r?.rating??r?.stars??''}|${r?.name??r?.user_name??''}`);if(seen.has(key))return;seen.add(key);const resolved=new Set();[r?.catalog_id,r?.card_id,r?.product_id].forEach(v=>{const x=clean(v);if(x)resolved.add(x)});const o=orderMap[String(r?.order_db_id??r?.order_id??'').trim()];const ot=titleKey(o?.card_title??o?.card_name??o?.product_name??o?.title??r?.card_title??r?.card_name??r?.product_name??'');const om=modelKey(o?.card_model??o?.model??o?.code??r?.model??r?.card_model??r?.code??'');r._order_title=ot;r._order_model=om;if(o)[o.catalog_id,o.card_id,o.product_id].forEach(v=>{const x=clean(v);if(x)resolved.add(x)});if(ot||om){let best=null,score=0;for(const c of catalogRows){const cid=clean(c?.id??c?.catalog_id??c?.card_id??c?.product_id);if(!cid)continue;const ct=titleKey(c?.name??c?.title??c?.card_name??c?.product_name??'');const cm=modelKey(c?.model??c?.code??c?.card_model??c?.model_no??'');let s=0;if(ot&&ct&&(ot===ct||ot.includes(ct)||ct.includes(ot)))s+=100;if(om&&cm&&(om===cm||om.includes(cm)||cm.includes(om)))s+=50;if(s>score){score=s;best=cid}}if(best&&score>=100)resolved.add(best)}r._resolved_catalog_ids=[...resolved];allRatingRows.push(r)});
+  try{localStorage.setItem(DP_DETAIL_RATINGS_CACHE_KEY,JSON.stringify({rows:allRatingRows,cachedAt:Date.now()}));}catch(e){}
+  return allRatingRows;
 }
 function reviewImageList(r){
   let v=r?.review_images??r?.images??r?.image_urls??r?.photos??r?.review_image??r?.photo??[];
@@ -803,7 +845,7 @@ function loadRecentlyViewed(){
   // First visit/new browser पर भी section खाली न रहे: Index के दूसरे cards दिखाएँ।
   if(!rows.length){
     try{
-      const raw=localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
+      const raw=localStorage.getItem('dp_index_catalog_cache_v4')||localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]';
       const cached=JSON.parse(raw);
       if(Array.isArray(cached)){
         rows=cached.filter(x=>String(x?.id??x?.catalog_id??'')!==cur).slice(0,8);
@@ -821,7 +863,7 @@ async function loadMoreUpdatedCards(){
   let rows=[];
   // Exact Index catalog first. This is the source for More Products.
   try{
-    const local=JSON.parse(localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]');
+    const local=JSON.parse(localStorage.getItem('dp_index_catalog_cache_v4')||localStorage.getItem('dp_index_catalog')||localStorage.getItem('dp_index_catalog_cache_v3')||sessionStorage.getItem('dp_index_catalog_cache_v3')||'[]');
     if(Array.isArray(local)&&local.length) rows=local;
   }catch(e){}
 
@@ -829,7 +871,7 @@ async function loadMoreUpdatedCards(){
   if(!rows.length){
     for(const tbl of ['catalog','cards','cards_catalog']){
       rows=await fetchTableRows(tbl,100);
-      if(rows.length)break;
+      if(rows.length){saveDetailCatalogCache(rows);break;}
     }
   }
 
@@ -868,7 +910,7 @@ function orderNow(){const data={id:product.id||'',name:product.name||product.tit
 document.querySelectorAll('.star-btn').forEach(b=>b.addEventListener('click',()=>{selectedRating=Number(b.dataset.star);document.querySelectorAll('.star-btn').forEach(x=>x.classList.toggle('selected',Number(x.dataset.star)<=selectedRating))}));
 async function previewFeedbackImages(e){const box=document.getElementById('feedbackImagePreview');if(!box)return;box.innerHTML='';const files=[...(e.target.files||[])].slice(0,5);for(const f of files){if(!f.type.startsWith('image/'))continue;const url=URL.createObjectURL(f);const d=document.createElement('div');d.className='preview-item';d.innerHTML='<img src="'+url+'" alt="preview">';box.appendChild(d);}}
 async function uploadReviewImages(files){const urls=[];if(!sb)return urls;for(const file of [...files].slice(0,5)){if(!file.type.startsWith('image/'))continue;if(file.size>5*1024*1024)continue;const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='reviews/'+String(product?.id||id||'catalog')+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;try{const {error}=await sb.storage.from('review-images').upload(path,file,{upsert:false,contentType:file.type});if(error)continue;const {data}=sb.storage.from('review-images').getPublicUrl(path);if(data?.publicUrl)urls.push(data.publicUrl)}catch(e){}}return urls;}
-async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
+async function submitFeedback(e){e.preventDefault();if(!selectedRating){showToast('कृपया स्टार रेटिंग चुनें।');return}const name=document.getElementById('feedbackName').value.trim()||'ग्राहक';const text=document.getElementById('feedbackText').value.trim();const input=document.getElementById('feedbackImages');const files=input?[...input.files]:[];const imageUrls=await uploadReviewImages(files);const row={catalog_id:product.id,rating:selectedRating,name,feedback:text,review_images:imageUrls,created_at:new Date().toISOString()};let saved=false;if(sb){for(const tbl of ['catalog_feedback','catalog_reviews','reviews','feedback']){try{const {error}=await sb.from(tbl).insert(row);if(!error){saved=true;break}}catch(e){}}}if(!saved){const key='catalog_feedback_'+id;const old=JSON.parse(localStorage.getItem(key)||'[]');old.unshift(row);localStorage.setItem(key,JSON.stringify(old))}document.getElementById('feedbackName').value='';document.getElementById('feedbackText').value='';if(input)input.value='';document.getElementById('feedbackImagePreview').innerHTML='';selectedRating=0;document.querySelectorAll('.star-btn').forEach(x=>x.classList.remove('selected'));try{localStorage.removeItem('dp_detail_feedback_v1_'+String(activeId??product?.id??''));localStorage.removeItem(DP_DETAIL_RATINGS_CACHE_KEY);}catch(e){}allRatingRows=[];await loadFeedback();showToast(saved?(imageUrls.length?'फीडबैक और फोटो सुरक्षित हो गए।':'फीडबैक सुरक्षित हो गया।'):'फीडबैक इस डिवाइस में सुरक्षित हो गया।')}
 (async function(){
   updateCart();
   // Start More Products immediately from the Index cache; it must not depend on the main product query.
