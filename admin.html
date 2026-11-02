@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="cloudflare-catalog-bridge.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -661,9 +660,18 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdmh0ZmtybHpjbG5xd3lwZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNDc3NjMsImV4cCI6MjEwMzgyMzc2M30.HLYUjfCK0w9d6C_-uPMFv-eAe6Cd_YkueSo--iHOUys";
         
         let supabaseClient = null;
+        let supabaseInitError = '';
         try {
-            if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {}
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                supabaseInitError = 'Supabase JS library लोड नहीं हुई। इंटरनेट/CDN कनेक्शन जाँचें।';
+                console.error(supabaseInitError);
+            }
+        } catch (e) {
+            supabaseInitError = e && e.message ? e.message : String(e);
+            console.error('Supabase initialization error:', e);
+        }
 
         let globalOrdersCache = [];
         let customerChartInstance = null;
@@ -1612,7 +1620,14 @@
 
         async function loadCatalogStock() {
             const tbody = document.getElementById('catalogTableBody');
-            if (!tbody || !supabaseClient) return;
+            if (!tbody) {
+                console.error('Catalog table body #catalogTableBody not found');
+                return;
+            }
+            if (!supabaseClient) {
+                tbody.innerHTML = `<tr><td colspan="11" style="color:#b91c1c;font-weight:700;">Supabase कनेक्ट नहीं हुआ: ${String(supabaseInitError || 'Supabase JS/client उपलब्ध नहीं है').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]))}</td></tr>`;
+                return;
+            }
             tbody.innerHTML = '<tr><td colspan="11">कैटलॉग लोड हो रहा है...</td></tr>';
             try {
                 const { data, error } = await supabaseClient
@@ -1621,10 +1636,17 @@
                     .order('id', { ascending: false });
 
                 if (error) {
-                    tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${error.message}</td></tr>`;
+                    console.error('Catalog Supabase query error:', error);
+                    tbody.innerHTML = `<tr><td colspan="11" style="color:#b91c1c;font-weight:700;">Supabase Error (${error.code || 'NO_CODE'}): ${String(error.message || 'Unknown error')}<br><small>${String(error.details || error.hint || '')}</small></td></tr>`;
                     return;
                 }
                 globalCatalogCache = data || [];
+                if (!globalCatalogCache.length) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="color:#92400e;">Supabase से कनेक्शन सफल है, लेकिन catalog टेबल से कोई रिकॉर्ड नहीं मिला। सही Project और Table की जाँच करें।</td></tr>';
+                    const count = document.getElementById('miniCatalogCount');
+                    if (count) count.innerText = '0';
+                    return;
+                }
                 renderCatalogAdminTable(globalCatalogCache);
             } catch (e) {
                 tbody.innerHTML = `<tr><td colspan="11" style="color:red;">त्रुटि: ${e.message}</td></tr>`;
